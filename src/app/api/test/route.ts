@@ -3,21 +3,20 @@ import SteamAPI from 'steamapi';
 
 export const revalidate = 0;
 
-export async function GET(req: Request) {
-  if (req.method === 'GET') {
-
+export async function POST(req: Request) {
+  if (req.method === 'POST') {
     try {
-        console.log('walter', process.env.STEAM_API_KEY);
-        const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
-        steam.resolve('https://steamcommunity.com/id/DimGG').then(id => {
-            console.log('walter', id); // 76561198146931523
-        });
-        
+      const body = await req.json();
 
-        return NextResponse.json(
-            { message: 'Deu certo' },
-            { status: 200 },
-        );
+      const { target } = body;
+
+      const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
+
+      steam.resolve(target).then((id) => {
+        console.log('walter', id);
+      });
+
+      return NextResponse.json({ message: 'Deu certo' }, { status: 200 });
     } catch (error) {
       return NextResponse.json(
         { message: 'Erro interno do servidor ' + (error as Error).message },
