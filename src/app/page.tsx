@@ -21,6 +21,8 @@ type locationDataIWant = {
   probability: number;
 };
 
+type cityNameAndScore = { [key: string]: number };
+
 export default function Home() {
   const targetValue = useRef<string | null>();
   const [closeFriendsJson, setCloseFriendsJson] = useState<
@@ -30,21 +32,23 @@ export default function Home() {
     locationDataIWant[] | undefined
   >();
 
-  const sortCitiesByScore = (listOfCities: any) => {
+  const sortCitiesByScore = (listOfCities: cityNameAndScore) => {
     return Object.entries(listOfCities)
-      .sort((a, b) => b[1] - a[1])
-      .reduce((obj, [key, value]) => {
+      .sort((a, b) => {
+        return b[1] - a[1];
+      })
+      .reduce((obj: cityNameAndScore, [key, value]) => {
         obj[key] = value;
         return obj;
       }, {});
   };
 
-  const getCitiesNames = (citiesScored: any) => {
+  const getCitiesNames = (citiesScored: cityNameAndScore) => {
     return Object.entries(citiesScored).map(([key, value]) => {
       const [countryCode, stateCode, cityID] = key.split('/');
 
       const country = listOfLocation.countries.find(
-        (country: any) => country.code === countryCode,
+        (country) => country.code === countryCode,
       );
       if (!country) throw Error('Country not found');
 
@@ -72,7 +76,7 @@ export default function Home() {
       (f: closeFriendsDataIWant) => f.friend.cityID !== undefined,
     );
 
-    let citiesScored: any = {};
+    let citiesScored: cityNameAndScore = {};
     closeFriendsWithCities.map((f: closeFriendsDataIWant) => {
       const cityKey = `${f.friend.countryCode}/${f.friend.stateCode}/${f.friend.cityID}`;
 
