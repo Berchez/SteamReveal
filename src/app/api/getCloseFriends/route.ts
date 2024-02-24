@@ -43,7 +43,6 @@ const getCloseFriends = async (target: string) => {
   closeFriendsOfTheTarget.sort((a, b) => b.count - a.count);
 
   const twentyClosestFriends = closeFriendsOfTheTarget.slice(0, 20);
-  // const tenClosestFriends = closeFriendsOfTheTarget;
 
   const twentyClosestFriendsWithSummary = await Promise.all(
     twentyClosestFriends.map(async (friend) => {
@@ -72,9 +71,11 @@ export async function POST(req: Request) {
       }
 
       const targetSteamId = await steam.resolve(target);
+      const targetInfo = await steam.getUserSummary(targetSteamId);
       const targetCloseFriends = await getCloseFriends(targetSteamId);
+
       return NextResponse.json(
-        { closeFriends: targetCloseFriends },
+        { closeFriends: targetCloseFriends, targetInfo: targetInfo },
         { status: 200 },
       );
     } catch (error) {

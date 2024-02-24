@@ -30,6 +30,7 @@ const usePage = () => {
   const [possibleLocationJson, setPossibleLocationJson] = useState<
     locationDataIWant[] | undefined
   >();
+  const [targetInfoJson, setTargetInfoJson] = useState<UserSummary>();
 
   const sortCitiesByScore = (listOfCities: cityNameAndScore) => {
     return Object.entries(listOfCities)
@@ -122,7 +123,7 @@ const usePage = () => {
         target: value,
       });
 
-      const { closeFriends } = data;
+      const { closeFriends, targetInfo } = data;
 
       let totalCountOfFriends = 0;
       closeFriends.forEach((f: closeFriendsDataIWant) => {
@@ -150,6 +151,7 @@ const usePage = () => {
       );
 
       setCloseFriendsJson(closeFriendsWithProbability);
+      setTargetInfoJson(targetInfo);
 
       const possibleLocation = getPossibleLocation(closeFriends);
       setPossibleLocationJson(possibleLocation);
@@ -168,6 +170,7 @@ const usePage = () => {
     handleGetInfoClick,
     targetValue,
     possibleLocationJson,
+    targetInfoJson,
   };
 };
 
