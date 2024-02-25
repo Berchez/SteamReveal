@@ -58,6 +58,7 @@ const getCloseFriends = async (target: string) => {
 
 export async function POST(req: Request) {
   if (req.method === 'POST') {
+    console.log('walter Z');
     try {
       const body = await req.json();
 
