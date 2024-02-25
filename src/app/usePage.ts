@@ -119,9 +119,12 @@ const usePage = () => {
     setCloseFriendsJson(undefined);
     setPossibleLocationJson(undefined);
     try {
-      const { data } = await axios.post('/api/getCloseFriends', {
-        target: value,
-      });
+      const { data } = await axios.post(
+        'https://osint-steam.vercel.app' + '/api/getCloseFriends',
+        {
+          target: value,
+        },
+      );
 
       const { closeFriends, targetInfo } = data;
 
