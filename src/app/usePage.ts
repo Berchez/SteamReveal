@@ -1,5 +1,4 @@
 import axios from 'axios';
-import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { UserSummary } from 'steamapi';
 import listOfLocation from '../../location';
@@ -119,12 +118,9 @@ const usePage = () => {
     setCloseFriendsJson(undefined);
     setPossibleLocationJson(undefined);
     try {
-      const { data } = await axios.post(
-        'https://osint-steam.vercel.app' + '/api/getCloseFriends',
-        {
-          target: value,
-        },
-      );
+      const { data } = await axios.post('/api/getCloseFriends', {
+        target: value,
+      });
 
       const { closeFriends, targetInfo } = data;
 

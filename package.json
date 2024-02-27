@@ -5,10 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "npm i steamapi && next start",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/axios": "^0.14.0",
     "axios": "^1.6.7",
     "buffer": "^6.0.3",
     "json": "^11.0.0",

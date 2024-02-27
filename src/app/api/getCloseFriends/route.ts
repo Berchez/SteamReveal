@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+// @ts-ignore
 import SteamAPI from 'steamapi';
 
 export const revalidate = 0;
@@ -58,11 +59,6 @@ const getCloseFriends = async (target: string) => {
 
 export async function POST(req: Request) {
   if (req.method === 'POST') {
-    console.log('walter Z');
-    return NextResponse.json(
-      { closeFriends: [], targetInfo: [] },
-      { status: 200 },
-    );
     try {
       const body = await req.json();
 
@@ -74,12 +70,9 @@ export async function POST(req: Request) {
           { status: 500 },
         );
       }
-      console.log('walter A', target);
       const targetSteamId = await steam.resolve(target);
-      console.log('walter B', targetSteamId);
 
       const targetInfo = await steam.getUserSummary(targetSteamId);
-      console.log('walter C', targetInfo);
       const targetCloseFriends = await getCloseFriends(targetSteamId);
 
       return NextResponse.json(
