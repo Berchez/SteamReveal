@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node_modules/next/dist/bin/next start -p $PORT",
-    "lint": "next lint"
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@types/axios": "^0.14.0",
@@ -14,6 +15,7 @@
     "buffer": "^6.0.3",
     "json": "^11.0.0",
     "next": "14.1.0",
+    "patch-package": "^8.0.0",
     "react": "^18",
     "react-dom": "^18",
     "requests": "^0.3.0",

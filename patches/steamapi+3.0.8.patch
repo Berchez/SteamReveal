@@ -1,0 +1,13 @@
+diff --git a/node_modules/steamapi/dist/src/SteamAPI.js b/node_modules/steamapi/dist/src/SteamAPI.js
+index 1a0b64c..ae2fc12 100644
+--- a/node_modules/steamapi/dist/src/SteamAPI.js
++++ b/node_modules/steamapi/dist/src/SteamAPI.js
+@@ -24,7 +24,7 @@ import UserSummary from './structures/UserSummary.js';
+ const defaultOptions = {
+     language: 'english',
+     currency: 'us',
+-    headers: { 'User-Agent': `SteamAPI/${Package.version} (https://www.npmjs.com/package/${Package.name})` },
++    headers: { 'User-Agent': `SteamAPI/3.0.8 (https://www.npmjs.com/package/steamapi)` },
+     baseAPI: 'https://api.steampowered.com',
+     baseStore: 'https://store.steampowered.com/api',
+     baseActions: 'https://steamcommunity.com/actions',
