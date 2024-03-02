@@ -1,8 +1,16 @@
 diff --git a/node_modules/steamapi/dist/src/SteamAPI.js b/node_modules/steamapi/dist/src/SteamAPI.js
-index 1a0b64c..ae2fc12 100644
+index 1a0b64c..8114eda 100644
 --- a/node_modules/steamapi/dist/src/SteamAPI.js
 +++ b/node_modules/steamapi/dist/src/SteamAPI.js
-@@ -24,7 +24,7 @@ import UserSummary from './structures/UserSummary.js';
+@@ -3,7 +3,6 @@ import querystring from 'node:querystring';
+ // https://stackoverflow.com/a/66726426/7504056
+ import { createRequire } from 'node:module';
+ const require = createRequire(import.meta.url);
+-const Package = require('../../package.json');
+ import { MemoryCacheMap } from './Cache.js';
+ import { fetch, assertApp, assertID } from './utils.js';
+ import UserStats from './structures/UserStats.js';
+@@ -24,7 +23,7 @@ import UserSummary from './structures/UserSummary.js';
  const defaultOptions = {
      language: 'english',
      currency: 'us',
