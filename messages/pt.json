@@ -1,5 +1,9 @@
 {
   "Index": {
-    "friendsIRL": "Amigos no mundo real!"
+    "searchTitle": "Procure por um jogador Steam",
+    "inputSearchPlaceholder": "Procure um jogador (ID do Steam / Link do perfil do Steam / URL personalizado do Steam)",
+    "friendsIRL": "Amigos na vida real",
+    "userPossibleLocation": "Possível localização do usuário",
+    "userInfo": "Informaçãoes do usuário"
   }
 }

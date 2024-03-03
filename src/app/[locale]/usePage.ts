@@ -114,7 +114,10 @@ const usePage = () => {
     return withProbability;
   };
 
-  const handleGetInfoClick = async (value: string) => {
+  const handleGetInfoClick = async (value: string, key: string) => {
+    if (key !== 'Enter') {
+      return;
+    }
     setCloseFriendsJson(undefined);
     setPossibleLocationJson(undefined);
     try {

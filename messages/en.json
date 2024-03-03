@@ -1,5 +1,9 @@
 {
   "Index": {
+    "searchTitle": "Search a Steam player",
+    "inputSearchPlaceholder": "Search for a player (Steam ID / Steam Profile Link / Custom Steam URL)",
+    "userInfo": "User info",
+    "userPossibleLocation": "User possible location",
     "friendsIRL": "Friends IRL"
   }
 }
