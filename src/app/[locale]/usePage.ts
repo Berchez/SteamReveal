@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useRef, useState } from 'react';
 import { UserSummary } from 'steamapi';
-import listOfLocation from '../../location';
+import listOfLocation from '../../../location';
 
 type closeFriendsDataIWant = {
   friend: UserSummary;
