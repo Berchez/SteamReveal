@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { UserSummary } from 'steamapi';
 import listOfLocation from '../../../location';
 
-type closeFriendsDataIWant = {
+export type closeFriendsDataIWant = {
   friend: UserSummary;
   count: number;
   probability?: number;
@@ -111,21 +111,32 @@ const usePage = () => {
       };
     });
 
+    setPossibleLocationJson(withProbability);
+
     return withProbability;
   };
 
-  const handleGetInfoClick = async (value: string, key: string) => {
-    if (key !== 'Enter') {
-      return;
+  const getUserInfoJson = async (value: string) => {
+    try {
+      const { data } = await axios.post('/api/getUserInfo', {
+        target: value,
+      });
+
+      const { targetInfo } = data;
+
+      setTargetInfoJson(targetInfo);
+    } catch (e) {
+      console.error(e);
     }
-    setCloseFriendsJson(undefined);
-    setPossibleLocationJson(undefined);
+  };
+
+  const getCloseFriendsJson = async (value: string) => {
     try {
       const { data } = await axios.post('/api/getCloseFriends', {
         target: value,
       });
 
-      const { closeFriends, targetInfo } = data;
+      const { closeFriends } = data;
 
       let totalCountOfFriends = 0;
       closeFriends.forEach((f: closeFriendsDataIWant) => {
@@ -153,13 +164,29 @@ const usePage = () => {
       );
 
       setCloseFriendsJson(closeFriendsWithProbability);
-      setTargetInfoJson(targetInfo);
 
-      const possibleLocation = getPossibleLocation(closeFriends);
-      setPossibleLocationJson(possibleLocation);
+      return closeFriendsWithProbability;
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const resetJsons = () => {
+    setCloseFriendsJson(undefined);
+    setPossibleLocationJson(undefined);
+    setTargetInfoJson(undefined);
+  };
+
+  const handleGetInfoClick = async (value: string, key: string) => {
+    if (key !== 'Enter') {
+      return;
+    }
+
+    resetJsons();
+
+    getUserInfoJson(value);
+    const closeFriends = await getCloseFriendsJson(value);
+    getPossibleLocation(closeFriends);
   };
 
   const onChangeTarget = (value: string) => {

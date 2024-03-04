@@ -72,11 +72,10 @@ export async function POST(req: Request) {
       }
       const targetSteamId = await steam.resolve(target);
 
-      const targetInfo = await steam.getUserSummary(targetSteamId);
       const targetCloseFriends = await getCloseFriends(targetSteamId);
 
       return NextResponse.json(
-        { closeFriends: targetCloseFriends, targetInfo: targetInfo },
+        { closeFriends: targetCloseFriends },
         { status: 200 },
       );
     } catch (error) {

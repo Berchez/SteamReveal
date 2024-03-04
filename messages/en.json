@@ -1,4 +1,14 @@
 {
+  "Default": {
+    "websiteDescription": "OSINT Steam is a comprehensive intelligence platform tailored for the gaming community. Our platform offers a suite of tools and features designed to help gamers collect, analyze, and leverage intelligence from diverse sources across the web, all in one convenient location."
+  },
+  "UserCard": {
+    "nickname": "Nickname",
+    "realName": "Real name",
+    "probability": "Probability",
+    "url": "Url",
+    "reliability": "Realiability"
+  },
   "Index": {
     "searchTitle": "Search a Steam player",
     "inputSearchPlaceholder": "Search for a player (Steam ID / Steam Profile Link / Custom Steam URL)",
