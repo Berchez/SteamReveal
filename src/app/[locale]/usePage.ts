@@ -138,27 +138,42 @@ const usePage = () => {
 
       const { closeFriends } = data;
 
-      let totalCountOfFriends = 0;
-      closeFriends.forEach((f: closeFriendsDataIWant) => {
-        totalCountOfFriends += f.count;
-      });
+      let totalCountOf5ClosestFriends = 0;
+      for (let i = 0; i < 5; i++) {
+        totalCountOf5ClosestFriends += closeFriends[i].count;
+      }
 
-      const rasoableNumberToBeAGoodGuess = 20;
+      const meanOf5ClosestFriendsCount = totalCountOf5ClosestFriends / 5;
+
+      const biggestCountValue = closeFriends[0].count;
+      const rasoableNumberToBeAGoodGuess = 50;
 
       const closeFriendsWithProbability = closeFriends.map(
         (f: closeFriendsDataIWant) => {
-          const probability =
-            ((f.count / totalCountOfFriends +
-              (f.count > rasoableNumberToBeAGoodGuess
-                ? 1
-                : f.count / rasoableNumberToBeAGoodGuess)) /
-              2) *
-            100;
+          const meanProbabilityMethod =
+            f.count / (meanOf5ClosestFriendsCount * 1.5) > 1
+              ? 1
+              : f.count / (meanOf5ClosestFriendsCount * 1.5);
+
+          const biggestCountMethod = f.count / biggestCountValue;
+
+          const constantMethod =
+            f.count / rasoableNumberToBeAGoodGuess > 1
+              ? 1
+              : f.count / rasoableNumberToBeAGoodGuess;
+
+          const probabilityFloat =
+            (meanProbabilityMethod * 2 +
+              biggestCountMethod * 2 +
+              constantMethod) /
+            5;
+
+          const probabilityPercentage = probabilityFloat * 100;
 
           return {
             friend: f.friend,
             count: f.count,
-            probability,
+            probability: probabilityPercentage,
           };
         },
       );
