@@ -69,14 +69,14 @@ export default function Home() {
                 </h1>
                 {possibleLocationJson.map((l) => (
                   <div
-                    className="mt-8 bg-white text-slate-800 p-4 rounded-md shadow-sm"
+                    className="mt-8 text-white p-4 bg-purple-900 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-20 border border-gray-100/50"
                     key={`${l.location.countryName}/${l.location.stateName}/${l.location.cityName}`}
                   >
                     <p className="font-semibold">city: {l.location.cityName}</p>
-                    <p>state: {l.location.stateName}</p>
-                    <p>country: {l.location.countryName}</p>
-                    <p>probability: {l.probability.toFixed(2)}%</p>
-                    <p>count: {l.count}</p>
+                    <p>Estado: {l.location.stateName}</p>
+                    <p>País: {l.location.countryName}</p>
+                    <p>Probabilidade: {l.probability.toFixed(2)}%</p>
+                    <p>Confiabilidade: {l.count}</p>
                   </div>
                 ))}
               </>
