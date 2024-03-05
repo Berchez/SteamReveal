@@ -22,7 +22,7 @@ export default function Home() {
         loop
         autoPlay
         muted
-        className="object-cover w-screen h-screen fixed top-0 left-0 z-0"
+        className="object-cover w-screen h-screen fixed top-0 left-0 z-0 brightness-90"
       />
 
       <div className="flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover p-12 text-white absolute z-10">
@@ -38,7 +38,9 @@ export default function Home() {
           />
         </div>
 
-        {targetInfoJson && <UserCard friend={targetInfoJson} />}
+        {targetInfoJson && (
+          <UserCard friend={targetInfoJson} itsTargetUser={true} />
+        )}
 
         <div className="flex flex-col md:flex-row gap-16 my-8">
           <div className="w-full md:w-1/2">
@@ -52,6 +54,8 @@ export default function Home() {
                     friend={f.friend}
                     count={f.count}
                     probability={f.probability}
+                    itsTargetUser={false}
+                    key={f.friend.steamID}
                   />
                 ))}
               </>
