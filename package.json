@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@types/axios": "^0.14.0",
+    "@vercel/analytics": "^1.2.2",
     "axios": "^1.6.7",
     "buffer": "^6.0.3",
     "json": "^11.0.0",
