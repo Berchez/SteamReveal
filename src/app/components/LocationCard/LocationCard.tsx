@@ -22,8 +22,8 @@ const LocationCard = ({
 
   return (
     <div className={`mt-8 text-white py-4 px-8 ${glassmorphism}`}>
-      {providedLocation.countryCode && (
-        <div className="flex gap-x-5">
+      {providedLocation.stateName && (
+        <div className="flex gap-x-5 mb-3 font-semibold text-lg ">
           {translator('providedByUser')}
           <div className="flex items-center gap-x-2">
             <img
