@@ -1,4 +1,5 @@
 'use client';
+import LocationCard from '../components/LocationCard/LocationCard';
 import UserCard from '../components/UserCard';
 import usePage from './usePage';
 import { useTranslations } from 'next-intl';
@@ -39,11 +40,29 @@ export default function Home() {
         </div>
 
         {targetInfoJson && (
-          <UserCard friend={targetInfoJson} itsTargetUser={true} />
+          <UserCard friend={targetInfoJson.profileInfo} itsTargetUser={true} />
         )}
 
-        <div className="flex flex-col md:flex-row gap-16 my-8">
-          <div className="w-full md:w-1/2">
+        <div className="flex flex-col gap-16 my-8">
+          {possibleLocationJson && (
+            <div>
+              <h1 className="text-2xl font-bold text-gray-100">
+                {translator('userPossibleLocation')}
+              </h1>
+              <LocationCard
+                possibleLocations={possibleLocationJson}
+                providedLocation={{
+                  cityName: targetInfoJson?.targetLocationInfo?.city?.name,
+                  stateName: targetInfoJson?.targetLocationInfo?.state?.name,
+                  countryName:
+                    targetInfoJson?.targetLocationInfo?.country?.name,
+                  countryCode:
+                    targetInfoJson?.targetLocationInfo?.country?.code,
+                }}
+              />
+            </div>
+          )}
+          <div className="w-full">
             {closeFriendsJson && (
               <>
                 <h1 className="text-2xl font-bold text-gray-100">
@@ -57,27 +76,6 @@ export default function Home() {
                     itsTargetUser={false}
                     key={f.friend.steamID}
                   />
-                ))}
-              </>
-            )}
-          </div>
-          <div className="w-full md:w-1/2">
-            {possibleLocationJson && (
-              <>
-                <h1 className="text-2xl font-bold text-gray-100">
-                  {translator('userPossibleLocation')}
-                </h1>
-                {possibleLocationJson.map((l) => (
-                  <div
-                    className="mt-8 text-white p-4 bg-purple-900 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-20 border border-gray-100/50"
-                    key={`${l.location.countryName}/${l.location.stateName}/${l.location.cityName}`}
-                  >
-                    <p className="font-semibold">city: {l.location.cityName}</p>
-                    <p>Estado: {l.location.stateName}</p>
-                    <p>País: {l.location.countryName}</p>
-                    <p>Probabilidade: {l.probability.toFixed(2)}%</p>
-                    <p>Confiabilidade: {l.count}</p>
-                  </div>
                 ))}
               </>
             )}

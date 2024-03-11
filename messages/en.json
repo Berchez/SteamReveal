@@ -9,6 +9,9 @@
     "url": "Url",
     "reliability": "Realiability"
   },
+  "LocationCard": {
+    "providedByUser": "Provided by user:"
+  },
   "Index": {
     "searchTitle": "Search a Steam player",
     "inputSearchPlaceholder": "Search for a player (Steam ID / Steam Profile Link / Custom Steam URL)",

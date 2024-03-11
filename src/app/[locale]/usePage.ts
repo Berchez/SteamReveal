@@ -9,11 +9,12 @@ export type closeFriendsDataIWant = {
   probability?: number;
 };
 
-type locationDataIWant = {
+export type locationDataIWant = {
   location: {
-    cityName: string;
-    stateName: string;
-    countryName: string;
+    cityName?: string;
+    stateName?: string;
+    countryName?: string;
+    countryCode?: string;
   };
   count: number;
   probability: number;
@@ -23,13 +24,23 @@ type cityNameAndScore = { [key: string]: number };
 
 const usePage = () => {
   const targetValue = useRef<string | null>();
+
   const [closeFriendsJson, setCloseFriendsJson] = useState<
     closeFriendsDataIWant[] | undefined
   >();
+
   const [possibleLocationJson, setPossibleLocationJson] = useState<
     locationDataIWant[] | undefined
   >();
-  const [targetInfoJson, setTargetInfoJson] = useState<UserSummary>();
+
+  const [targetInfoJson, setTargetInfoJson] = useState<
+    | {
+        profileInfo: UserSummary;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        targetLocationInfo: any;
+      }
+    | undefined
+  >();
 
   const sortCitiesByScore = (listOfCities: cityNameAndScore) => {
     return Object.entries(listOfCities)
@@ -42,26 +53,40 @@ const usePage = () => {
       }, {});
   };
 
+  const getLocationDetails = (
+    countryCode?: string,
+    stateCode?: string,
+    cityID?: string,
+  ) => {
+    const country = listOfLocation.countries.find(
+      (country) => country.code === countryCode,
+    );
+
+    const state = country?.states?.find((state) => state.code === stateCode);
+
+    const city = state?.cities?.find(
+      (city) => cityID && city.id === parseInt(cityID),
+    );
+
+    return { country, state, city };
+  };
+
   const getCitiesNames = (citiesScored: cityNameAndScore) => {
     return Object.entries(citiesScored).map(([key, value]) => {
       const [countryCode, stateCode, cityID] = key.split('/');
 
-      const country = listOfLocation.countries.find(
-        (country) => country.code === countryCode,
+      const { city, state, country } = getLocationDetails(
+        countryCode,
+        stateCode,
+        cityID,
       );
-      if (!country) throw Error('Country not found');
-
-      const state = country?.states?.find((state) => state.code === stateCode);
-      if (!state) throw Error('State not found');
-
-      const city = state?.cities?.find((city) => city.id === parseInt(cityID));
-      if (!city) throw Error('City not found');
 
       return {
         location: {
-          cityName: city.name,
-          stateName: state.name,
-          countryName: country.name,
+          cityName: city?.name,
+          stateName: state?.name,
+          countryName: country?.name,
+          countryCode: country?.code,
         },
         count: value as number,
       };
@@ -124,7 +149,16 @@ const usePage = () => {
 
       const { targetInfo } = data;
 
-      setTargetInfoJson(targetInfo);
+      const locationInfo = getLocationDetails(
+        targetInfo.countryCode,
+        targetInfo.stateCode,
+        targetInfo.cityID,
+      );
+
+      setTargetInfoJson({
+        profileInfo: targetInfo,
+        targetLocationInfo: locationInfo,
+      });
     } catch (e) {
       console.error(e);
     }
@@ -215,6 +249,7 @@ const usePage = () => {
     targetValue,
     possibleLocationJson,
     targetInfoJson,
+    getLocationDetails,
   };
 };
 

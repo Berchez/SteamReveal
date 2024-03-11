@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 import { UserSummary } from 'steamapi';
-import listOfLocation from '../../../../location';
+import usePage from '@/app/[locale]/usePage';
 
 const UserCard = ({
   friend,
@@ -14,18 +14,16 @@ const UserCard = ({
   probability?: number;
   itsTargetUser: boolean;
 }) => {
+  const { countryCode, stateCode, cityID } = friend;
+
   const translator = useTranslations('UserCard');
 
-  const country = listOfLocation.countries.find(
-    (country) => country.code === friend.countryCode,
-  );
+  const { getLocationDetails } = usePage();
 
-  const state = country?.states?.find(
-    (state) => state.code === friend.stateCode,
-  );
-
-  const city = state?.cities?.find(
-    (city) => friend.cityID && city.id === parseInt(friend.cityID),
+  const { country, state, city } = getLocationDetails(
+    countryCode,
+    stateCode,
+    cityID,
   );
 
   const glassmorphism =
