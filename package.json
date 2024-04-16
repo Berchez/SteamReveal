@@ -19,6 +19,7 @@
     "next-intl": "^3.9.1",
     "react": "^18",
     "react-dom": "^18",
+    "react-toastify": "^10.0.5",
     "steamapi": "^3.0.8",
     "threading": "^0.0.2"
   },

@@ -1,10 +1,8 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { Analytics } from '@vercel/analytics/react';
-
-const inter = Inter({ subsets: ['latin'] });
+import ToastProvider from '@/toast.provider';
 
 export const metadata: Metadata = {
   title: 'OSINT Steam',
@@ -27,7 +25,7 @@ export default function RootLayout({
     <html lang={locale}>
       <body>
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <ToastProvider>{children}</ToastProvider>
         </NextIntlClientProvider>
         <Analytics />
       </body>

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-// @ts-ignore
 import SteamAPI from 'steamapi';
 
 export const revalidate = 0;
@@ -13,13 +12,15 @@ type UserFriend = {
 const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
 
 const getFriendsOfFriends = async (friendList: Array<UserFriend>) => {
-  let friendsOfFriends: Array<UserFriend> = [];
+  const friendsOfFriends: Array<UserFriend> = [];
   await Promise.all(
     friendList.map(async (friend: UserFriend) => {
       try {
         const list = await steam.getUserFriends(friend.steamID);
         friendsOfFriends.push(...list);
-      } catch (error) {}
+      } catch (error) {
+        console.log('');
+      }
     }),
   );
 
@@ -28,18 +29,21 @@ const getFriendsOfFriends = async (friendList: Array<UserFriend>) => {
 
 const getCloseFriends = async (target: string) => {
   const friendsOfTheTarget = await steam.getUserFriends(target);
+
   const friedsOfFriendsOfTheTarget = await getFriendsOfFriends(
     friendsOfTheTarget,
   );
 
-  let closeFriendsOfTheTarget = friendsOfTheTarget.map((friend: UserFriend) => {
-    return {
-      steamID: friend.steamID,
-      count: friedsOfFriendsOfTheTarget.filter(
-        (f: UserFriend) => f.steamID === friend.steamID,
-      ).length,
-    };
-  });
+  const closeFriendsOfTheTarget = friendsOfTheTarget.map(
+    (friend: UserFriend) => {
+      return {
+        steamID: friend.steamID,
+        count: friedsOfFriendsOfTheTarget.filter(
+          (f: UserFriend) => f.steamID === friend.steamID,
+        ).length,
+      };
+    },
+  );
 
   closeFriendsOfTheTarget.sort((a, b) => b.count - a.count);
 
@@ -71,7 +75,6 @@ export async function POST(req: Request) {
         );
       }
       const targetSteamId = await steam.resolve(target);
-
       const targetCloseFriends = await getCloseFriends(targetSteamId);
 
       return NextResponse.json(
@@ -80,7 +83,11 @@ export async function POST(req: Request) {
       );
     } catch (error) {
       return NextResponse.json(
-        { message: 'Erro interno do servidor ' + (error as Error).message },
+        {
+          message:
+            'deu erro foi mal Erro interno do servidor ' +
+            (error as Error).message,
+        },
         { status: 500 },
       );
     }

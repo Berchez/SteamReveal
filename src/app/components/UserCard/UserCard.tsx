@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 import { UserSummary } from 'steamapi';
-import usePage from '@/app/[locale]/usePage';
+import { usePage } from '@/app/[locale]/usePage';
 
 const UserCard = ({
   friend,

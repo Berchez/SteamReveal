@@ -12,6 +12,9 @@
   "LocationCard": {
     "providedByUser": "Fornecido pelo usuário:"
   },
+  "ServerMessages": {
+    "friendsNotPublic": "A lista de amigos de usuário não é pública"
+  },
   "Index": {
     "searchTitle": "Procure por um jogador Steam",
     "inputSearchPlaceholder": "Procure um jogador (ID do Steam / Link do perfil do Steam / URL personalizado do Steam)",

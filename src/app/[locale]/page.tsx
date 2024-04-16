@@ -1,7 +1,7 @@
 'use client';
 import LocationCard from '../components/LocationCard/LocationCard';
 import UserCard from '../components/UserCard';
-import usePage from './usePage';
+import { usePage } from './usePage';
 import { useTranslations } from 'next-intl';
 
 export default function Home() {

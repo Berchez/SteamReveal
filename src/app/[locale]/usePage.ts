@@ -2,6 +2,8 @@ import axios from 'axios';
 import { useRef, useState } from 'react';
 import { UserSummary } from 'steamapi';
 import listOfLocation from '../../../location';
+import { toast } from 'react-toastify';
+import { useTranslations } from 'next-intl';
 
 export type closeFriendsDataIWant = {
   friend: UserSummary;
@@ -22,8 +24,9 @@ export type locationDataIWant = {
 
 type cityNameAndScore = { [key: string]: number };
 
-const usePage = () => {
+export const usePage = () => {
   const targetValue = useRef<string | null>();
+  const translator = useTranslations('ServerMessages');
 
   const [closeFriendsJson, setCloseFriendsJson] = useState<
     closeFriendsDataIWant[] | undefined
@@ -232,10 +235,13 @@ const usePage = () => {
     }
 
     resetJsons();
-
-    getUserInfoJson(value);
-    const closeFriends = await getCloseFriendsJson(value);
-    getPossibleLocation(closeFriends);
+    try {
+      getUserInfoJson(value);
+      const closeFriends = await getCloseFriendsJson(value);
+      getPossibleLocation(closeFriends);
+    } catch {
+      toast.warn(translator('friendsNotPublic'));
+    }
   };
 
   const onChangeTarget = (value: string) => {
@@ -252,5 +258,3 @@ const usePage = () => {
     getLocationDetails,
   };
 };
-
-export default usePage;

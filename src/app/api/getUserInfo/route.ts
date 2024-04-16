@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-// @ts-ignore
 import SteamAPI from 'steamapi';
 
 export const revalidate = 0;
