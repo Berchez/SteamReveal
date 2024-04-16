@@ -28,7 +28,14 @@ const getFriendsOfFriends = async (friendList: Array<UserFriend>) => {
 };
 
 const getCloseFriends = async (target: string) => {
-  const friendsOfTheTarget = await steam.getUserFriends(target);
+  let friendsOfTheTarget: UserFriend[];
+  try {
+    friendsOfTheTarget = await steam.getUserFriends(target);
+  } catch {
+    throw new Error(
+      'eGettingFriends: Error getting friends of target: ' + target,
+    );
+  }
 
   const friedsOfFriendsOfTheTarget = await getFriendsOfFriends(
     friendsOfTheTarget,
@@ -84,9 +91,7 @@ export async function POST(req: Request) {
     } catch (error) {
       return NextResponse.json(
         {
-          message:
-            'deu erro foi mal Erro interno do servidor ' +
-            (error as Error).message,
+          message: 'Error interno do servidor ' + (error as Error).message,
         },
         { status: 500 },
       );

@@ -13,7 +13,8 @@
     "providedByUser": "Fornecido pelo usuário:"
   },
   "ServerMessages": {
-    "friendsNotPublic": "A lista de amigos de usuário não é pública"
+    "friendsNotPublic": "A lista de amigos deste jogador não é pública",
+    "invalidPlayer": "Está não é uma válida (ID do Steam / Link do perfil do Steam / URL personalizado do Steam)"
   },
   "Index": {
     "searchTitle": "Procure por um jogador Steam",

@@ -163,17 +163,20 @@ export const usePage = () => {
         targetLocationInfo: locationInfo,
       });
     } catch (e) {
+      toast.warn(translator('invalidPlayer'));
       console.error(e);
     }
   };
 
   const getCloseFriendsJson = async (value: string) => {
     try {
-      const { data } = await axios.post('/api/getCloseFriends', {
+      const response = await axios.post('/api/getCloseFriends', {
         target: value,
       });
 
-      const { closeFriends } = data;
+      const {
+        data: { closeFriends },
+      } = response;
 
       let totalCountOf5ClosestFriends = 0;
       for (let i = 0; i < 5; i++) {
@@ -219,6 +222,8 @@ export const usePage = () => {
 
       return closeFriendsWithProbability;
     } catch (e) {
+      toast.warn(translator('friendsNotPublic'));
+      console.log('walter vtnc');
       console.error(e);
     }
   };
@@ -234,14 +239,16 @@ export const usePage = () => {
       return;
     }
 
+    console.log('walter oi');
+
     resetJsons();
-    try {
-      getUserInfoJson(value);
-      const closeFriends = await getCloseFriendsJson(value);
-      getPossibleLocation(closeFriends);
-    } catch {
-      toast.warn(translator('friendsNotPublic'));
-    }
+    console.log('walter oi2');
+
+    getUserInfoJson(value);
+    console.log('walter oi3');
+    const closeFriends = await getCloseFriendsJson(value);
+    console.log('walter oi4');
+    getPossibleLocation(closeFriends);
   };
 
   const onChangeTarget = (value: string) => {
