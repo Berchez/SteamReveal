@@ -28,9 +28,11 @@ export default function Home() {
 
       <div className="flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover p-12 text-white absolute z-10">
         <div className="flex flex-col h-full w-full items-center justify-center gap-y-8">
-          <h1 className="text-3xl font-bold">{translator('searchTitle')}</h1>
+          <h1 className="text-3xl font-bold text-center">
+            {translator('searchTitle')}
+          </h1>
           <input
-            className="w-full md:w-[75%] h-12 px-4 text-sm text-center text-white bg-gray-800/75 border border-gray-500 rounded-full focus:text-base  focus:border-blue-500 "
+            className="w-full md:w-[75%] h-12 px-4 md:text-sm text-xs text-center text-white bg-gray-800/75 border border-gray-500 rounded-full md:focus:focus:text-base focus:text-sm   focus:border-blue-500 "
             onChange={({ target }) => onChangeTarget(target.value)}
             placeholder={translator('inputSearchPlaceholder')}
             onKeyDown={(e) =>

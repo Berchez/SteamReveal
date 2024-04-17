@@ -45,7 +45,7 @@ const LocationCard = ({
           return (
             <div
               key={`${l.location.countryName}/${l.location.stateName}/${l.location.cityName}`}
-              className="flex items-center justify-between"
+              className="flex md:items-center md:justify-between md:flex-row flex-col gap-y-4"
             >
               <div className="flex items-center gap-x-2">
                 {countryCode && (
@@ -54,9 +54,9 @@ const LocationCard = ({
                     className="w-max h-max"
                   />
                 )}
-                {cityName && <p>{cityName},</p>}
-                {stateName && <p>{stateName},</p>}
-                {countryName && <p>{countryName}</p>}
+                {cityName && `${cityName}, `}
+                {stateName && `${stateName}, `}
+                {countryName && `${countryName}`}
               </div>
               <div className="flex gap-x-1">
                 {l.probability.toFixed(2)}%

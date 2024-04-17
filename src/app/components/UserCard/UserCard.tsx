@@ -31,7 +31,7 @@ const UserCard = ({
 
   return (
     <div
-      className={`mt-8 gap-x-4 flex text-white p-4 ${
+      className={`mt-8 gap-4 flex md:flex-row flex-col items-center justify-center text-white p-4 ${
         itsTargetUser
           ? 'text-lg md:w-[90%] w-full self-center'
           : 'text-base w-full'
@@ -46,7 +46,11 @@ const UserCard = ({
           />
         </div>
       )}
-      <div className={`flex flex-col ${itsTargetUser && 'gap-y-2'}`}>
+      <div
+        className={`flex flex-col w-full break-words ${
+          itsTargetUser && 'gap-y-2'
+        }`}
+      >
         {friend.nickname && (
           <p className="font-semibold">
             {translator('nickname')}: {friend.nickname}
@@ -59,21 +63,21 @@ const UserCard = ({
         )}
         <div className="flex gap-x-2 items-center">
           {friend.countryCode && (
-            <>
+            <div className="flex items-center gap-x-1">
               <img
                 src={`https://flagcdn.com/${
                   itsTargetUser ? 'w40' : 'w20'
                 }/${friend.countryCode.toLowerCase()}.png`}
                 className="w-max h-max"
               />
-              {city && <p>{city.name},</p>}
-              {state && <p>{state.name},</p>}
-              {country && <p>{country.name}</p>}
-            </>
+              {city && `${city.name}, `}
+              {state && `${state.name}, `}
+              {country && `${country.name}`}
+            </div>
           )}
         </div>
         {probability && (
-          <p>
+          <p className="">
             {translator('probability')}: {probability?.toFixed(2)}%
           </p>
         )}
