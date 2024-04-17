@@ -165,6 +165,7 @@ export const usePage = () => {
     } catch (e) {
       toast.warn(translator('invalidPlayer'));
       console.error(e);
+      throw e;
     }
   };
 
@@ -223,8 +224,8 @@ export const usePage = () => {
       return closeFriendsWithProbability;
     } catch (e) {
       toast.warn(translator('friendsNotPublic'));
-      console.log('walter vtnc');
       console.error(e);
+      throw e;
     }
   };
 
@@ -239,15 +240,10 @@ export const usePage = () => {
       return;
     }
 
-    console.log('walter oi');
-
     resetJsons();
-    console.log('walter oi2');
 
-    getUserInfoJson(value);
-    console.log('walter oi3');
+    await getUserInfoJson(value);
     const closeFriends = await getCloseFriendsJson(value);
-    console.log('walter oi4');
     getPossibleLocation(closeFriends);
   };
 
