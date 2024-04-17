@@ -64,7 +64,7 @@ export default function Home() {
               />
             </div>
           )}
-          <div className="w-full">
+          <div className="w-full mb-8">
             {closeFriendsJson && (
               <>
                 <h1 className="text-2xl font-bold text-gray-100">

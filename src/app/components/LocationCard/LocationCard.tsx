@@ -45,7 +45,7 @@ const LocationCard = ({
           return (
             <div
               key={`${l.location.countryName}/${l.location.stateName}/${l.location.cityName}`}
-              className="flex md:items-center md:justify-between md:flex-row flex-col gap-y-4"
+              className="flex md:items-center md:justify-between md:flex-row flex-col mb-2"
             >
               <div className="flex items-center gap-x-2">
                 {countryCode && (
