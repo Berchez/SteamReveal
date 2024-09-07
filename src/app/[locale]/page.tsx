@@ -1,6 +1,8 @@
 'use client';
 import LocationCard from '../components/LocationCard/LocationCard';
+import LocationCardSkeleton from '../components/LocationCard/LocationCardSkeleton';
 import UserCard from '../components/UserCard';
+import UserCardSkeleton from '../components/UserCard/UserCardSkeleton';
 import { usePage } from './usePage';
 import { useTranslations } from 'next-intl';
 
@@ -12,6 +14,7 @@ export default function Home() {
     targetValue,
     possibleLocationJson,
     targetInfoJson,
+    isLoading,
   } = usePage();
 
   const translator = useTranslations('Index');
@@ -39,38 +42,44 @@ export default function Home() {
               handleGetInfoClick(targetValue.current ?? '', e.key)
             }
           />
+          {targetInfoJson ? (
+            <UserCard friend={targetInfoJson.profileInfo} itsTargetUser />
+          ) : (
+            isLoading.myCard && <UserCardSkeleton itsTargetUser />
+          )}
         </div>
 
-        {targetInfoJson && (
-          <UserCard friend={targetInfoJson.profileInfo} itsTargetUser={true} />
-        )}
-
         <div className="flex flex-col gap-16 my-8">
-          {possibleLocationJson && (
+          {(possibleLocationJson || isLoading.friendsCards) && (
             <div>
               <h1 className="text-2xl font-bold text-gray-100">
                 {translator('userPossibleLocation')}
               </h1>
-              <LocationCard
-                possibleLocations={possibleLocationJson}
-                providedLocation={{
-                  cityName: targetInfoJson?.targetLocationInfo?.city?.name,
-                  stateName: targetInfoJson?.targetLocationInfo?.state?.name,
-                  countryName:
-                    targetInfoJson?.targetLocationInfo?.country?.name,
-                  countryCode:
-                    targetInfoJson?.targetLocationInfo?.country?.code,
-                }}
-              />
+              {possibleLocationJson ? (
+                <LocationCard
+                  possibleLocations={possibleLocationJson}
+                  providedLocation={{
+                    cityName: targetInfoJson?.targetLocationInfo?.city?.name,
+                    stateName: targetInfoJson?.targetLocationInfo?.state?.name,
+                    countryName:
+                      targetInfoJson?.targetLocationInfo?.country?.name,
+                    countryCode:
+                      targetInfoJson?.targetLocationInfo?.country?.code,
+                  }}
+                />
+              ) : (
+                <LocationCardSkeleton />
+              )}
             </div>
           )}
           <div className="w-full mb-8">
-            {closeFriendsJson && (
-              <>
-                <h1 className="text-2xl font-bold text-gray-100">
-                  {translator('friendsIRL')}
-                </h1>
-                {closeFriendsJson.map((f) => (
+            {(closeFriendsJson || isLoading.friendsCards) && (
+              <h1 className="text-2xl font-bold text-gray-100">
+                {translator('friendsIRL')}
+              </h1>
+            )}
+            {closeFriendsJson
+              ? closeFriendsJson.map((f) => (
                   <UserCard
                     friend={f.friend}
                     count={f.count}
@@ -78,9 +87,11 @@ export default function Home() {
                     itsTargetUser={false}
                     key={f.friend.steamID}
                   />
+                ))
+              : isLoading.friendsCards &&
+                Array.from({ length: 5 }).map((_, index) => (
+                  <UserCardSkeleton key={index} itsTargetUser={false} />
                 ))}
-              </>
-            )}
           </div>
         </div>
       </div>
