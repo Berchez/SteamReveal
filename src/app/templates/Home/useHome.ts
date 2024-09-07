@@ -1,30 +1,33 @@
 import axios from 'axios';
 import { useRef, useState } from 'react';
 import { UserSummary } from 'steamapi';
-import listOfLocation from '../../../location';
+import listOfLocation from '../../../../location';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
+import { locationDataIWant } from '@/@types/locationDataIWant';
+import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 
-export type closeFriendsDataIWant = {
-  friend: UserSummary;
-  count: number;
-  probability?: number;
-};
+export const getLocationDetails = (
+  countryCode?: string,
+  stateCode?: string,
+  cityID?: string,
+) => {
+  const country = listOfLocation.countries.find(
+    (country) => country.code === countryCode,
+  );
 
-export type locationDataIWant = {
-  location: {
-    cityName?: string;
-    stateName?: string;
-    countryName?: string;
-    countryCode?: string;
-  };
-  count: number;
-  probability: number;
+  const state = country?.states?.find((state) => state.code === stateCode);
+
+  const city = state?.cities?.find(
+    (city) => cityID && city.id === parseInt(cityID),
+  );
+
+  return { country, state, city };
 };
 
 type cityNameAndScore = { [key: string]: number };
 
-export const usePage = () => {
+export const useHome = () => {
   const targetValue = useRef<string | null>();
   const translator = useTranslations('ServerMessages');
 
@@ -59,24 +62,6 @@ export const usePage = () => {
         obj[key] = value;
         return obj;
       }, {});
-  };
-
-  const getLocationDetails = (
-    countryCode?: string,
-    stateCode?: string,
-    cityID?: string,
-  ) => {
-    const country = listOfLocation.countries.find(
-      (country) => country.code === countryCode,
-    );
-
-    const state = country?.states?.find((state) => state.code === stateCode);
-
-    const city = state?.cities?.find(
-      (city) => cityID && city.id === parseInt(cityID),
-    );
-
-    return { country, state, city };
   };
 
   const getCitiesNames = (citiesScored: cityNameAndScore) => {
