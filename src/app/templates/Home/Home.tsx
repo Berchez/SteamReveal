@@ -4,7 +4,7 @@ import { useHome } from './useHome';
 import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
 import LocationSection from './templates/LocationSection';
-import FriendsSection from './templates/FriendsSection/FriendsSection';
+import FriendsSection from './templates/FriendsSection';
 
 export default function Home() {
   const {
