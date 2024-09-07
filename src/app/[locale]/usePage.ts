@@ -36,6 +36,11 @@ export const usePage = () => {
     locationDataIWant[] | undefined
   >();
 
+  const [isLoading, setIsLoading] = useState<{
+    myCard: boolean;
+    friendsCards: boolean;
+  }>({ myCard: false, friendsCards: false });
+
   const [targetInfoJson, setTargetInfoJson] = useState<
     | {
         profileInfo: UserSummary;
@@ -146,6 +151,7 @@ export const usePage = () => {
 
   const getUserInfoJson = async (value: string) => {
     try {
+      setIsLoading((prev) => ({ ...prev, myCard: true }));
       const { data } = await axios.post('/api/getUserInfo', {
         target: value,
       });
@@ -166,11 +172,15 @@ export const usePage = () => {
       toast.warn(translator('invalidPlayer'));
       console.error(e);
       throw e;
+    } finally {
+      setIsLoading((prev) => ({ ...prev, myCard: false }));
     }
   };
 
   const getCloseFriendsJson = async (value: string) => {
     try {
+      setIsLoading((prev) => ({ ...prev, friendsCards: true }));
+
       const response = await axios.post('/api/getCloseFriends', {
         target: value,
       });
@@ -226,6 +236,8 @@ export const usePage = () => {
       toast.warn(translator('friendsNotPublic'));
       console.error(e);
       throw e;
+    } finally {
+      setIsLoading((prev) => ({ ...prev, friendsCards: false }));
     }
   };
 
@@ -259,5 +271,6 @@ export const usePage = () => {
     possibleLocationJson,
     targetInfoJson,
     getLocationDetails,
+    isLoading,
   };
 };
