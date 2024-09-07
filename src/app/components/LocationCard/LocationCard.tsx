@@ -1,7 +1,6 @@
+import { locationDataIWant } from '@/@types/locationDataIWant';
 import { useTranslations } from 'next-intl';
 import React from 'react';
-
-import { locationDataIWant } from '@/app/[locale]/usePage';
 
 const LocationCard = ({
   providedLocation,

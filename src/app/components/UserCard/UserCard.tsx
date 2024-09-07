@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 import { UserSummary } from 'steamapi';
-import { usePage } from '@/app/[locale]/usePage';
+import { getLocationDetails } from '@/app/templates/Home/useHome';
 
 const UserCard = ({
   friend,
@@ -17,8 +17,6 @@ const UserCard = ({
   const { countryCode, stateCode, cityID } = friend;
 
   const translator = useTranslations('UserCard');
-
-  const { getLocationDetails } = usePage();
 
   const { country, state, city } = getLocationDetails(
     countryCode,
