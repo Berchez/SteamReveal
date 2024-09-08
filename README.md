@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🕵️‍♂️ OSINT Steam 🕵️‍♀️
 
-## Getting Started
+---
 
-First, run the development server:
+## - :wave: Introduction
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+This repository contains the code for **OSINT Steam**, a website developed in TypeScript using React and **Next.js**. 
+OSINT Steam is an OSINT (Open Source Intelligence) tool designed for the Steam gaming community. 
+With it, you can enter the URL of a Steam profile and discover the player's best friends and possible location using publicly available data on the platform.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+<sub>Figure 1</sub> 
+![homepage](https://i.imgur.com/MbyoAeM.png)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This repository is divided into 4 parts:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- Features
+- Technologies Used
+- How it Works
+- Privacy
+- Contact
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## - :video_game: Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Steam Profile Analysis:** Enter the URL of any Steam profile and get public information such as friends list and possible locations.
+- **User-Friendly Interface:** Developed with React and Tailwind CSS to ensure a fluid and responsive experience.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+To access it, click on the link: [OSINT Steam](https://chef-virtual.vercel.app/)
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 👩‍💻 Technologies Used
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+In the development of OSINT Steam, several advanced technologies were used to create an exceptional user experience. Some of the main technologies used include:
+
+- **TypeScript:** For static typing, ensuring greater security in development.
+- **React:** JavaScript library for creating user interfaces.
+- **Next.js:** React framework for server-side rendering and generating static websites.
+- **Tailwind CSS:** Utility CSS framework for fast and customizable styling.
+- **Redux:** Library used to share state between components and pages.
+
+These technologies work together to deliver an exceptional user experience on OSINT Steam, making it a modern, responsive, and intelligent website. The combination of TypeScript, React, Next.js, Tailwind CSS, and Redux allows us to deliver an efficient, intuitive, and personalized platform for all users.
+
+---
+
+## - :grey_question: How it Works
+
+1. **Input:** Enter the URL of a Steam profile.
+2. **Processing:** The site uses the Steam API to collect public profile data.
+3. **Output:** Displays the user's best friends and their possible location based on the information obtained.
+
+<sub>Figure 2</sub>
+![results](https://i.imgur.com/I6mJrAH.png)
+
+---
+## - :lock: Privacy
+
+If you do not wish for your information to be publicly available, please visit the [Steam Privacy section](
+https://steamcommunity.com/my/edit/settings) to adjust your profile settings.
+
+---
+
+## - :telephone_receiver: Contact
+
+**E-mail:** walterfelipeberchez@outlook.com
+
+**Phone:** (35) 9 9804-2667
