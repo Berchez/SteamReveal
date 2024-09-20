@@ -27,7 +27,7 @@ This repository is divided into 4 parts:
 - **User-Friendly Interface:** Developed with React and Tailwind CSS to ensure a fluid and responsive experience.
 - Multilingual Support: Support for English and Portuguese, allowing users from different regions to use the tool in their native language.
 
-To access it, click on the link: [OSINT Steam](https://chef-virtual.vercel.app/)
+To access it, click on the link: [OSINT Steam](https://osint-steam.vercel.app/)
 
 ---
 
