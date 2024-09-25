@@ -4,6 +4,7 @@ import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { Analytics } from '@vercel/analytics/react';
 import ToastProvider from '@/toast.provider';
 import AdSense from '../components/AdSense';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = {
   title: 'OSINT Steam',
@@ -32,6 +33,7 @@ export default function RootLayout({
           <ToastProvider>{children}</ToastProvider>
         </NextIntlClientProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
