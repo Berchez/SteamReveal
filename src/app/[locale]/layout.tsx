@@ -26,7 +26,11 @@ export default function RootLayout({
   return (
     <html lang={locale}>
       <head>
-        <AdSense pId={process.env.ADSENSE_PID ?? ''} />
+        <AdSense pId={process.env.NEXT_PUBLIC_ADSENSE_PID ?? ''} />
+        <meta
+          name="google-adsense-account"
+          content={`ca-pub-${process.env.NEXT_PUBLIC_ADSENSE_PID}`}
+        />
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>
