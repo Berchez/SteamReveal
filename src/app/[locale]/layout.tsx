@@ -3,6 +3,7 @@ import './globals.css';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { Analytics } from '@vercel/analytics/react';
 import ToastProvider from '@/toast.provider';
+import AdSense from '../components/AdSense';
 
 export const metadata: Metadata = {
   title: 'OSINT Steam',
@@ -23,6 +24,9 @@ export default function RootLayout({
   const messages = useMessages();
   return (
     <html lang={locale}>
+      <head>
+        <AdSense pId={process.env.ADSENSE_PID ?? ''} />
+      </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           <ToastProvider>{children}</ToastProvider>
