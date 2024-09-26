@@ -6,18 +6,32 @@ import ToastProvider from '@/toast.provider';
 import AdSense from '../components/AdSense';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
-export const metadata: Metadata = {
-  title: 'OSINT Steam',
-  description:
-    'OSINT Steam is a comprehensive intelligence platform tailored for the gaming community. Our platform offers a suite of tools and features designed to help gamers collect, analyze, and leverage intelligence from diverse sources across the web, all in one convenient location.',
-};
-
 interface RootLayoutProps {
   children: React.ReactNode;
   params: {
     locale: string;
   };
 }
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://osint-steam.vercel.app/'),
+  keywords: [
+    'OSINT',
+    'Steam',
+    'OSINT Steam',
+    'Open Source Intelligence',
+    'Profile Analysis',
+    'Steam API',
+    'Privacy',
+    'Public Data',
+    'Location',
+    'Friends List',
+  ],
+  title: 'OSINT Steam - Analyze Steam Profiles',
+  description:
+    'OSINT Steam is an OSINT tool designed for the Steam community. Analyze Steam profiles, discover real friends, and locate players using public data. Built with a responsive design and multilingual experience',
+};
+
 export default function RootLayout({
   children,
   params: { locale },
