@@ -43,6 +43,9 @@ dependencies:
     version: 3.0.12
 
 devDependencies:
+  '@next/eslint-plugin-next':
+    specifier: ^14.2.13
+    version: 14.2.13
   '@types/node':
     specifier: ^20
     version: 20.16.5
@@ -215,6 +218,12 @@ packages:
 
   /@next/eslint-plugin-next@14.1.0:
     resolution: {integrity: sha512-x4FavbNEeXx/baD/zC/SdrvkjSby8nBn8KcCREqk6UuwvwoAPZmaV8TFCAuo/cpovBRTIY67mHhe86MQQm/68Q==}
+    dependencies:
+      glob: 10.3.10
+    dev: true
+
+  /@next/eslint-plugin-next@14.2.13:
+    resolution: {integrity: sha512-z8Mk0VljxhIzsSiZUSdt3wp+t2lKd+jk5a9Jsvh3zDGkItgDMfjv/ZbET6HsxEl/fSihVoHGsXV6VLyDH0lfTQ==}
     dependencies:
       glob: 10.3.10
     dev: true
