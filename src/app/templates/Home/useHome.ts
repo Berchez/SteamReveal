@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { useRef, useState } from 'react';
-import { UserSummary } from 'steamapi';
 import listOfLocation from '../../../../location';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
+import targetInfoJsonType from '@/@types/targetInfoJsonType';
 
 export const getLocationDetails = (
   countryCode?: string,
@@ -44,14 +44,7 @@ export const useHome = () => {
     friendsCards: boolean;
   }>({ myCard: false, friendsCards: false });
 
-  const [targetInfoJson, setTargetInfoJson] = useState<
-    | {
-        profileInfo: UserSummary;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        targetLocationInfo: any;
-      }
-    | undefined
-  >();
+  const [targetInfoJson, setTargetInfoJson] = useState<targetInfoJsonType>();
 
   const sortCitiesByScore = (listOfCities: cityNameAndScore) => {
     return Object.entries(listOfCities)
