@@ -1,5 +1,6 @@
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 import React from 'react';
 
 const LocationCard = ({
@@ -9,8 +10,8 @@ const LocationCard = ({
   providedLocation: {
     cityName?: string;
     stateName?: string;
-    countryName: string;
-    countryCode: string;
+    countryName?: string;
+    countryCode?: string;
   };
   possibleLocations?: locationDataIWant[];
 }) => {
@@ -21,13 +22,16 @@ const LocationCard = ({
 
   return (
     <div className={`mt-8 text-white py-4 px-8 ${glassmorphism}`}>
-      {providedLocation.stateName && (
+      {providedLocation.stateName && providedLocation.countryCode && (
         <div className="flex gap-x-5 mb-3 font-semibold text-lg ">
           {translator('providedByUser')}
           <div className="flex items-center gap-x-2">
-            <img
+            <Image
               src={`https://flagcdn.com/w20/${providedLocation.countryCode.toLowerCase()}.png`}
               className="w-max h-max"
+              alt={`${providedLocation.countryCode}'s flag`}
+              width={20}
+              height={14}
             />
             {providedLocation.cityName && <p>{providedLocation.cityName},</p>}
             {providedLocation.stateName && <p>{providedLocation.stateName},</p>}
@@ -48,9 +52,12 @@ const LocationCard = ({
             >
               <div className="flex items-center gap-x-2">
                 {countryCode && (
-                  <img
+                  <Image
                     src={`https://flagcdn.com/w20/${countryCode.toLowerCase()}.png`}
                     className="w-max h-max"
+                    alt={`${countryCode}'s flag`}
+                    width={20}
+                    height={14}
                   />
                 )}
                 {cityName && `${cityName}, `}
