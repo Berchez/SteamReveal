@@ -18,7 +18,7 @@ export default function Home() {
   } = useHome();
 
   return (
-    <>
+    <div className="max-h-dvh">
       <VideoBackground />
       <div className="flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover p-12 text-white absolute z-10">
         <MyUserSection
@@ -40,6 +40,6 @@ export default function Home() {
           />
         </div>
       </div>
-    </>
+    </div>
   );
 }

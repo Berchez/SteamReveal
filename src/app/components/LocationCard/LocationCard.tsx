@@ -23,9 +23,9 @@ const LocationCard = ({
   return (
     <div className={`mt-8 text-white py-4 px-8 ${glassmorphism}`}>
       {providedLocation.stateName && providedLocation.countryCode && (
-        <div className="flex gap-x-5 mb-3 font-semibold text-lg ">
+        <div className="flex gap-x-5 mb-3 font-semibold text-lg flex-wrap">
           {translator('providedByUser')}
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-2 flex-wrap">
             <Image
               src={`https://flagcdn.com/w20/${providedLocation.countryCode.toLowerCase()}.png`}
               className="w-max h-max"
