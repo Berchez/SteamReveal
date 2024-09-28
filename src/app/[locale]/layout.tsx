@@ -16,6 +16,10 @@ interface RootLayoutProps {
 export const metadata: Metadata = {
   metadataBase: new URL('https://osint-steam.vercel.app/'),
   keywords: [
+    'osint app',
+    'steam profiles',
+    'steam profiles search',
+    'steam app',
     'OSINT',
     'Steam',
     'OSINT Steam',

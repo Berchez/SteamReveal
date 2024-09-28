@@ -33,7 +33,7 @@ const getCloseFriends = async (target: string) => {
     friendsOfTheTarget = await steam.getUserFriends(target);
   } catch {
     throw new Error(
-      'eGettingFriends: Error getting friends of target: ' + target,
+      'GettingFriends: Error getting friends of target: ' + target,
     );
   }
 
