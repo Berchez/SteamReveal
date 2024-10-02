@@ -5,6 +5,21 @@ import { Analytics } from '@vercel/analytics/react';
 import ToastProvider from '@/toast.provider';
 import AdSense from '../components/AdSense';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Roboto, Inknut_Antiqua } from 'next/font/google';
+
+const roboto = Roboto({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto',
+  weight: ['100', '300', '400', '500', '700', '900'],
+});
+
+const inknut = Inknut_Antiqua({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inknut',
+  weight: ['400', '700'],
+});
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -14,7 +29,7 @@ interface RootLayoutProps {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://osint-steam.vercel.app/'),
+  metadataBase: new URL('https://steam-reveal.vercel.app/'),
   keywords: [
     'osint app',
     'steam profiles',
@@ -22,7 +37,9 @@ export const metadata: Metadata = {
     'steam app',
     'OSINT',
     'Steam',
-    'OSINT Steam',
+    'SteamReveal',
+    'Steam Reveal',
+    'steam-reveal',
     'Open Source Intelligence',
     'Profile Analysis',
     'Steam API',
@@ -31,9 +48,9 @@ export const metadata: Metadata = {
     'Location',
     'Friends List',
   ],
-  title: 'OSINT Steam - Analyze Steam Profiles',
+  title: 'SteamReveal - Analyze Steam Profiles',
   description:
-    'OSINT Steam is an OSINT tool designed for the Steam community. Analyze Steam profiles, discover real friends, and locate players using public data. Built with a responsive design and multilingual experience',
+    'SteamReveal is an OSINT tool designed for the Steam community. Analyze Steam profiles, discover real friends, and locate players using public data. Built with a responsive design and multilingual experience',
 };
 
 export default function RootLayout({
@@ -42,7 +59,7 @@ export default function RootLayout({
 }: Readonly<RootLayoutProps>) {
   const messages = useMessages();
   return (
-    <html lang={locale}>
+    <html lang={locale} className={`${roboto.variable} ${inknut.variable}`}>
       <head>
         <AdSense pId="3301991262958911" />
         <meta name="google-adsense-account" content="ca-pub-3301991262958911" />

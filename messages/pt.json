@@ -1,6 +1,6 @@
 {
   "Default": {
-    "websiteDescription": "OSINT Steam é uma plataforma abrangente de inteligência feita sob medida para a comunidade de jogos. Nossa plataforma oferece um conjunto de ferramentas e recursos projetados para ajudar os jogadores a coletar, analisar e aproveitar inteligência de diversas fontes na web, tudo em um local conveniente."
+    "websiteDescription": "SteamReveal é uma plataforma abrangente de inteligência feita sob medida para a comunidade de jogos. Nossa plataforma oferece um conjunto de ferramentas e recursos projetados para ajudar os jogadores a coletar, analisar e aproveitar inteligência de diversas fontes na web, tudo em um local conveniente."
   },
   "UserCard": {
     "nickname": "Nickname",
@@ -22,5 +22,8 @@
     "friendsIRL": "Amigos na vida real",
     "userPossibleLocation": "Possível localização do usuário",
     "userInfo": "Informaçãoes do usuário"
+  },
+  "WelcomeText": {
+    "welcomeTo": "Bem-vindo ao"
   }
 }

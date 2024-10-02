@@ -5,6 +5,7 @@ import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
 import LocationSection from './templates/LocationSection';
 import FriendsSection from './templates/FriendsSection';
+import WelcomeText from './WelcomeText/WelcomeText';
 
 export default function Home() {
   const {
@@ -15,12 +16,20 @@ export default function Home() {
     possibleLocationJson,
     targetInfoJson,
     isLoading,
+    hasNoDataYet,
   } = useHome();
 
   return (
     <div className="max-h-dvh">
       <VideoBackground />
-      <div className="flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover p-12 text-white absolute z-10">
+      {hasNoDataYet && <WelcomeText />}
+      <div
+        className={`flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover p-12 text-white z-20 ${
+          hasNoDataYet
+            ? 'absolute top-1/2 transform -translate-y-1/2'
+            : 'relative'
+        }`}
+      >
         <MyUserSection
           targetInfoJson={targetInfoJson}
           isLoading={isLoading.myCard}

@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: '/private/',
     },
-    sitemap: 'https://osint-steam.vercel.app/sitemap.xml',
+    sitemap: 'https://steam-reveal.vercel.app/sitemap.xml',
   };
 }

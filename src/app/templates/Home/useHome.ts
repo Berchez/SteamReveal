@@ -241,6 +241,8 @@ export const useHome = () => {
     targetValue.current = value;
   };
 
+  const hasNoDataYet = !targetInfoJson && !isLoading.myCard;
+
   return {
     onChangeTarget,
     closeFriendsJson,
@@ -250,5 +252,6 @@ export const useHome = () => {
     targetInfoJson,
     getLocationDetails,
     isLoading,
+    hasNoDataYet,
   };
 };
