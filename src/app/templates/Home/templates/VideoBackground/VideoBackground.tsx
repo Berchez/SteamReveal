@@ -21,10 +21,7 @@ const VideoBackground = () => {
       className="object-cover w-screen h-screen fixed top-0 left-0 z-0 brightness-90"
       poster="/images/background.png"
     >
-      <source
-        src="https://enuzgyrzryukbbsgtibn.supabase.co/storage/v1/object/public/video/background.mp4?t=2024-09-27T21%3A13%3A31.593Z"
-        type="video/mp4"
-      />
+      <source src="/videos/short-bg.mp4" type="video/mp4" />
     </video>
   );
 };
