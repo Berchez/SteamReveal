@@ -22,7 +22,7 @@ const WelcomeText = () => {
           version="1.1"
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="xMidYMid"
-          className="self-start md:w-[40px] md:h-[40px] w-[30px] h-[30px]"
+          className="self-end md:w-[40px] md:h-[40px] w-[30px] h-[30px]"
         >
           <g>
             <path
