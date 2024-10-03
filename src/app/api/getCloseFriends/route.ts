@@ -33,7 +33,7 @@ const getCloseFriends = async (target: string) => {
     friendsOfTheTarget = await steam.getUserFriends(target);
   } catch {
     throw new Error(
-      'GettingFriends: Error getting friends of target: ' + target,
+      `GettingFriends: Error getting friends of target: ${  target}`,
     );
   }
 
@@ -42,14 +42,12 @@ const getCloseFriends = async (target: string) => {
   );
 
   const closeFriendsOfTheTarget = friendsOfTheTarget.map(
-    (friend: UserFriend) => {
-      return {
+    (friend: UserFriend) => ({
         steamID: friend.steamID,
         count: friedsOfFriendsOfTheTarget.filter(
           (f: UserFriend) => f.steamID === friend.steamID,
         ).length,
-      };
-    },
+      }),
   );
 
   closeFriendsOfTheTarget.sort((a, b) => b.count - a.count);
@@ -57,12 +55,10 @@ const getCloseFriends = async (target: string) => {
   const twentyClosestFriends = closeFriendsOfTheTarget.slice(0, 20);
 
   const twentyClosestFriendsWithSummary = await Promise.all(
-    twentyClosestFriends.map(async (friend) => {
-      return {
+    twentyClosestFriends.map(async (friend) => ({
         friend: await steam.getUserSummary(friend.steamID),
         count: friend.count,
-      };
-    }),
+      })),
   );
 
   return twentyClosestFriendsWithSummary;
@@ -91,7 +87,7 @@ export async function POST(req: Request) {
     } catch (error) {
       return NextResponse.json(
         {
-          message: 'Error interno do servidor ' + (error as Error).message,
+          message: `Error interno do servidor ${  (error as Error).message}`,
         },
         { status: 500 },
       );

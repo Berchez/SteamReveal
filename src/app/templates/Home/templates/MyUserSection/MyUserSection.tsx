@@ -1,9 +1,9 @@
 import React from 'react';
-import SearchInput from '../SearchInput';
 import UserCard from '@/app/components/UserCard';
 import UserCardSkeleton from '@/app/components/UserCard/UserCardSkeleton';
 import { useTranslations } from 'next-intl';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
+import SearchInput from '../SearchInput';
 
 type MyUserSectionProps = {
   targetInfoJson: targetInfoJsonType;
@@ -13,13 +13,13 @@ type MyUserSectionProps = {
   targetValue: React.MutableRefObject<string | null | undefined>;
 };
 
-const MyUserSection = ({
+function MyUserSection({
   targetInfoJson,
   isLoading,
   onChangeTarget,
   handleGetInfoClick,
   targetValue,
-}: MyUserSectionProps) => {
+}: MyUserSectionProps) {
   const translator = useTranslations('Index');
 
   return (
@@ -39,6 +39,6 @@ const MyUserSection = ({
       )}
     </div>
   );
-};
+}
 
 export default MyUserSection;

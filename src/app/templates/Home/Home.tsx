@@ -1,4 +1,5 @@
 'use client';
+
 import React from 'react';
 import { useHome } from './useHome';
 import VideoBackground from './templates/VideoBackground';

@@ -22,10 +22,10 @@ export async function POST(req: Request) {
 
       const targetInfo = await steam.getUserSummary(targetSteamId);
 
-      return NextResponse.json({ targetInfo: targetInfo }, { status: 200 });
+      return NextResponse.json({ targetInfo }, { status: 200 });
     } catch (error) {
       return NextResponse.json(
-        { message: 'Erro interno do servidor ' + (error as Error).message },
+        { message: `Erro interno do servidor ${(error as Error).message}` },
         { status: 500 },
       );
     }

@@ -1,12 +1,12 @@
 import Image from 'next/image';
 import React from 'react';
 
-const VideoBackground = () => {
+function VideoBackground() {
   const env = process.env.NODE_ENV;
   if (env === 'development') {
     return (
       <Image
-        src={'/images/background.png'}
+        src="/images/background.png"
         alt="image for the background"
         fill
       />
@@ -24,5 +24,5 @@ const VideoBackground = () => {
       <source src="/videos/short-bg.mp4" type="video/mp4" />
     </video>
   );
-};
+}
 export default VideoBackground;

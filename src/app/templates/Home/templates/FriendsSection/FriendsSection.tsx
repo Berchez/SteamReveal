@@ -1,18 +1,18 @@
 import React from 'react';
-import { closeFriendsDataIWant } from '../../../../../@types/closeFriendsDataIWant';
 import { useTranslations } from 'next-intl';
 import UserCard from '@/app/components/UserCard';
 import UserCardSkeleton from '@/app/components/UserCard/UserCardSkeleton';
+import { closeFriendsDataIWant } from '../../../../../@types/closeFriendsDataIWant';
 
 type FriendsSectionProps = {
   closeFriendsJson: closeFriendsDataIWant[] | undefined;
   isLoading: boolean;
 };
 
-const FriendsSection = ({
+function FriendsSection({
   closeFriendsJson,
   isLoading,
-}: FriendsSectionProps) => {
+}: FriendsSectionProps) {
   const translator = useTranslations('Index');
 
   if (!closeFriendsJson && !isLoading) {
@@ -40,6 +40,6 @@ const FriendsSection = ({
           ))}
     </div>
   );
-};
+}
 
 export default FriendsSection;

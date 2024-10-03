@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { useRef, useState } from 'react';
-import listOfLocation from '../../../../location';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
+import listOfLocation from '../../../../location';
 
 export const getLocationDetails = (
   countryCode?: string,
@@ -46,19 +46,14 @@ export const useHome = () => {
 
   const [targetInfoJson, setTargetInfoJson] = useState<targetInfoJsonType>();
 
-  const sortCitiesByScore = (listOfCities: cityNameAndScore) => {
-    return Object.entries(listOfCities)
-      .sort((a, b) => {
-        return b[1] - a[1];
-      })
+  const sortCitiesByScore = (listOfCities: cityNameAndScore) => Object.entries(listOfCities)
+      .sort((a, b) => b[1] - a[1])
       .reduce((obj: cityNameAndScore, [key, value]) => {
         obj[key] = value;
         return obj;
       }, {});
-  };
 
-  const getCitiesNames = (citiesScored: cityNameAndScore) => {
-    return Object.entries(citiesScored).map(([key, value]) => {
+  const getCitiesNames = (citiesScored: cityNameAndScore) => Object.entries(citiesScored).map(([key, value]) => {
       const [countryCode, stateCode, cityID] = key.split('/');
 
       const { city, state, country } = getLocationDetails(
@@ -77,7 +72,6 @@ export const useHome = () => {
         count: value as number,
       };
     });
-  };
 
   const getPossibleLocation = (
     closeFriendsOfTheTarget: closeFriendsDataIWant[],

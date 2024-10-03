@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import React from 'react';
 
-const LocationCard = ({
+function LocationCard({
   providedLocation,
   possibleLocations,
 }: {
@@ -14,7 +14,7 @@ const LocationCard = ({
     countryCode?: string;
   };
   possibleLocations?: locationDataIWant[];
-}) => {
+}) {
   const translator = useTranslations('LocationCard');
 
   const glassmorphism =
@@ -73,6 +73,6 @@ const LocationCard = ({
         })}
     </div>
   );
-};
+}
 
 export default LocationCard;

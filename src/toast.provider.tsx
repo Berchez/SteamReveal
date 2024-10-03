@@ -1,7 +1,8 @@
 'use client';
 
+import React from 'react';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; //add this line
+import 'react-toastify/dist/ReactToastify.css'; // add this line
 
 interface ToastProviderProps {
   children: React.ReactNode;

@@ -11,11 +11,11 @@ type LocationSectionProps = {
   isLoading: boolean;
 };
 
-const LocationSection = ({
+function LocationSection({
   possibleLocationJson,
   targetInfoJson,
   isLoading,
-}: LocationSectionProps) => {
+}: LocationSectionProps) {
   const translator = useTranslations('Index');
 
   if (!possibleLocationJson && !isLoading) {
@@ -42,6 +42,6 @@ const LocationSection = ({
       )}
     </div>
   );
-};
+}
 
 export default LocationSection;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const UserCardSkeleton = ({ itsTargetUser }: { itsTargetUser: boolean }) => {
+function UserCardSkeleton({ itsTargetUser }: { itsTargetUser: boolean }) {
   const glassmorphism =
     'bg-purple-900 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-20 border border-gray-100/50';
 
@@ -19,17 +19,17 @@ const UserCardSkeleton = ({ itsTargetUser }: { itsTargetUser: boolean }) => {
           }`}
         />
       </div>
-      <div className={`flex flex-col w-full break-words gap-y-2`}>
-        <div className="h-5 bg-gray-500 rounded-md animate-pulse w-3/4"></div>
-        <div className="h-4 bg-gray-500 rounded-md animate-pulse w-1/2"></div>
+      <div className="flex flex-col w-full break-words gap-y-2">
+        <div className="h-5 bg-gray-500 rounded-md animate-pulse w-3/4" />
+        <div className="h-4 bg-gray-500 rounded-md animate-pulse w-1/2" />
         <div className="flex gap-x-2 items-center">
-          <div className="h-4 bg-gray-500 rounded-md animate-pulse w-1/4"></div>
+          <div className="h-4 bg-gray-500 rounded-md animate-pulse w-1/4" />
         </div>
-        <div className="h-4 bg-gray-500 rounded-md animate-pulse w-1/3"></div>
-        <div className="h-4 bg-gray-500 rounded-md animate-pulse w-1/2"></div>
+        <div className="h-4 bg-gray-500 rounded-md animate-pulse w-1/3" />
+        <div className="h-4 bg-gray-500 rounded-md animate-pulse w-1/2" />
       </div>
     </div>
   );
-};
+}
 
 export default UserCardSkeleton;

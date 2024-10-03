@@ -5,7 +5,7 @@ type AdsenseTypes = {
   pId: string;
 };
 
-const AdSense = ({ pId }: AdsenseTypes) => {
+function AdSense({ pId }: AdsenseTypes) {
   return (
     <Script
       async
@@ -14,6 +14,6 @@ const AdSense = ({ pId }: AdsenseTypes) => {
       strategy="afterInteractive"
     />
   );
-};
+}
 
 export default AdSense;

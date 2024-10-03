@@ -2,8 +2,9 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import { UserSummary } from 'steamapi';
 import { getLocationDetails } from '@/app/templates/Home/useHome';
+import Image from 'next/image';
 
-const UserCard = ({
+function UserCard({
   friend,
   count,
   probability,
@@ -13,7 +14,7 @@ const UserCard = ({
   count?: number;
   probability?: number;
   itsTargetUser: boolean;
-}) => {
+}) {
   const { countryCode, stateCode, cityID } = friend;
 
   const translator = useTranslations('UserCard');
@@ -38,9 +39,10 @@ const UserCard = ({
     >
       {friend.avatar.medium && (
         <div>
-          <img
+          <Image
             src={itsTargetUser ? friend.avatar.large : friend.avatar.medium}
             className={`${itsTargetUser ? 'w-36' : ''} rounded-lg`}
+            alt={`Avatar image of the user ${friend.nickname}`}
           />
         </div>
       )}
@@ -62,11 +64,12 @@ const UserCard = ({
         <div className="flex gap-x-2 items-center">
           {friend.countryCode && (
             <div className="flex items-center gap-x-1">
-              <img
+              <Image
                 src={`https://flagcdn.com/${
                   itsTargetUser ? 'w40' : 'w20'
                 }/${friend.countryCode.toLowerCase()}.png`}
                 className="w-max h-max"
+                alt={`country flag (${friend.countryCode}) of the user ${friend.nickname}`}
               />
               {city && `${city.name}, `}
               {state && `${state.name}, `}
@@ -100,6 +103,6 @@ const UserCard = ({
       </div>
     </div>
   );
-};
+}
 
 export default UserCard;

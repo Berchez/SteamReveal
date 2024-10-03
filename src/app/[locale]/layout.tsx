@@ -3,9 +3,9 @@ import './globals.css';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { Analytics } from '@vercel/analytics/react';
 import ToastProvider from '@/toast.provider';
-import AdSense from '../components/AdSense';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Roboto, Inknut_Antiqua } from 'next/font/google';
+import AdSense from '../components/AdSense';
 
 const roboto = Roboto({
   subsets: ['latin'],
