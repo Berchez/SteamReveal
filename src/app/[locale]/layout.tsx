@@ -30,6 +30,13 @@ interface RootLayoutProps {
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://steam-reveal.vercel.app/'),
+  alternates: {
+    canonical: '/',
+    languages: {
+      'en-US': '/en',
+      'pt-BR': '/pt',
+    },
+  },
   keywords: [
     'osint app',
     'steam profiles',

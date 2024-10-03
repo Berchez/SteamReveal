@@ -7,5 +7,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       priority: 1,
     },
+    {
+      url: 'https://steam-reveal.vercel.app/en',
+      lastModified: new Date(),
+    },
+    {
+      url: 'https://steam-reveal.vercel.app/pt',
+      lastModified: new Date(),
+    },
   ];
 }
