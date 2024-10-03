@@ -4,17 +4,19 @@ import React from 'react';
 const WelcomeText = () => {
   const translator = useTranslations('WelcomeText');
   return (
-    <div className="flex flex-col justify-center items-center text-center mt-8 p-0 relative z-20 stroke-black">
+    <div className="flex flex-col justify-center items-center text-center mt-8 p-0 relative z-90 stroke-black">
       <div className="flex items-baseline space-x-4">
         <div className="border-t-2 border-white md:w-28 w-20"></div>
-        <h2 className="md:text-lg text-base ml-0 font-sans">
+        <h2 className="md:text-lg text-base ml-0 font-sans text-white">
           {translator('welcomeTo')}
         </h2>
         <div className="border-t-2 border-white md:w-28 w-20" />
       </div>
 
       <div className="flex gap-4 items-center">
-        <h1 className="font-inkut md:text-4xl text-2xl mt-2">SteamReveal</h1>
+        <h1 className="font-inkut md:text-4xl text-2xl mt-2 text-white">
+          SteamReveal
+        </h1>
         <svg
           width="40px"
           height="40px"
