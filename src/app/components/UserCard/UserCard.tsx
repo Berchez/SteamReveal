@@ -43,6 +43,8 @@ function UserCard({
             src={itsTargetUser ? friend.avatar.large : friend.avatar.medium}
             className={`${itsTargetUser ? 'w-36' : ''} rounded-lg`}
             alt={`Avatar image of the user ${friend.nickname}`}
+            width={itsTargetUser ? 120 : 60}
+            height={itsTargetUser ? 120 : 60}
           />
         </div>
       )}
@@ -70,6 +72,8 @@ function UserCard({
                 }/${friend.countryCode.toLowerCase()}.png`}
                 className="w-max h-max"
                 alt={`country flag (${friend.countryCode}) of the user ${friend.nickname}`}
+                width={itsTargetUser ? 40 : 20}
+                height={itsTargetUser ? 28 : 14}
               />
               {city && `${city.name}, `}
               {state && `${state.name}, `}

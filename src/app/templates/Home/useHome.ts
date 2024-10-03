@@ -12,14 +12,12 @@ export const getLocationDetails = (
   stateCode?: string,
   cityID?: string,
 ) => {
-  const country = listOfLocation.countries.find(
-    (country) => country.code === countryCode,
-  );
+  const country = listOfLocation.countries.find((c) => c.code === countryCode);
 
-  const state = country?.states?.find((state) => state.code === stateCode);
+  const state = country?.states?.find((s) => s.code === stateCode);
 
   const city = state?.cities?.find(
-    (city) => cityID && city.id === parseInt(cityID),
+    (c) => cityID && c.id === parseInt(cityID, 10),
   );
 
   return { country, state, city };
@@ -46,14 +44,16 @@ export const useHome = () => {
 
   const [targetInfoJson, setTargetInfoJson] = useState<targetInfoJsonType>();
 
-  const sortCitiesByScore = (listOfCities: cityNameAndScore) => Object.entries(listOfCities)
+  const sortCitiesByScore = (listOfCities: cityNameAndScore) =>
+    Object.entries(listOfCities)
       .sort((a, b) => b[1] - a[1])
-      .reduce((obj: cityNameAndScore, [key, value]) => {
-        obj[key] = value;
-        return obj;
-      }, {});
+      .reduce(
+        (acc: cityNameAndScore, [key, value]) => ({ ...acc, [key]: value }),
+        {},
+      );
 
-  const getCitiesNames = (citiesScored: cityNameAndScore) => Object.entries(citiesScored).map(([key, value]) => {
+  const getCitiesNames = (citiesScored: cityNameAndScore) =>
+    Object.entries(citiesScored).map(([key, value]) => {
       const [countryCode, stateCode, cityID] = key.split('/');
 
       const { city, state, country } = getLocationDetails(
@@ -81,7 +81,7 @@ export const useHome = () => {
     );
 
     let citiesScored: cityNameAndScore = {};
-    closeFriendsWithCities.map((f: closeFriendsDataIWant) => {
+    closeFriendsWithCities.forEach((f: closeFriendsDataIWant) => {
       const cityKey = `${f.friend.countryCode}/${f.friend.stateCode}/${f.friend.cityID}`;
 
       citiesScored[cityKey] = citiesScored[cityKey]
@@ -101,18 +101,21 @@ export const useHome = () => {
     const rasoableNumberToBeAGoodGuess = 100;
 
     const withProbability = citiesScoredWithNames.map((c) => {
-      const probability =
-        (((c.count / totalCountOfScores) * 2 +
-          (c.count > rasoableNumberToBeAGoodGuess
-            ? 1
-            : c.count / rasoableNumberToBeAGoodGuess)) /
-          3) *
-        100;
+      const totalCountMethod =
+        totalCountOfScores === 0 ? 0 : c.count / totalCountOfScores;
+
+      const constantMethod =
+        c.count > rasoableNumberToBeAGoodGuess
+          ? 1
+          : c.count / rasoableNumberToBeAGoodGuess;
+
+      const probabilityFloat = (totalCountMethod * 2 + constantMethod) / 3;
+      const probabilityPercentage = probabilityFloat * 100;
 
       return {
         location: c.location,
         count: c.count,
-        probability,
+        probability: probabilityPercentage,
       };
     });
 
@@ -162,7 +165,7 @@ export const useHome = () => {
       } = response;
 
       let totalCountOf5ClosestFriends = 0;
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 5; i += 1) {
         totalCountOf5ClosestFriends += closeFriends[i].count;
       }
 

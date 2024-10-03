@@ -7,11 +7,8 @@ function LocationCardSkeleton() {
   return (
     <div className={`mt-8 text-white py-4 px-8 ${glassmorphism}`}>
       <div className="flex flex-col gap-y-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div
-            key={index}
-            className="flex md:items-center md:justify-between md:flex-row flex-col mb-2 animate-pulse"
-          >
+        {Array.from({ length: 3 }).map(() => (
+          <div className="flex md:items-center md:justify-between md:flex-row flex-col mb-2 animate-pulse">
             <div className="flex items-center gap-x-2">
               <div className="w-7 h-6 bg-gray-500" />
               <div className="w-80 h-6 bg-gray-500 rounded-md" />

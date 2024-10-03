@@ -5,11 +5,7 @@ function VideoBackground() {
   const env = process.env.NODE_ENV;
   if (env === 'development') {
     return (
-      <Image
-        src="/images/background.png"
-        alt="image for the background"
-        fill
-      />
+      <Image src="/images/background.png" alt="image for the background" fill />
     );
   }
 

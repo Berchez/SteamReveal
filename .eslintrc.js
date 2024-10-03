@@ -41,6 +41,10 @@ module.exports = {
     'import/extensions': 'off',
     camelcase: 'off',
     'react/require-default-props': 'off',
+    'react/prop-types': 'off',
+    'react/jsx-props-no-spreading': 'off',
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['error'],
   },
   ignorePatterns: [
     '**/*.spec.ts',

@@ -9,10 +9,7 @@ type FriendsSectionProps = {
   isLoading: boolean;
 };
 
-function FriendsSection({
-  closeFriendsJson,
-  isLoading,
-}: FriendsSectionProps) {
+function FriendsSection({ closeFriendsJson, isLoading }: FriendsSectionProps) {
   const translator = useTranslations('Index');
 
   if (!closeFriendsJson && !isLoading) {
@@ -35,8 +32,8 @@ function FriendsSection({
             />
           ))
         : isLoading &&
-          Array.from({ length: 5 }).map((_, index) => (
-            <UserCardSkeleton key={index} itsTargetUser={false} />
+          Array.from({ length: 5 }).map(() => (
+            <UserCardSkeleton itsTargetUser={false} />
           ))}
     </div>
   );
