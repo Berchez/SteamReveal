@@ -1,12 +1,14 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { useHome } from './useHome';
 import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
-import LocationSection from './templates/LocationSection';
-import FriendsSection from './templates/FriendsSection';
 import WelcomeText from './WelcomeText/WelcomeText';
+
+const LocationSection = dynamic(() => import('./templates/LocationSection'));
+const FriendsSection = dynamic(() => import('./templates/FriendsSection'));
 
 export default function Home() {
   const {

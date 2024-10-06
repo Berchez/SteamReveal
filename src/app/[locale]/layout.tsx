@@ -32,7 +32,7 @@ interface RootLayoutProps {
 export const metadata: Metadata = {
   metadataBase: new URL('https://steam-reveal.vercel.app/'),
   alternates: {
-    canonical: '/',
+    canonical: 'https://steam-reveal.vercel.app/en',
     languages: {
       'en-US': '/en',
       'pt-BR': '/pt',

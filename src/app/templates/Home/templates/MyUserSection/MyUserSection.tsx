@@ -1,9 +1,13 @@
 import React from 'react';
-import UserCard from '@/app/components/UserCard';
-import UserCardSkeleton from '@/app/components/UserCard/UserCardSkeleton';
 import { useTranslations } from 'next-intl';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
+import dynamic from 'next/dynamic';
 import SearchInput from '../SearchInput';
+
+const UserCard = dynamic(() => import('@/app/components/UserCard'));
+const UserCardSkeleton = dynamic(
+  () => import('@/app/components/UserCard/UserCardSkeleton'),
+);
 
 type MyUserSectionProps = {
   targetInfoJson: targetInfoJsonType;

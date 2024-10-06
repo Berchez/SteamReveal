@@ -15,7 +15,7 @@ function VideoBackground() {
       autoPlay
       muted
       className="object-cover w-screen h-screen fixed top-0 left-0 z-0 brightness-90"
-      poster="/images/background.png"
+      poster="/images/background.webp"
     >
       <source src="/videos/short-bg.mp4" type="video/mp4" />
     </video>
