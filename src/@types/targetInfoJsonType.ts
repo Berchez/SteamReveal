@@ -23,7 +23,7 @@ interface Country extends CountryBase {
   states: (State | Omit<BaseState, 'cities'>)[];
 }
 
-interface LocationInfoType {
+export interface LocationInfoType {
   country?: Country | Omit<CountryBase, 'states'>;
   state?: State | Omit<BaseState, 'cities'>;
   city?: City;

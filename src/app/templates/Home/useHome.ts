@@ -4,23 +4,31 @@ import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
-import targetInfoJsonType from '@/@types/targetInfoJsonType';
-import listOfLocation from '../../../../location';
+import targetInfoJsonType, {
+  LocationInfoType,
+} from '@/@types/targetInfoJsonType';
 
-export const getLocationDetails = (
+export const getLocationDetails = async (
   countryCode?: string,
   stateCode?: string,
   cityID?: string,
-) => {
-  const country = listOfLocation.countries.find((c) => c.code === countryCode);
+): Promise<LocationInfoType> => {
+  try {
+    const { default: listOfLocation } = await import('../../../../location');
 
-  const state = country?.states?.find((s) => s.code === stateCode);
+    const country = listOfLocation.countries.find(
+      (c) => c.code === countryCode,
+    );
+    const state = country?.states?.find((s) => s.code === stateCode);
+    const city = state?.cities?.find(
+      (c) => cityID && c.id === parseInt(cityID, 10),
+    );
 
-  const city = state?.cities?.find(
-    (c) => cityID && c.id === parseInt(cityID, 10),
-  );
-
-  return { country, state, city };
+    return { country, state, city };
+  } catch (error) {
+    console.error('Failed to load location data:', error);
+    throw new Error('Unable to retrieve location details');
+  }
 };
 
 type cityNameAndScore = { [key: string]: number };
@@ -53,10 +61,10 @@ export const useHome = () => {
       );
 
   const getCitiesNames = (citiesScored: cityNameAndScore) =>
-    Object.entries(citiesScored).map(([key, value]) => {
+    Object.entries(citiesScored).map(async ([key, value]) => {
       const [countryCode, stateCode, cityID] = key.split('/');
 
-      const { city, state, country } = getLocationDetails(
+      const { city, state, country } = await getLocationDetails(
         countryCode,
         stateCode,
         cityID,
@@ -73,7 +81,7 @@ export const useHome = () => {
       };
     });
 
-  const getPossibleLocation = (
+  const getPossibleLocation = async (
     closeFriendsOfTheTarget: closeFriendsDataIWant[],
   ) => {
     const closeFriendsWithCities = closeFriendsOfTheTarget.filter(
@@ -91,7 +99,9 @@ export const useHome = () => {
 
     citiesScored = sortCitiesByScore(citiesScored);
 
-    const citiesScoredWithNames = getCitiesNames(citiesScored);
+    const citiesScoredWithNames = await Promise.all(
+      getCitiesNames(citiesScored),
+    );
 
     let totalCountOfScores = 0;
     citiesScoredWithNames.forEach((c) => {
@@ -133,7 +143,7 @@ export const useHome = () => {
 
       const { targetInfo } = data;
 
-      const locationInfo = getLocationDetails(
+      const locationInfo = await getLocationDetails(
         targetInfo.countryCode,
         targetInfo.stateCode,
         targetInfo.cityID,
