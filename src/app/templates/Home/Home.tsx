@@ -2,6 +2,7 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
+import SponsorMe from '@/app/components/SponsorMe';
 import { useHome } from './useHome';
 import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
@@ -20,11 +21,19 @@ export default function Home() {
     targetInfoJson,
     isLoading,
     hasNoDataYet,
+    showSponsorMe,
+    onCloseSponsorMe,
   } = useHome();
 
   return (
     <div className="max-h-dvh">
       <VideoBackground />
+      {showSponsorMe && (
+        <SponsorMe
+          onClose={() => onCloseSponsorMe(0)}
+          dontAskAgain={() => onCloseSponsorMe(-20)}
+        />
+      )}
       {hasNoDataYet && <WelcomeText />}
       <div
         className={`flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover p-12 text-white z-20 ${

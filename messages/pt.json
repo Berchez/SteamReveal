@@ -25,5 +25,11 @@
   },
   "WelcomeText": {
     "welcomeTo": "Bem-vindo ao"
+  },
+  "SponsorMe": {
+    "enjoying": "Está gostando do site?",
+    "ifYouLikeIt": "Se você gostou, considere deixar uma estrela no nosso repositório no GitHub!",
+    "giveStar": "Nos dê uma estrela!",
+    "dontAskAgain": "Não pergunte novamente!"
   }
 }

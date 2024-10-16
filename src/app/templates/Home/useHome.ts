@@ -50,6 +50,13 @@ export const useHome = () => {
     friendsCards: boolean;
   }>({ myCard: false, friendsCards: false });
 
+  const [showSponsorMe, setShowSponsorMe] = useState(false);
+
+  const onCloseSponsorMe = (visitCountToSet = 0) => {
+    localStorage.setItem('visitCount', visitCountToSet.toString());
+    setShowSponsorMe(false);
+  };
+
   const [targetInfoJson, setTargetInfoJson] = useState<targetInfoJsonType>();
 
   const sortCitiesByScore = (listOfCities: cityNameAndScore) =>
@@ -232,10 +239,23 @@ export const useHome = () => {
     setTargetInfoJson(undefined);
   };
 
+  const handleShowSponsorMe = () => {
+    const visitCount = localStorage.getItem('visitCount');
+    const count = visitCount ? parseInt(visitCount, 10) : 0;
+
+    if (count >= 2) {
+      setShowSponsorMe(true);
+    }
+
+    localStorage.setItem('visitCount', (count + 1).toString());
+  };
+
   const handleGetInfoClick = async (value: string, key: string) => {
     if (key !== 'Enter') {
       return;
     }
+
+    handleShowSponsorMe();
 
     resetJsons();
 
@@ -260,5 +280,7 @@ export const useHome = () => {
     getLocationDetails,
     isLoading,
     hasNoDataYet,
+    showSponsorMe,
+    onCloseSponsorMe,
   };
 };
