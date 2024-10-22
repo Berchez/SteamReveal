@@ -70,14 +70,6 @@ export default function RootLayout({
   const messages = useMessages();
   return (
     <html lang={locale} className={`${roboto.variable} ${inknut.variable}`}>
-      <head>
-        <AdSense pId="3301991262958911" />
-        <meta name="google-adsense-account" content="ca-pub-3301991262958911" />
-        <meta
-          name="google-site-verification"
-          content="9bnJzty2EA0iUCoFwiGESzR8VCUnDc33ChIgwb3oj1o"
-        />
-      </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           <ToastProvider>{children}</ToastProvider>
