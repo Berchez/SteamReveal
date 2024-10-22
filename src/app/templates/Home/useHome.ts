@@ -144,11 +144,13 @@ export const useHome = () => {
   const getUserInfoJson = async (value: string) => {
     try {
       setIsLoading((prev) => ({ ...prev, myCard: true }));
-      const { data } = await axios.post('/api/getUserInfo', {
+      const walter = await axios.post('/api/getUserInfo', {
         target: value,
       });
 
-      const { targetInfo } = data;
+      console.log('walter awa', walter);
+
+      const { targetInfo } = walter.data;
 
       const locationInfo = await getLocationDetails(
         targetInfo.countryCode,
@@ -259,7 +261,7 @@ export const useHome = () => {
 
     resetJsons();
 
-    await getUserInfoJson(value);
+    await getUserInfoJson(value).then((a) => console.log('walter', a));
     const closeFriends = await getCloseFriendsJson(value);
     getPossibleLocation(closeFriends);
   };

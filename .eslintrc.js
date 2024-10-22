@@ -32,7 +32,7 @@ module.exports = {
     'jsx-a11y/anchor-has-content': 'error',
 
     // Best practices Rules
-    '@next/next/no-img-element': 'error',
+    '@next/next/no-img-element': 'off',
     '@next/next/no-page-custom-font': 'warn',
 
     // General Rules

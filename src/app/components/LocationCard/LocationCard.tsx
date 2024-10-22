@@ -26,7 +26,7 @@ function LocationCard({
         <div className="flex gap-x-5 mb-3 font-semibold text-lg flex-wrap">
           {translator('providedByUser')}
           <div className="flex items-center gap-x-2 flex-wrap">
-            <Image
+            <img
               src={`https://flagcdn.com/w20/${providedLocation.countryCode.toLowerCase()}.png`}
               className="w-max h-max"
               alt={`${providedLocation.countryCode}'s flag`}
@@ -52,7 +52,7 @@ function LocationCard({
             >
               <div className="flex items-center gap-x-2">
                 {countryCode && (
-                  <Image
+                  <img
                     src={`https://flagcdn.com/w20/${countryCode.toLowerCase()}.png`}
                     className="w-max h-max"
                     alt={`${countryCode}'s flag`}

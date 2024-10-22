@@ -59,10 +59,10 @@ function UserCard({
     >
       {friend.avatar.medium && (
         <div>
-          <Image
+          <img
             src={itsTargetUser ? friend.avatar.large : friend.avatar.medium}
             className={`${itsTargetUser ? 'w-36' : ''} rounded-lg`}
-            alt={`Avatar image of the user ${friend.nickname}`}
+            alt={`Avatar of the user ${friend.nickname}`}
             width={itsTargetUser ? 120 : 60}
             height={itsTargetUser ? 120 : 60}
           />
@@ -86,7 +86,7 @@ function UserCard({
         <div className="flex gap-x-2 items-center">
           {friend.countryCode && (
             <div className="flex items-center gap-x-1 w-full">
-              <Image
+              <img
                 src={`https://flagcdn.com/${
                   itsTargetUser ? 'w40' : 'w20'
                 }/${friend.countryCode.toLowerCase()}.png`}
