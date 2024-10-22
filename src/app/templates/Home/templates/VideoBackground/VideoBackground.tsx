@@ -4,13 +4,7 @@ import React from 'react';
 function VideoBackground() {
   const env = process.env.NODE_ENV;
   if (env === 'development') {
-    return (
-      <Image
-        src="/images/background.webp"
-        alt="image for the background"
-        fill
-      />
-    );
+    return <Image src="/images/background.webp" alt="background" fill />;
   }
 
   return (

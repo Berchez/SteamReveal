@@ -1,6 +1,5 @@
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import React from 'react';
 
 function LocationCard({

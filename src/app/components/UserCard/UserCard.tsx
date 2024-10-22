@@ -2,7 +2,6 @@ import { useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
 import { UserSummary } from 'steamapi';
 import { getLocationDetails } from '@/app/templates/Home/useHome';
-import Image from 'next/image';
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
 
 function UserCard({
