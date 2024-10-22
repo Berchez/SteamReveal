@@ -64,7 +64,6 @@ describe('LocationCard component', () => {
 
     expect(screen.getAllByText(/USA/i)).toHaveLength(2);
 
-    screen.debug();
     expect(screen.getByText(/New York,/i)).toBeInTheDocument();
     expect(screen.getByText(/85.50%/i)).toBeInTheDocument();
     expect(screen.getByText(/\(150\)/i)).toBeInTheDocument();
