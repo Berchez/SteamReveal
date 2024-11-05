@@ -161,7 +161,7 @@ export const useHome = () => {
         targetLocationInfo: locationInfo,
       });
     } catch (e) {
-      toast.warn(translator('invalidPlayer'));
+      toast.error(translator('invalidPlayer'));
       console.error(e);
       throw e;
     } finally {
@@ -225,7 +225,7 @@ export const useHome = () => {
 
       return closeFriendsWithProbability;
     } catch (e) {
-      toast.warn(translator('friendsNotPublic'));
+      toast.error(translator('friendsNotPublic'));
       console.error(e);
       throw e;
     } finally {

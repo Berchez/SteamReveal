@@ -13,7 +13,7 @@
     "providedByUser": "Provided by user:"
   },
   "ServerMessages": {
-    "friendsNotPublic": "The friend list of this player is not public",
+    "friendsNotPublic": "The friend list of this player is not public. Try a different one!",
     "invalidPlayer": "This is not a valid (Steam ID / Steam Profile Link / Custom Steam URL)"
   },
   "Index": {
