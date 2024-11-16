@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 import { locationDataIWant } from '@/@types/locationDataIWant';
@@ -7,6 +7,7 @@ import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import targetInfoJsonType, {
   LocationInfoType,
 } from '@/@types/targetInfoJsonType';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export const getLocationDetails = async (
   countryCode?: string,
@@ -34,6 +35,15 @@ export const getLocationDetails = async (
 type cityNameAndScore = { [key: string]: number };
 
 export const useHome = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const updateQueryParam = (key: string, value: string) => {
+    const currentParams = new URLSearchParams(searchParams.toString());
+    currentParams.set(key, value);
+    router.replace(`?${currentParams.toString()}`);
+  };
+
   const targetValue = useRef<string | null>();
   const translator = useTranslations('ServerMessages');
 
@@ -56,6 +66,8 @@ export const useHome = () => {
     localStorage.setItem('visitCount', visitCountToSet.toString());
     setShowSponsorMe(false);
   };
+
+  const urlPlayer = searchParams.get('player');
 
   const [targetInfoJson, setTargetInfoJson] = useState<targetInfoJsonType>();
 
@@ -160,6 +172,8 @@ export const useHome = () => {
         profileInfo: targetInfo,
         targetLocationInfo: locationInfo,
       });
+
+      updateQueryParam('player', targetInfo.steamID);
     } catch (e) {
       toast.error(translator('invalidPlayer'));
       console.error(e);
@@ -251,6 +265,7 @@ export const useHome = () => {
   };
 
   const handleGetInfoClick = async (value: string, key: string) => {
+    console.log('walter', { value, key });
     if (key !== 'Enter') {
       return;
     }
@@ -263,6 +278,14 @@ export const useHome = () => {
     const closeFriends = await getCloseFriendsJson(value);
     getPossibleLocation(closeFriends);
   };
+
+  useEffect(() => {
+    if (!urlPlayer) {
+      return;
+    }
+
+    handleGetInfoClick(urlPlayer, 'Enter');
+  }, []);
 
   const onChangeTarget = (value: string) => {
     targetValue.current = value;
