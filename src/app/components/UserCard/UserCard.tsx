@@ -1,8 +1,9 @@
 import { useTranslations } from 'next-intl';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { UserSummary } from 'steamapi';
 import { getLocationDetails } from '@/app/templates/Home/useHome';
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
+import HomeContext from '@/app/templates/Home/context';
 
 function UserCard({
   friend,
@@ -18,6 +19,8 @@ function UserCard({
   const { countryCode, stateCode, cityID } = friend;
 
   const translator = useTranslations('UserCard');
+
+  const context = useContext(HomeContext);
 
   const defaultLocationInfoType = useMemo(
     () => ({
@@ -65,6 +68,17 @@ function UserCard({
             width={itsTargetUser ? 120 : 60}
             height={itsTargetUser ? 120 : 60}
           />
+          {!itsTargetUser && (
+            <button
+              onClick={() =>
+                context?.handleGetInfoClick(friend.steamID, 'Enter')
+              }
+              type="button"
+              className="w-[60px] py-1 mt-2 text-purple-400 font-semibold text-sm rounded-full border border-purple-800 bg-purple-600 bg-opacity-10 hover:bg-opacity-20"
+            >
+              {translator('searchFriend')}
+            </button>
+          )}
         </div>
       )}
       <div
@@ -94,6 +108,7 @@ function UserCard({
                 width={itsTargetUser ? 40 : 20}
                 height={itsTargetUser ? 28 : 14}
               />
+
               {isLoadingLocationDetails && (
                 <div className="h-4 bg-gray-500 rounded-md animate-pulse w-1/2" />
               )}

@@ -265,7 +265,6 @@ export const useHome = () => {
   };
 
   const handleGetInfoClick = async (value: string, key: string) => {
-    console.log('walter', { value, key });
     if (key !== 'Enter') {
       return;
     }
