@@ -34,6 +34,35 @@ export const getLocationDetails = async (
 
 type cityNameAndScore = { [key: string]: number };
 
+const sortCitiesByScore = (listOfCities: cityNameAndScore) =>
+  Object.entries(listOfCities)
+    .sort((a, b) => b[1] - a[1])
+    .reduce(
+      (acc: cityNameAndScore, [key, value]) => ({ ...acc, [key]: value }),
+      {},
+    );
+
+const getCitiesNames = (citiesScored: cityNameAndScore) =>
+  Object.entries(citiesScored).map(async ([key, value]) => {
+    const [countryCode, stateCode, cityID] = key.split('/');
+
+    const { city, state, country } = await getLocationDetails(
+      countryCode,
+      stateCode,
+      cityID,
+    );
+
+    return {
+      location: {
+        cityName: city?.name,
+        stateName: state?.name,
+        countryName: country?.name,
+        countryCode: country?.code,
+      },
+      count: value as number,
+    };
+  });
+
 export const useHome = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -71,35 +100,6 @@ export const useHome = () => {
 
   const [targetInfoJson, setTargetInfoJson] = useState<targetInfoJsonType>();
 
-  const sortCitiesByScore = (listOfCities: cityNameAndScore) =>
-    Object.entries(listOfCities)
-      .sort((a, b) => b[1] - a[1])
-      .reduce(
-        (acc: cityNameAndScore, [key, value]) => ({ ...acc, [key]: value }),
-        {},
-      );
-
-  const getCitiesNames = (citiesScored: cityNameAndScore) =>
-    Object.entries(citiesScored).map(async ([key, value]) => {
-      const [countryCode, stateCode, cityID] = key.split('/');
-
-      const { city, state, country } = await getLocationDetails(
-        countryCode,
-        stateCode,
-        cityID,
-      );
-
-      return {
-        location: {
-          cityName: city?.name,
-          stateName: state?.name,
-          countryName: country?.name,
-          countryCode: country?.code,
-        },
-        count: value as number,
-      };
-    });
-
   const getPossibleLocation = async (
     closeFriendsOfTheTarget: closeFriendsDataIWant[],
   ) => {
@@ -127,16 +127,16 @@ export const useHome = () => {
       totalCountOfScores += c.count;
     });
 
-    const rasoableNumberToBeAGoodGuess = 100;
+    const reasonableNumberToBeAGoodGuess = 100;
 
     const withProbability = citiesScoredWithNames.map((c) => {
       const totalCountMethod =
         totalCountOfScores === 0 ? 0 : c.count / totalCountOfScores;
 
       const constantMethod =
-        c.count > rasoableNumberToBeAGoodGuess
+        c.count > reasonableNumberToBeAGoodGuess
           ? 1
-          : c.count / rasoableNumberToBeAGoodGuess;
+          : c.count / reasonableNumberToBeAGoodGuess;
 
       const probabilityFloat = (totalCountMethod * 2 + constantMethod) / 3;
       const probabilityPercentage = probabilityFloat * 100;
@@ -203,7 +203,7 @@ export const useHome = () => {
       const meanOf5ClosestFriendsCount = totalCountOf5ClosestFriends / 5;
 
       const biggestCountValue = closeFriends[0].count;
-      const rasoableNumberToBeAGoodGuess = 50;
+      const reasonableNumberToBeAGoodGuess = 50;
 
       const closeFriendsWithProbability = closeFriends.map(
         (f: closeFriendsDataIWant) => {
@@ -215,9 +215,9 @@ export const useHome = () => {
           const biggestCountMethod = f.count / biggestCountValue;
 
           const constantMethod =
-            f.count / rasoableNumberToBeAGoodGuess > 1
+            f.count / reasonableNumberToBeAGoodGuess > 1
               ? 1
-              : f.count / rasoableNumberToBeAGoodGuess;
+              : f.count / reasonableNumberToBeAGoodGuess;
 
           const probabilityFloat =
             (meanProbabilityMethod * 2 +

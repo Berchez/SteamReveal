@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
       if (!target || target === '' || typeof target !== 'string') {
         return NextResponse.json(
-          { message: 'Target inválido. ', target },
+          { message: 'Invalid target. ', target },
           { status: 500 },
         );
       }
@@ -25,11 +25,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ targetInfo }, { status: 200 });
     } catch (error) {
       return NextResponse.json(
-        { message: `Erro interno do servidor ${(error as Error).message}` },
+        { message: `Internal server error: ${(error as Error).message}` },
         { status: 500 },
       );
     }
   } else {
-    return NextResponse.json({ message: 'Método não permitido.' });
+    return NextResponse.json({ message: 'Method not allowed.' });
   }
 }
