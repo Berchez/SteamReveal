@@ -1,7 +1,7 @@
 import { SteamItem } from '@/@types/steamItemType';
 import axios from 'axios';
 
-const APP_ID = 730;
+const CS2_ID = 730;
 const CONTEXT_ID = 2;
 
 const sleep = (ms: number) =>
@@ -15,7 +15,7 @@ const fetchInventoryPage = async (
   allDescriptions: SteamItem[] = [],
 ): Promise<SteamItem[]> => {
   const count = 900;
-  const url = `https://steamcommunity.com/inventory/${steamId}/${APP_ID}/${CONTEXT_ID}?l=english&count=${count}${startAssetId ? `&start_assetid=${startAssetId}` : ''}`;
+  const url = `https://steamcommunity.com/inventory/${steamId}/${CS2_ID}/${CONTEXT_ID}?l=english&count=${count}${startAssetId ? `&start_assetid=${startAssetId}` : ''}`;
 
   try {
     const { data } = await axios.get(url);
