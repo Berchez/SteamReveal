@@ -1,7 +1,9 @@
 import puppeteer from 'puppeteer';
 
-const getAverageRating = async (steamID: string): Promise<number | null> => {
-  const browser = await puppeteer.launch({ headless: false });
+const getLast5MatchesRating = async (
+  steamID: string,
+): Promise<number | null> => {
+  const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
   await page.setUserAgent(
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
@@ -37,4 +39,4 @@ const getAverageRating = async (steamID: string): Promise<number | null> => {
   return average;
 };
 
-export default getAverageRating;
+export default getLast5MatchesRating;

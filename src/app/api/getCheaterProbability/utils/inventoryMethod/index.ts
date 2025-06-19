@@ -1,7 +1,7 @@
 import getInventory from './utils/steamInventory';
 import { calculateInventoryScore, normalizeScoreTo10 } from './utils/score';
 
-const classifyInventory = async (steamId: string): Promise<number> => {
+const getInventoryScore = async (steamId: string): Promise<number> => {
   try {
     const items = await getInventory(steamId);
     const score = calculateInventoryScore(items);
@@ -16,4 +16,4 @@ const classifyInventory = async (steamId: string): Promise<number> => {
   }
 };
 
-export default classifyInventory;
+export default getInventoryScore;
