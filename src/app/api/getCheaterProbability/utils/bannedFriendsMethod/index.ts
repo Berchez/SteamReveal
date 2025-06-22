@@ -6,19 +6,13 @@ const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
 
 const getBannedFriendsScore = async (
   closeFriends: closeFriendsDataIWant[],
-  target: string,
 ): Promise<number> => {
-  const allFriends = await steam.getUserFriends(target);
-  const closeFriendsMap = new Map(
-    closeFriends.map((cf) => [cf.friend.steamID, cf.count]),
-  );
+  if (closeFriends.length === 0) return 0;
 
   const bansScoreArr = await Promise.all(
-    allFriends.map(async (friend) => {
+    closeFriends.map(async ({ friend, count }) => {
       const bansInfo = await steam.getUserBans(friend.steamID);
       if (!bansInfo) return 0;
-
-      const count = closeFriendsMap.get(friend.steamID) ?? 1;
       return calcBansWeight(bansInfo, count);
     }),
   );
