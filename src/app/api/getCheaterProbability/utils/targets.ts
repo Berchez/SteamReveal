@@ -1,4 +1,4 @@
-const allTargets = [
+export const allTargets = [
   {
     target: '76561198146333375',
     data: {

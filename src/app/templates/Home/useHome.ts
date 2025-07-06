@@ -264,22 +264,6 @@ export const useHome = () => {
     localStorage.setItem('visitCount', (count + 1).toString());
   };
 
-  const handleGetInfoClick = async (value: string, key: string) => {
-    if (key !== 'Enter') {
-      return;
-    }
-
-    handleShowSponsorMe();
-
-    resetJsons();
-
-    await getUserInfoJson(value);
-    const closeFriends = await getCloseFriendsJson(value);
-    getPossibleLocation(closeFriends);
-    const cheaterProbability = await getCheaterProbability(value, closeFriends);
-    console.log('🔥 Cheater Probability:', cheaterProbability);
-  };
-
   const getCheaterProbability = async (
     target: string,
     closeFriends: closeFriendsDataIWant[],
@@ -300,6 +284,24 @@ export const useHome = () => {
       console.error('getCheaterProbability error:', e);
       return null;
     }
+  };
+
+  const handleGetInfoClick = async (value: string, key: string) => {
+    if (key !== 'Enter') {
+      return;
+    }
+
+    handleShowSponsorMe();
+
+    resetJsons();
+
+    await getUserInfoJson(value);
+    const closeFriends = await getCloseFriendsJson(value);
+    getPossibleLocation(closeFriends);
+    const cheaterProbability = await getCheaterProbability(value, closeFriends);
+    console.log(
+      `walter - 🔥 Cheater Probability: ${cheaterProbability * 100}%`,
+    );
   };
 
   useEffect(() => {
