@@ -11,9 +11,17 @@ const getBannedFriendsScore = async (
 
   const bansScoreArr = await Promise.all(
     closeFriends.map(async ({ friend, count }) => {
-      const bansInfo = await steam.getUserBans(friend.steamID);
-      if (!bansInfo) return 0;
-      return calcBansWeight(bansInfo, count);
+      try {
+        const bansInfo = await steam.getUserBans(friend.steamID);
+        if (!bansInfo) return 0;
+        return calcBansWeight(bansInfo, count);
+      } catch (err) {
+        console.error(
+          `Error fetching bans for SteamID ${friend.steamID}:`,
+          err,
+        );
+        return -1;
+      }
     }),
   );
 

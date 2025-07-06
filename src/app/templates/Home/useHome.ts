@@ -276,6 +276,30 @@ export const useHome = () => {
     await getUserInfoJson(value);
     const closeFriends = await getCloseFriendsJson(value);
     getPossibleLocation(closeFriends);
+    const cheaterProbability = await getCheaterProbability(value, closeFriends);
+    console.log('🔥 Cheater Probability:', cheaterProbability);
+  };
+
+  const getCheaterProbability = async (
+    target: string,
+    closeFriends: closeFriendsDataIWant[],
+  ) => {
+    try {
+      const response = await axios.post('/api/getCheaterProbability', {
+        target,
+        closeFriends,
+      });
+
+      const {
+        data: { cheaterProbability },
+      } = response;
+
+      return cheaterProbability;
+    } catch (e) {
+      toast.error('Failed to calculate cheater probability');
+      console.error('getCheaterProbability error:', e);
+      return null;
+    }
   };
 
   useEffect(() => {
