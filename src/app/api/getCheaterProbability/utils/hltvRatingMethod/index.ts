@@ -7,7 +7,8 @@ const getHLTVRating = async (steamID: string): Promise<number | null> => {
     browser = await puppeteer.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
-      headless: (chromium as any).headless,
+      // @ts-expect-error This issue occurs because the @sparticuz/chromium library doesn't declare headless in its exported type, even though it functions correctly at runtime.
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
