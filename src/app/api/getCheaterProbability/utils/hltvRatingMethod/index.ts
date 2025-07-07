@@ -2,8 +2,9 @@ import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 
 const getHLTVRating = async (steamID: string): Promise<number | null> => {
+  let browser;
   try {
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
       // @ts-expect-error This issue occurs because the @sparticuz/chromium library doesn't declare headless in its exported type, even though it functions correctly at runtime.
