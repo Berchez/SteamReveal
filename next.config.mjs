@@ -7,6 +7,9 @@ const nextConfig = {
   images: {
     domains: ['flagcdn.com', 'avatars.steamstatic.com'],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['@sparticuz/chromium'],
+  },
 };
 
 export default withNextIntl(nextConfig);
