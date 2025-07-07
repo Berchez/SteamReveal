@@ -10,7 +10,7 @@ const getLast5MatchesRating = async (
     browser = await puppeteer.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+      headless: (chromium as any).headless
     });
 
     const page = await browser.newPage();
