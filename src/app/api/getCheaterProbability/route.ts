@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import SteamAPI from 'steamapi';
-import getHLTVRating from './utils/hltvRatingMethod';
 import getBadCommentsScore from './utils/badCommentsMethod';
 import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
-import getLast5MatchesRating from './utils/last5MatchesMethod';
 import getPlayTimeScore from './utils/playTimeMethod';
 
 export const revalidate = 0;
 const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
+
+const STEAMREVEAL_API_BASE = process.env.STEAMREVEAL_API_BASE;
 
 export async function POST(req: Request) {
   if (req.method !== 'POST') {
@@ -35,27 +35,35 @@ export async function POST(req: Request) {
     const [
       badCommentsScore,
       bannedFriendsScore,
-      hltvRating,
       inventoryScore,
-      last5MatchesRating,
       playTimeScore,
       userLevel,
+      hltvRatingResponse,
+      last5MatchesRatingResponse,
     ] = await Promise.all([
       getBadCommentsScore(targetSteamId),
       getBannedFriendsScore(closeFriends),
-      getHLTVRating(targetSteamId),
       getInventoryScore(targetSteamId),
-      getLast5MatchesRating(targetSteamId),
       getPlayTimeScore(targetSteamId),
       steam.getUserLevel(targetSteamId),
+
+      axios
+        .get(`${STEAMREVEAL_API_BASE}/hltv-rating/${targetSteamId}`)
+        .then((res) => res.data.rating)
+        .catch(() => null),
+
+      axios
+        .get(`${STEAMREVEAL_API_BASE}/last5-matches-rating/${targetSteamId}`)
+        .then((res) => res.data.average)
+        .catch(() => null),
     ]);
 
     const features = [
       badCommentsScore,
       bannedFriendsScore,
-      hltvRating,
+      hltvRatingResponse,
       inventoryScore,
-      last5MatchesRating,
+      last5MatchesRatingResponse,
       playTimeScore,
       userLevel,
     ].map((value) => value ?? -1);
