@@ -9,7 +9,7 @@ import getPlayTimeScore from './utils/playTimeMethod';
 export const revalidate = 0;
 const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
 
-const STEAMREVEAL_API_BASE = process.env.STEAMREVEAL_API_BASE;
+const { STEAMREVEAL_API_BASE } = process.env;
 
 export async function POST(req: Request) {
   if (req.method !== 'POST') {
