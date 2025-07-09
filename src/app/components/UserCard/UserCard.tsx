@@ -1,9 +1,9 @@
 import { useTranslations } from 'next-intl';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { UserSummary } from 'steamapi';
-import { getLocationDetails } from '@/app/templates/Home/useHome';
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
 import HomeContext from '@/app/templates/Home/context';
+import { getLocationDetails } from '@/app/templates/Home/homeUtils';
 
 function UserCard({
   friend,

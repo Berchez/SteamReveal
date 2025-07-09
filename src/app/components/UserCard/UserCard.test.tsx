@@ -3,14 +3,14 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useTranslations } from 'next-intl';
 import UserCard from './UserCard';
-import { getLocationDetails } from '@/app/templates/Home/useHome';
 import { UserSummary } from 'steamapi';
+import { getLocationDetails } from '@/app/templates/Home/homeUtils';
 
 jest.mock('next-intl', () => ({
   useTranslations: jest.fn(),
 }));
 
-jest.mock('../../templates/Home/useHome', () => ({
+jest.mock('../../templates/Home/homeUtils', () => ({
   getLocationDetails: jest.fn(),
 }));
 
