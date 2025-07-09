@@ -239,9 +239,7 @@ const useHome = () => {
         value,
         closeFriends,
       );
-      console.log(
-        `walter - 🔥 Cheater Probability: ${cheaterProbability * 100}%`,
-      );
+      alert(`🔥 Cheater Probability: ${cheaterProbability * 100}%`);
     }
   };
 
