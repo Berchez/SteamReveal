@@ -232,10 +232,17 @@ const useHome = () => {
     await getUserInfoJson(value);
     const closeFriends = await getCloseFriendsJson(value);
     getPossibleLocation(closeFriends);
-    const cheaterProbability = await getCheaterProbability(value, closeFriends);
-    console.log(
-      `walter - 🔥 Cheater Probability: ${cheaterProbability * 100}%`,
-    );
+
+    const cheaterFeatureFlag = searchParams.get('cheaterFeature');
+    if (cheaterFeatureFlag !== null) {
+      const cheaterProbability = await getCheaterProbability(
+        value,
+        closeFriends,
+      );
+      console.log(
+        `walter - 🔥 Cheater Probability: ${cheaterProbability * 100}%`,
+      );
+    }
   };
 
   useEffect(() => {
@@ -244,7 +251,7 @@ const useHome = () => {
     }
 
     handleGetInfoClick(urlPlayer, 'Enter');
-  }, []);
+  }, [urlPlayer, searchParams]);
 
   const onChangeTarget = (value: string) => {
     targetValue.current = value;
