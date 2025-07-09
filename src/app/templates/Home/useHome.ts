@@ -4,68 +4,22 @@ import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
-import targetInfoJsonType, {
-  LocationInfoType,
-} from '@/@types/targetInfoJsonType';
+import targetInfoJsonType from '@/@types/targetInfoJsonType';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { cityNameAndScore } from '@/@types/cityNameAndScore';
+import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
+import {
+  getLocationDetails,
+  getCitiesNames,
+  sortCitiesByScore,
+} from './homeUtils';
 
-export const getLocationDetails = async (
-  countryCode?: string,
-  stateCode?: string,
-  cityID?: string,
-): Promise<LocationInfoType> => {
-  try {
-    const { default: listOfLocation } = await import('../../../../location');
-
-    const country = listOfLocation.countries.find(
-      (c) => c.code === countryCode,
-    );
-    const state = country?.states?.find((s) => s.code === stateCode);
-    const city = state?.cities?.find(
-      (c) => cityID && c.id === parseInt(cityID, 10),
-    );
-
-    return { country, state, city };
-  } catch (error) {
-    console.error('Failed to load location data:', error);
-    throw new Error('Unable to retrieve location details');
-  }
-};
-
-type cityNameAndScore = { [key: string]: number };
-
-const sortCitiesByScore = (listOfCities: cityNameAndScore) =>
-  Object.entries(listOfCities)
-    .sort((a, b) => b[1] - a[1])
-    .reduce(
-      (acc: cityNameAndScore, [key, value]) => ({ ...acc, [key]: value }),
-      {},
-    );
-
-const getCitiesNames = (citiesScored: cityNameAndScore) =>
-  Object.entries(citiesScored).map(async ([key, value]) => {
-    const [countryCode, stateCode, cityID] = key.split('/');
-
-    const { city, state, country } = await getLocationDetails(
-      countryCode,
-      stateCode,
-      cityID,
-    );
-
-    return {
-      location: {
-        cityName: city?.name,
-        stateName: state?.name,
-        countryName: country?.name,
-        countryCode: country?.code,
-      },
-      count: value as number,
-    };
-  });
-
-export const useHome = () => {
+const useHome = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const { showSponsorMe, handleShowSponsorMe, onCloseSponsorMe } =
+    useSponsorMe();
 
   const updateQueryParam = (key: string, value: string) => {
     const currentParams = new URLSearchParams(searchParams.toString());
@@ -89,13 +43,6 @@ export const useHome = () => {
     friendsCards: boolean;
   }>({ myCard: false, friendsCards: false });
 
-  const [showSponsorMe, setShowSponsorMe] = useState(false);
-
-  const onCloseSponsorMe = (visitCountToSet = 0) => {
-    localStorage.setItem('visitCount', visitCountToSet.toString());
-    setShowSponsorMe(false);
-  };
-
   const urlPlayer = searchParams.get('player');
 
   const [targetInfoJson, setTargetInfoJson] = useState<targetInfoJsonType>();
@@ -118,9 +65,7 @@ export const useHome = () => {
 
     citiesScored = sortCitiesByScore(citiesScored);
 
-    const citiesScoredWithNames = await Promise.all(
-      getCitiesNames(citiesScored),
-    );
+    const citiesScoredWithNames = await getCitiesNames(citiesScored);
 
     let totalCountOfScores = 0;
     citiesScoredWithNames.forEach((c) => {
@@ -253,17 +198,6 @@ export const useHome = () => {
     setTargetInfoJson(undefined);
   };
 
-  const handleShowSponsorMe = () => {
-    const visitCount = localStorage.getItem('visitCount');
-    const count = visitCount ? parseInt(visitCount, 10) : 0;
-
-    if (count >= 2) {
-      setShowSponsorMe(true);
-    }
-
-    localStorage.setItem('visitCount', (count + 1).toString());
-  };
-
   const handleGetInfoClick = async (value: string, key: string) => {
     if (key !== 'Enter') {
       return;
@@ -306,3 +240,5 @@ export const useHome = () => {
     onCloseSponsorMe,
   };
 };
+
+export default useHome;

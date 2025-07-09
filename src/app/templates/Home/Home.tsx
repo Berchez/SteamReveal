@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import SponsorMe from '@/app/components/SponsorMe';
-import { useHome } from './useHome';
+import useHome from './useHome';
 import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
 import WelcomeText from './WelcomeText/WelcomeText';
