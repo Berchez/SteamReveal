@@ -198,17 +198,6 @@ const useHome = () => {
     setTargetInfoJson(undefined);
   };
 
-  const handleShowSponsorMe = () => {
-    const visitCount = localStorage.getItem('visitCount');
-    const count = visitCount ? parseInt(visitCount, 10) : 0;
-
-    if (count >= 2) {
-      setShowSponsorMe(true);
-    }
-
-    localStorage.setItem('visitCount', (count + 1).toString());
-  };
-
   const getCheaterProbability = async (
     target: string,
     closeFriends: closeFriendsDataIWant[],
