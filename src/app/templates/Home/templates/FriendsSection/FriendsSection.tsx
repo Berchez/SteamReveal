@@ -32,8 +32,8 @@ function FriendsSection({ closeFriendsJson, isLoading }: FriendsSectionProps) {
             />
           ))
         : isLoading &&
-          Array.from({ length: 5 }).map(() => (
-            <UserCardSkeleton itsTargetUser={false} />
+          Array.from({ length: 5 }).map((_, i) => (
+            <UserCardSkeleton itsTargetUser={false} key={i} />
           ))}
     </div>
   );

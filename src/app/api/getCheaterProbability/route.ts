@@ -49,14 +49,14 @@ export async function POST(req: Request) {
 
       axios
         .get(`${STEAMREVEAL_API_BASE}/hltv-rating/${targetSteamId}`, {
-          timeout: 15000,
+          timeout: 180000,
         })
         .then((res) => res.data.rating)
         .catch(() => null),
 
       axios
         .get(`${STEAMREVEAL_API_BASE}/last5-matches-rating/${targetSteamId}`, {
-          timeout: 15000,
+          timeout: 180000,
         })
         .then((res) => res.data.average)
         .catch(() => null),
@@ -79,14 +79,24 @@ export async function POST(req: Request) {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 15000,
+        timeout: 180000,
       },
     );
 
     const { probability } = flaskResponse.data;
 
+    const featureObject = {
+      badCommentsScore: features[0],
+      bannedFriendsScore: features[1],
+      hltvRatingResponse: features[2],
+      inventoryScore: features[3],
+      last5MatchesRatingResponse: features[4],
+      playTimeScore: features[5],
+      userLevel: features[6],
+    };
+
     return NextResponse.json(
-      { cheaterProbability: probability, features },
+      { cheaterProbability: probability, featureObject },
       { status: 200 },
     );
   } catch (error) {

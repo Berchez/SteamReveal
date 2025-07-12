@@ -20,7 +20,7 @@ const getBannedFriendsScore = async (
           `Error fetching bans for SteamID ${friend.steamID}:`,
           err,
         );
-        return -1;
+        return 0;
       }
     }),
   );
