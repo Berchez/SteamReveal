@@ -9,6 +9,8 @@ type FriendsSectionProps = {
   isLoading: boolean;
 };
 
+const skeletonUUIDs = Array.from({ length: 5 }, () => crypto.randomUUID());
+
 function FriendsSection({ closeFriendsJson, isLoading }: FriendsSectionProps) {
   const translator = useTranslations('Index');
 
@@ -32,8 +34,8 @@ function FriendsSection({ closeFriendsJson, isLoading }: FriendsSectionProps) {
             />
           ))
         : isLoading &&
-          Array.from({ length: 5 }).map((_, i) => (
-            <UserCardSkeleton itsTargetUser={false} key={i} />
+          skeletonUUIDs.map((uuid) => (
+            <UserCardSkeleton itsTargetUser={false} key={uuid} />
           ))}
     </div>
   );

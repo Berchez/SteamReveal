@@ -247,7 +247,6 @@ const useHome = () => {
     if (!urlPlayer) {
       return;
     }
-
     handleGetInfoClick(urlPlayer, 'Enter');
   }, [urlPlayer, searchParams]);
 

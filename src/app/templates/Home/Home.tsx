@@ -51,12 +51,6 @@ export default function Home() {
               : 'relative'
           }`}
         >
-          <button
-            onClick={() => handleGetInfoClick('76561198280800483', 'Enter')}
-            style={{ background: 'red' }}
-          >
-            Walter
-          </button>
           <MyUserSection
             targetInfoJson={targetInfoJson}
             isLoading={isLoading.myCard}
