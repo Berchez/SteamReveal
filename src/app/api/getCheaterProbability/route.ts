@@ -9,7 +9,9 @@ import getPlayTimeScore from './utils/playTimeMethod';
 export const revalidate = 0;
 const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
 
-const { STEAMREVEAL_API_BASE } = process.env;
+const { STEAMREVEAL_API_BASE, CHEATER_AI_API_BASE } = process.env;
+
+const THREE_MINS_IN_MS = 180 * 1000;
 
 export async function POST(req: Request) {
   if (req.method !== 'POST') {
@@ -49,14 +51,14 @@ export async function POST(req: Request) {
 
       axios
         .get(`${STEAMREVEAL_API_BASE}/hltv-rating/${targetSteamId}`, {
-          timeout: 180000,
+          timeout: THREE_MINS_IN_MS,
         })
         .then((res) => res.data.rating)
         .catch(() => null),
 
       axios
         .get(`${STEAMREVEAL_API_BASE}/last5-matches-rating/${targetSteamId}`, {
-          timeout: 180000,
+          timeout: THREE_MINS_IN_MS,
         })
         .then((res) => res.data.average)
         .catch(() => null),
@@ -73,13 +75,13 @@ export async function POST(req: Request) {
     ].map((value) => value ?? -1);
 
     const flaskResponse = await axios.post(
-      'https://cheater-probability-ai.onrender.com/predict',
+      `${CHEATER_AI_API_BASE}/predict`,
       { features },
       {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 180000,
+        timeout: THREE_MINS_IN_MS,
       },
     );
 
