@@ -14,7 +14,7 @@ const { STEAMREVEAL_API_BASE, CHEATER_AI_API_BASE } = process.env;
 const THREE_MINS_IN_MS = 180 * 1000;
 
 export async function POST(req: Request) {
-  console.log('[POST] Request received.');
+  console.log('[POST] Request received');
 
   if (req.method !== 'POST') {
     console.warn('[POST] Method not allowed:', req.method);
