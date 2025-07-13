@@ -207,6 +207,7 @@ const useHome = () => {
         target,
         closeFriends,
       });
+      console.log('walter response', response);
 
       const {
         data: { cheaterProbability },
