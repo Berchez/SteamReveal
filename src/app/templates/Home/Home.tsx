@@ -8,6 +8,7 @@ import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
 import WelcomeText from './WelcomeText/WelcomeText';
 import HomeContext from './context';
+import CheaterReport from './templates/CheaterReport';
 
 const LocationSection = dynamic(() => import('./templates/LocationSection'));
 const FriendsSection = dynamic(() => import('./templates/FriendsSection'));
@@ -24,6 +25,7 @@ export default function Home() {
     hasNoDataYet,
     showSponsorMe,
     onCloseSponsorMe,
+    cheaterData,
   } = useHome();
 
   const contextValue = useMemo(
@@ -57,6 +59,8 @@ export default function Home() {
             onChangeTarget={onChangeTarget}
             targetValue={targetValue}
           />
+          {/* implementar skeleton loading aqui */}
+          {cheaterData && <CheaterReport cheaterData={cheaterData} />}
           <div className="flex flex-col gap-16 my-8">
             <LocationSection
               possibleLocationJson={possibleLocationJson}

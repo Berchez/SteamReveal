@@ -13,6 +13,110 @@ import {
   getCitiesNames,
   sortCitiesByScore,
 } from './homeUtils';
+import { CheaterDataType } from '@/@types/cheaterDataType';
+
+const getCloseFriendsCore = async (id: string) => {
+  const response = await axios.post('/api/getCloseFriends', {
+    target: id,
+  });
+
+  const {
+    data: { closeFriends },
+  } = response;
+
+  let totalCountOf5ClosestFriends = 0;
+  for (let i = 0; i < 5; i += 1) {
+    totalCountOf5ClosestFriends += closeFriends[i].count;
+  }
+
+  const meanOf5ClosestFriendsCount = totalCountOf5ClosestFriends / 5;
+
+  const biggestCountValue = closeFriends[0].count;
+  const reasonableNumberToBeAGoodGuess = 50;
+
+  const closeFriendsWithProbability = closeFriends.map(
+    (f: closeFriendsDataIWant) => {
+      const meanProbabilityMethod =
+        f.count / (meanOf5ClosestFriendsCount * 1.5) > 1
+          ? 1
+          : f.count / (meanOf5ClosestFriendsCount * 1.5);
+
+      const biggestCountMethod = f.count / biggestCountValue;
+
+      const constantMethod =
+        f.count / reasonableNumberToBeAGoodGuess > 1
+          ? 1
+          : f.count / reasonableNumberToBeAGoodGuess;
+
+      const probabilityFloat =
+        (meanProbabilityMethod * 2 + biggestCountMethod * 2 + constantMethod) /
+        5;
+
+      const probabilityPercentage = probabilityFloat * 100;
+
+      return {
+        friend: f.friend,
+        count: f.count,
+        probability: probabilityPercentage,
+      };
+    },
+  );
+
+  return closeFriendsWithProbability;
+};
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const obterVariosCheaterProbability = async () => {
+  const cheaterPlayersData = [];
+
+  // const targetIds = [...notCheatersIdsPart2].slice(0, 10);
+  const targetIds = [
+    '76561198146333375',
+    '76561198280800483',
+    '76561198326321094',
+    '76561198062356387',
+    '76561198102165799',
+    '76561198145430505',
+  ];
+
+  for (const [index, id] of targetIds.entries()) {
+    let closeFriends = [];
+
+    try {
+      // Tenta buscar os amigos próximos, mas se der erro, usa um array vazio
+      closeFriends = await getCloseFriendsCore(id);
+    } catch (error) {
+      console.error(
+        `Erro ao obter amigos próximos para o jogador ${id}:`,
+        error,
+      );
+      // Aqui o closeFriends já é um array vazio por padrão
+    }
+
+    try {
+      const playerData = await axios.post('/api/getCheaterProbability', {
+        target: id,
+        closeFriends,
+      });
+
+      cheaterPlayersData.push({
+        target: id,
+        ...playerData?.data,
+      });
+
+      // Se não for o último, espera 10 segundos antes de continuar
+      if (index < targetIds.length - 1) {
+        await sleep(10_000);
+      }
+    } catch (error) {
+      console.error(`Erro ao processar o jogador ${id}:`, error);
+      // Aqui você pode decidir o que fazer em caso de erro, como continuar o loop
+    }
+  }
+
+  return { cheaterPlayersData };
+};
 
 const useHome = () => {
   const router = useRouter();
@@ -42,6 +146,8 @@ const useHome = () => {
     myCard: boolean;
     friendsCards: boolean;
   }>({ myCard: false, friendsCards: false });
+
+  const [cheaterData, setCheaterData] = useState<CheaterDataType>();
 
   const urlPlayer = searchParams.get('player');
 
@@ -131,55 +237,7 @@ const useHome = () => {
   const getCloseFriendsJson = async (value: string) => {
     try {
       setIsLoading((prev) => ({ ...prev, friendsCards: true }));
-
-      const response = await axios.post('/api/getCloseFriends', {
-        target: value,
-      });
-
-      const {
-        data: { closeFriends },
-      } = response;
-
-      let totalCountOf5ClosestFriends = 0;
-      for (let i = 0; i < 5; i += 1) {
-        totalCountOf5ClosestFriends += closeFriends[i].count;
-      }
-
-      const meanOf5ClosestFriendsCount = totalCountOf5ClosestFriends / 5;
-
-      const biggestCountValue = closeFriends[0].count;
-      const reasonableNumberToBeAGoodGuess = 50;
-
-      const closeFriendsWithProbability = closeFriends.map(
-        (f: closeFriendsDataIWant) => {
-          const meanProbabilityMethod =
-            f.count / (meanOf5ClosestFriendsCount * 1.5) > 1
-              ? 1
-              : f.count / (meanOf5ClosestFriendsCount * 1.5);
-
-          const biggestCountMethod = f.count / biggestCountValue;
-
-          const constantMethod =
-            f.count / reasonableNumberToBeAGoodGuess > 1
-              ? 1
-              : f.count / reasonableNumberToBeAGoodGuess;
-
-          const probabilityFloat =
-            (meanProbabilityMethod * 2 +
-              biggestCountMethod * 2 +
-              constantMethod) /
-            5;
-
-          const probabilityPercentage = probabilityFloat * 100;
-
-          return {
-            friend: f.friend,
-            count: f.count,
-            probability: probabilityPercentage,
-          };
-        },
-      );
-
+      const closeFriendsWithProbability = await getCloseFriendsCore(value);
       setCloseFriendsJson(closeFriendsWithProbability);
 
       return closeFriendsWithProbability;
@@ -196,6 +254,7 @@ const useHome = () => {
     setCloseFriendsJson(undefined);
     setPossibleLocationJson(undefined);
     setTargetInfoJson(undefined);
+    setCheaterData(undefined);
   };
 
   const getCheaterProbability = async (
@@ -207,13 +266,8 @@ const useHome = () => {
         target,
         closeFriends,
       });
-      console.log('walter response', response);
 
-      const {
-        data: { cheaterProbability },
-      } = response;
-
-      return cheaterProbability;
+      return response?.data;
     } catch (e) {
       toast.error('Failed to calculate cheater probability');
       console.error('getCheaterProbability error:', e);
@@ -234,14 +288,9 @@ const useHome = () => {
     const closeFriends = await getCloseFriendsJson(value);
     getPossibleLocation(closeFriends);
 
-    const cheaterFeatureFlag = searchParams.get('cheaterFeature');
-    if (cheaterFeatureFlag !== null) {
-      const cheaterProbability = await getCheaterProbability(
-        value,
-        closeFriends,
-      );
-      alert(`🔥 Cheater Probability: ${cheaterProbability * 100}%`);
-    }
+    const cheaterProbability = await getCheaterProbability(value, closeFriends);
+    console.log('probability', cheaterProbability);
+    setCheaterData(cheaterProbability);
   };
 
   useEffect(() => {
@@ -269,6 +318,7 @@ const useHome = () => {
     hasNoDataYet,
     showSponsorMe,
     onCloseSponsorMe,
+    cheaterData,
   };
 };
 

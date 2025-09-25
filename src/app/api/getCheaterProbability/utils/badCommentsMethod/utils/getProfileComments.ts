@@ -4,7 +4,7 @@ import * as cheerio from 'cheerio';
 
 const getProfileComments = async (target: string) => {
   const url = `https://steamcommunity.com/comment/Profile/render/${target}/?start=0&count=200`;
-  const response = await axios.get(url);
+  const response = await axios.get(url, { timeout: 5000 });
   const html = response.data.comments_html;
   const $ = cheerio.load(html);
 

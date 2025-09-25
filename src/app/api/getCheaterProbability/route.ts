@@ -5,13 +5,18 @@ import getBadCommentsScore from './utils/badCommentsMethod';
 import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
 import getPlayTimeScore from './utils/playTimeMethod';
+import getCsStats from './utils/csStats';
 
 export const revalidate = 0;
 const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
 
-const { STEAMREVEAL_API_BASE, CHEATER_AI_API_BASE } = process.env;
+const { CHEATER_AI_API_BASE } = process.env;
 
-const THREE_MINS_IN_MS = 180 * 1000;
+const FIVE_MINS_IN_MS = 5 * 60 * 1000;
+
+const clearStat = (stat: string) => {
+  return stat.replace('ms', '').replace('%', '');
+};
 
 export async function POST(req: Request) {
   console.log('[POST] Request received');
@@ -50,8 +55,7 @@ export async function POST(req: Request) {
       inventoryScore,
       playTimeScore,
       userLevel,
-      hltvRatingResponse,
-      last5MatchesRatingResponse,
+      csStats,
     ] = await Promise.all([
       getBadCommentsScore(targetSteamId).then((r) => {
         console.log('[POST] badCommentsScore:', r);
@@ -73,43 +77,32 @@ export async function POST(req: Request) {
         console.log('[POST] userLevel:', r);
         return r;
       }),
-      axios
-        .get(`${STEAMREVEAL_API_BASE}/hltv-rating/${targetSteamId}`, {
-          timeout: THREE_MINS_IN_MS,
-        })
-        .then((res) => {
-          console.log('[POST] hltvRatingResponse:', res.data.rating);
-          return res.data.rating;
-        })
-        .catch((err) => {
-          console.error('[POST] HLTV rating fetch failed:', err);
-          return null;
-        }),
-      axios
-        .get(`${STEAMREVEAL_API_BASE}/last5-matches-rating/${targetSteamId}`, {
-          timeout: THREE_MINS_IN_MS,
-        })
-        .then((res) => {
-          console.log('[POST] last5MatchesRatingResponse:', res.data.average);
-          return res.data.average;
-        })
-        .catch((err) => {
-          console.error('[POST] Last 5 matches rating fetch failed:', err);
-          return null;
-        }),
+      getCsStats(targetSteamId),
     ]);
+
+    const csStatsFeaturesArr = csStats
+      ? Object.values(csStats).map(clearStat)
+      : [];
 
     const features = [
       badCommentsScore,
       bannedFriendsScore,
-      hltvRatingResponse,
       inventoryScore,
-      last5MatchesRatingResponse,
       playTimeScore,
       userLevel,
+      ...csStatsFeaturesArr,
     ].map((value) => value ?? -1);
 
     console.log('[POST] Features array:', features);
+
+    const featureObject = {
+      badCommentsScore: features[0],
+      bannedFriendsScore: features[1],
+      inventoryScore: features[2],
+      playTimeScore: features[3],
+      userLevel: features[4],
+      csStats,
+    };
 
     const flaskResponse = await axios.post(
       `${CHEATER_AI_API_BASE}/predict`,
@@ -118,23 +111,13 @@ export async function POST(req: Request) {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: THREE_MINS_IN_MS,
+        timeout: FIVE_MINS_IN_MS,
       },
     );
 
     console.log('[POST] Flask response:', flaskResponse.data);
 
     const { probability } = flaskResponse.data;
-
-    const featureObject = {
-      badCommentsScore: features[0],
-      bannedFriendsScore: features[1],
-      hltvRatingResponse: features[2],
-      inventoryScore: features[3],
-      last5MatchesRatingResponse: features[4],
-      playTimeScore: features[5],
-      userLevel: features[6],
-    };
 
     console.log('[POST] Returning result:', { probability, featureObject });
 
