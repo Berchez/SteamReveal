@@ -235,9 +235,15 @@ const useHome = () => {
     const closeFriends = await getCloseFriendsJson(value);
     getPossibleLocation(closeFriends);
 
-    const cheaterProbability = await getCheaterProbability(value, closeFriends);
-    console.log('probability', cheaterProbability);
-    setCheaterData(cheaterProbability);
+    const cheaterFeatureFlag = searchParams.get('cheaterFeature');
+    if (cheaterFeatureFlag !== null) {
+      const cheaterProbability = await getCheaterProbability(
+        value,
+        closeFriends,
+      );
+      console.log('probability', cheaterProbability);
+      setCheaterData(cheaterProbability);
+    }
   };
 
   useEffect(() => {
