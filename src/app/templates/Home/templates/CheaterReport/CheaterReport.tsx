@@ -3,34 +3,38 @@ import React from 'react';
 
 function analyzeCheaterData(data: CheaterDataType) {
   const { cheaterProbability, featureObject } = data;
-  const reasons: string[] = [];
+
+  const positiveReasons: string[] = [];
+  const negativeReasons: string[] = [];
 
   // Tempo de jogo
   if (featureObject.playTimeScore < 50000) {
-    reasons.push('Pouco tempo de jogo (sinal de pouca experiência)');
+    negativeReasons.push('Pouco tempo de jogo (sinal de pouca experiência)');
   } else {
-    reasons.push('Tempo de jogo elevado (experiência acumulada)');
+    positiveReasons.push('Tempo de jogo elevado (experiência acumulada)');
   }
 
   // Inventário
   if (featureObject.inventoryScore < 1.0) {
-    reasons.push('Inventário baixo (itens de valor reduzido)');
+    negativeReasons.push('Inventário baixo (itens de valor reduzido)');
   } else {
-    reasons.push('Inventário valioso (sinal de jogador estabelecido)');
+    positiveReasons.push('Inventário valioso (sinal de jogador estabelecido)');
   }
 
   // Amigos banidos
   if (featureObject.bannedFriendsScore > 0) {
-    reasons.push('Possui amigos banidos no Steam (sinal suspeito)');
+    negativeReasons.push('Possui amigos banidos no Steam (sinal suspeito)');
   } else {
-    reasons.push('Nenhum amigo banido (rede social limpa)');
+    positiveReasons.push('Nenhum amigo banido (rede social limpa)');
   }
 
   // Comentários negativos
   if (featureObject.badCommentsScore > 0) {
-    reasons.push('Recebeu comentários negativos (feedback da comunidade)');
+    negativeReasons.push(
+      'Recebeu comentários negativos (feedback da comunidade)',
+    );
   } else {
-    reasons.push('Nenhum comentário negativo (boa reputação)');
+    positiveReasons.push('Nenhum comentário negativo (boa reputação)');
   }
 
   // Estatísticas de CS
@@ -39,15 +43,17 @@ function analyzeCheaterData(data: CheaterDataType) {
   const headAcc = parseFloat(featureObject.csStats.headAccuracy);
 
   if (winrate > 50) {
-    reasons.push('Taxa de vitória acima de 50% (performance alta)');
+    positiveReasons.push('Taxa de vitória acima de 50% (performance alta)');
   } else {
-    reasons.push('Taxa de vitória normal');
+    positiveReasons.push('Taxa de vitória normal');
   }
   if (kpr > 0.7) {
-    reasons.push('Muitos kills por rodada (indica habilidade elevada)');
+    positiveReasons.push('Muitos kills por rodada (indica habilidade elevada)');
   }
   if (headAcc > 25) {
-    reasons.push('Alta precisão na cabeça (indica mira muito treinada)');
+    positiveReasons.push(
+      'Alta precisão na cabeça (indica mira muito treinada)',
+    );
   }
 
   // Classificação final
@@ -59,11 +65,13 @@ function analyzeCheaterData(data: CheaterDataType) {
   } else {
     status = 'inocente';
   }
-  return { status, reasons };
+
+  return { status, positiveReasons, negativeReasons };
 }
 
 function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
-  const { status, reasons } = analyzeCheaterData(cheaterData);
+  const { status, positiveReasons, negativeReasons } =
+    analyzeCheaterData(cheaterData);
 
   const baseClasses =
     'rounded-2xl shadow-md p-6 border transition-all duration-300 mt-8 bg-purple-100';
@@ -81,7 +89,7 @@ function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
           suspeitos:
         </p>
         <ul className={listClasses}>
-          {reasons.map((r) => (
+          {negativeReasons.map((r) => (
             <li key={r}>{r}</li>
           ))}
         </ul>
@@ -99,8 +107,15 @@ function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
           A análise não é definitiva. Alguns fatores apontam para suspeita e
           outros para inocência:
         </p>
+        <h3 className="font-semibold mt-3">Fatores positivos:</h3>
         <ul className={listClasses}>
-          {reasons.map((r) => (
+          {positiveReasons.map((r) => (
+            <li key={r}>{r}</li>
+          ))}
+        </ul>
+        <h3 className="font-semibold mt-3">Fatores suspeitos:</h3>
+        <ul className={listClasses}>
+          {negativeReasons.map((r) => (
             <li key={r}>{r}</li>
           ))}
         </ul>
@@ -115,7 +130,7 @@ function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
         Este jogador apresenta sinais de perfil normal/no padrão:
       </p>
       <ul className={listClasses}>
-        {reasons.map((r) => (
+        {positiveReasons.map((r) => (
           <li key={r}>{r}</li>
         ))}
       </ul>
