@@ -14,10 +14,7 @@ const { CHEATER_AI_API_BASE } = process.env;
 
 const FIVE_MINS_IN_MS = 5 * 60 * 1000;
 
-const clearStat = (stat: string) => {
-  return stat.replace('ms', '').replace('%', '');
-};
-
+const clearStat = (stat: string) => stat.replace('ms', '').replace('%', '');
 export async function POST(req: Request) {
   console.log('[POST] Request received');
 

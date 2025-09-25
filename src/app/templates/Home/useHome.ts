@@ -8,12 +8,12 @@ import targetInfoJsonType from '@/@types/targetInfoJsonType';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { cityNameAndScore } from '@/@types/cityNameAndScore';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
+import { CheaterDataType } from '@/@types/cheaterDataType';
 import {
   getLocationDetails,
   getCitiesNames,
   sortCitiesByScore,
 } from './homeUtils';
-import { CheaterDataType } from '@/@types/cheaterDataType';
 
 const getCloseFriendsCore = async (id: string) => {
   const response = await axios.post('/api/getCloseFriends', {
@@ -63,59 +63,6 @@ const getCloseFriendsCore = async (id: string) => {
   );
 
   return closeFriendsWithProbability;
-};
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const obterVariosCheaterProbability = async () => {
-  const cheaterPlayersData = [];
-
-  // const targetIds = [...notCheatersIdsPart2].slice(0, 10);
-  const targetIds = [
-    '76561198146333375',
-    '76561198280800483',
-    '76561198326321094',
-    '76561198062356387',
-    '76561198102165799',
-    '76561198145430505',
-  ];
-
-  for (const [index, id] of targetIds.entries()) {
-    let closeFriends = [];
-
-    try {
-      // Tenta buscar os amigos próximos, mas se der erro, usa um array vazio
-      closeFriends = await getCloseFriendsCore(id);
-    } catch (error) {
-      console.error(
-        `Erro ao obter amigos próximos para o jogador ${id}:`,
-        error,
-      );
-      // Aqui o closeFriends já é um array vazio por padrão
-    }
-
-    try {
-      const playerData = await axios.post('/api/getCheaterProbability', {
-        target: id,
-        closeFriends,
-      });
-
-      cheaterPlayersData.push({
-        target: id,
-        ...playerData?.data,
-      });
-
-      // Se não for o último, espera 10 segundos antes de continuar
-      if (index < targetIds.length - 1) {
-        await sleep(10_000);
-      }
-    } catch (error) {
-      console.error(`Erro ao processar o jogador ${id}:`, error);
-      // Aqui você pode decidir o que fazer em caso de erro, como continuar o loop
-    }
-  }
-
-  return { cheaterPlayersData };
 };
 
 const useHome = () => {

@@ -59,11 +59,12 @@ const getCloseFriends = async (target: string) => {
 
   const steamIDs = twentyClosestFriends.map((friend) => friend.steamID);
 
-  const summariesArray = await steam.getUserSummary(steamIDs);
+  const summaries = await steam.getUserSummary(steamIDs);
+  const summariesArray = Array.isArray(summaries) ? summaries : [summaries];
 
   const twentyClosestFriendsWithSummary = twentyClosestFriends.map((friend) => {
     const summary = summariesArray.find(
-      (summary) => summary.steamID === friend.steamID,
+      (sum) => sum.steamID === friend.steamID,
     );
     return {
       friend: summary || null,

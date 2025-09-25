@@ -81,8 +81,8 @@ function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
           suspeitos:
         </p>
         <ul className={listClasses}>
-          {reasons.map((r, i) => (
-            <li key={i}>{r}</li>
+          {reasons.map((r) => (
+            <li key={r}>{r}</li>
           ))}
         </ul>
       </div>
@@ -100,8 +100,8 @@ function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
           outros para inocência:
         </p>
         <ul className={listClasses}>
-          {reasons.map((r, i) => (
-            <li key={i}>{r}</li>
+          {reasons.map((r) => (
+            <li key={r}>{r}</li>
           ))}
         </ul>
       </div>
@@ -115,8 +115,8 @@ function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
         Este jogador apresenta sinais de perfil normal/no padrão:
       </p>
       <ul className={listClasses}>
-        {reasons.map((r, i) => (
-          <li key={i}>{r}</li>
+        {reasons.map((r) => (
+          <li key={r}>{r}</li>
         ))}
       </ul>
     </div>
