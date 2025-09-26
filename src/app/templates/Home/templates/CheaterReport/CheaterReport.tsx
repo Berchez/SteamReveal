@@ -1,5 +1,5 @@
 import { CheaterDataType } from '@/@types/cheaterDataType';
-import { clearStat } from '@/app/api/getCheaterProbability/utils/clearCsStats';
+import clearStat from '@/app/api/getCheaterProbability/utils/clearCsStats';
 import React from 'react';
 import { useTranslations } from 'next-intl';
 

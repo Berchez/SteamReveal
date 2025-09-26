@@ -6,7 +6,7 @@ import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
 import getPlayTimeScore from './utils/playTimeMethod';
 import getCsStats from './utils/csStats';
-import { clearStat } from './utils/clearCsStats';
+import clearStat from './utils/clearCsStats';
 
 export const revalidate = 0;
 const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
