@@ -77,8 +77,9 @@ const getCloseFriends = async (target: string) => {
 
 export async function POST(req: Request) {
   if (req.method === 'POST') {
+    let body;
     try {
-      const body = await req.json();
+      body = await req.json();
       const { target } = body;
 
       if (!target || target === '' || typeof target !== 'string') {
@@ -96,9 +97,9 @@ export async function POST(req: Request) {
         { status: 200 },
       );
     } catch (error) {
-      const body = await req.json();
       console.error(
         `getCloseFriends - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
+        error,
       );
       return NextResponse.json(
         { message: `Internal server Error: ${(error as Error).message}` },

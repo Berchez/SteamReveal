@@ -23,8 +23,9 @@ export async function POST(req: Request) {
     );
   }
 
+  let body;
   try {
-    const body = await req.json();
+    body = await req.json();
 
     const { closeFriends, target } = body;
 
@@ -93,9 +94,9 @@ export async function POST(req: Request) {
       { status: 200 },
     );
   } catch (error) {
-    const body = await req.json();
     console.error(
       `getCheaterProbability - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
+      error,
     );
     return NextResponse.json(
       { message: 'Internal server error while querying the prediction model.' },
