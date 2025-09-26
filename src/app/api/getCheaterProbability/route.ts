@@ -6,6 +6,7 @@ import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
 import getPlayTimeScore from './utils/playTimeMethod';
 import getCsStats from './utils/csStats';
+import { clearStat } from './utils/clearCsStats';
 
 export const revalidate = 0;
 const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
@@ -14,7 +15,6 @@ const { CHEATER_AI_API_BASE } = process.env;
 
 const FIVE_MINS_IN_MS = 5 * 60 * 1000;
 
-const clearStat = (stat: string) => stat.replace('ms', '').replace('%', '');
 export async function POST(req: Request) {
   if (req.method !== 'POST') {
     return NextResponse.json(

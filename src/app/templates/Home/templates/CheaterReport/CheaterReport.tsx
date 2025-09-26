@@ -1,93 +1,108 @@
 import { CheaterDataType } from '@/@types/cheaterDataType';
+import { clearStat } from '@/app/api/getCheaterProbability/utils/clearCsStats';
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
-function analyzeCheaterData(data: CheaterDataType) {
+function analyzeCheaterData(
+  data: CheaterDataType,
+  translator: ReturnType<typeof useTranslations<'CheaterReport'>>,
+) {
   const { cheaterProbability, featureObject } = data;
-
   const positiveReasons: string[] = [];
   const negativeReasons: string[] = [];
 
-  // Tempo de jogo
-  if (featureObject.playTimeScore < 50000) {
-    negativeReasons.push('Pouco tempo de jogo (sinal de pouca experiência)');
-  } else {
-    positiveReasons.push('Tempo de jogo elevado (experiência acumulada)');
-  }
+  const {
+    playTimeScore,
+    inventoryScore,
+    bannedFriendsScore,
+    badCommentsScore,
+  } = featureObject;
 
-  // Inventário
-  if (featureObject.inventoryScore < 1.0) {
-    negativeReasons.push('Inventário baixo (itens de valor reduzido)');
-  } else {
-    positiveReasons.push('Inventário valioso (sinal de jogador estabelecido)');
-  }
+  const playTimeInHours = playTimeScore / 60;
 
-  // Amigos banidos
-  if (featureObject.bannedFriendsScore > 0) {
-    negativeReasons.push('Possui amigos banidos no Steam (sinal suspeito)');
+  // Playtime
+  if (playTimeInHours < 300) {
+    negativeReasons.push(translator('lowPlaytime', { hours: playTimeInHours }));
   } else {
-    positiveReasons.push('Nenhum amigo banido (rede social limpa)');
-  }
-
-  // Comentários negativos
-  if (featureObject.badCommentsScore > 0) {
-    negativeReasons.push(
-      'Recebeu comentários negativos (feedback da comunidade)',
+    positiveReasons.push(
+      translator('highPlaytime', { hours: playTimeInHours }),
     );
-  } else {
-    positiveReasons.push('Nenhum comentário negativo (boa reputação)');
   }
 
-  // Estatísticas de CS
-  const winrate = parseFloat(featureObject.csStats.winrate);
-  const kpr = parseFloat(featureObject.csStats.killsPerRound);
-  const headAcc = parseFloat(featureObject.csStats.headAccuracy);
+  // Inventory
+  if (inventoryScore < 1.0) {
+    negativeReasons.push(translator('lowInventory'));
+  } else {
+    positiveReasons.push(translator('valuableInventory'));
+  }
+
+  // Banned friends
+  if (bannedFriendsScore > 0) {
+    negativeReasons.push(translator('bannedFriends'));
+  } else {
+    positiveReasons.push(translator('cleanFriends'));
+  }
+
+  // Bad comments
+  if (badCommentsScore > 0) {
+    negativeReasons.push(translator('badComments'));
+  } else {
+    positiveReasons.push(translator('noBadComments'));
+  }
+
+  // CS Stats
+  const winrate = parseFloat(clearStat(featureObject.csStats.winrate));
+  const kpr = parseFloat(clearStat(featureObject.csStats.killsPerRound));
+  const headAcc = parseFloat(clearStat(featureObject.csStats.headAccuracy));
 
   if (winrate > 50) {
-    positiveReasons.push('Taxa de vitória acima de 50% (performance alta)');
+    positiveReasons.push(translator('highWinrate', { winrate }));
   } else {
-    positiveReasons.push('Taxa de vitória normal');
-  }
-  if (kpr > 0.7) {
-    positiveReasons.push('Muitos kills por rodada (indica habilidade elevada)');
-  }
-  if (headAcc > 25) {
-    positiveReasons.push(
-      'Alta precisão na cabeça (indica mira muito treinada)',
-    );
+    positiveReasons.push(translator('normalWinrate'));
   }
 
-  // Classificação final
-  let status: 'suspeito' | 'inconclusivo' | 'inocente';
+  if (kpr > 0.7) {
+    positiveReasons.push(translator('highKillsPerRound'));
+  }
+
+  if (headAcc > 25) {
+    positiveReasons.push(translator('highHeadAccuracy'));
+  }
+
+  // Final classification
+  let status: 'suspect' | 'inconclusive' | 'innocent';
   if (cheaterProbability > 0.6) {
-    status = 'suspeito';
+    status = 'suspect';
   } else if (cheaterProbability >= 0.4) {
-    status = 'inconclusivo';
+    status = 'inconclusive';
   } else {
-    status = 'inocente';
+    status = 'innocent';
   }
 
   return { status, positiveReasons, negativeReasons };
 }
 
 function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
-  const { status, positiveReasons, negativeReasons } =
-    analyzeCheaterData(cheaterData);
+  const translator = useTranslations('CheaterReport');
 
-  const baseClasses =
-    'rounded-2xl shadow-md p-6 border transition-all duration-300 mt-8 bg-purple-100';
+  const { status, positiveReasons, negativeReasons } = analyzeCheaterData(
+    cheaterData,
+    translator,
+  );
+
+  const glassmorphism =
+    'bg-purple-900 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-20 border-2 border-gray-100/50 text-white p-6 mt-8';
+
   const titleClasses = 'text-2xl font-bold mb-2 flex items-center gap-2';
-  const listClasses = 'list-disc pl-6 space-y-1 text-sm text-gray-700';
+  const listClasses = 'list-disc pl-6 space-y-1 text-sm text-gray-200';
 
-  if (status === 'suspeito') {
+  if (status === 'suspect') {
     return (
-      <div className={`${baseClasses} border-red-400`}>
-        <h2 className={`${titleClasses} text-red-700`}>
-          🚩 Suspeito de Trapaça!
+      <div className={`${glassmorphism} border-red-500`}>
+        <h2 className={`${titleClasses} text-red-400`}>
+          🚩 {translator('suspectTitle')}
         </h2>
-        <p className="text-gray-800 mb-3">
-          Baseado nos dados analisados, este jogador apresenta fatores
-          suspeitos:
-        </p>
+        <p className="mb-3">{translator('suspectDescription')}</p>
         <ul className={listClasses}>
           {negativeReasons.map((r) => (
             <li key={r}>{r}</li>
@@ -97,23 +112,20 @@ function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
     );
   }
 
-  if (status === 'inconclusivo') {
+  if (status === 'inconclusive') {
     return (
-      <div className={`${baseClasses} border-yellow-400`}>
-        <h2 className={`${titleClasses} text-yellow-700`}>
-          ⚠️ Resultado Inconclusivo
+      <div className={`${glassmorphism} border-yellow-500`}>
+        <h2 className={`${titleClasses} text-yellow-400`}>
+          ⚠️ {translator('inconclusiveTitle')}
         </h2>
-        <p className="text-gray-800 mb-3">
-          A análise não é definitiva. Alguns fatores apontam para suspeita e
-          outros para inocência:
-        </p>
-        <h3 className="font-semibold mt-3">Fatores positivos:</h3>
+        <p className="mb-3">{translator('inconclusiveDescription')}</p>
+        <h3 className="font-semibold mt-3">{translator('positiveFactors')}</h3>
         <ul className={listClasses}>
           {positiveReasons.map((r) => (
             <li key={r}>{r}</li>
           ))}
         </ul>
-        <h3 className="font-semibold mt-3">Fatores suspeitos:</h3>
+        <h3 className="font-semibold mt-3">{translator('negativeFactors')}</h3>
         <ul className={listClasses}>
           {negativeReasons.map((r) => (
             <li key={r}>{r}</li>
@@ -124,11 +136,11 @@ function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
   }
 
   return (
-    <div className={`${baseClasses} border-green-400`}>
-      <h2 className={`${titleClasses} text-green-700`}>✅ Parece Inocente</h2>
-      <p className="text-gray-800 mb-3">
-        Este jogador apresenta sinais de perfil normal/no padrão:
-      </p>
+    <div className={`${glassmorphism} border-green-500`}>
+      <h2 className={`${titleClasses} text-green-400`}>
+        ✅ {translator('innocentTitle')}
+      </h2>
+      <p className="mb-3">{translator('innocentDescription')}</p>
       <ul className={listClasses}>
         {positiveReasons.map((r) => (
           <li key={r}>{r}</li>

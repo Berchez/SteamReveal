@@ -32,5 +32,27 @@
     "ifYouLikeIt": "If you like it, please consider leaving a star on our GitHub repository!",
     "giveStar": "Give us a star!",
     "dontAskAgain": "Don't ask me again!"
+  },
+  "CheaterReport": {
+    "lowPlaytime": "Low playtime ({hours} hours, sign of little experience)",
+    "highPlaytime": "High playtime ({hours} hours, accumulated experience)",
+    "lowInventory": "Low-value inventory (items of reduced worth)",
+    "valuableInventory": "Valuable inventory (sign of an established player)",
+    "bannedFriends": "Has banned friends on Steam (suspicious signal)",
+    "cleanFriends": "No banned friends (clean social network)",
+    "badComments": "Received negative comments (community feedback)",
+    "noBadComments": "No negative comments (good reputation)",
+    "highWinrate": "Win rate above {winrate}% (high performance)",
+    "normalWinrate": "Normal win rate",
+    "highKillsPerRound": "Many kills per round (indicates high skill)",
+    "highHeadAccuracy": "High headshot accuracy (indicates well-trained aim)",
+    "suspectTitle": "Cheating Suspected!",
+    "suspectDescription": "Based on the analyzed data, this player shows suspicious factors:",
+    "inconclusiveTitle": "Inconclusive Result",
+    "inconclusiveDescription": "The analysis is not definitive. Some factors point to suspicion while others to innocence:",
+    "positiveFactors": "Positive factors:",
+    "negativeFactors": "Suspicious factors:",
+    "innocentTitle": "Seems Innocent",
+    "innocentDescription": "This player shows normal/standard profile signs:"
   }
 }

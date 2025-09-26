@@ -32,5 +32,27 @@
     "ifYouLikeIt": "Se você gostou, considere deixar uma estrela no nosso repositório no GitHub!",
     "giveStar": "Nos dê uma estrela!",
     "dontAskAgain": "Não pergunte novamente!"
+  },
+  "CheaterReport": {
+    "lowPlaytime": "Pouco tempo de jogo ({hours} horas, sinal de pouca experiência)",
+    "highPlaytime": "Tempo de jogo elevado ({hours} horas, experiência acumulada)",
+    "lowInventory": "Inventário baixo (itens de valor reduzido)",
+    "valuableInventory": "Inventário valioso (sinal de jogador estabelecido)",
+    "bannedFriends": "Possui amigos banidos na Steam (sinal suspeito)",
+    "cleanFriends": "Nenhum amigo banido (rede social limpa)",
+    "badComments": "Recebeu comentários negativos (feedback da comunidade)",
+    "noBadComments": "Nenhum comentário negativo (boa reputação)",
+    "highWinrate": "Taxa de vitória acima de {winrate}% (performance alta)",
+    "normalWinrate": "Taxa de vitória normal",
+    "highKillsPerRound": "Muitos kills por rodada (indica habilidade elevada)",
+    "highHeadAccuracy": "Alta precisão na cabeça (indica mira muito treinada)",
+    "suspectTitle": "Suspeito de Trapaça!",
+    "suspectDescription": "Baseado nos dados analisados, este jogador apresenta fatores suspeitos:",
+    "inconclusiveTitle": "Resultado Inconclusivo",
+    "inconclusiveDescription": "A análise não é definitiva. Alguns fatores apontam para suspeita e outros para inocência:",
+    "positiveFactors": "Fatores positivos:",
+    "negativeFactors": "Fatores suspeitos:",
+    "innocentTitle": "Parece Inocente",
+    "innocentDescription": "Este jogador apresenta sinais de perfil normal/no padrão:"
   }
 }
