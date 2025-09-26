@@ -96,12 +96,16 @@ export async function POST(req: Request) {
         { status: 200 },
       );
     } catch (error) {
+      const body = await req.json();
+      console.error(
+        `getCloseFriends - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
+      );
       return NextResponse.json(
-        { message: `Erro interno do servidor: ${(error as Error).message}` },
+        { message: `Internal server Error: ${(error as Error).message}` },
         { status: 500 },
       );
     }
   } else {
-    return NextResponse.json({ message: 'Método não permitido.' });
+    return NextResponse.json({ message: 'Method not allowed.' });
   }
 }

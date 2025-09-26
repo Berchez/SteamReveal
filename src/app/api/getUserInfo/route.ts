@@ -24,6 +24,10 @@ export async function POST(req: Request) {
 
       return NextResponse.json({ targetInfo }, { status: 200 });
     } catch (error) {
+      const body = await req.json();
+      console.error(
+        `getUserInfo - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
+      );
       return NextResponse.json(
         { message: `Internal server error: ${(error as Error).message}` },
         { status: 500 },
