@@ -9,12 +9,12 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { cityNameAndScore } from '@/@types/cityNameAndScore';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import { CheaterDataType } from '@/@types/cheaterDataType';
+import { isLoadingType } from '@/@types/isLoadingType';
 import {
   getLocationDetails,
   getCitiesNames,
   sortCitiesByScore,
 } from './homeUtils';
-import { isLoadingType } from '@/@types/isLoadingType';
 
 const getCloseFriendsCore = async (id: string) => {
   const response = await axios.post('/api/getCloseFriends', {

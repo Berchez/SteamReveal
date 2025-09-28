@@ -52,10 +52,11 @@ function MyUserSection({
                     backgroundImage:
                       'linear-gradient(90deg, #ff8ae2, #ff1bce, #ea00ff, #9a64ff, #3d5afe, #ae00ff, #ff8ae2, #ff1bce, #ea00ff)',
                   }}
-                ></div>
+                />
                 <button
                   onClick={() => context?.getCheaterProbability()}
                   className="relative z-10 px-4 py-2 text-sm font-medium text-white rounded-xl bg-[#1c0029d7] backdrop-blur-md border border-transparent group-hover:shadow-[0_0_20px_rgba(255,100,249,0.5)] transition duration-200"
+                  type="button"
                 >
                   {translator('csAnticheatReview')}
                 </button>

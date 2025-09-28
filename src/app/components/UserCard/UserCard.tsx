@@ -16,7 +16,7 @@ function UserCard({
   count?: number;
   probability?: number;
   itsTargetUser: boolean;
-  bottomChildren: React.ReactNode;
+  bottomChildren?: React.ReactNode;
 }) {
   const { countryCode, stateCode, cityID } = friend;
 

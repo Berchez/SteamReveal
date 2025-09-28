@@ -2,8 +2,8 @@ import { CheaterDataType } from '@/@types/cheaterDataType';
 import clearStat from '@/app/api/getCheaterProbability/utils/clearCsStats';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import ReportBoxSkeleton from './CheaterReportSkeleton';
 import { motion } from 'framer-motion';
+import ReportBoxSkeleton from './CheaterReportSkeleton';
 
 interface ReportBoxProps {
   color: 'red' | 'yellow' | 'green';
