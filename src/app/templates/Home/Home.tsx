@@ -26,13 +26,16 @@ export default function Home() {
     showSponsorMe,
     onCloseSponsorMe,
     cheaterData,
+    getCheaterProbability,
   } = useHome();
 
   const contextValue = useMemo(
     () => ({
       handleGetInfoClick,
+      getCheaterProbability,
+      isLoading,
     }),
-    [handleGetInfoClick],
+    [handleGetInfoClick, getCheaterProbability, isLoading],
   );
 
   return (
@@ -59,8 +62,13 @@ export default function Home() {
             onChangeTarget={onChangeTarget}
             targetValue={targetValue}
           />
-          {/* implementar skeleton loading aqui */}
-          {cheaterData && <CheaterReport cheaterData={cheaterData} />}
+
+          <CheaterReport
+            cheaterData={cheaterData}
+            isLoading={isLoading.cheaterReport}
+            nickname={targetInfoJson?.profileInfo?.nickname ?? ''}
+          />
+
           <div className="flex flex-col gap-16 my-8">
             <LocationSection
               possibleLocationJson={possibleLocationJson}

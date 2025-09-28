@@ -1,7 +1,9 @@
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import clearStat from '@/app/api/getCheaterProbability/utils/clearCsStats';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import ReportBoxSkeleton from './CheaterReportSkeleton';
+import { motion } from 'framer-motion';
 
 interface ReportBoxProps {
   color: 'red' | 'yellow' | 'green';
@@ -107,7 +109,7 @@ function analyzeCheaterData(
     addReason({
       value: headAcc,
       negativeMsg: translator('highHeadAccuracy'),
-      condition: (v) => v < 30,
+      condition: (v) => v < 25,
     });
   }
 
@@ -192,49 +194,87 @@ function ReportBox({
   );
 }
 
-function CheaterReport({ cheaterData }: { cheaterData: CheaterDataType }) {
+function CheaterReport({
+  cheaterData,
+  isLoading,
+  nickname,
+}: {
+  cheaterData: CheaterDataType | undefined;
+  isLoading: boolean;
+  nickname: string;
+}) {
   const translator = useTranslations('CheaterReport');
-  const { status, positiveReasons, negativeReasons } = analyzeCheaterData(
-    cheaterData,
-    translator,
+
+  const [showLoading, setShowLoading] = useState(false);
+  const wasLoading = useRef(false);
+
+  useEffect(() => {
+    // Animation only when changing from false -> true
+    if (!wasLoading.current && isLoading) {
+      setShowLoading(true);
+    } else if (!isLoading) {
+      setShowLoading(false);
+    }
+    wasLoading.current = isLoading;
+  }, [isLoading]);
+
+  const { status, positiveReasons, negativeReasons } = cheaterData
+    ? analyzeCheaterData(cheaterData, translator)
+    : { status: 'inconclusive', positiveReasons: [], negativeReasons: [] };
+
+  const config = {
+    suspect: {
+      color: 'red',
+      icon: '🚩',
+      title: translator('suspectTitle'),
+      description: translator('suspectDescription'),
+    },
+    inconclusive: {
+      color: 'yellow',
+      icon: '⚠️',
+      title: translator('inconclusiveTitle'),
+      description: translator('inconclusiveDescription'),
+    },
+    innocent: {
+      color: 'green',
+      icon: '✅',
+      title: translator('innocentTitle'),
+      description: translator('innocentDescription'),
+    },
+  }[status as 'suspect' | 'inconclusive' | 'innocent'];
+
+  return (
+    <>
+      {showLoading && (
+        <motion.div
+          key="loading"
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <ReportBoxSkeleton nickname={nickname} />
+        </motion.div>
+      )}
+
+      {!isLoading && cheaterData && (
+        <div className="mt-8">
+          <h1 className="text-2xl font-bold text-gray-100 ">
+            {(() => {
+              const text = translator('isUserCheaterCS2', { nickname });
+              return text.charAt(0).toUpperCase() + text.slice(1);
+            })()}
+          </h1>
+          <ReportBox
+            color={config.color as 'red' | 'yellow' | 'green'}
+            icon={config.icon}
+            title={config.title}
+            description={config.description}
+            positiveReasons={status !== 'suspect' ? positiveReasons : []}
+            negativeReasons={status !== 'innocent' ? negativeReasons : []}
+          />
+        </div>
+      )}
+    </>
   );
-
-  switch (status) {
-    case 'suspect':
-      return (
-        <ReportBox
-          color="red"
-          icon="🚩"
-          title={translator('suspectTitle')}
-          description={translator('suspectDescription')}
-          negativeReasons={negativeReasons}
-        />
-      );
-
-    case 'inconclusive':
-      return (
-        <ReportBox
-          color="yellow"
-          icon="⚠️"
-          title={translator('inconclusiveTitle')}
-          description={translator('inconclusiveDescription')}
-          positiveReasons={positiveReasons}
-          negativeReasons={negativeReasons}
-        />
-      );
-
-    case 'innocent':
-    default:
-      return (
-        <ReportBox
-          color="green"
-          icon="✅"
-          title={translator('innocentTitle')}
-          description={translator('innocentDescription')}
-          positiveReasons={positiveReasons}
-        />
-      );
-  }
 }
-
 export default CheaterReport;

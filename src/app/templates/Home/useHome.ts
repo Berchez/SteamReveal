@@ -14,6 +14,7 @@ import {
   getCitiesNames,
   sortCitiesByScore,
 } from './homeUtils';
+import { isLoadingType } from '@/@types/isLoadingType';
 
 const getCloseFriendsCore = async (id: string) => {
   const response = await axios.post('/api/getCloseFriends', {
@@ -89,10 +90,11 @@ const useHome = () => {
     locationDataIWant[] | undefined
   >();
 
-  const [isLoading, setIsLoading] = useState<{
-    myCard: boolean;
-    friendsCards: boolean;
-  }>({ myCard: false, friendsCards: false });
+  const [isLoading, setIsLoading] = useState<isLoadingType>({
+    myCard: false,
+    friendsCards: false,
+    cheaterReport: false,
+  });
 
   const [cheaterData, setCheaterData] = useState<CheaterDataType>();
 
@@ -185,6 +187,7 @@ const useHome = () => {
     try {
       setIsLoading((prev) => ({ ...prev, friendsCards: true }));
       const closeFriendsWithProbability = await getCloseFriendsCore(value);
+
       setCloseFriendsJson(closeFriendsWithProbability);
 
       return closeFriendsWithProbability;
@@ -204,23 +207,31 @@ const useHome = () => {
     setCheaterData(undefined);
   };
 
-  const getCheaterProbability = async (
-    target: string,
-    closeFriends: closeFriendsDataIWant[],
-  ) => {
-    try {
-      const response = await axios.post('/api/getCheaterProbability', {
-        target,
-        closeFriends,
-      });
+  const getCheaterProbability: () => Promise<CheaterDataType | null> =
+    async () => {
+      if (isLoading.friendsCards) {
+        return null;
+      }
+      try {
+        setIsLoading((prev) => ({ ...prev, cheaterReport: true }));
+        const response = await axios.post('/api/getCheaterProbability', {
+          target: targetInfoJson?.profileInfo?.steamID,
+          closeFriends: closeFriendsJson,
+        });
 
-      return response?.data;
-    } catch (e) {
-      toast.error('Failed to calculate cheater probability');
-      console.error('getCheaterProbability error:', e);
-      return null;
-    }
-  };
+        const cheaterProbability: CheaterDataType = response?.data;
+        console.log('probability', cheaterProbability);
+        setCheaterData(cheaterProbability);
+
+        return cheaterProbability;
+      } catch (e) {
+        toast.error('Failed to calculate cheater probability');
+        console.error('getCheaterProbability error:', e);
+        return null;
+      } finally {
+        setIsLoading((prev) => ({ ...prev, cheaterReport: false }));
+      }
+    };
 
   const handleGetInfoClick = async (value: string, key: string) => {
     if (key !== 'Enter') {
@@ -234,16 +245,6 @@ const useHome = () => {
     await getUserInfoJson(value);
     const closeFriends = await getCloseFriendsJson(value);
     getPossibleLocation(closeFriends);
-
-    const cheaterFeatureFlag = searchParams.get('cheaterFeature');
-    if (cheaterFeatureFlag !== null) {
-      const cheaterProbability = await getCheaterProbability(
-        value,
-        closeFriends,
-      );
-      console.log('probability', cheaterProbability);
-      setCheaterData(cheaterProbability);
-    }
   };
 
   useEffect(() => {
@@ -272,6 +273,7 @@ const useHome = () => {
     showSponsorMe,
     onCloseSponsorMe,
     cheaterData,
+    getCheaterProbability,
   };
 };
 

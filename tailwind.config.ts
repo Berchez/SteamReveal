@@ -17,6 +17,16 @@ const config: Config = {
         sans: ['var(--font-roboto)'],
         inkut: ['var(--font-inknut)'],
       },
+      animation: {
+        'gradient-spin': 'gradient-spin 3s linear infinite',
+      },
+
+      keyframes: {
+        'gradient-spin': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '100%': { backgroundPosition: '200% 50%' },
+        },
+      },
     },
   },
   plugins: [],

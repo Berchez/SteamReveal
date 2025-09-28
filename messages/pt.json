@@ -22,7 +22,8 @@
     "inputSearchPlaceholder": "Procure um jogador (ID do Steam / Link do perfil do Steam / URL personalizado do Steam)",
     "friendsIRL": "Amigos na vida real",
     "userPossibleLocation": "Possível localização do usuário",
-    "userInfo": "Informaçãoes do usuário"
+    "userInfo": "Informaçãoes do usuário",
+    "csAnticheatReview": "Análise CS2 Anticheat"
   },
   "WelcomeText": {
     "welcomeTo": "Bem-vindo ao"
@@ -53,6 +54,7 @@
     "positiveFactors": "Fatores positivos:",
     "negativeFactors": "Fatores suspeitos:",
     "innocentTitle": "Parece Inocente",
-    "innocentDescription": "Este jogador apresenta sinais de perfil normal/no padrão:"
+    "innocentDescription": "Este jogador apresenta sinais de perfil normal/no padrão:",
+    "isUserCheaterCS2": "{nickname} é um cheater no CS2?"
   }
 }

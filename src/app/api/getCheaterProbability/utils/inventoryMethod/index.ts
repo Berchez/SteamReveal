@@ -12,7 +12,7 @@ const getInventoryScore = async (steamId: string): Promise<number> => {
     } else {
       console.error('Unknown error:', error);
     }
-    return 0;
+    return -1;
   }
 };
 
