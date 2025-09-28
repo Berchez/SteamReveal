@@ -30,7 +30,7 @@ const getFriendsOfFriends = async (friendList: Array<UserFriend>) => {
 const getCloseFriends = async (target: string) => {
   let friendsOfTheTarget: UserFriend[];
   try {
-    friendsOfTheTarget = await steam.getUserFriends(target);
+    friendsOfTheTarget = (await steam.getUserFriends(target)).slice(0, 150);
   } catch (err) {
     throw new Error(
       `GettingFriends: Error getting friends of target: ${target}. ${err}`,
