@@ -39,10 +39,11 @@ function analyzeCheaterData(
     }
 
     if (condition(value)) {
-      positiveMsg &&
+      if (positiveMsg) {
         positiveReasons.push(
           typeof positiveMsg === 'function' ? positiveMsg() : positiveMsg,
         );
+      }
     } else if (negativeMsg) {
       negativeReasons.push(
         typeof negativeMsg === 'function' ? negativeMsg() : negativeMsg,
@@ -115,10 +116,7 @@ function analyzeCheaterData(
 
     if (headAccRaw !== undefined) {
       const headAcc = parseFloat(headAccRaw);
-      console.log('walter valu', {
-        value: headAcc,
-        negativeMsg: translator('highHeadAccuracy'),
-      });
+
       addReason({
         value: headAcc,
         negativeMsg: translator('highHeadAccuracy'),
