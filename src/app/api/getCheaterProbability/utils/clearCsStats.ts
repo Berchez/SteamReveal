@@ -1,7 +1,7 @@
 const clearStat = (stat: string) => {
   const cleaned = stat.replace('ms', '').replace('%', '').trim();
 
-  return cleaned === '' ? '-1' : cleaned;
+  return cleaned === '' ? undefined : cleaned;
 };
 
 export default clearStat;

@@ -34,7 +34,7 @@ function analyzeCheaterData(
     negativeMsg?: string | (() => string);
     condition: (v: number) => boolean;
   }) => {
-    if (value === -1) {
+    if (value === -1 || Number.isNaN(value)) {
       return; // ignore invalid data
     }
 
