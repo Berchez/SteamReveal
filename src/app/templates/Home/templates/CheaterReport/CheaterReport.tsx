@@ -34,7 +34,7 @@ function analyzeCheaterData(
     negativeMsg?: string | (() => string);
     condition: (v: number) => boolean;
   }) => {
-    if (value === -1 || Number.isNaN(value)) {
+    if (value === -1 || Number.isNaN(value) || !value) {
       return; // ignore invalid data
     }
 
@@ -89,28 +89,37 @@ function analyzeCheaterData(
 
   // CS Stats
   if (featureObject.csStats) {
-    const winrate = parseFloat(clearStat(featureObject.csStats.winrate));
-    const kpr = parseFloat(clearStat(featureObject.csStats.killsPerRound));
-    const headAcc = parseFloat(clearStat(featureObject.csStats.headAccuracy));
+    const kprRaw = clearStat(featureObject.csStats.killsPerRound);
+    const headAccRaw = clearStat(featureObject.csStats.headAccuracy);
+    const winrateRaw = clearStat(featureObject.csStats.winrate);
 
-    addReason({
-      value: winrate,
-      positiveMsg: translator('normalWinrate'),
-      negativeMsg: () => translator('highWinrate', { winrate }),
-      condition: (v) => v < 50,
-    });
+    if (winrateRaw !== undefined) {
+      const winrate = parseFloat(winrateRaw);
+      addReason({
+        value: winrate,
+        positiveMsg: translator('normalWinrate'),
+        negativeMsg: () => translator('highWinrate', { winrate }),
+        condition: (v) => v < 50,
+      });
+    }
 
-    addReason({
-      value: kpr,
-      negativeMsg: translator('highKillsPerRound'),
-      condition: (v) => v < 1,
-    });
+    if (kprRaw !== undefined) {
+      const kpr = parseFloat(kprRaw);
+      addReason({
+        value: kpr,
+        negativeMsg: translator('highKillsPerRound'),
+        condition: (v) => v < 1,
+      });
+    }
 
-    addReason({
-      value: headAcc,
-      negativeMsg: translator('highHeadAccuracy'),
-      condition: (v) => v < 25,
-    });
+    if (headAccRaw !== undefined) {
+      const headAcc = parseFloat(headAccRaw);
+      addReason({
+        value: headAcc,
+        negativeMsg: translator('highHeadAccuracy'),
+        condition: (v) => v < 25,
+      });
+    }
   }
 
   // Final classification
