@@ -18,8 +18,9 @@ const getBannedFriendsScore = async (
         }
 
         const bansArray = Array.isArray(bansInfo) ? bansInfo : [bansInfo];
+        const bansScore = bansArray.map((ban) => calcBansWeight(ban, count));
 
-        return bansArray.map((ban) => calcBansWeight(ban, count));
+        return bansScore;
       } catch (err) {
         console.error(
           `Error fetching bans for SteamID ${friend.steamID}:`,

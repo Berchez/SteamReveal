@@ -216,7 +216,7 @@ const useHome = () => {
         setIsLoading((prev) => ({ ...prev, cheaterReport: true }));
         const response = await axios.post('/api/getCheaterProbability', {
           target: targetInfoJson?.profileInfo?.steamID,
-          closeFriends: closeFriendsJson,
+          closeFriends: closeFriendsJson ?? [],
         });
 
         const cheaterProbability: CheaterDataType = response?.data;
