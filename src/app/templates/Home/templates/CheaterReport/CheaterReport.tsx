@@ -10,6 +10,7 @@ interface ReportBoxProps {
   icon: string;
   title: string;
   description: string;
+  status: 'suspect' | 'inconclusive' | 'innocent';
   positiveReasons?: string[];
   negativeReasons?: string[];
 }
@@ -157,6 +158,7 @@ function ReportBox({
   description,
   positiveReasons = [],
   negativeReasons = [],
+  status,
 }: ReportBoxProps) {
   const translator = useTranslations('CheaterReport');
 
@@ -175,7 +177,7 @@ function ReportBox({
 
       {positiveReasons.length > 0 && (
         <>
-          {negativeReasons.length > 0 && (
+          {status === 'inconclusive' && (
             <h3 className="font-semibold mt-3">
               ✅ {translator('positiveFactors')}
             </h3>
@@ -190,7 +192,7 @@ function ReportBox({
 
       {negativeReasons.length > 0 && (
         <>
-          {positiveReasons.length > 0 && (
+          {status === 'inconclusive' && (
             <h3 className="font-semibold mt-3">
               🚩 {translator('negativeFactors')}
             </h3>
@@ -283,6 +285,7 @@ function CheaterReport({
             description={config.description}
             positiveReasons={status !== 'suspect' ? positiveReasons : []}
             negativeReasons={status !== 'innocent' ? negativeReasons : []}
+            status={status}
           />
         </div>
       )}
