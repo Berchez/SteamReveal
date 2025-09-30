@@ -285,7 +285,7 @@ function CheaterReport({
             description={config.description}
             positiveReasons={status !== 'suspect' ? positiveReasons : []}
             negativeReasons={status !== 'innocent' ? negativeReasons : []}
-            status={status}
+            status={status as 'suspect' | 'inconclusive' | 'innocent'}
           />
         </div>
       )}
