@@ -8,11 +8,63 @@ import targetInfoJsonType from '@/@types/targetInfoJsonType';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { cityNameAndScore } from '@/@types/cityNameAndScore';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
+import { CheaterDataType } from '@/@types/cheaterDataType';
+import { isLoadingType } from '@/@types/isLoadingType';
 import {
   getLocationDetails,
   getCitiesNames,
   sortCitiesByScore,
 } from './homeUtils';
+
+const getCloseFriendsCore = async (id: string) => {
+  const response = await axios.post('/api/getCloseFriends', {
+    target: id,
+  });
+
+  const {
+    data: { closeFriends },
+  } = response;
+
+  let totalCountOf5ClosestFriends = 0;
+  for (let i = 0; i < 5; i += 1) {
+    totalCountOf5ClosestFriends += closeFriends[i].count;
+  }
+
+  const meanOf5ClosestFriendsCount = totalCountOf5ClosestFriends / 5;
+
+  const biggestCountValue = closeFriends[0].count;
+  const reasonableNumberToBeAGoodGuess = 50;
+
+  const closeFriendsWithProbability = closeFriends.map(
+    (f: closeFriendsDataIWant) => {
+      const meanProbabilityMethod =
+        f.count / (meanOf5ClosestFriendsCount * 1.5) > 1
+          ? 1
+          : f.count / (meanOf5ClosestFriendsCount * 1.5);
+
+      const biggestCountMethod = f.count / biggestCountValue;
+
+      const constantMethod =
+        f.count / reasonableNumberToBeAGoodGuess > 1
+          ? 1
+          : f.count / reasonableNumberToBeAGoodGuess;
+
+      const probabilityFloat =
+        (meanProbabilityMethod * 2 + biggestCountMethod * 2 + constantMethod) /
+        5;
+
+      const probabilityPercentage = probabilityFloat * 100;
+
+      return {
+        friend: f.friend,
+        count: f.count,
+        probability: probabilityPercentage,
+      };
+    },
+  );
+
+  return closeFriendsWithProbability;
+};
 
 const useHome = () => {
   const router = useRouter();
@@ -38,10 +90,13 @@ const useHome = () => {
     locationDataIWant[] | undefined
   >();
 
-  const [isLoading, setIsLoading] = useState<{
-    myCard: boolean;
-    friendsCards: boolean;
-  }>({ myCard: false, friendsCards: false });
+  const [isLoading, setIsLoading] = useState<isLoadingType>({
+    myCard: false,
+    friendsCards: false,
+    cheaterReport: false,
+  });
+
+  const [cheaterData, setCheaterData] = useState<CheaterDataType>();
 
   const urlPlayer = searchParams.get('player');
 
@@ -131,54 +186,7 @@ const useHome = () => {
   const getCloseFriendsJson = async (value: string) => {
     try {
       setIsLoading((prev) => ({ ...prev, friendsCards: true }));
-
-      const response = await axios.post('/api/getCloseFriends', {
-        target: value,
-      });
-
-      const {
-        data: { closeFriends },
-      } = response;
-
-      let totalCountOf5ClosestFriends = 0;
-      for (let i = 0; i < 5; i += 1) {
-        totalCountOf5ClosestFriends += closeFriends[i].count;
-      }
-
-      const meanOf5ClosestFriendsCount = totalCountOf5ClosestFriends / 5;
-
-      const biggestCountValue = closeFriends[0].count;
-      const reasonableNumberToBeAGoodGuess = 50;
-
-      const closeFriendsWithProbability = closeFriends.map(
-        (f: closeFriendsDataIWant) => {
-          const meanProbabilityMethod =
-            f.count / (meanOf5ClosestFriendsCount * 1.5) > 1
-              ? 1
-              : f.count / (meanOf5ClosestFriendsCount * 1.5);
-
-          const biggestCountMethod = f.count / biggestCountValue;
-
-          const constantMethod =
-            f.count / reasonableNumberToBeAGoodGuess > 1
-              ? 1
-              : f.count / reasonableNumberToBeAGoodGuess;
-
-          const probabilityFloat =
-            (meanProbabilityMethod * 2 +
-              biggestCountMethod * 2 +
-              constantMethod) /
-            5;
-
-          const probabilityPercentage = probabilityFloat * 100;
-
-          return {
-            friend: f.friend,
-            count: f.count,
-            probability: probabilityPercentage,
-          };
-        },
-      );
+      const closeFriendsWithProbability = await getCloseFriendsCore(value);
 
       setCloseFriendsJson(closeFriendsWithProbability);
 
@@ -196,7 +204,34 @@ const useHome = () => {
     setCloseFriendsJson(undefined);
     setPossibleLocationJson(undefined);
     setTargetInfoJson(undefined);
+    setCheaterData(undefined);
   };
+
+  const getCheaterProbability: () => Promise<CheaterDataType | null> =
+    async () => {
+      if (isLoading.friendsCards) {
+        return null;
+      }
+      try {
+        setIsLoading((prev) => ({ ...prev, cheaterReport: true }));
+        const response = await axios.post('/api/getCheaterProbability', {
+          target: targetInfoJson?.profileInfo?.steamID,
+          closeFriends: closeFriendsJson ?? [],
+        });
+
+        const cheaterProbability: CheaterDataType = response?.data;
+        console.log('probability', cheaterProbability);
+        setCheaterData(cheaterProbability);
+
+        return cheaterProbability;
+      } catch (e) {
+        toast.error('Failed to calculate cheater probability');
+        console.error('getCheaterProbability error:', e);
+        return null;
+      } finally {
+        setIsLoading((prev) => ({ ...prev, cheaterReport: false }));
+      }
+    };
 
   const handleGetInfoClick = async (value: string, key: string) => {
     if (key !== 'Enter') {
@@ -216,9 +251,8 @@ const useHome = () => {
     if (!urlPlayer) {
       return;
     }
-
     handleGetInfoClick(urlPlayer, 'Enter');
-  }, []);
+  }, [urlPlayer, searchParams]);
 
   const onChangeTarget = (value: string) => {
     targetValue.current = value;
@@ -238,6 +272,8 @@ const useHome = () => {
     hasNoDataYet,
     showSponsorMe,
     onCloseSponsorMe,
+    cheaterData,
+    getCheaterProbability,
   };
 };
 

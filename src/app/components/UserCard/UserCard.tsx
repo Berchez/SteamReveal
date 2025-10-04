@@ -10,11 +10,13 @@ function UserCard({
   count,
   probability,
   itsTargetUser,
+  bottomChildren,
 }: {
   friend: UserSummary;
   count?: number;
   probability?: number;
   itsTargetUser: boolean;
+  bottomChildren?: React.ReactNode;
 }) {
   const { countryCode, stateCode, cityID } = friend;
 
@@ -141,6 +143,7 @@ function UserCard({
             {translator('reliability')}: {count}
           </p>
         )}
+        {bottomChildren}
       </div>
     </div>
   );

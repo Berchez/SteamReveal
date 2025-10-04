@@ -30,53 +30,65 @@ const getFriendsOfFriends = async (friendList: Array<UserFriend>) => {
 const getCloseFriends = async (target: string) => {
   let friendsOfTheTarget: UserFriend[];
   try {
-    friendsOfTheTarget = await steam.getUserFriends(target);
-  } catch {
+    friendsOfTheTarget = (await steam.getUserFriends(target)).slice(0, 100);
+  } catch (err) {
     throw new Error(
-      `GettingFriends: Error getting friends of target: ${  target}`,
+      `GettingFriends: Error getting friends of target: ${target}. ${err}`,
     );
   }
 
-  const friedsOfFriendsOfTheTarget = await getFriendsOfFriends(
-    friendsOfTheTarget,
-  );
+  if (!Array.isArray(friendsOfTheTarget)) {
+    return [];
+  }
+
+  const friedsOfFriendsOfTheTarget =
+    await getFriendsOfFriends(friendsOfTheTarget);
 
   const closeFriendsOfTheTarget = friendsOfTheTarget.map(
     (friend: UserFriend) => ({
-        steamID: friend.steamID,
-        count: friedsOfFriendsOfTheTarget.filter(
-          (f: UserFriend) => f.steamID === friend.steamID,
-        ).length,
-      }),
+      steamID: friend.steamID,
+      count: friedsOfFriendsOfTheTarget.filter(
+        (f: UserFriend) => f.steamID === friend.steamID,
+      ).length,
+    }),
   );
 
   closeFriendsOfTheTarget.sort((a, b) => b.count - a.count);
 
   const twentyClosestFriends = closeFriendsOfTheTarget.slice(0, 20);
 
-  const twentyClosestFriendsWithSummary = await Promise.all(
-    twentyClosestFriends.map(async (friend) => ({
-        friend: await steam.getUserSummary(friend.steamID),
-        count: friend.count,
-      })),
-  );
+  const steamIDs = twentyClosestFriends.map((friend) => friend.steamID);
+
+  const summaries = await steam.getUserSummary(steamIDs);
+  const summariesArray = Array.isArray(summaries) ? summaries : [summaries];
+
+  const twentyClosestFriendsWithSummary = twentyClosestFriends.map((friend) => {
+    const summary = summariesArray.find(
+      (sum) => sum.steamID === friend.steamID,
+    );
+    return {
+      friend: summary || null,
+      count: friend.count,
+    };
+  });
 
   return twentyClosestFriendsWithSummary;
 };
 
 export async function POST(req: Request) {
   if (req.method === 'POST') {
+    let body;
     try {
-      const body = await req.json();
-
+      body = await req.json();
       const { target } = body;
 
       if (!target || target === '' || typeof target !== 'string') {
         return NextResponse.json(
           { message: 'Target inválido. ', target },
-          { status: 500 },
+          { status: 400 },
         );
       }
+
       const targetSteamId = await steam.resolve(target);
       const targetCloseFriends = await getCloseFriends(targetSteamId);
 
@@ -85,14 +97,16 @@ export async function POST(req: Request) {
         { status: 200 },
       );
     } catch (error) {
+      console.error(
+        `getCloseFriends - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
+        error,
+      );
       return NextResponse.json(
-        {
-          message: `Error interno do servidor ${  (error as Error).message}`,
-        },
+        { message: `Internal server Error: ${(error as Error).message}` },
         { status: 500 },
       );
     }
   } else {
-    return NextResponse.json({ message: 'Método não permitido.' });
+    return NextResponse.json({ message: 'Method not allowed.' });
   }
 }

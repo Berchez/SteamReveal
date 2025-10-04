@@ -8,6 +8,7 @@ import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
 import WelcomeText from './WelcomeText/WelcomeText';
 import HomeContext from './context';
+import CheaterReport from './templates/CheaterReport';
 
 const LocationSection = dynamic(() => import('./templates/LocationSection'));
 const FriendsSection = dynamic(() => import('./templates/FriendsSection'));
@@ -24,13 +25,17 @@ export default function Home() {
     hasNoDataYet,
     showSponsorMe,
     onCloseSponsorMe,
+    cheaterData,
+    getCheaterProbability,
   } = useHome();
 
   const contextValue = useMemo(
     () => ({
       handleGetInfoClick,
+      getCheaterProbability,
+      isLoading,
     }),
-    [handleGetInfoClick],
+    [handleGetInfoClick, getCheaterProbability, isLoading],
   );
 
   return (
@@ -57,6 +62,13 @@ export default function Home() {
             onChangeTarget={onChangeTarget}
             targetValue={targetValue}
           />
+
+          <CheaterReport
+            cheaterData={cheaterData}
+            isLoading={isLoading.cheaterReport}
+            nickname={targetInfoJson?.profileInfo?.nickname ?? ''}
+          />
+
           <div className="flex flex-col gap-16 my-8">
             <LocationSection
               possibleLocationJson={possibleLocationJson}

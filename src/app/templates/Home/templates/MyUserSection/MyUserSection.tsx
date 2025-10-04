@@ -40,7 +40,30 @@ function MyUserSection({
         }
       />
       {targetInfoJson ? (
-        <UserCard friend={targetInfoJson.profileInfo} itsTargetUser />
+        <UserCard
+          friend={targetInfoJson.profileInfo}
+          itsTargetUser
+          bottomChildren={
+            !context?.isLoading.friendsCards && (
+              <div className="relative rounded-xl p-[1px] w-fit inline-flex items-center justify-center group">
+                <div
+                  className="absolute inset-0 rounded-xl bg-[length:200%_200%] animate-gradient-spin"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(90deg, #ff8ae2, #ff1bce, #ea00ff, #9a64ff, #3d5afe, #ae00ff, #ff8ae2, #ff1bce, #ea00ff)',
+                  }}
+                />
+                <button
+                  onClick={() => context?.getCheaterProbability()}
+                  className="relative z-10 px-4 py-2 text-sm font-medium text-white rounded-xl bg-[#1c0029d7] backdrop-blur-md border border-transparent group-hover:shadow-[0_0_20px_rgba(255,100,249,0.5)] transition duration-200"
+                  type="button"
+                >
+                  {translator('csAnticheatReview')}
+                </button>
+              </div>
+            )
+          }
+        />
       ) : (
         isLoading && <UserCardSkeleton itsTargetUser />
       )}

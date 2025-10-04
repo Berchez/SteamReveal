@@ -7,8 +7,9 @@ const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
 
 export async function POST(req: Request) {
   if (req.method === 'POST') {
+    let body;
     try {
-      const body = await req.json();
+      body = await req.json();
 
       const { target } = body;
 
@@ -24,6 +25,10 @@ export async function POST(req: Request) {
 
       return NextResponse.json({ targetInfo }, { status: 200 });
     } catch (error) {
+      console.error(
+        `getUserInfo - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
+        error,
+      );
       return NextResponse.json(
         { message: `Internal server error: ${(error as Error).message}` },
         { status: 500 },
