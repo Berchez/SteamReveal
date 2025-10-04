@@ -14,7 +14,6 @@ describe('getInventoryScore', () => {
   let consoleErrorSpy: jest.SpyInstance;
 
   beforeAll(() => {
-    // Suprime todos os console.error durante os testes
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
