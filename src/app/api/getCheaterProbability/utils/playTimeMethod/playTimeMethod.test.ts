@@ -1,11 +1,10 @@
-// src/app/api/getCheaterProbability/utils/playTimeMethod/playTimeMethod.test.ts
 import getPlayTimeScore from './index';
 
-// Mock do SteamAPI
+// SteamAPI mock
 const mockGetUserOwnedGames = jest.fn();
 
 jest.mock('steamapi', () => {
-  // Retorna um construtor que cria objetos com getUserOwnedGames mockado
+  // Returns a constructor that creates objects with getUserOwnedGames mocked
   return jest.fn().mockImplementation(() => ({
     getUserOwnedGames: (...args: any[]) => mockGetUserOwnedGames(...args),
   }));
