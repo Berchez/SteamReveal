@@ -54,10 +54,10 @@ function UserCard({
 
   return (
     <div
-      className={`mt-8 gap-4 flex md:flex-row flex-col items-center justify-center text-white p-4 ${
+      className={`gap-4 flex md:flex-row flex-col items-center justify-center text-white p-4 ${
         itsTargetUser
           ? 'text-lg md:w-[90%] w-full self-center'
-          : 'text-base w-full'
+          : 'text-base w-full mt-8'
       } ${glassmorphism}`}
       key={friend.steamID}
     >
@@ -72,9 +72,7 @@ function UserCard({
           />
           {!itsTargetUser && (
             <button
-              onClick={() =>
-                context?.handleGetInfoClick(friend.steamID, 'Enter')
-              }
+              onClick={() => context?.handleGetInfoClick(friend.steamID)}
               type="button"
               className="w-[60px] py-1 mt-2 text-purple-400 font-semibold text-sm rounded-full border border-purple-800 bg-purple-600 bg-opacity-10 hover:bg-opacity-20"
             >

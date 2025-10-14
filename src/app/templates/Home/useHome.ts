@@ -233,11 +233,7 @@ const useHome = () => {
       }
     };
 
-  const handleGetInfoClick = async (value: string, key: string) => {
-    if (key !== 'Enter') {
-      return;
-    }
-
+  const handleGetInfoClick = async (value: string) => {
     handleShowSponsorMe();
 
     resetJsons();
@@ -251,7 +247,7 @@ const useHome = () => {
     if (!urlPlayer) {
       return;
     }
-    handleGetInfoClick(urlPlayer, 'Enter');
+    handleGetInfoClick(urlPlayer);
   }, [urlPlayer, searchParams]);
 
   const onChangeTarget = (value: string) => {

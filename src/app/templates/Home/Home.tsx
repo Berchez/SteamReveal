@@ -9,6 +9,7 @@ import MyUserSection from './templates/MyUserSection';
 import WelcomeText from './WelcomeText/WelcomeText';
 import HomeContext from './context';
 import CheaterReport from './templates/CheaterReport';
+import SupportedFormatsSection from './templates/SupportedFormatsSection';
 
 const LocationSection = dynamic(() => import('./templates/LocationSection'));
 const FriendsSection = dynamic(() => import('./templates/FriendsSection'));
@@ -48,9 +49,11 @@ export default function Home() {
             dontAskAgain={() => onCloseSponsorMe(-20)}
           />
         )}
+
         {hasNoDataYet && <WelcomeText />}
+
         <div
-          className={`flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover p-12 text-white z-20 ${
+          className={`flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover py-8 px-4 md:p-12 text-white z-20 ${
             hasNoDataYet
               ? 'absolute top-1/2 transform -translate-y-1/2'
               : 'relative'
@@ -61,7 +64,10 @@ export default function Home() {
             isLoading={isLoading.myCard}
             onChangeTarget={onChangeTarget}
             targetValue={targetValue}
+            className={hasNoDataYet ? 'mt-[25vh]' : ''}
           />
+
+          {hasNoDataYet && <SupportedFormatsSection />}
 
           <CheaterReport
             cheaterData={cheaterData}

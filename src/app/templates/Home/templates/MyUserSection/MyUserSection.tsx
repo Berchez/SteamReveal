@@ -15,6 +15,7 @@ type MyUserSectionProps = {
   isLoading: boolean;
   onChangeTarget: (value: string) => void;
   targetValue: React.MutableRefObject<string | null | undefined>;
+  className?: string;
 };
 
 function MyUserSection({
@@ -22,22 +23,27 @@ function MyUserSection({
   isLoading,
   onChangeTarget,
   targetValue,
+  className,
 }: MyUserSectionProps) {
   const translator = useTranslations('Index');
 
   const context = useContext(HomeContext);
 
   return (
-    <div className="flex flex-col h-full w-full items-center justify-center gap-y-8">
+    <div className={`flex flex-col w-full mx-auto gap-y-8 ${className}`}>
       <h1 className="text-3xl font-bold text-center">
         {translator('searchTitle')}
       </h1>
       <SearchInput
         onChange={({ target }) => onChangeTarget(target.value)}
         placeholder={translator('inputSearchPlaceholder')}
-        onKeyDown={(e) =>
-          context?.handleGetInfoClick(targetValue.current ?? '', e.key)
-        }
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter') {
+            return;
+          }
+          context?.handleGetInfoClick(targetValue.current ?? '');
+        }}
+        onSearch={() => context?.handleGetInfoClick(targetValue.current ?? '')}
       />
       {targetInfoJson ? (
         <UserCard

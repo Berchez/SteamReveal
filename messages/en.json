@@ -1,4 +1,7 @@
 {
+  "General": {
+    "search": "Search"
+  },
   "Default": {
     "websiteDescription": "SteamReveal is a comprehensive intelligence platform tailored for the gaming community. Our platform offers a suite of tools and features designed to help gamers collect, analyze, and leverage intelligence from diverse sources across the web, all in one convenient location."
   },
@@ -56,5 +59,14 @@
     "innocentTitle": "Seems Innocent",
     "innocentDescription": "This player shows normal/standard profile signs:",
     "isUserCheaterCS2": "Is {nickname} a cheater in CS2?"
+  },
+  "SupportedFormatsSection": {
+    "steamID64Desc": "Unique 64-bit Steam ID.",
+    "customLabel": "Profile URL (Custom)",
+    "customDesc": "Custom Steam profile link.",
+    "steamID64UrlLabel": "Profile URL (Steam64ID)",
+    "steamID64UrlDesc": "Direct link with Steam64ID.",
+    "supportedFormats": "Supported formats",
+    "copied": "Copied!"
   }
 }

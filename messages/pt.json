@@ -1,4 +1,7 @@
 {
+  "General": {
+    "search": "Buscar"
+  },
   "Default": {
     "websiteDescription": "SteamReveal é uma plataforma abrangente de inteligência feita sob medida para a comunidade de jogos. Nossa plataforma oferece um conjunto de ferramentas e recursos projetados para ajudar os jogadores a coletar, analisar e aproveitar inteligência de diversas fontes na web, tudo em um local conveniente."
   },
@@ -56,5 +59,14 @@
     "innocentTitle": "Parece Inocente",
     "innocentDescription": "Este jogador apresenta sinais de perfil normal/no padrão:",
     "isUserCheaterCS2": "{nickname} é um cheater no CS2?"
+  },
+  "SupportedFormatsSection": {
+    "steamID64Desc": "ID Steam único de 64 bits.",
+    "customLabel": "URL do perfil (Personalizado)",
+    "customDesc": "Link personalizado do perfil Steam.",
+    "steamID64UrlLabel": "URL do perfil (Steam64ID)",
+    "steamID64UrlDesc": "Link direto com Steam64ID.",
+    "supportedFormats": "Formatos suportados",
+    "copied": "Copiado!"
   }
 }
