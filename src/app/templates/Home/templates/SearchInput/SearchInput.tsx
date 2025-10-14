@@ -39,8 +39,8 @@ function SearchInput({
           strokeLinejoin="round"
           className="h-4 w-4"
         >
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.3-4.3"></path>
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
         </svg>
         <span>{translator('search')}</span>
       </button>

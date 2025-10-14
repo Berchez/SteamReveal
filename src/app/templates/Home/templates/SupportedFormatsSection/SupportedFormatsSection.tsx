@@ -44,6 +44,7 @@ function SupportedFormatsSection() {
             key={item.label}
             onClick={() => handleCopy(item.value, item.label)}
             className="relative h-full cursor-pointer group bg-slate-900/40 border-2 border-purple-950 rounded-xl p-3 flex flex-col items-center gap-2 hover:border-purple-600/60 hover:scale-105 hover:rotate-1 transform transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-600/60"
+            type="button"
           >
             <div className="text-purple-400 text-xl">{item.icon}</div>
             <span className="font-medium text-purple-100 text-sm">
