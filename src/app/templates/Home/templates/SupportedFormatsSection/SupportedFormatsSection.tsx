@@ -15,7 +15,7 @@ function SupportedFormatsSection() {
     {
       icon: '🔗',
       label: translator('customLabel'),
-      value: 'steamcommunity.com/id/officials1mple',
+      value: 'steamcommunity.com/id/fallencs',
       desc: translator('customDesc'),
     },
     {
