@@ -77,5 +77,3 @@ adjust your profile settings.
 ## - :telephone_receiver: Contact
 
 **E-mail:** walterfelipeberchez@outlook.com
-
-**Phone:** (35) 9 9804-2667
