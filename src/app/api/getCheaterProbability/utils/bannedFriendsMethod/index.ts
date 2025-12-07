@@ -1,7 +1,7 @@
 import SteamAPI from 'steamapi';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
+import getSteamApiKey from '@/lib/getSteamApiKey';
 import calcBansWeight from './utils/calcBansWeight';
-import { getSteamApiKey } from '@/lib/getSteamApiKey';
 
 const steam = new SteamAPI(getSteamApiKey() ?? '');
 const getBannedFriendsScore = async (

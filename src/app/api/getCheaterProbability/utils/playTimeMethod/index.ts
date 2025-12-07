@@ -1,4 +1,4 @@
-import { getSteamApiKey } from '@/lib/getSteamApiKey';
+import getSteamApiKey from '@/lib/getSteamApiKey';
 import SteamAPI from 'steamapi';
 
 const steam = new SteamAPI(getSteamApiKey() ?? '');

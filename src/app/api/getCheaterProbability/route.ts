@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import SteamAPI from 'steamapi';
+import getSteamApiKey from '@/lib/getSteamApiKey';
 import getBadCommentsScore from './utils/badCommentsMethod';
 import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
 import getPlayTimeScore from './utils/playTimeMethod';
 import getCsStats from './utils/csStats';
 import clearStat from './utils/clearCsStats';
-import { getSteamApiKey } from '@/lib/getSteamApiKey';
 
 export const revalidate = 0;
 const steam = new SteamAPI(getSteamApiKey() ?? '');

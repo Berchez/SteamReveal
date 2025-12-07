@@ -1,4 +1,4 @@
-import { getSteamApiKey } from '@/lib/getSteamApiKey';
+import getSteamApiKey from '@/lib/getSteamApiKey';
 import { NextResponse } from 'next/server';
 import SteamAPI from 'steamapi';
 
