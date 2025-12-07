@@ -83,6 +83,7 @@ const analyzeCheaterData = (
     const kprRaw = clearStat(featureObject.csStats.killsPerRound);
     const headAccRaw = clearStat(featureObject.csStats.headAccuracy);
     const winrateRaw = clearStat(featureObject.csStats.winrate);
+    const kdRaw = clearStat(featureObject.csStats.kd);
 
     if (winrateRaw !== undefined) {
       const winrate = parseFloat(winrateRaw);
@@ -90,7 +91,18 @@ const analyzeCheaterData = (
         value: winrate,
         positiveMsg: translator('normalWinrate'),
         negativeMsg: () => translator('highWinrate', { winrate }),
-        conditionToBeInnocent: (v) => v < 50,
+        conditionToBeInnocent: (v) => v < 55,
+      });
+    }
+
+    if (kdRaw !== undefined) {
+      const kd = parseFloat(kdRaw);
+
+      addReason({
+        value: kd,
+        positiveMsg: () => translator('normalKD', { kd }),
+        negativeMsg: () => translator('highKD', { kd }),
+        conditionToBeInnocent: (v) => v <= 1.1,
       });
     }
 

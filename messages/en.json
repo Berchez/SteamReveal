@@ -58,7 +58,9 @@
     "negativeFactors": "Suspicious factors:",
     "innocentTitle": "Seems Innocent",
     "innocentDescription": "This player shows normal/standard profile signs:",
-    "isUserCheaterCS2": "Is {nickname} a cheater in CS2?"
+    "isUserCheaterCS2": "Is {nickname} a cheater in CS2?",
+    "normalKD": "Normal K/D ratio ({kd})",
+    "highKD": "High K/D ratio ({kd}, unusually strong performance)"
   },
   "SupportedFormatsSection": {
     "steamID64Desc": "Unique 64-bit Steam ID.",
