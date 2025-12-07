@@ -7,9 +7,12 @@ import getInventoryScore from './utils/inventoryMethod';
 import getPlayTimeScore from './utils/playTimeMethod';
 import getCsStats from './utils/csStats';
 import clearStat from './utils/clearCsStats';
+import { getSteamApiKey } from '@/lib/getSteamApiKey';
 
 export const revalidate = 0;
-const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
+const steam = new SteamAPI(getSteamApiKey() ?? '');
+
+console.log(' ========== walter', getSteamApiKey());
 
 const { CHEATER_AI_API_BASE } = process.env;
 

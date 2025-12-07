@@ -1,9 +1,10 @@
+import { getSteamApiKey } from '@/lib/getSteamApiKey';
 import { NextResponse } from 'next/server';
 import SteamAPI from 'steamapi';
 
 export const revalidate = 0;
 
-const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
+const steam = new SteamAPI(getSteamApiKey() ?? '');
 
 export async function GET(req: Request) {
   try {

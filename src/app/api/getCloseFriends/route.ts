@@ -1,3 +1,4 @@
+import { getSteamApiKey } from '@/lib/getSteamApiKey';
 import { NextResponse } from 'next/server';
 import SteamAPI from 'steamapi';
 
@@ -9,7 +10,7 @@ type UserFriend = {
   relationship: string;
 };
 
-const steam = new SteamAPI(process.env.STEAM_API_KEY ?? '');
+const steam = new SteamAPI(getSteamApiKey() ?? '');
 
 const getFriendsOfFriends = async (friendList: Array<UserFriend>) => {
   const friendsOfFriends: Array<UserFriend> = [];
