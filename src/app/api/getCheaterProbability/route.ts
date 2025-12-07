@@ -12,8 +12,6 @@ import { getSteamApiKey } from '@/lib/getSteamApiKey';
 export const revalidate = 0;
 const steam = new SteamAPI(getSteamApiKey() ?? '');
 
-console.log(' ========== walter', getSteamApiKey());
-
 const { CHEATER_AI_API_BASE } = process.env;
 
 const FIVE_MINS_IN_MS = 5 * 60 * 1000;
