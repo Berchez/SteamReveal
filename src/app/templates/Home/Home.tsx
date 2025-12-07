@@ -18,7 +18,6 @@ export default function Home() {
   const {
     onChangeTarget,
     closeFriendsJson,
-    handleGetInfoClick,
     targetValue,
     possibleLocationJson,
     targetInfoJson,
@@ -28,15 +27,16 @@ export default function Home() {
     onCloseSponsorMe,
     cheaterData,
     getCheaterProbability,
+    updateQueryParam,
   } = useHome();
 
   const contextValue = useMemo(
     () => ({
-      handleGetInfoClick,
+      updateQueryParam,
       getCheaterProbability,
       isLoading,
     }),
-    [handleGetInfoClick, getCheaterProbability, isLoading],
+    [updateQueryParam, getCheaterProbability, isLoading],
   );
 
   return (

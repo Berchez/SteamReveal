@@ -72,7 +72,9 @@ function UserCard({
           />
           {!itsTargetUser && (
             <button
-              onClick={() => context?.handleGetInfoClick(friend.steamID)}
+              onClick={() =>
+                context?.updateQueryParam('player', friend.steamID ?? '')
+              }
               type="button"
               className="w-[60px] py-1 mt-2 text-purple-400 font-semibold text-sm rounded-full border border-purple-800 bg-purple-600 bg-opacity-10 hover:bg-opacity-20"
             >

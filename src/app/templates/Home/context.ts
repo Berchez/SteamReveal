@@ -3,7 +3,7 @@ import { isLoadingType } from '@/@types/isLoadingType';
 import { createContext } from 'react';
 
 interface HomeContextType {
-  handleGetInfoClick: (value: string) => Promise<void>;
+  updateQueryParam: (key: string, value: string) => void;
   getCheaterProbability: () => Promise<CheaterDataType | null>;
   isLoading: isLoadingType;
 }

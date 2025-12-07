@@ -4,6 +4,7 @@ import targetInfoJsonType from '@/@types/targetInfoJsonType';
 import dynamic from 'next/dynamic';
 import SearchInput from '../SearchInput';
 import HomeContext from '../../context';
+import { fetchSteamId } from '../../useHome';
 
 const UserCard = dynamic(() => import('@/app/components/UserCard'));
 const UserCardSkeleton = dynamic(
@@ -41,9 +42,15 @@ function MyUserSection({
           if (e.key !== 'Enter') {
             return;
           }
-          context?.handleGetInfoClick(targetValue.current ?? '');
+          fetchSteamId(targetValue.current ?? '').then((steamId) =>
+            context?.updateQueryParam('player', steamId),
+          );
         }}
-        onSearch={() => context?.handleGetInfoClick(targetValue.current ?? '')}
+        onSearch={() =>
+          fetchSteamId(targetValue.current ?? '').then((steamId) =>
+            context?.updateQueryParam('player', steamId),
+          )
+        }
       />
       {targetInfoJson ? (
         <UserCard

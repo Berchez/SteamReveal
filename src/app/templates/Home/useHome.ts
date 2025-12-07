@@ -16,6 +16,16 @@ import {
   sortCitiesByScore,
 } from './homeUtils';
 
+export async function fetchSteamId(target: string) {
+  const response = await axios.get('/api/getSteamId', {
+    params: {
+      target,
+    },
+  });
+
+  return response.data.steamId;
+}
+
 const getCloseFriendsCore = async (id: string) => {
   const response = await axios.post('/api/getCloseFriends', {
     target: id,
@@ -259,7 +269,6 @@ const useHome = () => {
   return {
     onChangeTarget,
     closeFriendsJson,
-    handleGetInfoClick,
     targetValue,
     possibleLocationJson,
     targetInfoJson,
@@ -270,6 +279,7 @@ const useHome = () => {
     onCloseSponsorMe,
     cheaterData,
     getCheaterProbability,
+    updateQueryParam,
   };
 };
 
