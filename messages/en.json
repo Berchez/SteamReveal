@@ -70,5 +70,16 @@
     "steamID64UrlDesc": "Direct link with Steam64ID.",
     "supportedFormats": "Supported formats",
     "copied": "Copied!"
+  },
+  "SupportMe": {
+    "supportTitle": "Thanks for using the site! 💖",
+    "supportText": "If the project is helping you, you can support it so I can keep improving the site.",
+    "copied": "Copied!",
+    "copy": "Copy",
+    "myPixKey": "My PIX key",
+    "openStripe": "Open Stripe",
+    "dontAskAgain": "Don't show again",
+    "sendSkin": "Send Skin Offer",
+    "tradeLink": "Trade Link"
   }
 }

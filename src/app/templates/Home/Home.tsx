@@ -10,6 +10,7 @@ import WelcomeText from './WelcomeText/WelcomeText';
 import HomeContext from './context';
 import CheaterReport from './templates/CheaterReport';
 import SupportedFormatsSection from './templates/SupportedFormatsSection';
+import SupportMe from '@/app/components/SupportMe';
 
 const LocationSection = dynamic(() => import('./templates/LocationSection'));
 const FriendsSection = dynamic(() => import('./templates/FriendsSection'));
@@ -28,6 +29,8 @@ export default function Home() {
     cheaterData,
     getCheaterProbability,
     updateQueryParam,
+    showSupportMe,
+    onCloseSupportMe,
   } = useHome();
 
   const contextValue = useMemo(
@@ -47,6 +50,13 @@ export default function Home() {
           <SponsorMe
             onClose={() => onCloseSponsorMe(0)}
             dontAskAgain={() => onCloseSponsorMe(-20)}
+          />
+        )}
+
+        {showSupportMe && (
+          <SupportMe
+            onClose={() => onCloseSupportMe(0)}
+            dontAskAgain={() => onCloseSupportMe(-25)}
           />
         )}
 

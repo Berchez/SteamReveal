@@ -15,6 +15,7 @@ import {
   getCitiesNames,
   sortCitiesByScore,
 } from './homeUtils';
+import useSupportMe from '@/app/components/SupportMe/useSupportMe';
 
 export async function fetchSteamId(target: string) {
   const response = await axios.get('/api/getSteamId', {
@@ -82,6 +83,9 @@ const useHome = () => {
 
   const { showSponsorMe, handleShowSponsorMe, onCloseSponsorMe } =
     useSponsorMe();
+
+  const { showSupportMe, handleShowSupportMe, onCloseSupportMe } =
+    useSupportMe();
 
   const updateQueryParam = (key: string, value: string) => {
     const currentParams = new URLSearchParams(searchParams.toString());
@@ -223,6 +227,8 @@ const useHome = () => {
         return null;
       }
       try {
+        handleShowSupportMe(3);
+        return;
         setIsLoading((prev) => ({ ...prev, cheaterReport: true }));
         const response = await axios.post('/api/getCheaterProbability', {
           target: targetInfoJson?.profileInfo?.steamID,
@@ -245,7 +251,8 @@ const useHome = () => {
 
   const handleGetInfoClick = async (value: string) => {
     handleShowSponsorMe();
-
+    handleShowSupportMe(1);
+    return;
     resetJsons();
 
     await getUserInfoJson(value);
@@ -280,6 +287,8 @@ const useHome = () => {
     cheaterData,
     getCheaterProbability,
     updateQueryParam,
+    showSupportMe,
+    onCloseSupportMe,
   };
 };
 
