@@ -33,15 +33,19 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
   const stripeLink = isPT ? STRIPE.brl : STRIPE.usd;
   const stripeQR = isPT ? STRIPE.qrBrl : STRIPE.qrUsd;
 
-  const qrSource =
-    tab === 'pix' ? PIX_QR : tab === 'stripe' ? stripeQR : undefined;
+  const qrSource: Record<'pix' | 'stripe', string> = {
+    pix: PIX_QR,
+    stripe: stripeQR,
+  };
 
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    } catch (err) {
+      console.error('Clipboard error', err);
+    }
   };
 
   return (
@@ -51,6 +55,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
         <button
           onClick={onClose}
           className="absolute right-4 top-2 text-3xl text-purple-300 hover:text-purple-400"
+          type="button"
         >
           &times;
         </button>
@@ -74,6 +79,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
                   ? 'text-purple-300 border-b-2 border-purple-500 font-semibold'
                   : 'text-gray-400 hover:text-gray-200'
               }`}
+              type="button"
             >
               PIX
             </button>
@@ -86,6 +92,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
                 ? 'text-purple-300 border-b-2 border-purple-500 font-semibold'
                 : 'text-gray-400 hover:text-gray-200'
             }`}
+            type="button"
           >
             STRIPE
           </button>
@@ -97,15 +104,16 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
                 ? 'text-purple-300 border-b-2 border-purple-500 font-semibold'
                 : 'text-gray-400 hover:text-gray-200'
             }`}
+            type="button"
           >
             STEAM
           </button>
         </div>
 
         {/* QR (only PIX and Stripe) */}
-        {(tab === 'pix' || tab === 'stripe') && qrSource && (
+        {(tab === 'pix' || tab === 'stripe') && qrSource[tab] && (
           <Image
-            src={qrSource}
+            src={qrSource[tab]}
             alt="QR Code"
             width={220}
             height={220}
@@ -128,6 +136,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
               <button
                 onClick={() => copyToClipboard(PIX_KEY)}
                 className="text-purple-300 hover:text-purple-400 text-sm"
+                type="button"
               >
                 {copied ? translator('copied') : translator('copy')}
               </button>
@@ -140,6 +149,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
           <a
             href={stripeLink}
             target="_blank"
+            rel="noreferrer"
             className="mt-6 block text-center bg-purple-700/50 text-white py-2 rounded-lg border border-purple-400/60 shadow-[0_0_4px_rgba(168,85,247,0.8)] hover:shadow-[0_0_14px_rgba(168,85,247,1)] hover:-translate-y-[2px] transition"
           >
             {translator('openStripe')}
@@ -161,6 +171,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
               <button
                 onClick={() => copyToClipboard(STEAM_TRADE_URL)}
                 className="text-purple-300 hover:text-purple-400 text-sm"
+                type="button"
               >
                 {copied ? translator('copied') : translator('copy')}
               </button>
@@ -170,6 +181,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
               href={STEAM_TRADE_URL}
               target="_blank"
               className="mt-4 block text-center bg-purple-700/50 text-white py-2 rounded-lg border border-purple-400/60 shadow-[0_0_4px_rgba(168,85,247,0.8)] hover:shadow-[0_0_14px_rgba(168,85,247,1)] hover:-translate-y-[2px] transition"
+              rel="noreferrer"
             >
               {translator('sendSkin')}
             </a>
@@ -180,6 +192,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
         <button
           onClick={dontAskAgain}
           className="mt-6 text-gray-500 hover:text-gray-400 underline text-sm"
+          type="button"
         >
           {translator('dontAskAgain')}
         </button>

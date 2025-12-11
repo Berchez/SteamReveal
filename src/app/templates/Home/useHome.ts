@@ -10,12 +10,12 @@ import { cityNameAndScore } from '@/@types/cityNameAndScore';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { isLoadingType } from '@/@types/isLoadingType';
+import useSupportMe from '@/app/components/SupportMe/useSupportMe';
 import {
   getLocationDetails,
   getCitiesNames,
   sortCitiesByScore,
 } from './homeUtils';
-import useSupportMe from '@/app/components/SupportMe/useSupportMe';
 
 export async function fetchSteamId(target: string) {
   const response = await axios.get('/api/getSteamId', {
@@ -228,7 +228,6 @@ const useHome = () => {
       }
       try {
         handleShowSupportMe(3);
-        return;
         setIsLoading((prev) => ({ ...prev, cheaterReport: true }));
         const response = await axios.post('/api/getCheaterProbability', {
           target: targetInfoJson?.profileInfo?.steamID,
@@ -252,7 +251,6 @@ const useHome = () => {
   const handleGetInfoClick = async (value: string) => {
     handleShowSponsorMe();
     handleShowSupportMe(1);
-    return;
     resetJsons();
 
     await getUserInfoJson(value);

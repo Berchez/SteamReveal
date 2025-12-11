@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import SponsorMe from '@/app/components/SponsorMe';
+import SupportMe from '@/app/components/SupportMe';
 import useHome from './useHome';
 import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
@@ -10,7 +11,6 @@ import WelcomeText from './WelcomeText/WelcomeText';
 import HomeContext from './context';
 import CheaterReport from './templates/CheaterReport';
 import SupportedFormatsSection from './templates/SupportedFormatsSection';
-import SupportMe from '@/app/components/SupportMe';
 
 const LocationSection = dynamic(() => import('./templates/LocationSection'));
 const FriendsSection = dynamic(() => import('./templates/FriendsSection'));
