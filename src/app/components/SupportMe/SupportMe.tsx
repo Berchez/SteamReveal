@@ -1,5 +1,5 @@
 import { useLocale, useTranslations } from 'next-intl';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 interface SupportMeProps {
@@ -23,15 +23,27 @@ const STEAM_TRADE_URL =
 export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
   const translator = useTranslations('SupportMe');
   const locale = useLocale();
-  const isPT = locale?.toLowerCase().startsWith('pt');
+
+  const [isBrazil, setIsBrazil] = useState<Boolean | null>(null);
+
+  useEffect(() => {
+    const country = document.body.getAttribute('data-country');
+    const isPT = locale?.toLowerCase().startsWith('pt');
+    console.log('walter countryyy', country);
+    setIsBrazil(country === 'BR' || isPT);
+  }, [locale]);
+
+  if (isBrazil === null) {
+    return null;
+  }
 
   const [tab, setTab] = useState<'pix' | 'stripe' | 'steam'>(
-    isPT ? 'pix' : 'stripe',
+    isBrazil ? 'pix' : 'stripe',
   );
   const [copied, setCopied] = useState(false);
 
-  const stripeLink = isPT ? STRIPE.brl : STRIPE.usd;
-  const stripeQR = isPT ? STRIPE.qrBrl : STRIPE.qrUsd;
+  const stripeLink = isBrazil ? STRIPE.brl : STRIPE.usd;
+  const stripeQR = isBrazil ? STRIPE.qrBrl : STRIPE.qrUsd;
 
   const qrSource: Record<'pix' | 'stripe', string> = {
     pix: PIX_QR,
@@ -71,7 +83,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
 
         {/* Tabs */}
         <div className="flex border-b border-purple-700/30 mb-6 text-sm">
-          {isPT && (
+          {isBrazil && (
             <button
               onClick={() => setTab('pix')}
               className={`flex-1 py-2 ${
@@ -122,7 +134,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
         )}
 
         {/* PIX COPY */}
-        {tab === 'pix' && isPT && (
+        {tab === 'pix' && isBrazil && (
           <div className="bg-[#262637] border border-purple-500/20 rounded-lg p-3 mt-4">
             <p className="text-purple-300 text-sm font-medium mb-1">
               {translator('myPixKey')}:
