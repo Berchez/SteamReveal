@@ -26,15 +26,15 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
 
   const [isBrazil, setIsBrazil] = useState<boolean | null>(null);
 
-  const [tab, setTab] = useState<'pix' | 'stripe' | 'steam'>(
-    isBrazil ? 'pix' : 'stripe',
-  );
+  const [tab, setTab] = useState<'pix' | 'stripe' | 'steam'>('pix');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const country = document.body.getAttribute('data-country');
     const isPT = locale?.toLowerCase().startsWith('pt');
-    setIsBrazil(country === 'BR' || isPT);
+    const isBrazilVar = country === 'BR' || isPT;
+    setIsBrazil(isBrazilVar);
+    setTab(isBrazilVar ? 'pix' : 'stripe');
   }, [locale]);
 
   if (isBrazil === null) {
