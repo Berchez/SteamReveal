@@ -70,7 +70,7 @@ export default function Home() {
               : 'relative'
           }`}
         >
-          <div className="min-h-dvh">
+          <div className="min-h-[70dvh]">
             <MyUserSection
               targetInfoJson={targetInfoJson}
               isLoading={isLoading.myCard}
@@ -207,11 +207,11 @@ export default function Home() {
                   Enviar Feedback
                 </motion.button>
               </section>
-              <footer class="mt-24 py-6 text-center text-gray-400 text-sm border-t border-gray-700">
+              <footer className="mt-24 py-6 text-center text-gray-400 text-sm border-t border-gray-700">
                 <p>© 2025 SteamReveal. Todos os direitos reservados.</p>
                 <p>
                   Feito com ❤️ por{' '}
-                  <a href="#" class="text-purple-400 hover:underline">
+                  <a href="#" className="text-purple-400 hover:underline">
                     Berchez
                   </a>
                 </p>
