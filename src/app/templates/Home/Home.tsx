@@ -64,24 +64,26 @@ export default function Home() {
         {hasNoDataYet && <WelcomeText />}
 
         <div
-          className={`flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover py-8 px-4 md:p-12 text-white z-20 ${
+          className={`flow-root h-full w-full min-h-screen bg-no-repeat bg-cover py-8 px-4 md:p-12 text-white z-20 ${
             hasNoDataYet
               ? 'absolute top-1/2 transform -translate-y-1/2'
               : 'relative'
           }`}
         >
-          <MyUserSection
-            targetInfoJson={targetInfoJson}
-            isLoading={isLoading.myCard}
-            onChangeTarget={onChangeTarget}
-            targetValue={targetValue}
-            className={hasNoDataYet ? 'mt-[25vh]' : ''}
-          />
+          <div className="min-h-dvh">
+            <MyUserSection
+              targetInfoJson={targetInfoJson}
+              isLoading={isLoading.myCard}
+              onChangeTarget={onChangeTarget}
+              targetValue={targetValue}
+              className={hasNoDataYet ? 'mt-[25vh]' : ''}
+            />
+            {hasNoDataYet && <SupportedFormatsSection />}
+          </div>
 
           {hasNoDataYet && (
             <>
-              <SupportedFormatsSection />
-              <section className="mt-20 text-white text-center px-6">
+              <section className="text-white text-center px-6">
                 <motion.h2
                   className="text-2xl font-bold mb-6"
                   initial={{ opacity: 0 }}
