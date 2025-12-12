@@ -24,7 +24,12 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
   const translator = useTranslations('SupportMe');
   const locale = useLocale();
 
-  const [isBrazil, setIsBrazil] = useState<Boolean | null>(null);
+  const [isBrazil, setIsBrazil] = useState<boolean | null>(null);
+
+  const [tab, setTab] = useState<'pix' | 'stripe' | 'steam'>(
+    isBrazil ? 'pix' : 'stripe',
+  );
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const country = document.body.getAttribute('data-country');
@@ -36,11 +41,6 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
   if (isBrazil === null) {
     return null;
   }
-
-  const [tab, setTab] = useState<'pix' | 'stripe' | 'steam'>(
-    isBrazil ? 'pix' : 'stripe',
-  );
-  const [copied, setCopied] = useState(false);
 
   const stripeLink = isBrazil ? STRIPE.brl : STRIPE.usd;
   const stripeQR = isBrazil ? STRIPE.qrBrl : STRIPE.qrUsd;

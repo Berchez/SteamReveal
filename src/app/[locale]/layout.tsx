@@ -6,8 +6,8 @@ import ToastProvider from '@/toast.provider';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Roboto, Inknut_Antiqua } from 'next/font/google';
 import React from 'react';
-import AdSense from '../components/AdSense';
 import { headers } from 'next/headers';
+import AdSense from '../components/AdSense';
 
 const roboto = Roboto({
   subsets: ['latin'],
