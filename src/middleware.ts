@@ -17,13 +17,7 @@ export default function middleware(request: NextRequest) {
     request.geo?.country || // Next.js geo API (Edge only)
     'UNKNOWN';
 
-  console.log(
-    'walter country mid',
-    request.headers.get('x-vercel-ip-country'),
-    request.geo,
-    request.geo?.country,
-    country,
-  );
+  console.log('log user geo', request.geo);
 
   // Send country to front via custom header
   response.headers.set('x-user-country', country);

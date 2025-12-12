@@ -34,7 +34,6 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
   useEffect(() => {
     const country = document.body.getAttribute('data-country');
     const isPT = locale?.toLowerCase().startsWith('pt');
-    console.log('walter countryyy', country);
     setIsBrazil(country === 'BR' || isPT);
   }, [locale]);
 
