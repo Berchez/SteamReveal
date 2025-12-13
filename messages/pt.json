@@ -113,5 +113,21 @@
     "dontAskAgain": "Não mostre novamente!",
     "sendSkin": "Enviar alguma Skin",
     "tradeLink": "Link de Troca"
+  },
+  "feedback": {
+    "openButton": "Enviar feedback",
+    "close": "Fechar",
+    "title": "Compartilhe seu feedback",
+    "description": "Encontrou um bug ou tem uma ideia? Me conte.",
+    "placeholder": "Escreva seu feedback aqui...",
+    "cancel": "Cancelar",
+    "send": "Enviar",
+    "sending": "Enviando…",
+    "success": "Feedback enviado. Obrigado!",
+    "types": {
+      "suggestion": "Sugestão",
+      "bug": "Bug",
+      "other": "Outro"
+    }
   }
 }

@@ -27,6 +27,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-toastify": "^10.0.5",
+    "resend": "^6.6.0",
     "steamapi": "^3.0.8",
     "testing-library": "^0.0.2"
   },

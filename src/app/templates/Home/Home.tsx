@@ -13,6 +13,7 @@ import WelcomeText from './WelcomeText/WelcomeText';
 import HomeContext from './context';
 import CheaterReport from './templates/CheaterReport';
 import SupportedFormatsSection from './templates/SupportedFormatsSection';
+import FeedbackButton from '@/app/components/FeedbackButton';
 
 const LocationSection = dynamic(() => import('./templates/LocationSection'));
 const FriendsSection = dynamic(() => import('./templates/FriendsSection'));
@@ -163,7 +164,7 @@ export default function Home() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
-                    <p className="text-4xl font-bold text-purple-400">+12K</p>
+                    <p className="text-4xl font-bold text-purple-400">+13K</p>
                     <p className="text-gray-400">
                       {translator('numbers.visitors')}
                     </p>
@@ -175,7 +176,7 @@ export default function Home() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.4 }}
                   >
-                    <p className="text-4xl font-bold text-purple-400">+17.5K</p>
+                    <p className="text-4xl font-bold text-purple-400">+18K</p>
                     <p className="text-gray-400">
                       {translator('numbers.views')}
                     </p>
@@ -187,7 +188,7 @@ export default function Home() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.6 }}
                   >
-                    <p className="text-4xl font-bold text-purple-400">+18K</p>
+                    <p className="text-4xl font-bold text-purple-400">+17K</p>
                     <p className="text-gray-400">
                       {translator('numbers.playersSearched')}
                     </p>
@@ -205,23 +206,10 @@ export default function Home() {
                 >
                   {translator('feedback.title')}
                 </motion.h2>
-
                 <p className="text-gray-300 mb-4">
                   {translator('feedback.description')}
                 </p>
-
-                <motion.button
-                  type="button"
-                  className="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-full text-white"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                  onClick={() => {
-                    window.location.href = `mailto:walterfelipeberchez@outlook.com?subject=SteamReveal%20Feedback&body=Hello%20Berchez,%0D%0A%0D%0AI'd%20like%20to%20leave%20some%20feedback:%0D%0A`;
-                  }}
-                >
-                  {translator('feedback.button')}
-                </motion.button>
+                <FeedbackButton />
               </section>
 
               <footer className="mt-24 py-6 text-center text-gray-400 text-sm border-t border-gray-700">
