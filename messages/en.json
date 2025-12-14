@@ -27,34 +27,6 @@
     "userPossibleLocation": "User possible location",
     "friendsIRL": "Friends IRL",
     "csAnticheatReview": "CS2 Anticheat Review - with AI",
-    "whyUse": {
-      "title": "Why use SteamReveal?",
-      "cards": {
-        "investigate": {
-          "title": "Investigate any profile",
-          "text": "Discover everything about a Steam player — games, friends, probable location, and public history — in seconds and without login."
-        },
-        "suspicious": {
-          "title": "Detect suspicious behavior",
-          "text": "SteamReveal analyzes patterns and estimates the chance of a player being a cheater by combining statistics, connections, and public data."
-        },
-        "intelligence": {
-          "title": "Intelligence for gamers",
-          "text": "An OSINT tool built for the gaming community — explore, discover, and understand what lies behind each profile with full privacy."
-        }
-      }
-    },
-    "numbers": {
-      "title": "Our numbers",
-      "visitors": "Visitors",
-      "views": "Views",
-      "playersSearched": "Players Searched"
-    },
-    "feedback": {
-      "title": "Questions or suggestions?",
-      "description": "Send your feedback to help improve SteamReveal!",
-      "button": "Send Feedback"
-    },
     "footer": {
       "rights": "All rights reserved.",
       "madeWith": "Made with ❤️ by"
@@ -132,6 +104,36 @@
     "errors": {
       "generic": "Something went wrong. Please try again later.",
       "rateLimit": "Too many requests. Please wait a moment and try again."
+    }
+  },
+  "PostHeroSections": {
+    "whyUse": {
+      "title": "Why use SteamReveal?",
+      "cards": {
+        "investigate": {
+          "title": "Investigate any profile",
+          "text": "Discover everything about a Steam player — games, friends, probable location, and public history — in seconds and without login."
+        },
+        "suspicious": {
+          "title": "Detect suspicious behavior",
+          "text": "SteamReveal analyzes patterns and estimates the chance of a player being a cheater by combining statistics, connections, and public data."
+        },
+        "intelligence": {
+          "title": "Intelligence for gamers",
+          "text": "An OSINT tool built for the gaming community — explore, discover, and understand what lies behind each profile with full privacy."
+        }
+      }
+    },
+    "numbers": {
+      "title": "Our numbers",
+      "visitors": "Visitors",
+      "views": "Views",
+      "playersSearched": "Players Searched"
+    },
+    "feedback": {
+      "title": "Questions or suggestions?",
+      "description": "Send your feedback to help improve SteamReveal!",
+      "button": "Send Feedback"
     }
   }
 }

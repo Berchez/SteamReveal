@@ -21,7 +21,7 @@
     "@vercel/speed-insights": "^1.0.12",
     "axios": "^1.6.7",
     "cheerio": "^1.1.0",
-    "framer-motion": "^12.23.22",
+    "framer-motion": "^12.23.26",
     "next": "14.2.10",
     "next-intl": "^3.9.1",
     "react": "^18",
