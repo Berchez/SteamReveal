@@ -6,6 +6,7 @@ import SponsorMe from '@/app/components/SponsorMe';
 import SupportMe from '@/app/components/SupportMe';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
+import FeedbackButton from '@/app/components/FeedbackButton';
 import useHome from './useHome';
 import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
@@ -13,7 +14,6 @@ import WelcomeText from './WelcomeText/WelcomeText';
 import HomeContext from './context';
 import CheaterReport from './templates/CheaterReport';
 import SupportedFormatsSection from './templates/SupportedFormatsSection';
-import FeedbackButton from '@/app/components/FeedbackButton';
 
 const LocationSection = dynamic(() => import('./templates/LocationSection'));
 const FriendsSection = dynamic(() => import('./templates/FriendsSection'));

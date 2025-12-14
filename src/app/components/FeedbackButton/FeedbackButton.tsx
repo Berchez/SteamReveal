@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Portal from '../Portal';
 import axios from 'axios';
 import { useTranslations } from 'next-intl';
+import Portal from '../Portal';
 
 function FeedbackButton() {
   const [open, setOpen] = useState(false);
@@ -15,6 +15,8 @@ function FeedbackButton() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const translator = useTranslations('feedback');
 
   async function submitFeedback() {
     if (!message.trim()) return;
@@ -60,8 +62,6 @@ function FeedbackButton() {
       setLoading(false);
     }
   }
-
-  const translator = useTranslations('feedback');
 
   return (
     <>
