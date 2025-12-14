@@ -7,6 +7,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Roboto, Inknut_Antiqua } from 'next/font/google';
 import React from 'react';
 import { headers } from 'next/headers';
+import Script from 'next/script';
 
 const roboto = Roboto({
   subsets: ['latin'],
@@ -72,8 +73,9 @@ export default function RootLayout({
     <html lang={locale} className={`${roboto.variable} ${inknut.variable}`}>
       <head>
         {/* Google AdSense */}
-        <script
+        <Script
           async
+          strategy="afterInteractive"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3301991262958911"
           crossOrigin="anonymous"
         />
