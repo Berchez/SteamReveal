@@ -14,11 +14,13 @@ function FeedbackButton() {
   );
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function submitFeedback() {
     if (!message.trim()) return;
 
     setLoading(true);
+    setError(null);
 
     try {
       await axios.post('/api/feedback', {
@@ -29,6 +31,7 @@ function FeedbackButton() {
         userAgent: navigator.userAgent,
       });
 
+      setError(null);
       setSuccess(true);
       setMessage('');
 
@@ -36,8 +39,23 @@ function FeedbackButton() {
         setOpen(false);
         setSuccess(false);
       }, 1600);
-    } catch (error) {
-      console.error('Error sending feedback:', error);
+    } catch (err: unknown) {
+      let status: number | undefined;
+
+      if (axios.isAxiosError(err)) {
+        status = err.response?.status;
+      }
+
+      switch (status) {
+        case 429:
+          setError(translator('errors.rateLimit'));
+          break;
+        case 502:
+          setError(translator('errors.generic')); // provider down
+          break;
+        default:
+          setError(translator('errors.generic'));
+      }
     } finally {
       setLoading(false);
     }
@@ -49,7 +67,10 @@ function FeedbackButton() {
     <>
       {/* Open button */}
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setError(null);
+          setOpen(true);
+        }}
         type="button"
         className="
           px-6 py-3 rounded-full text-base font-medium
@@ -113,6 +134,7 @@ function FeedbackButton() {
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder={translator('placeholder')}
                   disabled={loading}
+                  maxLength={1800}
                   className="
                     w-full h-32 resize-none rounded-xl p-4 text-base
                     bg-[#161622]
@@ -171,6 +193,8 @@ function FeedbackButton() {
                     {loading ? translator('sending') : translator('send')}
                   </button>
                 </div>
+
+                {error && <p className="text-sm text-red-400 mt-4">{error}</p>}
 
                 {/* Success */}
                 {success && (

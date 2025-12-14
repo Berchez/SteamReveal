@@ -128,6 +128,10 @@
       "suggestion": "Suggestion",
       "bug": "Bug",
       "other": "Other"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again later.",
+      "rateLimit": "Too many requests. Please wait a moment and try again."
     }
   }
 }
