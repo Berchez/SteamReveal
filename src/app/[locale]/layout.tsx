@@ -7,7 +7,9 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Roboto, Inknut_Antiqua } from 'next/font/google';
 import React from 'react';
 import { headers } from 'next/headers';
-import AdSense from '../components/AdSense';
+import dynamic from 'next/dynamic';
+
+const AdSense = dynamic(() => import('../components/AdSense'));
 
 const roboto = Roboto({
   subsets: ['latin'],
@@ -71,13 +73,27 @@ export default function RootLayout({
 
   return (
     <html lang={locale} className={`${roboto.variable} ${inknut.variable}`}>
+      <head>
+        {/* Google AdSense */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3301991262958911"
+          crossOrigin="anonymous"
+        />
+
+        <meta name="google-adsense-account" content="ca-pub-3301991262958911" />
+        <meta
+          name="google-site-verification"
+          content="9bnJzty2EA0iUCoFwiGESzR8VCUnDc33ChIgwb3oj1o"
+        />
+      </head>
+
       <body data-country={country}>
         <NextIntlClientProvider messages={messages}>
           <ToastProvider>{children}</ToastProvider>
         </NextIntlClientProvider>
         <Analytics />
         <SpeedInsights />
-        <AdSense />
       </body>
     </html>
   );
