@@ -11,8 +11,8 @@ const PIX_KEY = 'walterfelipeberchez@outlook.com';
 const PIX_QR = '/images/qrcode-pix.png';
 
 const STRIPE = {
-  brl: 'https://buy.stripe.com/test_4gMfZjduP63gcqm0BI4ko00',
-  usd: 'https://buy.stripe.com/test_3cIbJ3duPbnA61Y4RY4ko01',
+  brl: 'https://buy.stripe.com/8x23cv28U9Py27S4pL63K01',
+  usd: 'https://buy.stripe.com/4gM14n5l6d1K7sce0l63K00',
   qrBrl: '/images/stripeBR.png',
   qrUsd: '/images/stripeUSD.png',
 };
