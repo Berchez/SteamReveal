@@ -46,6 +46,8 @@ export default function Home() {
 
   const translator = useTranslations('Index');
 
+  const currentYear = new Date().getFullYear();
+
   return (
     <HomeContext.Provider value={contextValue}>
       <div className="max-h-dvh">
@@ -105,7 +107,9 @@ export default function Home() {
           </div>
           {/* FOOTER */}
           <footer className="absolute left-0 w-full mt-12 py-6 text-center text-gray-400 text-sm border-t border-gray-700 bg-gray-800">
-            <p>© 2025 SteamReveal. {translator('footer.rights')}</p>
+            <p>
+              © {currentYear} SteamReveal. {translator('footer.rights')}
+            </p>
             <p>
               {translator('footer.madeWith')}{' '}
               <a
