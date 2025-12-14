@@ -71,12 +71,7 @@ export async function POST(req: Request) {
       req.headers.get('x-forwarded-for')?.split(',')[0] ??
       'unknown';
 
-    console.log('ip', {
-      ip,
-      1: req.headers.get('x-real-ip'),
-      '2a': req.headers.get('x-forwarded-for'),
-      '2b': req.headers.get('x-forwarded-for')?.split(',')[0],
-    });
+    console.log('ip', 1);
 
     if (isRateLimited(ip)) {
       return NextResponse.json(
