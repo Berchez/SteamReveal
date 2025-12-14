@@ -112,7 +112,7 @@
       "cards": {
         "investigate": {
           "title": "Investigate any profile",
-          "text": "Discover everything about a Steam player — games, friends, probable location, and public history — in seconds and without login."
+          "text": "Analyze Steam profiles and discover his best friends, connections, and probable location in seconds — no login required."
         },
         "suspicious": {
           "title": "Detect suspicious behavior",

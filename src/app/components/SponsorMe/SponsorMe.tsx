@@ -10,7 +10,7 @@ function SponsorMe({ onClose, dontAskAgain }: SponsorMeProps) {
   const translator = useTranslations('SponsorMe');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 m-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
       <div className="flex flex-col relative w-full max-w-md px-8 pt-8 pb-3 bg-[#1c1c28] border border-purple-500 shadow-lg rounded-lg">
         <h2 className="text-2xl text-purple-300 font-bold text-center mb-4">
           {translator('enjoying')}
