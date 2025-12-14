@@ -113,7 +113,7 @@ export default function Home() {
                 href="https://github.com/Berchez/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-400 hover:underline"
+                className="text-purple-300 underline"
               >
                 Berchez
               </a>
