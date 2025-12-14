@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import SponsorMe from '@/app/components/SponsorMe';
 import SupportMe from '@/app/components/SupportMe';
 import { useTranslations } from 'next-intl';
-import FeedbackButton from '@/app/components/FeedbackButton';
 import useHome from './useHome';
 import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
