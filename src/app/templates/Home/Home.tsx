@@ -75,7 +75,7 @@ export default function Home() {
               : 'relative'
           }`}
         >
-          <div className="min-h-[70dvh]">
+          <div className={hasNoDataYet ? 'min-h-[70dvh]' : undefined}>
             <MyUserSection
               targetInfoJson={targetInfoJson}
               isLoading={isLoading.myCard}
@@ -106,7 +106,9 @@ export default function Home() {
             />
           </div>
           {/* FOOTER */}
-          <footer className="absolute left-0 w-full mt-12 py-6 text-center text-gray-400 text-sm border-t border-gray-700 bg-gray-800">
+          <footer
+            className={`absolute left-0 ${hasNoDataYet ? '' : 'bottom-0'} w-full mt-12 py-6 text-center text-gray-400 text-sm border-t border-gray-700 bg-gray-800`}
+          >
             <p>
               © {currentYear} SteamReveal. {translator('footer.rights')}
             </p>
