@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sendFeedbackEmail } from './utils';
+import sendFeedbackEmail from './utils';
 
 export const revalidate = 0;
 
