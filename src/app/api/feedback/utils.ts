@@ -12,7 +12,7 @@ function escapeHtml(unsafe: string) {
     .replaceAll("'", '&#039;');
 }
 
-export async function sendFeedbackEmail(data: {
+async function sendFeedbackEmail(data: {
   message: string;
   type: string;
   page: string;
@@ -56,3 +56,5 @@ export async function sendFeedbackEmail(data: {
     throw err; // let the caller handle HTTP response
   }
 }
+
+export default sendFeedbackEmail;
