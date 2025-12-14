@@ -4,10 +4,12 @@ import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import SponsorMe from '@/app/components/SponsorMe';
 import SupportMe from '@/app/components/SupportMe';
+import { useTranslations } from 'next-intl';
 import useHome from './useHome';
 import VideoBackground from './templates/VideoBackground';
 import MyUserSection from './templates/MyUserSection';
-import WelcomeText from './WelcomeText/WelcomeText';
+import WelcomeText from './WelcomeText';
+import PostHeroSections from './PostHeroSections';
 import HomeContext from './context';
 import CheaterReport from './templates/CheaterReport';
 import SupportedFormatsSection from './templates/SupportedFormatsSection';
@@ -42,6 +44,10 @@ export default function Home() {
     [updateQueryParam, getCheaterProbability, isLoading],
   );
 
+  const translator = useTranslations('Index');
+
+  const currentYear = new Date().getFullYear();
+
   return (
     <HomeContext.Provider value={contextValue}>
       <div className="max-h-dvh">
@@ -63,21 +69,24 @@ export default function Home() {
         {hasNoDataYet && <WelcomeText />}
 
         <div
-          className={`flex flex-col h-full w-full min-h-screen bg-no-repeat bg-cover py-8 px-4 md:p-12 text-white z-20 ${
+          className={`flow-root h-full w-full min-h-screen bg-no-repeat bg-cover py-8 px-4 md:p-12 text-white z-20 ${
             hasNoDataYet
               ? 'absolute top-1/2 transform -translate-y-1/2'
               : 'relative'
           }`}
         >
-          <MyUserSection
-            targetInfoJson={targetInfoJson}
-            isLoading={isLoading.myCard}
-            onChangeTarget={onChangeTarget}
-            targetValue={targetValue}
-            className={hasNoDataYet ? 'mt-[25vh]' : ''}
-          />
+          <div className={hasNoDataYet ? 'min-h-[70dvh]' : undefined}>
+            <MyUserSection
+              targetInfoJson={targetInfoJson}
+              isLoading={isLoading.myCard}
+              onChangeTarget={onChangeTarget}
+              targetValue={targetValue}
+              className={hasNoDataYet ? 'mt-[25vh]' : ''}
+            />
+            {hasNoDataYet && <SupportedFormatsSection />}
+          </div>
 
-          {hasNoDataYet && <SupportedFormatsSection />}
+          {hasNoDataYet && <PostHeroSections />}
 
           <CheaterReport
             cheaterData={cheaterData}
@@ -96,6 +105,25 @@ export default function Home() {
               isLoading={isLoading.friendsCards}
             />
           </div>
+          {/* FOOTER */}
+          <footer
+            className={`absolute left-0 ${hasNoDataYet ? '' : 'bottom-0'} w-full mt-12 py-6 text-center text-gray-400 text-sm border-t border-gray-700 bg-gray-800`}
+          >
+            <p>
+              © {currentYear} SteamReveal. {translator('footer.rights')}
+            </p>
+            <p>
+              {translator('footer.madeWith')}{' '}
+              <a
+                href="https://github.com/Berchez/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-300 underline"
+              >
+                Berchez
+              </a>
+            </p>
+          </footer>
         </div>
       </div>
     </HomeContext.Provider>

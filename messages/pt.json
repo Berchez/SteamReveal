@@ -26,7 +26,11 @@
     "friendsIRL": "Amigos na vida real",
     "userPossibleLocation": "Possível localização do usuário",
     "userInfo": "Informaçãoes do usuário",
-    "csAnticheatReview": "Análise CS2 Anticheat - com IA"
+    "csAnticheatReview": "Análise CS2 Anticheat - com IA",
+    "footer": {
+      "rights": "Todos os direitos reservados.",
+      "madeWith": "Feito com ❤️ por"
+    }
   },
   "WelcomeText": {
     "welcomeTo": "Bem-vindo ao"
@@ -81,5 +85,55 @@
     "dontAskAgain": "Não mostre novamente!",
     "sendSkin": "Enviar alguma Skin",
     "tradeLink": "Link de Troca"
+  },
+  "feedback": {
+    "openButton": "Enviar feedback",
+    "close": "Fechar",
+    "title": "Compartilhe seu feedback",
+    "description": "Encontrou um bug ou tem uma ideia? Me conte.",
+    "placeholder": "Escreva seu feedback aqui...",
+    "cancel": "Cancelar",
+    "send": "Enviar",
+    "sending": "Enviando…",
+    "success": "Feedback enviado. Obrigado!",
+    "types": {
+      "suggestion": "Sugestão",
+      "bug": "Bug",
+      "other": "Outro"
+    },
+    "errors": {
+      "generic": "Algo deu errado. Por favor, tente novamente mais tarde.",
+      "rateLimit": "Muitas solicitações em pouco tempo. Aguarde um momento e tente novamente."
+    }
+  },
+  "PostHeroSections": {
+    "whyUse": {
+      "title": "Por que usar o SteamReveal?",
+      "cards": {
+        "investigate": {
+          "title": "Investigue qualquer perfil",
+          "text": "Analise perfis da Steam seus melhores descubra amigos, conexões e localização provável em segundos, sem necessidade de login."
+        },
+        "suspicious": {
+          "title": "Detecte comportamentos suspeitos",
+          "text": "O SteamReveal analisa padrões e calcula a chance de um jogador ser um cheater, combinando estatísticas, conexões e dados públicos."
+        },
+        "intelligence": {
+          "title": "Inteligência para gamers",
+          "text": "Uma ferramenta de OSINT feita para a comunidade gamer — explore, descubra e entenda o que há por trás de cada perfil, com total privacidade."
+        }
+      }
+    },
+    "numbers": {
+      "title": "Nossos números",
+      "visitors": "Visitantes",
+      "views": "Visualizações",
+      "playersSearched": "Jogadores Buscados"
+    },
+    "feedback": {
+      "title": "Dúvidas ou sugestões?",
+      "description": "Envie seu feedback para ajudar a melhorar o SteamReveal!",
+      "button": "Enviar Feedback"
+    }
   }
 }

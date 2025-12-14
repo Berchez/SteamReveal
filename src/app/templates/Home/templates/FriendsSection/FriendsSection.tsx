@@ -19,7 +19,7 @@ function FriendsSection({ closeFriendsJson, isLoading }: FriendsSectionProps) {
   }
 
   return (
-    <div className="w-full mb-8">
+    <div className="w-full mb-12">
       <h1 className="text-2xl font-bold text-gray-100">
         {translator('friendsIRL')}
       </h1>

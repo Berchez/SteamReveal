@@ -47,13 +47,13 @@ describe('getInventoryScore', () => {
     expect(score).toBe(1.4);
   });
 
-  it('should return 0 if getInventory throws an error', async () => {
+  it('should return -1 if getInventory throws an error', async () => {
     (getInventory as jest.Mock).mockRejectedValue(new Error('Steam error'));
 
     const score = await getInventoryScore(targetToTest);
 
     expect(getInventory).toHaveBeenCalledWith(targetToTest);
-    expect(score).toBe(0);
+    expect(score).toBe(-1);
   });
 
   it('should log unknown errors and return 0', async () => {
@@ -61,7 +61,7 @@ describe('getInventoryScore', () => {
 
     const score = await getInventoryScore(targetToTest);
 
-    expect(score).toBe(0);
+    expect(score).toBe(-1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Unknown error:',
       'Some unknown error',
