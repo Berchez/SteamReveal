@@ -7,9 +7,6 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Roboto, Inknut_Antiqua } from 'next/font/google';
 import React from 'react';
 import { headers } from 'next/headers';
-import dynamic from 'next/dynamic';
-
-const AdSense = dynamic(() => import('../components/AdSense'));
 
 const roboto = Roboto({
   subsets: ['latin'],
