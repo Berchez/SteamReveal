@@ -55,14 +55,14 @@ export default function Home() {
         {showSponsorMe && (
           <SponsorMe
             onClose={() => onCloseSponsorMe(0)}
-            dontAskAgain={() => onCloseSponsorMe(-20)}
+            dontAskAgain={() => onCloseSponsorMe(-30)}
           />
         )}
 
         {showSupportMe && (
           <SupportMe
             onClose={() => onCloseSupportMe(0)}
-            dontAskAgain={() => onCloseSupportMe(-25)}
+            dontAskAgain={() => onCloseSupportMe(-50)}
           />
         )}
 
