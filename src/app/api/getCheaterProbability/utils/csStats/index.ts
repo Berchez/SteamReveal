@@ -42,7 +42,7 @@ const getCsStats = async (target: string): Promise<CsStats | null> => {
       leetifyRating,
       kd: normalize(cards['K/D']),
       headAccuracy: normalize(cards['Head Accuracy']),
-      winrate: normalize(cards['Winrate']),
+      winrate: normalize(cards.Winrate),
       totalMatches: normalize(cards['Total Matches']),
       killsPerRound: normalize(cards['Kills per Round']),
       spottedAccuracy: normalize(cards['Spotted Accuracy *']),
