@@ -39,6 +39,8 @@ export async function POST(req: Request) {
 
     const targetSteamId = await steam.resolve(target);
 
+    return getCsStats(targetSteamId);
+
     const [
       badCommentsScore,
       bannedFriendsScore,
