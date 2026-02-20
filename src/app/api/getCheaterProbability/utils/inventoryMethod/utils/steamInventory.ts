@@ -57,7 +57,7 @@ const fetchInventoryPage = async (
           throw new Error('Too many requests (429). Retry limit reached.');
         }
 
-        const delay = baseDelay * Math.pow(2, retryCount);
+        const delay = baseDelay * 2 ** retryCount;
         console.warn(
           `429 detected. Retrying in ${delay / 1000}s (attempt ${retryCount + 1}/${MAX_RETRIES})`,
         );
