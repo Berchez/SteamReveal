@@ -53,7 +53,7 @@ const fetchLegacyProfile = async (
 
     return {
       leetifyRating: normalize(
-        data.recentGameRatings?.leetify
+        data.recentGameRatings?.leetify != null
           ? data.recentGameRatings.leetify * 100
           : undefined,
       ),
