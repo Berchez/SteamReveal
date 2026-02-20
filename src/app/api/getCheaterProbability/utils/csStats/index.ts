@@ -41,8 +41,6 @@ const getCsStats = async (target: string): Promise<CsStats | null> => {
     killsPerRound: legacy?.killsPerRound || '',
   };
 
-  console.log('walter aaa', { merged, v3, legacy });
-
   return merged;
 };
 
