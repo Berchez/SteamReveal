@@ -41,12 +41,13 @@ const fetchLegacyProfile = async (
       { totalKills: 0, totalDeaths: 0, totalRounds: 0 },
     );
 
-    const kd =
-      totalDeaths > 0
-        ? (totalKills / totalDeaths).toFixed(2)
-        : totalKills > 0
-          ? totalKills.toFixed(2)
-          : '';
+    let kd = '';
+
+    if (totalDeaths > 0) {
+      kd = (totalKills / totalDeaths).toFixed(2);
+    } else if (totalKills > 0) {
+      kd = totalKills.toFixed(2);
+    }
 
     const killsPerRound =
       totalRounds > 0 ? (totalKills / totalRounds).toFixed(2) : '';
