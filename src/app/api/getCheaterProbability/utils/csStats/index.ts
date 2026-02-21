@@ -1,60 +1,47 @@
-import axios from 'axios';
-import * as cheerio from 'cheerio';
+import { CsStats } from '@/@types/csStatsTypes';
+import fetchLegacyProfile from './utils/fetchLegacyProfile';
+import fetchV3Profile from './utils/fetchV3Profile';
 
-interface CsStats {
-  leetifyRating: string;
-  kd: string;
-  headAccuracy: string;
-  winrate: string;
-  totalMatches: string;
-  killsPerRound: string;
-  spottedAccuracy: string;
-  timeToDamage: string;
-  sprayAccuracy: string;
-}
-
-const normalize = (value?: string): string => {
-  if (!value) return '';
-  return value.trim().toUpperCase() === 'N/A' ? '' : value.trim();
-};
-
+/**
+ * Fetches CS stats for a given player.
+ *
+ * Strategy:
+ *  1. Call /v3/profile  → provides most accuracy/rating fields directly.
+ *  2. Call /api/profile/id/:id → provides calculated KD/KPR and serves as
+ *     fallback for any field that /v3/profile did not return.
+ *
+ * Either source failing independently is non-fatal; the other source fills
+ * in what it can. Both failing returns null.
+ *
+ * @param target - Steam64 ID (numeric string) or Leetify profile UUID.
+ */
 const getCsStats = async (target: string): Promise<CsStats | null> => {
-  try {
-    const url = `https://cswat.ch/stats/${target}`;
-    const { data } = await axios.get(url);
-    const $ = cheerio.load(data);
+  if (!target) return null;
 
-    // --- Leetify Rating ---
-    const leetifyRating = normalize($('svg text').first().text());
+  const [v3, legacy] = await Promise.all([
+    fetchV3Profile(target),
+    fetchLegacyProfile(target),
+  ]);
 
-    // --- Cards grid ---
-    const cards: Record<string, string> = {};
-    $('.grid.grid-cols-2.lg\\:grid-cols-4.gap-2 > div').each((_, el) => {
-      const label = $(el).find('span.text-sm').text().trim();
-      const value = normalize($(el).find('span.text-2xl').text());
-      if (label) {
-        cards[label] = value;
-      }
-    });
-
-    // --- Final return ---
-    const stats: CsStats = {
-      leetifyRating,
-      kd: normalize(cards['K/D']),
-      headAccuracy: normalize(cards['Head Accuracy']),
-      winrate: normalize(cards.Winrate),
-      totalMatches: normalize(cards['Total Matches']),
-      killsPerRound: normalize(cards['Kills per Round']),
-      spottedAccuracy: normalize(cards['Spotted Accuracy *']),
-      timeToDamage: normalize(cards['Time to Damage']),
-      sprayAccuracy: normalize(cards['Spray Accuracy']),
-    };
-
-    return stats;
-  } catch (error) {
-    console.error('Error getting csstats:', error);
+  if (!v3 && !legacy) {
     return null;
   }
+
+  // Merge: v3 is the primary source; legacy fills in any missing values.
+  const merged: CsStats = {
+    leetifyRating: v3?.leetifyRating || legacy?.leetifyRating || '',
+    headAccuracy: v3?.headAccuracy || '',
+    spottedAccuracy: v3?.spottedAccuracy || '',
+    sprayAccuracy: v3?.sprayAccuracy || '',
+    timeToDamage: v3?.timeToDamage || '',
+    winrate: v3?.winrate || legacy?.winrate || '',
+    totalMatches: v3?.totalMatches || legacy?.totalMatches || '',
+    // KD and KPR are only computable from game-level data in the legacy endpoint
+    kd: legacy?.kd || '',
+    killsPerRound: legacy?.killsPerRound || '',
+  };
+
+  return merged;
 };
 
 export default getCsStats;
