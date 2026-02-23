@@ -28,17 +28,18 @@ const getCsStats = async (target: string): Promise<CsStats | null> => {
   }
 
   // Merge: v3 is the primary source; legacy fills in any missing values.
+  // IMPORTANT - The order of the features are SUPER important do not reorder then without needed
   const merged: CsStats = {
     leetifyRating: v3?.leetifyRating || legacy?.leetifyRating || '',
-    headAccuracy: v3?.headAccuracy || '',
-    spottedAccuracy: v3?.spottedAccuracy || '',
-    sprayAccuracy: v3?.sprayAccuracy || '',
-    timeToDamage: v3?.timeToDamage || '',
-    winrate: v3?.winrate || legacy?.winrate || '',
-    totalMatches: v3?.totalMatches || legacy?.totalMatches || '',
     // KD and KPR are only computable from game-level data in the legacy endpoint
     kd: legacy?.kd || '',
+    headAccuracy: v3?.headAccuracy || '',
+    winrate: v3?.winrate || legacy?.winrate || '',
+    totalMatches: v3?.totalMatches || legacy?.totalMatches || '',
     killsPerRound: legacy?.killsPerRound || '',
+    spottedAccuracy: v3?.spottedAccuracy || '',
+    timeToDamage: v3?.timeToDamage || '',
+    sprayAccuracy: v3?.sprayAccuracy || '',
   };
 
   return merged;
