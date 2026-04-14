@@ -1,0 +1,1135 @@
+{
+  "code": "TZ",
+  "name": "Tanzania, United Republic of",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Morogoro",
+      "cities": {
+        "45139": {
+          "id": 45139,
+          "name": "Chalinze"
+        },
+        "45149": {
+          "id": 45149,
+          "name": "Gairo"
+        },
+        "45192": {
+          "id": 45192,
+          "name": "Kidodi"
+        },
+        "45199": {
+          "id": 45199,
+          "name": "Kilosa"
+        },
+        "45200": {
+          "id": 45200,
+          "name": "Kimamba"
+        },
+        "45205": {
+          "id": 45205,
+          "name": "Kisanga"
+        },
+        "45228": {
+          "id": 45228,
+          "name": "Lugoba"
+        },
+        "45237": {
+          "id": 45237,
+          "name": "Magole"
+        },
+        "45279": {
+          "id": 45279,
+          "name": "Mikumi"
+        },
+        "45290": {
+          "id": 45290,
+          "name": "Morogoro"
+        },
+        "45295": {
+          "id": 45295,
+          "name": "Msowero"
+        },
+        "45334": {
+          "id": 45334,
+          "name": "Ngerengere"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Mtwara",
+      "cities": {
+        "45143": {
+          "id": 45143,
+          "name": "Chiungutwa"
+        },
+        "45210": {
+          "id": 45210,
+          "name": "Kitama"
+        },
+        "45227": {
+          "id": 45227,
+          "name": "Luchingu"
+        },
+        "45230": {
+          "id": 45230,
+          "name": "Lulindi"
+        },
+        "45235": {
+          "id": 45235,
+          "name": "Madimba"
+        },
+        "45244": {
+          "id": 45244,
+          "name": "Mahuta"
+        },
+        "45302": {
+          "id": 45302,
+          "name": "Mtwara"
+        },
+        "45320": {
+          "id": 45320,
+          "name": "Namalenga"
+        },
+        "45323": {
+          "id": 45323,
+          "name": "Namikupa"
+        },
+        "45327": {
+          "id": 45327,
+          "name": "Nanhyanga"
+        },
+        "45329": {
+          "id": 45329,
+          "name": "Nanyamba"
+        },
+        "45332": {
+          "id": 45332,
+          "name": "Newala"
+        },
+        "45370": {
+          "id": 45370,
+          "name": "Tandahimba"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Mwanza",
+      "cities": {
+        "45126": {
+          "id": 45126,
+          "name": "Bariadi"
+        },
+        "45179": {
+          "id": 45179,
+          "name": "Kasamwa"
+        },
+        "45188": {
+          "id": 45188,
+          "name": "Kibara"
+        },
+        "45253": {
+          "id": 45253,
+          "name": "Malya"
+        },
+        "45262": {
+          "id": 45262,
+          "name": "Maswa"
+        },
+        "45277": {
+          "id": 45277,
+          "name": "Mhango"
+        },
+        "45281": {
+          "id": 45281,
+          "name": "Misasi"
+        },
+        "45282": {
+          "id": 45282,
+          "name": "Missungwi"
+        },
+        "45308": {
+          "id": 45308,
+          "name": "Muriti"
+        },
+        "45314": {
+          "id": 45314,
+          "name": "Mwanza"
+        },
+        "45319": {
+          "id": 45319,
+          "name": "Nakatunguru"
+        },
+        "45328": {
+          "id": 45328,
+          "name": "Nansio"
+        },
+        "45336": {
+          "id": 45336,
+          "name": "Ngudu"
+        },
+        "45342": {
+          "id": 45342,
+          "name": "Nyakabindi"
+        },
+        "45347": {
+          "id": 45347,
+          "name": "Nyanguge"
+        },
+        "45381": {
+          "id": 45381,
+          "name": "Usagara"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Pemba North",
+      "cities": {
+        "45214": {
+          "id": 45214,
+          "name": "Konde"
+        },
+        "45278": {
+          "id": 45278,
+          "name": "Micheweni"
+        },
+        "45391": {
+          "id": 45391,
+          "name": "Wete"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Ruvuma",
+      "cities": {
+        "45194": {
+          "id": 45194,
+          "name": "Kigonsera"
+        },
+        "45224": {
+          "id": 45224,
+          "name": "Liuli"
+        },
+        "45241": {
+          "id": 45241,
+          "name": "Mahanje"
+        },
+        "45256": {
+          "id": 45256,
+          "name": "Maposeni"
+        },
+        "45265": {
+          "id": 45265,
+          "name": "Matiri"
+        },
+        "45269": {
+          "id": 45269,
+          "name": "Mbamba"
+        },
+        "45272": {
+          "id": 45272,
+          "name": "Mbinga"
+        },
+        "45365": {
+          "id": 45365,
+          "name": "Songea"
+        },
+        "45374": {
+          "id": 45374,
+          "name": "Tingi"
+        },
+        "45378": {
+          "id": 45378,
+          "name": "Tunduru"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Shinyanga",
+      "cities": {
+        "45130": {
+          "id": 45130,
+          "name": "Bukene"
+        },
+        "45154": {
+          "id": 45154,
+          "name": "Igunga"
+        },
+        "45155": {
+          "id": 45155,
+          "name": "Igurubi"
+        },
+        "45166": {
+          "id": 45166,
+          "name": "Isaka"
+        },
+        "45172": {
+          "id": 45172,
+          "name": "Kahama"
+        },
+        "45207": {
+          "id": 45207,
+          "name": "Kisesa"
+        },
+        "45208": {
+          "id": 45208,
+          "name": "Kishapu"
+        },
+        "45250": {
+          "id": 45250,
+          "name": "Malampaka"
+        },
+        "45261": {
+          "id": 45261,
+          "name": "Masumbwe"
+        },
+        "45311": {
+          "id": 45311,
+          "name": "Mwadui"
+        },
+        "45344": {
+          "id": 45344,
+          "name": "Nyalikungu"
+        },
+        "45348": {
+          "id": 45348,
+          "name": "Nzega"
+        },
+        "45349": {
+          "id": 45349,
+          "name": "Old Shinyanga"
+        },
+        "45359": {
+          "id": 45359,
+          "name": "Shinyanga"
+        },
+        "45364": {
+          "id": 45364,
+          "name": "Somanda"
+        },
+        "45366": {
+          "id": 45366,
+          "name": "Songwa"
+        },
+        "45373": {
+          "id": 45373,
+          "name": "Tinde"
+        },
+        "45384": {
+          "id": 45384,
+          "name": "Ushirombo"
+        },
+        "45388": {
+          "id": 45388,
+          "name": "Uyovu"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Singida",
+      "cities": {
+        "45153": {
+          "id": 45153,
+          "name": "Iguguno"
+        },
+        "45157": {
+          "id": 45157,
+          "name": "Ikungi"
+        },
+        "45161": {
+          "id": 45161,
+          "name": "Ilongero"
+        },
+        "45168": {
+          "id": 45168,
+          "name": "Itigi"
+        },
+        "45203": {
+          "id": 45203,
+          "name": "Kiomboi"
+        },
+        "45276": {
+          "id": 45276,
+          "name": "Mgandu"
+        },
+        "45299": {
+          "id": 45299,
+          "name": "Mtinko"
+        },
+        "45307": {
+          "id": 45307,
+          "name": "Mungaa"
+        },
+        "45330": {
+          "id": 45330,
+          "name": "Ndago"
+        },
+        "45352": {
+          "id": 45352,
+          "name": "Puma"
+        },
+        "45357": {
+          "id": 45357,
+          "name": "Sepuka"
+        },
+        "45358": {
+          "id": 45358,
+          "name": "Shelui"
+        },
+        "45361": {
+          "id": 45361,
+          "name": "Singida"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Tabora",
+      "cities": {
+        "45174": {
+          "id": 45174,
+          "name": "Kaliua"
+        },
+        "45233": {
+          "id": 45233,
+          "name": "Mabama"
+        },
+        "45360": {
+          "id": 45360,
+          "name": "Sikonge"
+        },
+        "45369": {
+          "id": 45369,
+          "name": "Tabora"
+        },
+        "45376": {
+          "id": 45376,
+          "name": "Tumbi"
+        },
+        "45380": {
+          "id": 45380,
+          "name": "Urambo"
+        },
+        "45385": {
+          "id": 45385,
+          "name": "Usoke"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Tanga",
+      "cities": {
+        "45140": {
+          "id": 45140,
+          "name": "Chanika"
+        },
+        "45195": {
+          "id": 45195,
+          "name": "Kihurio"
+        },
+        "45217": {
+          "id": 45217,
+          "name": "Korogwe"
+        },
+        "45232": {
+          "id": 45232,
+          "name": "Lushoto"
+        },
+        "45238": {
+          "id": 45238,
+          "name": "Magomeni"
+        },
+        "45245": {
+          "id": 45245,
+          "name": "Majengo"
+        },
+        "45249": {
+          "id": 45249,
+          "name": "Makuyuni"
+        },
+        "45257": {
+          "id": 45257,
+          "name": "Maramba"
+        },
+        "45267": {
+          "id": 45267,
+          "name": "Matui"
+        },
+        "45268": {
+          "id": 45268,
+          "name": "Mazinde"
+        },
+        "45285": {
+          "id": 45285,
+          "name": "Mlalo"
+        },
+        "45305": {
+          "id": 45305,
+          "name": "Muheza"
+        },
+        "45313": {
+          "id": 45313,
+          "name": "Mwanga"
+        },
+        "45350": {
+          "id": 45350,
+          "name": "Pangani"
+        },
+        "45367": {
+          "id": 45367,
+          "name": "Soni"
+        },
+        "45371": {
+          "id": 45371,
+          "name": "Tanga"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Kagera",
+      "cities": {
+        "45127": {
+          "id": 45127,
+          "name": "Biharamulo"
+        },
+        "45128": {
+          "id": 45128,
+          "name": "Bugarama"
+        },
+        "45129": {
+          "id": 45129,
+          "name": "Bugene"
+        },
+        "45131": {
+          "id": 45131,
+          "name": "Bukoba"
+        },
+        "45134": {
+          "id": 45134,
+          "name": "Buseresere"
+        },
+        "45136": {
+          "id": 45136,
+          "name": "Bwanga"
+        },
+        "45141": {
+          "id": 45141,
+          "name": "Chato"
+        },
+        "45171": {
+          "id": 45171,
+          "name": "Kabanga"
+        },
+        "45175": {
+          "id": 45175,
+          "name": "Kamachumu"
+        },
+        "45181": {
+          "id": 45181,
+          "name": "Katerero"
+        },
+        "45183": {
+          "id": 45183,
+          "name": "Katoro"
+        },
+        "45185": {
+          "id": 45185,
+          "name": "Kayanga"
+        },
+        "45219": {
+          "id": 45219,
+          "name": "Kyaka"
+        },
+        "45306": {
+          "id": 45306,
+          "name": "Muleba"
+        },
+        "45333": {
+          "id": 45333,
+          "name": "Ngara"
+        },
+        "45340": {
+          "id": 45340,
+          "name": "Nshamba"
+        },
+        "45341": {
+          "id": 45341,
+          "name": "Nsunga"
+        },
+        "45343": {
+          "id": 45343,
+          "name": "Nyakahanga"
+        },
+        "45355": {
+          "id": 45355,
+          "name": "Rulenge"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Pemba South",
+      "cities": {
+        "45137": {
+          "id": 45137,
+          "name": "Chake Chake"
+        },
+        "45297": {
+          "id": 45297,
+          "name": "Mtambile"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Zanzibar Central",
+      "cities": {
+        "45213": {
+          "id": 45213,
+          "name": "Koani"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Zanzibar North",
+      "cities": {
+        "45150": {
+          "id": 45150,
+          "name": "Gamba"
+        },
+        "45196": {
+          "id": 45196,
+          "name": "Kijini"
+        },
+        "45283": {
+          "id": 45283,
+          "name": "Mkokotoni"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Dar es Salaam",
+      "cities": {
+        "45145": {
+          "id": 45145,
+          "name": "Dar Es Salaam"
+        },
+        "45186": {
+          "id": 45186,
+          "name": "Kibaha"
+        },
+        "45206": {
+          "id": 45206,
+          "name": "Kisarawe"
+        },
+        "45239": {
+          "id": 45239,
+          "name": "Magomeni"
+        },
+        "45254": {
+          "id": 45254,
+          "name": "Maneromango"
+        },
+        "45284": {
+          "id": 45284,
+          "name": "Mkuranga"
+        },
+        "45286": {
+          "id": 45286,
+          "name": "Mlandizi"
+        },
+        "45389": {
+          "id": 45389,
+          "name": "Vikindu"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Rukwa",
+      "cities": {
+        "45138": {
+          "id": 45138,
+          "name": "Chala"
+        },
+        "45163": {
+          "id": 45163,
+          "name": "Inyonga"
+        },
+        "45204": {
+          "id": 45204,
+          "name": "Kirando"
+        },
+        "45221": {
+          "id": 45221,
+          "name": "Laela"
+        },
+        "45263": {
+          "id": 45263,
+          "name": "Matai"
+        },
+        "45322": {
+          "id": 45322,
+          "name": "Namanyere"
+        },
+        "45368": {
+          "id": 45368,
+          "name": "Sumbawanga"
+        },
+        "45383": {
+          "id": 45383,
+          "name": "Usevya"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Zanzibar Urban",
+      "cities": {
+        "45125": {
+          "id": 45125,
+          "name": "Bagamoyo"
+        },
+        "45243": {
+          "id": 45243,
+          "name": "Mahonda"
+        },
+        "45310": {
+          "id": 45310,
+          "name": "Mvomero"
+        },
+        "45363": {
+          "id": 45363,
+          "name": "Sokoni"
+        },
+        "45392": {
+          "id": 45392,
+          "name": "Zanzibar"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Arusha",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Pwani",
+      "cities": {
+        "45133": {
+          "id": 45133,
+          "name": "Bungu"
+        },
+        "45158": {
+          "id": 45158,
+          "name": "Ikwiriri"
+        },
+        "45190": {
+          "id": 45190,
+          "name": "Kibiti"
+        },
+        "45198": {
+          "id": 45198,
+          "name": "Kilindoni"
+        },
+        "45275": {
+          "id": 45275,
+          "name": "Mbumi"
+        },
+        "45386": {
+          "id": 45386,
+          "name": "Utete"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Dodoma",
+      "cities": {
+        "45146": {
+          "id": 45146,
+          "name": "Dodoma"
+        },
+        "45187": {
+          "id": 45187,
+          "name": "Kibakwe"
+        },
+        "45189": {
+          "id": 45189,
+          "name": "Kibaya"
+        },
+        "45197": {
+          "id": 45197,
+          "name": "Kilimatinde"
+        },
+        "45202": {
+          "id": 45202,
+          "name": "Kintinku"
+        },
+        "45216": {
+          "id": 45216,
+          "name": "Kongwa"
+        },
+        "45255": {
+          "id": 45255,
+          "name": "Manyoni"
+        },
+        "45293": {
+          "id": 45293,
+          "name": "Mpwapwa"
+        },
+        "45294": {
+          "id": 45294,
+          "name": "Msanga"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Iringa",
+      "cities": {
+        "45152": {
+          "id": 45152,
+          "name": "Ifakara"
+        },
+        "45160": {
+          "id": 45160,
+          "name": "Ilembula"
+        },
+        "45162": {
+          "id": 45162,
+          "name": "Ilula"
+        },
+        "45165": {
+          "id": 45165,
+          "name": "Iringa"
+        },
+        "45170": {
+          "id": 45170,
+          "name": "Izazi"
+        },
+        "45231": {
+          "id": 45231,
+          "name": "Lupiro"
+        },
+        "45236": {
+          "id": 45236,
+          "name": "Mafinga"
+        },
+        "45242": {
+          "id": 45242,
+          "name": "Mahenge"
+        },
+        "45246": {
+          "id": 45246,
+          "name": "Makambako"
+        },
+        "45248": {
+          "id": 45248,
+          "name": "Makungu"
+        },
+        "45251": {
+          "id": 45251,
+          "name": "Malangali"
+        },
+        "45252": {
+          "id": 45252,
+          "name": "Malinyi"
+        },
+        "45287": {
+          "id": 45287,
+          "name": "Mlimba"
+        },
+        "45298": {
+          "id": 45298,
+          "name": "Mtimbira"
+        },
+        "45301": {
+          "id": 45301,
+          "name": "Mtwango"
+        },
+        "45338": {
+          "id": 45338,
+          "name": "Njombe"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Kigoma",
+      "cities": {
+        "45173": {
+          "id": 45173,
+          "name": "Kakonko"
+        },
+        "45180": {
+          "id": 45180,
+          "name": "Kasulu"
+        },
+        "45191": {
+          "id": 45191,
+          "name": "Kibondo"
+        },
+        "45193": {
+          "id": 45193,
+          "name": "Kigoma"
+        },
+        "45234": {
+          "id": 45234,
+          "name": "Mabamba"
+        },
+        "45292": {
+          "id": 45292,
+          "name": "Mpanda"
+        },
+        "45312": {
+          "id": 45312,
+          "name": "Mwandiga"
+        },
+        "45337": {
+          "id": 45337,
+          "name": "Nguruka"
+        },
+        "45387": {
+          "id": 45387,
+          "name": "Uvinza"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Kilimanjaro",
+      "cities": {
+        "45151": {
+          "id": 45151,
+          "name": "Hedaru"
+        },
+        "45209": {
+          "id": 45209,
+          "name": "Kisiwani"
+        },
+        "45218": {
+          "id": 45218,
+          "name": "Kwakoa"
+        },
+        "45222": {
+          "id": 45222,
+          "name": "Lembeni"
+        },
+        "45247": {
+          "id": 45247,
+          "name": "Makanya"
+        },
+        "45291": {
+          "id": 45291,
+          "name": "Moshi"
+        },
+        "45316": {
+          "id": 45316,
+          "name": "Mwembe"
+        },
+        "45331": {
+          "id": 45331,
+          "name": "Ndungu"
+        },
+        "45356": {
+          "id": 45356,
+          "name": "Same"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Lindi",
+      "cities": {
+        "45211": {
+          "id": 45211,
+          "name": "Kitangari"
+        },
+        "45223": {
+          "id": 45223,
+          "name": "Lindi"
+        },
+        "45229": {
+          "id": 45229,
+          "name": "Lukuledi"
+        },
+        "45258": {
+          "id": 45258,
+          "name": "Masasi"
+        },
+        "45270": {
+          "id": 45270,
+          "name": "Mbekenyera"
+        },
+        "45280": {
+          "id": 45280,
+          "name": "Mingoyo"
+        },
+        "45296": {
+          "id": 45296,
+          "name": "Mtama"
+        },
+        "45318": {
+          "id": 45318,
+          "name": "Nachingwea"
+        },
+        "45324": {
+          "id": 45324,
+          "name": "Nanganga"
+        },
+        "45346": {
+          "id": 45346,
+          "name": "Nyangao"
+        },
+        "45353": {
+          "id": 45353,
+          "name": "Ruangwa"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Mara",
+      "cities": {
+        "45132": {
+          "id": 45132,
+          "name": "Bunda"
+        },
+        "45135": {
+          "id": 45135,
+          "name": "Butiama"
+        },
+        "45167": {
+          "id": 45167,
+          "name": "Issenye"
+        },
+        "45266": {
+          "id": 45266,
+          "name": "Matongo"
+        },
+        "45303": {
+          "id": 45303,
+          "name": "Mugango"
+        },
+        "45304": {
+          "id": 45304,
+          "name": "Mugumu"
+        },
+        "45309": {
+          "id": 45309,
+          "name": "Musoma"
+        },
+        "45345": {
+          "id": 45345,
+          "name": "Nyamuswa"
+        },
+        "45362": {
+          "id": 45362,
+          "name": "Sirari"
+        },
+        "45372": {
+          "id": 45372,
+          "name": "Tarime"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Mbeya",
+      "cities": {
+        "45142": {
+          "id": 45142,
+          "name": "Chimala"
+        },
+        "45148": {
+          "id": 45148,
+          "name": "Dunda"
+        },
+        "45156": {
+          "id": 45156,
+          "name": "Igurusi"
+        },
+        "45159": {
+          "id": 45159,
+          "name": "Ilembo"
+        },
+        "45164": {
+          "id": 45164,
+          "name": "Ipinda"
+        },
+        "45169": {
+          "id": 45169,
+          "name": "Itumba"
+        },
+        "45176": {
+          "id": 45176,
+          "name": "Kandete"
+        },
+        "45184": {
+          "id": 45184,
+          "name": "Katumba"
+        },
+        "45212": {
+          "id": 45212,
+          "name": "Kiwira"
+        },
+        "45220": {
+          "id": 45220,
+          "name": "Kyela"
+        },
+        "45259": {
+          "id": 45259,
+          "name": "Masoko"
+        },
+        "45264": {
+          "id": 45264,
+          "name": "Matamba"
+        },
+        "45271": {
+          "id": 45271,
+          "name": "Mbeya"
+        },
+        "45288": {
+          "id": 45288,
+          "name": "Mlowo"
+        },
+        "45315": {
+          "id": 45315,
+          "name": "Mwaya"
+        },
+        "45354": {
+          "id": 45354,
+          "name": "Rujewa"
+        },
+        "45375": {
+          "id": 45375,
+          "name": "Tukuyu"
+        },
+        "45377": {
+          "id": 45377,
+          "name": "Tunduma"
+        },
+        "45379": {
+          "id": 45379,
+          "name": "Ulenje"
+        },
+        "45390": {
+          "id": 45390,
+          "name": "Vwawa"
+        }
+      }
+    }
+  }
+}

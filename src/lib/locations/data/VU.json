@@ -1,0 +1,105 @@
+{
+  "code": "VU",
+  "name": "Vanuatu",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Malakula",
+      "cities": {
+        "46524": {
+          "id": 46524,
+          "name": "Lakatoro"
+        },
+        "46526": {
+          "id": 46526,
+          "name": "Norsup"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Paama",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Pentecote",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Sanma",
+      "cities": {
+        "46525": {
+          "id": 46525,
+          "name": "Luganville"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Shepherd",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "Tafea",
+      "cities": {
+        "46523": {
+          "id": 46523,
+          "name": "Isangel"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Malampa",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Penama",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Shefa",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Ambrym",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Aoba",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Torba",
+      "cities": {
+        "46527": {
+          "id": 46527,
+          "name": "Sola"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Efate",
+      "cities": {
+        "46528": {
+          "id": 46528,
+          "name": "Vila"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Epi",
+      "cities": {}
+    }
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "code": "GM",
+  "name": "Gambia",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Banjul",
+      "cities": {
+        "17521": {
+          "id": 17521,
+          "name": "Banjul"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Lower River",
+      "cities": {
+        "17528": {
+          "id": 17528,
+          "name": "Farafenni"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "MacCarthy Island",
+      "cities": {
+        "17522": {
+          "id": 17522,
+          "name": "Bansang"
+        },
+        "17532": {
+          "id": 17532,
+          "name": "Kuntaur"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Upper River",
+      "cities": {
+        "17524": {
+          "id": 17524,
+          "name": "Basse"
+        },
+        "17529": {
+          "id": 17529,
+          "name": "Gambissara"
+        },
+        "17534": {
+          "id": 17534,
+          "name": "Sabi"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Western",
+      "cities": {
+        "17520": {
+          "id": 17520,
+          "name": "Bakau"
+        },
+        "17525": {
+          "id": 17525,
+          "name": "Brikama"
+        },
+        "17526": {
+          "id": 17526,
+          "name": "Brufut"
+        },
+        "17530": {
+          "id": 17530,
+          "name": "Gunjur"
+        },
+        "17533": {
+          "id": 17533,
+          "name": "Lamin"
+        },
+        "17535": {
+          "id": 17535,
+          "name": "Serekunda"
+        },
+        "17536": {
+          "id": 17536,
+          "name": "Sukuta"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "North Bank",
+      "cities": {
+        "17523": {
+          "id": 17523,
+          "name": "Barra"
+        },
+        "17527": {
+          "id": 17527,
+          "name": "Essau"
+        },
+        "17531": {
+          "id": 17531,
+          "name": "Kerewan"
+        }
+      }
+    }
+  }
+}

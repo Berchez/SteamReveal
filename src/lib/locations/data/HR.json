@@ -1,0 +1,339 @@
+{
+  "code": "HR",
+  "name": "Croatia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Osjecko-Baranjska",
+      "cities": {
+        "19540": {
+          "id": 19540,
+          "name": "Beli Manastir"
+        },
+        "19564": {
+          "id": 19564,
+          "name": "Osijek"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Pozesko-Slavonska",
+      "cities": {
+        "19568": {
+          "id": 19568,
+          "name": "Pozega"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Primorsko-Goranska",
+      "cities": {
+        "19554": {
+          "id": 19554,
+          "name": "Krk"
+        },
+        "19561": {
+          "id": 19561,
+          "name": "Ogulin"
+        },
+        "19563": {
+          "id": 19563,
+          "name": "Opatija"
+        },
+        "19565": {
+          "id": 19565,
+          "name": "Pag"
+        },
+        "19570": {
+          "id": 19570,
+          "name": "Rab"
+        },
+        "19571": {
+          "id": 19571,
+          "name": "Rijeka"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Sibensko-Kninska",
+      "cities": {
+        "19575": {
+          "id": 19575,
+          "name": "Sibenik"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Sisacko-Moslavacka",
+      "cities": {
+        "19547": {
+          "id": 19547,
+          "name": "Gracac"
+        },
+        "19549": {
+          "id": 19549,
+          "name": "Knin"
+        },
+        "19555": {
+          "id": 19555,
+          "name": "Kutina"
+        },
+        "19560": {
+          "id": 19560,
+          "name": "Novska"
+        },
+        "19566": {
+          "id": 19566,
+          "name": "Petrinja"
+        },
+        "19577": {
+          "id": 19577,
+          "name": "Sisak"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Splitsko-Dalmatinska",
+      "cities": {
+        "19562": {
+          "id": 19562,
+          "name": "Omis"
+        },
+        "19576": {
+          "id": 19576,
+          "name": "Sinj"
+        },
+        "19580": {
+          "id": 19580,
+          "name": "Solin"
+        },
+        "19581": {
+          "id": 19581,
+          "name": "Split"
+        },
+        "19582": {
+          "id": 19582,
+          "name": "Trogir"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Varazdinska",
+      "cities": {
+        "19583": {
+          "id": 19583,
+          "name": "Varazdin"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Viroviticko-Podravska",
+      "cities": {
+        "19558": {
+          "id": 19558,
+          "name": "Nasice"
+        },
+        "19578": {
+          "id": 19578,
+          "name": "Slatina"
+        },
+        "19586": {
+          "id": 19586,
+          "name": "Virovitica"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Vukovarsko-Srijemska",
+      "cities": {
+        "19585": {
+          "id": 19585,
+          "name": "Vinkovci"
+        },
+        "19587": {
+          "id": 19587,
+          "name": "Vukovar"
+        },
+        "19591": {
+          "id": 19591,
+          "name": "Zupanja"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Zadarska",
+      "cities": {}
+    },
+    "20": {
+      "code": "20",
+      "name": "Zagrebacka",
+      "cities": {
+        "19541": {
+          "id": 19541,
+          "name": "Biograd Na Moru"
+        },
+        "19584": {
+          "id": 19584,
+          "name": "Velika Gorica"
+        },
+        "19588": {
+          "id": 19588,
+          "name": "Zadar"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Grad Zagreb",
+      "cities": {
+        "19574": {
+          "id": 19574,
+          "name": "Sesvete"
+        },
+        "19589": {
+          "id": 19589,
+          "name": "Zagreb"
+        },
+        "19590": {
+          "id": 19590,
+          "name": "Zapresic"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Bjelovarsko-Bilogorska",
+      "cities": {
+        "19542": {
+          "id": 19542,
+          "name": "Bjelovar"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Brodsko-Posavska",
+      "cities": {
+        "19559": {
+          "id": 19559,
+          "name": "Nova Gradiska"
+        },
+        "19579": {
+          "id": 19579,
+          "name": "Slavonski Brod"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Dubrovacko-Neretvanska",
+      "cities": {
+        "19545": {
+          "id": 19545,
+          "name": "Dubrovnik"
+        },
+        "19551": {
+          "id": 19551,
+          "name": "Korcula"
+        },
+        "19556": {
+          "id": 19556,
+          "name": "Makarska"
+        },
+        "19557": {
+          "id": 19557,
+          "name": "Metkovic"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Istarska",
+      "cities": {
+        "19543": {
+          "id": 19543,
+          "name": "Buje"
+        },
+        "19567": {
+          "id": 19567,
+          "name": "Porec"
+        },
+        "19569": {
+          "id": 19569,
+          "name": "Pula"
+        },
+        "19572": {
+          "id": 19572,
+          "name": "Rovinj"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Karlovacka",
+      "cities": {
+        "19548": {
+          "id": 19548,
+          "name": "Karlovac"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Koprivnicko-Krizevacka",
+      "cities": {
+        "19550": {
+          "id": 19550,
+          "name": "Koprivnica"
+        },
+        "19553": {
+          "id": 19553,
+          "name": "Krizevci"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Krapinsko-Zagorska",
+      "cities": {
+        "19552": {
+          "id": 19552,
+          "name": "Krapina"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Licko-Senjska",
+      "cities": {
+        "19546": {
+          "id": 19546,
+          "name": "Gospic"
+        },
+        "19573": {
+          "id": 19573,
+          "name": "Senj"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Medimurska",
+      "cities": {
+        "19544": {
+          "id": 19544,
+          "name": "Cakovec"
+        }
+      }
+    }
+  }
+}

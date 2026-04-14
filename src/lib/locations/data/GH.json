@@ -1,0 +1,330 @@
+{
+  "code": "GH",
+  "name": "Ghana",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Upper East",
+      "cities": {
+        "17422": {
+          "id": 17422,
+          "name": "Bawku"
+        },
+        "17428": {
+          "id": 17428,
+          "name": "Bolgatanga"
+        },
+        "17450": {
+          "id": 17450,
+          "name": "Navrongo"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Upper West",
+      "cities": {
+        "17472": {
+          "id": 17472,
+          "name": "Wa"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Greater Accra",
+      "cities": {
+        "17412": {
+          "id": 17412,
+          "name": "Accra"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Ashanti",
+      "cities": {
+        "17414": {
+          "id": 17414,
+          "name": "Agogo"
+        },
+        "17425": {
+          "id": 17425,
+          "name": "Bekwai"
+        },
+        "17432": {
+          "id": 17432,
+          "name": "Ejura"
+        },
+        "17442": {
+          "id": 17442,
+          "name": "Konongo"
+        },
+        "17445": {
+          "id": 17445,
+          "name": "Kumasi"
+        },
+        "17447": {
+          "id": 17447,
+          "name": "Mampong"
+        },
+        "17448": {
+          "id": 17448,
+          "name": "Mpraeso"
+        },
+        "17451": {
+          "id": 17451,
+          "name": "Nkawkaw"
+        },
+        "17454": {
+          "id": 17454,
+          "name": "Obuasi"
+        },
+        "17465": {
+          "id": 17465,
+          "name": "Tafo"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Brong-Ahafo",
+      "cities": {
+        "17423": {
+          "id": 17423,
+          "name": "Bechem"
+        },
+        "17426": {
+          "id": 17426,
+          "name": "Berekum"
+        },
+        "17430": {
+          "id": 17430,
+          "name": "Duayaw Nkwanta"
+        },
+        "17440": {
+          "id": 17440,
+          "name": "Kintampo"
+        },
+        "17463": {
+          "id": 17463,
+          "name": "Sunyani"
+        },
+        "17469": {
+          "id": 17469,
+          "name": "Techiman"
+        },
+        "17473": {
+          "id": 17473,
+          "name": "Wenchi"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Central",
+      "cities": {
+        "17419": {
+          "id": 17419,
+          "name": "Apam"
+        },
+        "17429": {
+          "id": 17429,
+          "name": "Cape Coast"
+        },
+        "17433": {
+          "id": 17433,
+          "name": "Elmina"
+        },
+        "17449": {
+          "id": 17449,
+          "name": "Mumford"
+        },
+        "17458": {
+          "id": 17458,
+          "name": "Saltpond"
+        },
+        "17474": {
+          "id": 17474,
+          "name": "Winneba"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Eastern",
+      "cities": {
+        "17441": {
+          "id": 17441,
+          "name": "Koforidua"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Northern",
+      "cities": {
+        "17443": {
+          "id": 17443,
+          "name": "Kpandae"
+        },
+        "17457": {
+          "id": 17457,
+          "name": "Salaga"
+        },
+        "17459": {
+          "id": 17459,
+          "name": "Savelugu"
+        },
+        "17467": {
+          "id": 17467,
+          "name": "Tamale"
+        },
+        "17475": {
+          "id": 17475,
+          "name": "Yendi"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Volta",
+      "cities": {
+        "17411": {
+          "id": 17411,
+          "name": "Aburi"
+        },
+        "17413": {
+          "id": 17413,
+          "name": "Aflao"
+        },
+        "17416": {
+          "id": 17416,
+          "name": "Akropong"
+        },
+        "17418": {
+          "id": 17418,
+          "name": "Anloga"
+        },
+        "17424": {
+          "id": 17424,
+          "name": "Begoro"
+        },
+        "17435": {
+          "id": 17435,
+          "name": "Ho"
+        },
+        "17436": {
+          "id": 17436,
+          "name": "Hohoe"
+        },
+        "17438": {
+          "id": 17438,
+          "name": "Keta"
+        },
+        "17444": {
+          "id": 17444,
+          "name": "Kpandu"
+        },
+        "17446": {
+          "id": 17446,
+          "name": "Madina"
+        },
+        "17452": {
+          "id": 17452,
+          "name": "Nsawam"
+        },
+        "17453": {
+          "id": 17453,
+          "name": "Nungua"
+        },
+        "17462": {
+          "id": 17462,
+          "name": "Suhum"
+        },
+        "17470": {
+          "id": 17470,
+          "name": "Tema"
+        },
+        "17471": {
+          "id": 17471,
+          "name": "Teshie"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Western",
+      "cities": {
+        "17410": {
+          "id": 17410,
+          "name": "Aboso"
+        },
+        "17415": {
+          "id": 17415,
+          "name": "Akim Swedru"
+        },
+        "17417": {
+          "id": 17417,
+          "name": "Akwatia"
+        },
+        "17420": {
+          "id": 17420,
+          "name": "Asamankese"
+        },
+        "17421": {
+          "id": 17421,
+          "name": "Axim"
+        },
+        "17427": {
+          "id": 17427,
+          "name": "Bibiani"
+        },
+        "17431": {
+          "id": 17431,
+          "name": "Dunkwa"
+        },
+        "17434": {
+          "id": 17434,
+          "name": "Foso"
+        },
+        "17437": {
+          "id": 17437,
+          "name": "Kade"
+        },
+        "17439": {
+          "id": 17439,
+          "name": "Kibi"
+        },
+        "17455": {
+          "id": 17455,
+          "name": "Oda"
+        },
+        "17456": {
+          "id": 17456,
+          "name": "Prestea"
+        },
+        "17460": {
+          "id": 17460,
+          "name": "Sekondi"
+        },
+        "17461": {
+          "id": 17461,
+          "name": "Shama"
+        },
+        "17464": {
+          "id": 17464,
+          "name": "Swedru"
+        },
+        "17466": {
+          "id": 17466,
+          "name": "Takoradi"
+        },
+        "17468": {
+          "id": 17468,
+          "name": "Tarkwa"
+        }
+      }
+    }
+  }
+}

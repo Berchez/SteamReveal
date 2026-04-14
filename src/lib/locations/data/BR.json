@@ -1,0 +1,8232 @@
+{
+  "code": "BR",
+  "name": "Brazil",
+  "states": {
+    "11": {
+      "code": "11",
+      "name": "Mato Grosso do Sul",
+      "cities": {
+        "7179": {
+          "id": 7179,
+          "name": "Amambai"
+        },
+        "7197": {
+          "id": 7197,
+          "name": "Anastacio"
+        },
+        "7209": {
+          "id": 7209,
+          "name": "Aparecida Do Taboado"
+        },
+        "7214": {
+          "id": 7214,
+          "name": "Aquidauana"
+        },
+        "7323": {
+          "id": 7323,
+          "name": "Bataipora"
+        },
+        "7333": {
+          "id": 7333,
+          "name": "Bela Vista"
+        },
+        "7379": {
+          "id": 7379,
+          "name": "Bonito"
+        },
+        "7419": {
+          "id": 7419,
+          "name": "Caarapo"
+        },
+        "7458": {
+          "id": 7458,
+          "name": "Camapua"
+        },
+        "7481": {
+          "id": 7481,
+          "name": "Campo Grande"
+        },
+        "7491": {
+          "id": 7491,
+          "name": "Campo Verde"
+        },
+        "7564": {
+          "id": 7564,
+          "name": "Cassilandia"
+        },
+        "7651": {
+          "id": 7651,
+          "name": "Corumba"
+        },
+        "7654": {
+          "id": 7654,
+          "name": "Costa Rica"
+        },
+        "7656": {
+          "id": 7656,
+          "name": "Coxim"
+        },
+        "7704": {
+          "id": 7704,
+          "name": "Dourados"
+        },
+        "7711": {
+          "id": 7711,
+          "name": "Eldorado"
+        },
+        "7839": {
+          "id": 7839,
+          "name": "Guia Lopes Da Laguna"
+        },
+        "7889": {
+          "id": 7889,
+          "name": "Iguatemi"
+        },
+        "7989": {
+          "id": 7989,
+          "name": "Itapora"
+        },
+        "8059": {
+          "id": 8059,
+          "name": "Jardim"
+        },
+        "8106": {
+          "id": 8106,
+          "name": "Ladario"
+        },
+        "8191": {
+          "id": 8191,
+          "name": "Maracaju"
+        },
+        "8259": {
+          "id": 8259,
+          "name": "Miranda"
+        },
+        "8323": {
+          "id": 8323,
+          "name": "Navirai"
+        },
+        "8331": {
+          "id": 8331,
+          "name": "Nioaque"
+        },
+        "8433": {
+          "id": 8433,
+          "name": "Paranaiba"
+        },
+        "8437": {
+          "id": 8437,
+          "name": "Paranhos"
+        },
+        "8567": {
+          "id": 8567,
+          "name": "Ponta Pora"
+        },
+        "8585": {
+          "id": 8585,
+          "name": "Porto Murtinho"
+        },
+        "8650": {
+          "id": 8650,
+          "name": "Ribas Do Rio Pardo"
+        },
+        "8664": {
+          "id": 8664,
+          "name": "Rio Brilhante"
+        },
+        "8686": {
+          "id": 8686,
+          "name": "Rio Verde De Mato Grosso"
+        },
+        "8925": {
+          "id": 8925,
+          "name": "Sidrolandia"
+        },
+        "8986": {
+          "id": 8986,
+          "name": "Terenos"
+        },
+        "9024": {
+          "id": 9024,
+          "name": "Tres Lagoas"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Maranhao",
+      "cities": {
+        "7149": {
+          "id": 7149,
+          "name": "Alcantara"
+        },
+        "7183": {
+          "id": 7183,
+          "name": "Amarante Do Maranhao"
+        },
+        "7193": {
+          "id": 7193,
+          "name": "Anajatuba"
+        },
+        "7230": {
+          "id": 7230,
+          "name": "Araioses"
+        },
+        "7238": {
+          "id": 7238,
+          "name": "Arari"
+        },
+        "7280": {
+          "id": 7280,
+          "name": "Bacabal"
+        },
+        "7287": {
+          "id": 7287,
+          "name": "Balsas"
+        },
+        "7305": {
+          "id": 7305,
+          "name": "Barra Do Corda"
+        },
+        "7314": {
+          "id": 7314,
+          "name": "Barreirinhas"
+        },
+        "7348": {
+          "id": 7348,
+          "name": "Bequimao"
+        },
+        "7369": {
+          "id": 7369,
+          "name": "Bom Jardim"
+        },
+        "7396": {
+          "id": 7396,
+          "name": "Brejo"
+        },
+        "7412": {
+          "id": 7412,
+          "name": "Buriti Bravo"
+        },
+        "7413": {
+          "id": 7413,
+          "name": "Buriti"
+        },
+        "7499": {
+          "id": 7499,
+          "name": "Candido Mendes"
+        },
+        "7511": {
+          "id": 7511,
+          "name": "Cantanhede"
+        },
+        "7554": {
+          "id": 7554,
+          "name": "Carolina"
+        },
+        "7557": {
+          "id": 7557,
+          "name": "Carutapera"
+        },
+        "7580": {
+          "id": 7580,
+          "name": "Caxias"
+        },
+        "7592": {
+          "id": 7592,
+          "name": "Chapadinha"
+        },
+        "7608": {
+          "id": 7608,
+          "name": "Codo"
+        },
+        "7609": {
+          "id": 7609,
+          "name": "Coelho Neto"
+        },
+        "7613": {
+          "id": 7613,
+          "name": "Colinas"
+        },
+        "7644": {
+          "id": 7644,
+          "name": "Coroata"
+        },
+        "7683": {
+          "id": 7683,
+          "name": "Cururupu"
+        },
+        "7701": {
+          "id": 7701,
+          "name": "Dom Pedro"
+        },
+        "7729": {
+          "id": 7729,
+          "name": "Esperantinopolis"
+        },
+        "7737": {
+          "id": 7737,
+          "name": "Estreito"
+        },
+        "7769": {
+          "id": 7769,
+          "name": "Fortuna"
+        },
+        "7803": {
+          "id": 7803,
+          "name": "Grajau"
+        },
+        "7850": {
+          "id": 7850,
+          "name": "Humberto De Campos"
+        },
+        "7874": {
+          "id": 7874,
+          "name": "Icatu"
+        },
+        "7897": {
+          "id": 7897,
+          "name": "Imperatriz"
+        },
+        "8117": {
+          "id": 8117,
+          "name": "Lago Da Pedra"
+        },
+        "8189": {
+          "id": 8189,
+          "name": "Maracacume"
+        },
+        "8229": {
+          "id": 8229,
+          "name": "Matinha"
+        },
+        "8257": {
+          "id": 8257,
+          "name": "Mirador"
+        },
+        "8273": {
+          "id": 8273,
+          "name": "Moncao"
+        },
+        "8290": {
+          "id": 8290,
+          "name": "Montes Altos"
+        },
+        "8301": {
+          "id": 8301,
+          "name": "Morros"
+        },
+        "8427": {
+          "id": 8427,
+          "name": "Paraibano"
+        },
+        "8449": {
+          "id": 8449,
+          "name": "Parnarama"
+        },
+        "8451": {
+          "id": 8451,
+          "name": "Passagem Franca"
+        },
+        "8457": {
+          "id": 8457,
+          "name": "Pastos Bons"
+        },
+        "8470": {
+          "id": 8470,
+          "name": "Paulo Ramos"
+        },
+        "8485": {
+          "id": 8485,
+          "name": "Penalva"
+        },
+        "8516": {
+          "id": 8516,
+          "name": "Pinheiro"
+        },
+        "8518": {
+          "id": 8518,
+          "name": "Pio Xii"
+        },
+        "8530": {
+          "id": 8530,
+          "name": "Pirapemas"
+        },
+        "8549": {
+          "id": 8549,
+          "name": "Pocao De Pedras"
+        },
+        "8584": {
+          "id": 8584,
+          "name": "Porto Franco"
+        },
+        "8628": {
+          "id": 8628,
+          "name": "Raposa"
+        },
+        "8647": {
+          "id": 8647,
+          "name": "Riachao"
+        },
+        "8694": {
+          "id": 8694,
+          "name": "Rosario"
+        },
+        "8723": {
+          "id": 8723,
+          "name": "Santa Helena"
+        },
+        "8725": {
+          "id": 8725,
+          "name": "Santa Ines"
+        },
+        "8730": {
+          "id": 8730,
+          "name": "Santa Luzia"
+        },
+        "8746": {
+          "id": 8746,
+          "name": "Santa Quiteria Do Maranhao"
+        },
+        "8751": {
+          "id": 8751,
+          "name": "Santa Rita"
+        },
+        "8780": {
+          "id": 8780,
+          "name": "Sao Benedito Do Rio Preto"
+        },
+        "8783": {
+          "id": 8783,
+          "name": "Sao Bento"
+        },
+        "8786": {
+          "id": 8786,
+          "name": "Sao Bernardo"
+        },
+        "8794": {
+          "id": 8794,
+          "name": "Sao Domingos Do Maranhao"
+        },
+        "8815": {
+          "id": 8815,
+          "name": "Sao Joao Batista"
+        },
+        "8825": {
+          "id": 8825,
+          "name": "Sao Joao Dos Patos"
+        },
+        "8838": {
+          "id": 8838,
+          "name": "Sao Jose De Ribamar"
+        },
+        "8856": {
+          "id": 8856,
+          "name": "Sao Luis"
+        },
+        "8860": {
+          "id": 8860,
+          "name": "Sao Mateus Do Maranhao"
+        },
+        "8877": {
+          "id": 8877,
+          "name": "Sao Raimundo Das Mangabeiras"
+        },
+        "9000": {
+          "id": 9000,
+          "name": "Timbiras"
+        },
+        "9002": {
+          "id": 9002,
+          "name": "Timon"
+        },
+        "9036": {
+          "id": 9036,
+          "name": "Tuntum"
+        },
+        "9042": {
+          "id": 9042,
+          "name": "Turiacu"
+        },
+        "9044": {
+          "id": 9044,
+          "name": "Tutoia"
+        },
+        "9068": {
+          "id": 9068,
+          "name": "Urbano Santos"
+        },
+        "9089": {
+          "id": 9089,
+          "name": "Vargem Grande"
+        },
+        "9105": {
+          "id": 9105,
+          "name": "Viana"
+        },
+        "9121": {
+          "id": 9121,
+          "name": "Vitoria Do Mearim"
+        },
+        "9123": {
+          "id": 9123,
+          "name": "Vitorino Freire"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Mato Grosso",
+      "cities": {
+        "7163": {
+          "id": 7163,
+          "name": "Alta Floresta"
+        },
+        "7168": {
+          "id": 7168,
+          "name": "Alto Araguaia"
+        },
+        "7171": {
+          "id": 7171,
+          "name": "Alto Paraguai"
+        },
+        "7253": {
+          "id": 7253,
+          "name": "Arenapolis"
+        },
+        "7256": {
+          "id": 7256,
+          "name": "Aripuana"
+        },
+        "7292": {
+          "id": 7292,
+          "name": "Barao De Melgaco"
+        },
+        "7304": {
+          "id": 7304,
+          "name": "Barra Do Bugres"
+        },
+        "7306": {
+          "id": 7306,
+          "name": "Barra Do Garcas"
+        },
+        "7428": {
+          "id": 7428,
+          "name": "Caceres"
+        },
+        "7591": {
+          "id": 7591,
+          "name": "Chapada Dos Guimaraes"
+        },
+        "7673": {
+          "id": 7673,
+          "name": "Cuiaba"
+        },
+        "7692": {
+          "id": 7692,
+          "name": "Diamantino"
+        },
+        "7840": {
+          "id": 7840,
+          "name": "Guiratinga"
+        },
+        "8032": {
+          "id": 8032,
+          "name": "Jaciara"
+        },
+        "8335": {
+          "id": 8335,
+          "name": "Nobres"
+        },
+        "8336": {
+          "id": 8336,
+          "name": "Nortelandia"
+        },
+        "8351": {
+          "id": 8351,
+          "name": "Nova Olimpia"
+        },
+        "8554": {
+          "id": 8554,
+          "name": "Pocone"
+        },
+        "8569": {
+          "id": 8569,
+          "name": "Pontes E Lacerda"
+        },
+        "8691": {
+          "id": 8691,
+          "name": "Rondonopolis"
+        },
+        "8693": {
+          "id": 8693,
+          "name": "Rosario Oeste"
+        },
+        "8771": {
+          "id": 8771,
+          "name": "Santo Antonio Do Leverger"
+        },
+        "9094": {
+          "id": 9094,
+          "name": "Varzea Grande"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Minas Gerais",
+      "cities": {
+        "7118": {
+          "id": 7118,
+          "name": "Abaete"
+        },
+        "7127": {
+          "id": 7127,
+          "name": "Acucena"
+        },
+        "7140": {
+          "id": 7140,
+          "name": "Aguas Formosas"
+        },
+        "7141": {
+          "id": 7141,
+          "name": "Aguas Vermelhas"
+        },
+        "7144": {
+          "id": 7144,
+          "name": "Aimores"
+        },
+        "7152": {
+          "id": 7152,
+          "name": "Alem Paraiba"
+        },
+        "7155": {
+          "id": 7155,
+          "name": "Alfenas"
+        },
+        "7160": {
+          "id": 7160,
+          "name": "Almenara"
+        },
+        "7162": {
+          "id": 7162,
+          "name": "Alpinopolis"
+        },
+        "7165": {
+          "id": 7165,
+          "name": "Alterosa"
+        },
+        "7177": {
+          "id": 7177,
+          "name": "Alvinopolis"
+        },
+        "7199": {
+          "id": 7199,
+          "name": "Andradas"
+        },
+        "7201": {
+          "id": 7201,
+          "name": "Andrelandia"
+        },
+        "7224": {
+          "id": 7224,
+          "name": "Aracuai"
+        },
+        "7228": {
+          "id": 7228,
+          "name": "Araguari"
+        },
+        "7245": {
+          "id": 7245,
+          "name": "Araxa"
+        },
+        "7246": {
+          "id": 7246,
+          "name": "Arcos"
+        },
+        "7248": {
+          "id": 7248,
+          "name": "Areado"
+        },
+        "7255": {
+          "id": 7255,
+          "name": "Arinos"
+        },
+        "7270": {
+          "id": 7270,
+          "name": "Astolfo Dutra"
+        },
+        "7282": {
+          "id": 7282,
+          "name": "Baependi"
+        },
+        "7288": {
+          "id": 7288,
+          "name": "Bambui"
+        },
+        "7291": {
+          "id": 7291,
+          "name": "Barao De Cocais"
+        },
+        "7294": {
+          "id": 7294,
+          "name": "Barbacena"
+        },
+        "7320": {
+          "id": 7320,
+          "name": "Barroso"
+        },
+        "7341": {
+          "id": 7341,
+          "name": "Belo Horizonte"
+        },
+        "7343": {
+          "id": 7343,
+          "name": "Belo Oriente"
+        },
+        "7350": {
+          "id": 7350,
+          "name": "Betim"
+        },
+        "7352": {
+          "id": 7352,
+          "name": "Bicas"
+        },
+        "7358": {
+          "id": 7358,
+          "name": "Boa Esperanca"
+        },
+        "7364": {
+          "id": 7364,
+          "name": "Bocaiuva"
+        },
+        "7368": {
+          "id": 7368,
+          "name": "Bom Despacho"
+        },
+        "7374": {
+          "id": 7374,
+          "name": "Bom Jesus Do Galho"
+        },
+        "7377": {
+          "id": 7377,
+          "name": "Bom Sucesso"
+        },
+        "7386": {
+          "id": 7386,
+          "name": "Borda Da Mata"
+        },
+        "7387": {
+          "id": 7387,
+          "name": "Botelhos"
+        },
+        "7394": {
+          "id": 7394,
+          "name": "Brasilia De Minas"
+        },
+        "7402": {
+          "id": 7402,
+          "name": "Brumadinho"
+        },
+        "7405": {
+          "id": 7405,
+          "name": "Bueno Brandao"
+        },
+        "7415": {
+          "id": 7415,
+          "name": "Buritis"
+        },
+        "7416": {
+          "id": 7416,
+          "name": "Buritizeiro"
+        },
+        "7441": {
+          "id": 7441,
+          "name": "Caete"
+        },
+        "7457": {
+          "id": 7457,
+          "name": "Camanducaia"
+        },
+        "7465": {
+          "id": 7465,
+          "name": "Cambui"
+        },
+        "7466": {
+          "id": 7466,
+          "name": "Cambuquira"
+        },
+        "7470": {
+          "id": 7470,
+          "name": "Campanha"
+        },
+        "7471": {
+          "id": 7471,
+          "name": "Campestre"
+        },
+        "7475": {
+          "id": 7475,
+          "name": "Campina Verde"
+        },
+        "7484": {
+          "id": 7484,
+          "name": "Campos Altos"
+        },
+        "7488": {
+          "id": 7488,
+          "name": "Campos Gerais"
+        },
+        "7520": {
+          "id": 7520,
+          "name": "Capelinha"
+        },
+        "7522": {
+          "id": 7522,
+          "name": "Capinopolis"
+        },
+        "7528": {
+          "id": 7528,
+          "name": "Carai"
+        },
+        "7530": {
+          "id": 7530,
+          "name": "Carandai"
+        },
+        "7531": {
+          "id": 7531,
+          "name": "Carangola"
+        },
+        "7533": {
+          "id": 7533,
+          "name": "Caratinga"
+        },
+        "7547": {
+          "id": 7547,
+          "name": "Carlos Chagas"
+        },
+        "7549": {
+          "id": 7549,
+          "name": "Carmo Do Cajuru"
+        },
+        "7550": {
+          "id": 7550,
+          "name": "Carmo Do Paranaiba"
+        },
+        "7551": {
+          "id": 7551,
+          "name": "Carmo Do Rio Claro"
+        },
+        "7563": {
+          "id": 7563,
+          "name": "Cassia"
+        },
+        "7571": {
+          "id": 7571,
+          "name": "Cataguases"
+        },
+        "7579": {
+          "id": 7579,
+          "name": "Caxambu"
+        },
+        "7585": {
+          "id": 7585,
+          "name": "Centralina"
+        },
+        "7602": {
+          "id": 7602,
+          "name": "Claudio"
+        },
+        "7619": {
+          "id": 7619,
+          "name": "Conceicao Das Alagoas"
+        },
+        "7624": {
+          "id": 7624,
+          "name": "Conceicao Do Mato Dentro"
+        },
+        "7625": {
+          "id": 7625,
+          "name": "Conceicao Do Rio Verde"
+        },
+        "7631": {
+          "id": 7631,
+          "name": "Congonhas"
+        },
+        "7632": {
+          "id": 7632,
+          "name": "Conselheiro Lafaiete"
+        },
+        "7633": {
+          "id": 7633,
+          "name": "Conselheiro Pena"
+        },
+        "7634": {
+          "id": 7634,
+          "name": "Contagem"
+        },
+        "7635": {
+          "id": 7635,
+          "name": "Coracao De Jesus"
+        },
+        "7642": {
+          "id": 7642,
+          "name": "Corinto"
+        },
+        "7645": {
+          "id": 7645,
+          "name": "Coromandel"
+        },
+        "7646": {
+          "id": 7646,
+          "name": "Coronel Fabriciano"
+        },
+        "7671": {
+          "id": 7671,
+          "name": "Cruzilia"
+        },
+        "7684": {
+          "id": 7684,
+          "name": "Curvelo"
+        },
+        "7691": {
+          "id": 7691,
+          "name": "Diamantina"
+        },
+        "7694": {
+          "id": 7694,
+          "name": "Divinopolis"
+        },
+        "7703": {
+          "id": 7703,
+          "name": "Dores Do Indaia"
+        },
+        "7714": {
+          "id": 7714,
+          "name": "Eloi Mendes"
+        },
+        "7725": {
+          "id": 7725,
+          "name": "Esmeraldas"
+        },
+        "7726": {
+          "id": 7726,
+          "name": "Espera Feliz"
+        },
+        "7730": {
+          "id": 7730,
+          "name": "Espinosa"
+        },
+        "7741": {
+          "id": 7741,
+          "name": "Extrema"
+        },
+        "7764": {
+          "id": 7764,
+          "name": "Formiga"
+        },
+        "7774": {
+          "id": 7774,
+          "name": "Francisco Sa"
+        },
+        "7778": {
+          "id": 7778,
+          "name": "Frutal"
+        },
+        "7802": {
+          "id": 7802,
+          "name": "Governador Valadares"
+        },
+        "7806": {
+          "id": 7806,
+          "name": "Grao Mogol"
+        },
+        "7817": {
+          "id": 7817,
+          "name": "Guanhaes"
+        },
+        "7826": {
+          "id": 7826,
+          "name": "Guaranesia"
+        },
+        "7838": {
+          "id": 7838,
+          "name": "Guaxupe"
+        },
+        "7857": {
+          "id": 7857,
+          "name": "Ibia"
+        },
+        "7868": {
+          "id": 7868,
+          "name": "Ibirite"
+        },
+        "7881": {
+          "id": 7881,
+          "name": "Igarape"
+        },
+        "7905": {
+          "id": 7905,
+          "name": "Inhapim"
+        },
+        "7908": {
+          "id": 7908,
+          "name": "Ipaba"
+        },
+        "7910": {
+          "id": 7910,
+          "name": "Ipanema"
+        },
+        "7912": {
+          "id": 7912,
+          "name": "Ipatinga"
+        },
+        "7940": {
+          "id": 7940,
+          "name": "Itabira"
+        },
+        "7941": {
+          "id": 7941,
+          "name": "Itabirito"
+        },
+        "7944": {
+          "id": 7944,
+          "name": "Itacarambi"
+        },
+        "7958": {
+          "id": 7958,
+          "name": "Itajuba"
+        },
+        "7962": {
+          "id": 7962,
+          "name": "Itamarandiba"
+        },
+        "7963": {
+          "id": 7963,
+          "name": "Itambacuri"
+        },
+        "7966": {
+          "id": 7966,
+          "name": "Itanhandu"
+        },
+        "7968": {
+          "id": 7968,
+          "name": "Itaobim"
+        },
+        "7974": {
+          "id": 7974,
+          "name": "Itapecerica"
+        },
+        "8005": {
+          "id": 8005,
+          "name": "Itau De Minas"
+        },
+        "8007": {
+          "id": 8007,
+          "name": "Itauna"
+        },
+        "8008": {
+          "id": 8008,
+          "name": "Itinga"
+        },
+        "8016": {
+          "id": 8016,
+          "name": "Ituiutaba"
+        },
+        "8021": {
+          "id": 8021,
+          "name": "Iturama"
+        },
+        "8035": {
+          "id": 8035,
+          "name": "Jacutinga"
+        },
+        "8046": {
+          "id": 8046,
+          "name": "Janauba"
+        },
+        "8049": {
+          "id": 8049,
+          "name": "Januaria"
+        },
+        "8067": {
+          "id": 8067,
+          "name": "Jequitinhonha"
+        },
+        "8073": {
+          "id": 8073,
+          "name": "Joaima"
+        },
+        "8077": {
+          "id": 8077,
+          "name": "Joao Monlevade"
+        },
+        "8080": {
+          "id": 8080,
+          "name": "Joao Pinheiro"
+        },
+        "8086": {
+          "id": 8086,
+          "name": "Juatuba"
+        },
+        "8092": {
+          "id": 8092,
+          "name": "Juiz De Fora"
+        },
+        "8110": {
+          "id": 8110,
+          "name": "Lagoa Da Prata"
+        },
+        "8112": {
+          "id": 8112,
+          "name": "Lagoa Formosa"
+        },
+        "8114": {
+          "id": 8114,
+          "name": "Lagoa Santa"
+        },
+        "8122": {
+          "id": 8122,
+          "name": "Lambari"
+        },
+        "8131": {
+          "id": 8131,
+          "name": "Lavras"
+        },
+        "8134": {
+          "id": 8134,
+          "name": "Leopoldina"
+        },
+        "8135": {
+          "id": 8135,
+          "name": "Lima Duarte"
+        },
+        "8152": {
+          "id": 8152,
+          "name": "Luz"
+        },
+        "8161": {
+          "id": 8161,
+          "name": "Machado"
+        },
+        "8169": {
+          "id": 8169,
+          "name": "Malacacheta"
+        },
+        "8179": {
+          "id": 8179,
+          "name": "Manga"
+        },
+        "8181": {
+          "id": 8181,
+          "name": "Manhuacu"
+        },
+        "8182": {
+          "id": 8182,
+          "name": "Manhumirim"
+        },
+        "8185": {
+          "id": 8185,
+          "name": "Mantena"
+        },
+        "8204": {
+          "id": 8204,
+          "name": "Mar De Espanha"
+        },
+        "8209": {
+          "id": 8209,
+          "name": "Mariana"
+        },
+        "8216": {
+          "id": 8216,
+          "name": "Martinho Campos"
+        },
+        "8226": {
+          "id": 8226,
+          "name": "Mateus Leme"
+        },
+        "8227": {
+          "id": 8227,
+          "name": "Matias Barbosa"
+        },
+        "8231": {
+          "id": 8231,
+          "name": "Matipo"
+        },
+        "8232": {
+          "id": 8232,
+          "name": "Mato Verde"
+        },
+        "8233": {
+          "id": 8233,
+          "name": "Matozinhos"
+        },
+        "8241": {
+          "id": 8241,
+          "name": "Medina"
+        },
+        "8251": {
+          "id": 8251,
+          "name": "Minas Novas"
+        },
+        "8253": {
+          "id": 8253,
+          "name": "Mirabela"
+        },
+        "8258": {
+          "id": 8258,
+          "name": "Mirai"
+        },
+        "8278": {
+          "id": 8278,
+          "name": "Monte Alegre De Minas"
+        },
+        "8284": {
+          "id": 8284,
+          "name": "Monte Azul"
+        },
+        "8286": {
+          "id": 8286,
+          "name": "Monte Carmelo"
+        },
+        "8291": {
+          "id": 8291,
+          "name": "Monte Santo De Minas"
+        },
+        "8293": {
+          "id": 8293,
+          "name": "Montes Claros"
+        },
+        "8294": {
+          "id": 8294,
+          "name": "Monte Siao"
+        },
+        "8311": {
+          "id": 8311,
+          "name": "Muriae"
+        },
+        "8315": {
+          "id": 8315,
+          "name": "Mutum"
+        },
+        "8316": {
+          "id": 8316,
+          "name": "Muzambinho"
+        },
+        "8317": {
+          "id": 8317,
+          "name": "Nanuque"
+        },
+        "8327": {
+          "id": 8327,
+          "name": "Nepomuceno"
+        },
+        "8342": {
+          "id": 8342,
+          "name": "Nova Era"
+        },
+        "8348": {
+          "id": 8348,
+          "name": "Nova Lima"
+        },
+        "8356": {
+          "id": 8356,
+          "name": "Nova Serrana"
+        },
+        "8361": {
+          "id": 8361,
+          "name": "Novo Cruzeiro"
+        },
+        "8374": {
+          "id": 8374,
+          "name": "Oliveira"
+        },
+        "8390": {
+          "id": 8390,
+          "name": "Ouro Branco"
+        },
+        "8393": {
+          "id": 8393,
+          "name": "Ouro Preto"
+        },
+        "8399": {
+          "id": 8399,
+          "name": "Padre Paraiso"
+        },
+        "8418": {
+          "id": 8418,
+          "name": "Papagaios"
+        },
+        "8420": {
+          "id": 8420,
+          "name": "Paracatu"
+        },
+        "8422": {
+          "id": 8422,
+          "name": "Para De Minas"
+        },
+        "8424": {
+          "id": 8424,
+          "name": "Paraguacu"
+        },
+        "8429": {
+          "id": 8429,
+          "name": "Paraisopolis"
+        },
+        "8438": {
+          "id": 8438,
+          "name": "Paraopeba"
+        },
+        "8452": {
+          "id": 8452,
+          "name": "Passa Quatro"
+        },
+        "8456": {
+          "id": 8456,
+          "name": "Passos"
+        },
+        "8459": {
+          "id": 8459,
+          "name": "Patos De Minas"
+        },
+        "8461": {
+          "id": 8461,
+          "name": "Patrocinio"
+        },
+        "8472": {
+          "id": 8472,
+          "name": "Pecanha"
+        },
+        "8474": {
+          "id": 8474,
+          "name": "Pedra Azul"
+        },
+        "8482": {
+          "id": 8482,
+          "name": "Pedro Leopoldo"
+        },
+        "8491": {
+          "id": 8491,
+          "name": "Perdoes"
+        },
+        "8532": {
+          "id": 8532,
+          "name": "Pirapora"
+        },
+        "8543": {
+          "id": 8543,
+          "name": "Pitangui"
+        },
+        "8555": {
+          "id": 8555,
+          "name": "Pocos De Caldas"
+        },
+        "8562": {
+          "id": 8562,
+          "name": "Pompeu"
+        },
+        "8568": {
+          "id": 8568,
+          "name": "Ponte Nova"
+        },
+        "8575": {
+          "id": 8575,
+          "name": "Porteirinha"
+        },
+        "8595": {
+          "id": 8595,
+          "name": "Pouso Alegre"
+        },
+        "8600": {
+          "id": 8600,
+          "name": "Prata"
+        },
+        "8605": {
+          "id": 8605,
+          "name": "Presidente Olegario"
+        },
+        "8629": {
+          "id": 8629,
+          "name": "Raposos"
+        },
+        "8630": {
+          "id": 8630,
+          "name": "Raul Soares"
+        },
+        "8633": {
+          "id": 8633,
+          "name": "Recreio"
+        },
+        "8643": {
+          "id": 8643,
+          "name": "Resplendor"
+        },
+        "8654": {
+          "id": 8654,
+          "name": "Ribeirao Das Neves"
+        },
+        "8665": {
+          "id": 8665,
+          "name": "Rio Casca"
+        },
+        "8679": {
+          "id": 8679,
+          "name": "Rio Novo"
+        },
+        "8680": {
+          "id": 8680,
+          "name": "Rio Pardo De Minas"
+        },
+        "8682": {
+          "id": 8682,
+          "name": "Rio Piracicaba"
+        },
+        "8683": {
+          "id": 8683,
+          "name": "Rio Pomba"
+        },
+        "8698": {
+          "id": 8698,
+          "name": "Sabara"
+        },
+        "8699": {
+          "id": 8699,
+          "name": "Sabinopolis"
+        },
+        "8700": {
+          "id": 8700,
+          "name": "Sacramento"
+        },
+        "8704": {
+          "id": 8704,
+          "name": "Salinas"
+        },
+        "8711": {
+          "id": 8711,
+          "name": "Santa Barbara"
+        },
+        "8731": {
+          "id": 8731,
+          "name": "Santa Luzia"
+        },
+        "8736": {
+          "id": 8736,
+          "name": "Santa Maria Do Suacui"
+        },
+        "8744": {
+          "id": 8744,
+          "name": "Santana Do Paraiso"
+        },
+        "8750": {
+          "id": 8750,
+          "name": "Santa Rita Do Sapucai"
+        },
+        "8757": {
+          "id": 8757,
+          "name": "Santa Vitoria"
+        },
+        "8769": {
+          "id": 8769,
+          "name": "Santo Antonio Do Amparo"
+        },
+        "8772": {
+          "id": 8772,
+          "name": "Santo Antonio Do Monte"
+        },
+        "8778": {
+          "id": 8778,
+          "name": "Santos Dumont"
+        },
+        "8795": {
+          "id": 8795,
+          "name": "Sao Domingos Do Prata"
+        },
+        "8804": {
+          "id": 8804,
+          "name": "Sao Francisco"
+        },
+        "8810": {
+          "id": 8810,
+          "name": "Sao Goncalo Do Sapucai"
+        },
+        "8813": {
+          "id": 8813,
+          "name": "Sao Gotardo"
+        },
+        "8819": {
+          "id": 8819,
+          "name": "Sao Joao Da Ponte"
+        },
+        "8820": {
+          "id": 8820,
+          "name": "Sao Joao Del Rei"
+        },
+        "8823": {
+          "id": 8823,
+          "name": "Sao Joao Do Paraiso"
+        },
+        "8826": {
+          "id": 8826,
+          "name": "Sao Joao Evangelista"
+        },
+        "8827": {
+          "id": 8827,
+          "name": "Sao Joao Nepomuceno"
+        },
+        "8830": {
+          "id": 8830,
+          "name": "Sao Joaquim De Bicas"
+        },
+        "8853": {
+          "id": 8853,
+          "name": "Sao Lourenco"
+        },
+        "8881": {
+          "id": 8881,
+          "name": "Sao Sebastiao Do Paraiso"
+        },
+        "8896": {
+          "id": 8896,
+          "name": "Sarzedo"
+        },
+        "8917": {
+          "id": 8917,
+          "name": "Serro"
+        },
+        "8921": {
+          "id": 8921,
+          "name": "Sete Lagoas"
+        },
+        "8953": {
+          "id": 8953,
+          "name": "Taiobeiras"
+        },
+        "8985": {
+          "id": 8985,
+          "name": "Teofilo Otoni"
+        },
+        "9003": {
+          "id": 9003,
+          "name": "Timoteo"
+        },
+        "9004": {
+          "id": 9004,
+          "name": "Tiradentes"
+        },
+        "9007": {
+          "id": 9007,
+          "name": "Tocantins"
+        },
+        "9021": {
+          "id": 9021,
+          "name": "Tres Coracoes"
+        },
+        "9026": {
+          "id": 9026,
+          "name": "Tres Pontas"
+        },
+        "9037": {
+          "id": 9037,
+          "name": "Tupaciguara"
+        },
+        "9043": {
+          "id": 9043,
+          "name": "Turmalina"
+        },
+        "9052": {
+          "id": 9052,
+          "name": "Uba"
+        },
+        "9053": {
+          "id": 9053,
+          "name": "Uberaba"
+        },
+        "9054": {
+          "id": 9054,
+          "name": "Uberlandia"
+        },
+        "9062": {
+          "id": 9062,
+          "name": "Unai"
+        },
+        "9090": {
+          "id": 9090,
+          "name": "Varginha"
+        },
+        "9093": {
+          "id": 9093,
+          "name": "Varzea Da Palma"
+        },
+        "9096": {
+          "id": 9096,
+          "name": "Varzelandia"
+        },
+        "9098": {
+          "id": 9098,
+          "name": "Vazante"
+        },
+        "9102": {
+          "id": 9102,
+          "name": "Vespasiano"
+        },
+        "9110": {
+          "id": 9110,
+          "name": "Vicosa"
+        },
+        "9117": {
+          "id": 9117,
+          "name": "Visconde Do Rio Branco"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Para",
+      "cities": {
+        "7119": {
+          "id": 7119,
+          "name": "Abaetetuba"
+        },
+        "7122": {
+          "id": 7122,
+          "name": "Acara"
+        },
+        "7132": {
+          "id": 7132,
+          "name": "Afua"
+        },
+        "7153": {
+          "id": 7153,
+          "name": "Alenquer"
+        },
+        "7159": {
+          "id": 7159,
+          "name": "Almeirim"
+        },
+        "7164": {
+          "id": 7164,
+          "name": "Altamira"
+        },
+        "7195": {
+          "id": 7195,
+          "name": "Ananindeua"
+        },
+        "7274": {
+          "id": 7274,
+          "name": "Augusto Correa"
+        },
+        "7284": {
+          "id": 7284,
+          "name": "Baiao"
+        },
+        "7297": {
+          "id": 7297,
+          "name": "Barcarena"
+        },
+        "7336": {
+          "id": 7336,
+          "name": "Belem"
+        },
+        "7345": {
+          "id": 7345,
+          "name": "Benevides"
+        },
+        "7390": {
+          "id": 7390,
+          "name": "Braganca"
+        },
+        "7399": {
+          "id": 7399,
+          "name": "Breves"
+        },
+        "7408": {
+          "id": 7408,
+          "name": "Bujaru"
+        },
+        "7467": {
+          "id": 7467,
+          "name": "Cameta"
+        },
+        "7514": {
+          "id": 7514,
+          "name": "Capanema"
+        },
+        "7524": {
+          "id": 7524,
+          "name": "Capitao Poco"
+        },
+        "7565": {
+          "id": 7565,
+          "name": "Castanhal"
+        },
+        "7621": {
+          "id": 7621,
+          "name": "Conceicao Do Araguaia"
+        },
+        "7682": {
+          "id": 7682,
+          "name": "Curuca"
+        },
+        "7842": {
+          "id": 7842,
+          "name": "Gurupa"
+        },
+        "7880": {
+          "id": 7880,
+          "name": "Igarape-acu"
+        },
+        "7882": {
+          "id": 7882,
+          "name": "Igarape-miri"
+        },
+        "7932": {
+          "id": 7932,
+          "name": "Irituia"
+        },
+        "7955": {
+          "id": 7955,
+          "name": "Itaituba"
+        },
+        "8019": {
+          "id": 8019,
+          "name": "Itupiranga"
+        },
+        "8029": {
+          "id": 8029,
+          "name": "Jacareacanga"
+        },
+        "8102": {
+          "id": 8102,
+          "name": "Juruti"
+        },
+        "8138": {
+          "id": 8138,
+          "name": "Limoeiro Do Ajuru"
+        },
+        "8188": {
+          "id": 8188,
+          "name": "Maraba"
+        },
+        "8192": {
+          "id": 8192,
+          "name": "Maracana"
+        },
+        "8198": {
+          "id": 8198,
+          "name": "Marapanim"
+        },
+        "8265": {
+          "id": 8265,
+          "name": "Mocajuba"
+        },
+        "8271": {
+          "id": 8271,
+          "name": "Moju"
+        },
+        "8280": {
+          "id": 8280,
+          "name": "Monte Alegre"
+        },
+        "8304": {
+          "id": 8304,
+          "name": "Muana"
+        },
+        "8366": {
+          "id": 8366,
+          "name": "Obidos"
+        },
+        "8368": {
+          "id": 8368,
+          "name": "Oeiras Do Para"
+        },
+        "8376": {
+          "id": 8376,
+          "name": "Oriximina"
+        },
+        "8387": {
+          "id": 8387,
+          "name": "Ourem"
+        },
+        "8423": {
+          "id": 8423,
+          "name": "Paragominas"
+        },
+        "8576": {
+          "id": 8576,
+          "name": "Portel"
+        },
+        "8581": {
+          "id": 8581,
+          "name": "Porto De Moz"
+        },
+        "8599": {
+          "id": 8599,
+          "name": "Prainha"
+        },
+        "8705": {
+          "id": 8705,
+          "name": "Salinopolis"
+        },
+        "8726": {
+          "id": 8726,
+          "name": "Santa Isabel Do Para"
+        },
+        "8735": {
+          "id": 8735,
+          "name": "Santa Maria Do Para"
+        },
+        "8748": {
+          "id": 8748,
+          "name": "Santarem"
+        },
+        "8774": {
+          "id": 8774,
+          "name": "Santo Antonio Do Taua"
+        },
+        "8788": {
+          "id": 8788,
+          "name": "Sao Caetano De Odivelas"
+        },
+        "8798": {
+          "id": 8798,
+          "name": "Sao Felix Do Xingu"
+        },
+        "8807": {
+          "id": 8807,
+          "name": "Sao Geraldo Do Araguaia"
+        },
+        "8822": {
+          "id": 8822,
+          "name": "Sao Joao De Pirabas"
+        },
+        "8864": {
+          "id": 8864,
+          "name": "Sao Miguel Do Guama"
+        },
+        "8904": {
+          "id": 8904,
+          "name": "Senador Jose Porfirio"
+        },
+        "8941": {
+          "id": 8941,
+          "name": "Soure"
+        },
+        "8993": {
+          "id": 8993,
+          "name": "Terra Santa"
+        },
+        "9010": {
+          "id": 9010,
+          "name": "Tome-acu"
+        },
+        "9034": {
+          "id": 9034,
+          "name": "Tucuma"
+        },
+        "9035": {
+          "id": 9035,
+          "name": "Tucurui"
+        },
+        "9112": {
+          "id": 9112,
+          "name": "Vigia"
+        },
+        "9118": {
+          "id": 9118,
+          "name": "Viseu"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Paraiba",
+      "cities": {
+        "7145": {
+          "id": 7145,
+          "name": "Alagoa Grande"
+        },
+        "7146": {
+          "id": 7146,
+          "name": "Alagoa Nova"
+        },
+        "7147": {
+          "id": 7147,
+          "name": "Alagoinha"
+        },
+        "7157": {
+          "id": 7157,
+          "name": "Alhandra"
+        },
+        "7234": {
+          "id": 7234,
+          "name": "Arara"
+        },
+        "7242": {
+          "id": 7242,
+          "name": "Araruna"
+        },
+        "7250": {
+          "id": 7250,
+          "name": "Areia"
+        },
+        "7259": {
+          "id": 7259,
+          "name": "Aroeiras"
+        },
+        "7289": {
+          "id": 7289,
+          "name": "Bananeiras"
+        },
+        "7329": {
+          "id": 7329,
+          "name": "Bayeux"
+        },
+        "7337": {
+          "id": 7337,
+          "name": "Belem"
+        },
+        "7381": {
+          "id": 7381,
+          "name": "Boqueirao"
+        },
+        "7418": {
+          "id": 7418,
+          "name": "Caapora"
+        },
+        "7420": {
+          "id": 7420,
+          "name": "Cabedelo"
+        },
+        "7435": {
+          "id": 7435,
+          "name": "Cacimba De Dentro"
+        },
+        "7451": {
+          "id": 7451,
+          "name": "Cajazeiras"
+        },
+        "7472": {
+          "id": 7472,
+          "name": "Campina Grande"
+        },
+        "7575": {
+          "id": 7575,
+          "name": "Catole Do Rocha"
+        },
+        "7641": {
+          "id": 7641,
+          "name": "Coremas"
+        },
+        "7667": {
+          "id": 7667,
+          "name": "Cruz Do Espirito Santo"
+        },
+        "7674": {
+          "id": 7674,
+          "name": "Cuite"
+        },
+        "7689": {
+          "id": 7689,
+          "name": "Desterro"
+        },
+        "7702": {
+          "id": 7702,
+          "name": "Dona Ines"
+        },
+        "7727": {
+          "id": 7727,
+          "name": "Esperanca"
+        },
+        "7744": {
+          "id": 7744,
+          "name": "Fagundes"
+        },
+        "7822": {
+          "id": 7822,
+          "name": "Guarabira"
+        },
+        "7841": {
+          "id": 7841,
+          "name": "Gurinhem"
+        },
+        "7894": {
+          "id": 7894,
+          "name": "Imaculada"
+        },
+        "7902": {
+          "id": 7902,
+          "name": "Inga"
+        },
+        "7934": {
+          "id": 7934,
+          "name": "Itabaiana"
+        },
+        "7990": {
+          "id": 7990,
+          "name": "Itaporanga"
+        },
+        "8004": {
+          "id": 8004,
+          "name": "Itatuba"
+        },
+        "8028": {
+          "id": 8028,
+          "name": "Jacarau"
+        },
+        "8079": {
+          "id": 8079,
+          "name": "Joao Pessoa"
+        },
+        "8087": {
+          "id": 8087,
+          "name": "Juazeirinho"
+        },
+        "8100": {
+          "id": 8100,
+          "name": "Juripiranga"
+        },
+        "8101": {
+          "id": 8101,
+          "name": "Juru"
+        },
+        "8115": {
+          "id": 8115,
+          "name": "Lagoa Seca"
+        },
+        "8171": {
+          "id": 8171,
+          "name": "Mamanguape"
+        },
+        "8173": {
+          "id": 8173,
+          "name": "Manaira"
+        },
+        "8214": {
+          "id": 8214,
+          "name": "Mari"
+        },
+        "8221": {
+          "id": 8221,
+          "name": "Massaranduba"
+        },
+        "8267": {
+          "id": 8267,
+          "name": "Mogeiro"
+        },
+        "8287": {
+          "id": 8287,
+          "name": "Monteiro"
+        },
+        "8307": {
+          "id": 8307,
+          "name": "Mulungu"
+        },
+        "8321": {
+          "id": 8321,
+          "name": "Natuba"
+        },
+        "8344": {
+          "id": 8344,
+          "name": "Nova Floresta"
+        },
+        "8460": {
+          "id": 8460,
+          "name": "Patos"
+        },
+        "8467": {
+          "id": 8467,
+          "name": "Paulista"
+        },
+        "8477": {
+          "id": 8477,
+          "name": "Pedras De Fogo"
+        },
+        "8500": {
+          "id": 8500,
+          "name": "Pianco"
+        },
+        "8502": {
+          "id": 8502,
+          "name": "Picui"
+        },
+        "8507": {
+          "id": 8507,
+          "name": "Pilar"
+        },
+        "8540": {
+          "id": 8540,
+          "name": "Pirpirituba"
+        },
+        "8544": {
+          "id": 8544,
+          "name": "Pitimbu"
+        },
+        "8550": {
+          "id": 8550,
+          "name": "Pocinhos"
+        },
+        "8558": {
+          "id": 8558,
+          "name": "Pombal"
+        },
+        "8608": {
+          "id": 8608,
+          "name": "Princesa Isabel"
+        },
+        "8612": {
+          "id": 8612,
+          "name": "Puxinana"
+        },
+        "8619": {
+          "id": 8619,
+          "name": "Queimadas"
+        },
+        "8639": {
+          "id": 8639,
+          "name": "Remigio"
+        },
+        "8685": {
+          "id": 8685,
+          "name": "Rio Tinto"
+        },
+        "8701": {
+          "id": 8701,
+          "name": "Salgado De Sao Felix"
+        },
+        "8732": {
+          "id": 8732,
+          "name": "Santa Luzia"
+        },
+        "8752": {
+          "id": 8752,
+          "name": "Santa Rita"
+        },
+        "8784": {
+          "id": 8784,
+          "name": "Sao Bento"
+        },
+        "8837": {
+          "id": 8837,
+          "name": "Sao Jose De Piranhas"
+        },
+        "8889": {
+          "id": 8889,
+          "name": "Sape"
+        },
+        "8911": {
+          "id": 8911,
+          "name": "Serra Branca"
+        },
+        "8936": {
+          "id": 8936,
+          "name": "Solanea"
+        },
+        "8937": {
+          "id": 8937,
+          "name": "Soledade"
+        },
+        "8942": {
+          "id": 8942,
+          "name": "Sousa"
+        },
+        "8944": {
+          "id": 8944,
+          "name": "Sume"
+        },
+        "8966": {
+          "id": 8966,
+          "name": "Taperoa"
+        },
+        "8980": {
+          "id": 8980,
+          "name": "Tavares"
+        },
+        "8982": {
+          "id": 8982,
+          "name": "Teixeira"
+        },
+        "9030": {
+          "id": 9030,
+          "name": "Triunfo"
+        },
+        "9055": {
+          "id": 9055,
+          "name": "Uirauna"
+        },
+        "9058": {
+          "id": 9058,
+          "name": "Umbuzeiro"
+        },
+        "9059": {
+          "id": 9059,
+          "name": "Umbuzeiro"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Parana",
+      "cities": {
+        "7161": {
+          "id": 7161,
+          "name": "Almirante Tamandare"
+        },
+        "7170": {
+          "id": 7170,
+          "name": "Altonia"
+        },
+        "7172": {
+          "id": 7172,
+          "name": "Alto Parana"
+        },
+        "7173": {
+          "id": 7173,
+          "name": "Alto Piquiri"
+        },
+        "7190": {
+          "id": 7190,
+          "name": "Ampere"
+        },
+        "7198": {
+          "id": 7198,
+          "name": "Andira"
+        },
+        "7207": {
+          "id": 7207,
+          "name": "Antonina"
+        },
+        "7212": {
+          "id": 7212,
+          "name": "Apucarana"
+        },
+        "7232": {
+          "id": 7232,
+          "name": "Arapongas"
+        },
+        "7244": {
+          "id": 7244,
+          "name": "Araucaria"
+        },
+        "7267": {
+          "id": 7267,
+          "name": "Assai"
+        },
+        "7271": {
+          "id": 7271,
+          "name": "Astorga"
+        },
+        "7290": {
+          "id": 7290,
+          "name": "Bandeirantes"
+        },
+        "7296": {
+          "id": 7296,
+          "name": "Barbosa Ferraz"
+        },
+        "7335": {
+          "id": 7335,
+          "name": "Bela Vista Do Paraiso"
+        },
+        "7461": {
+          "id": 7461,
+          "name": "Cambara"
+        },
+        "7462": {
+          "id": 7462,
+          "name": "Cambe"
+        },
+        "7473": {
+          "id": 7473,
+          "name": "Campina Grande Do Sul"
+        },
+        "7482": {
+          "id": 7482,
+          "name": "Campo Largo"
+        },
+        "7498": {
+          "id": 7498,
+          "name": "Candido De Abreu"
+        },
+        "7529": {
+          "id": 7529,
+          "name": "Carambei"
+        },
+        "7561": {
+          "id": 7561,
+          "name": "Cascavel"
+        },
+        "7570": {
+          "id": 7570,
+          "name": "Castro"
+        },
+        "7584": {
+          "id": 7584,
+          "name": "Centenario Do Sul"
+        },
+        "7597": {
+          "id": 7597,
+          "name": "Chopinzinho"
+        },
+        "7599": {
+          "id": 7599,
+          "name": "Cianorte"
+        },
+        "7603": {
+          "id": 7603,
+          "name": "Clevelandia"
+        },
+        "7614": {
+          "id": 7614,
+          "name": "Colombo"
+        },
+        "7616": {
+          "id": 7616,
+          "name": "Colorado"
+        },
+        "7637": {
+          "id": 7637,
+          "name": "Corbelia"
+        },
+        "7643": {
+          "id": 7643,
+          "name": "Cornelio Procopio"
+        },
+        "7647": {
+          "id": 7647,
+          "name": "Coronel Vivida"
+        },
+        "7669": {
+          "id": 7669,
+          "name": "Cruzeiro Do Oeste"
+        },
+        "7679": {
+          "id": 7679,
+          "name": "Curitiba"
+        },
+        "7698": {
+          "id": 7698,
+          "name": "Dois Vizinhos"
+        },
+        "7720": {
+          "id": 7720,
+          "name": "Engenheiro Beltrao"
+        },
+        "7748": {
+          "id": 7748,
+          "name": "Faxinal"
+        },
+        "7760": {
+          "id": 7760,
+          "name": "Florestopolis"
+        },
+        "7770": {
+          "id": 7770,
+          "name": "Foz Do Iguacu"
+        },
+        "7772": {
+          "id": 7772,
+          "name": "Francisco Beltrao"
+        },
+        "7811": {
+          "id": 7811,
+          "name": "Guaira"
+        },
+        "7827": {
+          "id": 7827,
+          "name": "Guaraniacu"
+        },
+        "7829": {
+          "id": 7829,
+          "name": "Guarapuava"
+        },
+        "7834": {
+          "id": 7834,
+          "name": "Guaratuba"
+        },
+        "7853": {
+          "id": 7853,
+          "name": "Ibaiti"
+        },
+        "7863": {
+          "id": 7863,
+          "name": "Ibipora"
+        },
+        "7896": {
+          "id": 7896,
+          "name": "Imbituva"
+        },
+        "7919": {
+          "id": 7919,
+          "name": "Ipora"
+        },
+        "7929": {
+          "id": 7929,
+          "name": "Irati"
+        },
+        "7977": {
+          "id": 7977,
+          "name": "Itaperucu"
+        },
+        "8024": {
+          "id": 8024,
+          "name": "Ivaipora"
+        },
+        "8031": {
+          "id": 8031,
+          "name": "Jacarezinho"
+        },
+        "8039": {
+          "id": 8039,
+          "name": "Jaguariaiva"
+        },
+        "8047": {
+          "id": 8047,
+          "name": "Jandaia Do Sul"
+        },
+        "8064": {
+          "id": 8064,
+          "name": "Jataizinho"
+        },
+        "8103": {
+          "id": 8103,
+          "name": "Jussara"
+        },
+        "8123": {
+          "id": 8123,
+          "name": "Lapa"
+        },
+        "8127": {
+          "id": 8127,
+          "name": "Laranjeiras Do Sul"
+        },
+        "8144": {
+          "id": 8144,
+          "name": "Loanda"
+        },
+        "8145": {
+          "id": 8145,
+          "name": "Londrina"
+        },
+        "8177": {
+          "id": 8177,
+          "name": "Mandaguacu"
+        },
+        "8178": {
+          "id": 8178,
+          "name": "Mandaguari"
+        },
+        "8205": {
+          "id": 8205,
+          "name": "Marechal Candido Rondon"
+        },
+        "8208": {
+          "id": 8208,
+          "name": "Marialva"
+        },
+        "8215": {
+          "id": 8215,
+          "name": "Maringa"
+        },
+        "8225": {
+          "id": 8225,
+          "name": "Matelandia"
+        },
+        "8230": {
+          "id": 8230,
+          "name": "Matinhos"
+        },
+        "8240": {
+          "id": 8240,
+          "name": "Medianeira"
+        },
+        "8296": {
+          "id": 8296,
+          "name": "Moreira Sales"
+        },
+        "8340": {
+          "id": 8340,
+          "name": "Nova Aurora"
+        },
+        "8343": {
+          "id": 8343,
+          "name": "Nova Esperanca"
+        },
+        "8349": {
+          "id": 8349,
+          "name": "Nova Londrina"
+        },
+        "8382": {
+          "id": 8382,
+          "name": "Ortigueira"
+        },
+        "8400": {
+          "id": 8400,
+          "name": "Paicandu"
+        },
+        "8405": {
+          "id": 8405,
+          "name": "Palmas"
+        },
+        "8409": {
+          "id": 8409,
+          "name": "Palmeira"
+        },
+        "8412": {
+          "id": 8412,
+          "name": "Palotina"
+        },
+        "8432": {
+          "id": 8432,
+          "name": "Paranagua"
+        },
+        "8436": {
+          "id": 8436,
+          "name": "Paranavai"
+        },
+        "8458": {
+          "id": 8458,
+          "name": "Pato Branco"
+        },
+        "8471": {
+          "id": 8471,
+          "name": "Peabiru"
+        },
+        "8513": {
+          "id": 8513,
+          "name": "Pinhao"
+        },
+        "8524": {
+          "id": 8524,
+          "name": "Pirai Do Sul"
+        },
+        "8534": {
+          "id": 8534,
+          "name": "Piraquara"
+        },
+        "8541": {
+          "id": 8541,
+          "name": "Pitanga"
+        },
+        "8563": {
+          "id": 8563,
+          "name": "Ponta Grossa"
+        },
+        "8564": {
+          "id": 8564,
+          "name": "Pontal Do Parana"
+        },
+        "8573": {
+          "id": 8573,
+          "name": "Porecatu"
+        },
+        "8611": {
+          "id": 8611,
+          "name": "Prudentopolis"
+        },
+        "8616": {
+          "id": 8616,
+          "name": "Quatro Barras"
+        },
+        "8631": {
+          "id": 8631,
+          "name": "Realeza"
+        },
+        "8642": {
+          "id": 8642,
+          "name": "Reserva"
+        },
+        "8655": {
+          "id": 8655,
+          "name": "Ribeirao Do Pinhal"
+        },
+        "8662": {
+          "id": 8662,
+          "name": "Rio Branco Do Sul"
+        },
+        "8677": {
+          "id": 8677,
+          "name": "Rio Negro"
+        },
+        "8688": {
+          "id": 8688,
+          "name": "Rolandia"
+        },
+        "8765": {
+          "id": 8765,
+          "name": "Santo Antonio Da Platina"
+        },
+        "8773": {
+          "id": 8773,
+          "name": "Santo Antonio Do Sudoeste"
+        },
+        "8846": {
+          "id": 8846,
+          "name": "Sao Jose Dos Pinhais"
+        },
+        "8861": {
+          "id": 8861,
+          "name": "Sao Mateus Do Sul"
+        },
+        "8865": {
+          "id": 8865,
+          "name": "Sao Miguel Do Iguacu"
+        },
+        "8894": {
+          "id": 8894,
+          "name": "Sarandi"
+        },
+        "8907": {
+          "id": 8907,
+          "name": "Senges"
+        },
+        "8919": {
+          "id": 8919,
+          "name": "Sertanopolis"
+        },
+        "8963": {
+          "id": 8963,
+          "name": "Tapejara"
+        },
+        "8983": {
+          "id": 8983,
+          "name": "Telemaco Borba"
+        },
+        "8989": {
+          "id": 8989,
+          "name": "Terra Boa"
+        },
+        "8991": {
+          "id": 8991,
+          "name": "Terra Rica"
+        },
+        "8992": {
+          "id": 8992,
+          "name": "Terra Roxa"
+        },
+        "8996": {
+          "id": 8996,
+          "name": "Tibagi"
+        },
+        "9008": {
+          "id": 9008,
+          "name": "Toledo"
+        },
+        "9061": {
+          "id": 9061,
+          "name": "Umuarama"
+        },
+        "9064": {
+          "id": 9064,
+          "name": "Uniao Da Victoria"
+        },
+        "9127": {
+          "id": 9127,
+          "name": "Wenceslau Braz"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Piaui",
+      "cities": {
+        "7135": {
+          "id": 7135,
+          "name": "Agua Branca"
+        },
+        "7169": {
+          "id": 7169,
+          "name": "Alto Longa"
+        },
+        "7174": {
+          "id": 7174,
+          "name": "Altos"
+        },
+        "7182": {
+          "id": 7182,
+          "name": "Amarante"
+        },
+        "7310": {
+          "id": 7310,
+          "name": "Barras"
+        },
+        "7325": {
+          "id": 7325,
+          "name": "Batalha"
+        },
+        "7344": {
+          "id": 7344,
+          "name": "Beneditinos"
+        },
+        "7372": {
+          "id": 7372,
+          "name": "Bom Jesus"
+        },
+        "7414": {
+          "id": 7414,
+          "name": "Buriti Dos Lopes"
+        },
+        "7483": {
+          "id": 7483,
+          "name": "Campo Maior"
+        },
+        "7512": {
+          "id": 7512,
+          "name": "Canto Do Buriti"
+        },
+        "7544": {
+          "id": 7544,
+          "name": "Carire"
+        },
+        "7567": {
+          "id": 7567,
+          "name": "Castelo Do Piaui"
+        },
+        "7606": {
+          "id": 7606,
+          "name": "Cocal"
+        },
+        "7649": {
+          "id": 7649,
+          "name": "Corrente"
+        },
+        "7687": {
+          "id": 7687,
+          "name": "Demerval Lobao"
+        },
+        "7712": {
+          "id": 7712,
+          "name": "Elesbao Veloso"
+        },
+        "7728": {
+          "id": 7728,
+          "name": "Esperantina"
+        },
+        "7761": {
+          "id": 7761,
+          "name": "Floriano"
+        },
+        "7789": {
+          "id": 7789,
+          "name": "Gilbues"
+        },
+        "7906": {
+          "id": 7906,
+          "name": "Inhuma"
+        },
+        "7953": {
+          "id": 7953,
+          "name": "Itainopolis"
+        },
+        "8006": {
+          "id": 8006,
+          "name": "Itaueira"
+        },
+        "8044": {
+          "id": 8044,
+          "name": "Jaicos"
+        },
+        "8085": {
+          "id": 8085,
+          "name": "Jose De Freitas"
+        },
+        "8149": {
+          "id": 8149,
+          "name": "Luis Correia"
+        },
+        "8151": {
+          "id": 8151,
+          "name": "Luzilandia"
+        },
+        "8228": {
+          "id": 8228,
+          "name": "Matias Olimpio"
+        },
+        "8244": {
+          "id": 8244,
+          "name": "Miguel Alves"
+        },
+        "8272": {
+          "id": 8272,
+          "name": "Mombaca"
+        },
+        "8275": {
+          "id": 8275,
+          "name": "Monsenhor Gil"
+        },
+        "8369": {
+          "id": 8369,
+          "name": "Oeiras"
+        },
+        "8408": {
+          "id": 8408,
+          "name": "Palmeirais"
+        },
+        "8446": {
+          "id": 8446,
+          "name": "Parnaiba"
+        },
+        "8480": {
+          "id": 8480,
+          "name": "Pedreiras"
+        },
+        "8481": {
+          "id": 8481,
+          "name": "Pedro Ii"
+        },
+        "8501": {
+          "id": 8501,
+          "name": "Picos"
+        },
+        "8509": {
+          "id": 8509,
+          "name": "Pimenteiras"
+        },
+        "8517": {
+          "id": 8517,
+          "name": "Pio Ix"
+        },
+        "8523": {
+          "id": 8523,
+          "name": "Piracuruca"
+        },
+        "8538": {
+          "id": 8538,
+          "name": "Piripiri"
+        },
+        "8587": {
+          "id": 8587,
+          "name": "Porto"
+        },
+        "8635": {
+          "id": 8635,
+          "name": "Regeneracao"
+        },
+        "8824": {
+          "id": 8824,
+          "name": "Sao Joao Do Piaui"
+        },
+        "8868": {
+          "id": 8868,
+          "name": "Sao Miguel Do Tapuio"
+        },
+        "8874": {
+          "id": 8874,
+          "name": "Sao Pedro Do Piaui"
+        },
+        "8878": {
+          "id": 8878,
+          "name": "Sao Raimundo Nonato"
+        },
+        "8929": {
+          "id": 8929,
+          "name": "Simoes"
+        },
+        "8930": {
+          "id": 8930,
+          "name": "Simplicio Mendes"
+        },
+        "8987": {
+          "id": 8987,
+          "name": "Teresina"
+        },
+        "9066": {
+          "id": 9066,
+          "name": "Uniao"
+        },
+        "9074": {
+          "id": 9074,
+          "name": "Urucui"
+        },
+        "9081": {
+          "id": 9081,
+          "name": "Valenca Do Piaui"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Rio de Janeiro",
+      "cities": {
+        "7204": {
+          "id": 7204,
+          "name": "Angra Dos Reis"
+        },
+        "7241": {
+          "id": 7241,
+          "name": "Araruama"
+        },
+        "7249": {
+          "id": 7249,
+          "name": "Areal"
+        },
+        "7258": {
+          "id": 7258,
+          "name": "Armacao Dos Buzios"
+        },
+        "7260": {
+          "id": 7260,
+          "name": "Arraial Do Cabo"
+        },
+        "7307": {
+          "id": 7307,
+          "name": "Barra Do Pirai"
+        },
+        "7309": {
+          "id": 7309,
+          "name": "Barra Mansa"
+        },
+        "7339": {
+          "id": 7339,
+          "name": "Belford Roxo"
+        },
+        "7370": {
+          "id": 7370,
+          "name": "Bom Jardim"
+        },
+        "7375": {
+          "id": 7375,
+          "name": "Bom Jesus Do Itabapoana"
+        },
+        "7421": {
+          "id": 7421,
+          "name": "Cabo Frio"
+        },
+        "7431": {
+          "id": 7431,
+          "name": "Cachoeiras De Macacu"
+        },
+        "7464": {
+          "id": 7464,
+          "name": "Cambuci"
+        },
+        "7486": {
+          "id": 7486,
+          "name": "Campos"
+        },
+        "7510": {
+          "id": 7510,
+          "name": "Cantagalo"
+        },
+        "7548": {
+          "id": 7548,
+          "name": "Carmo"
+        },
+        "7562": {
+          "id": 7562,
+          "name": "Casimiro De Abreu"
+        },
+        "7638": {
+          "id": 7638,
+          "name": "Cordeiro"
+        },
+        "7707": {
+          "id": 7707,
+          "name": "Duque De Caxias"
+        },
+        "7819": {
+          "id": 7819,
+          "name": "Guapimirim"
+        },
+        "7886": {
+          "id": 7886,
+          "name": "Iguaba Grande"
+        },
+        "7942": {
+          "id": 7942,
+          "name": "Itaborai"
+        },
+        "7950": {
+          "id": 7950,
+          "name": "Itaguai"
+        },
+        "7969": {
+          "id": 7969,
+          "name": "Itaocara"
+        },
+        "7978": {
+          "id": 7978,
+          "name": "Itaperuna"
+        },
+        "8001": {
+          "id": 8001,
+          "name": "Itatiaia"
+        },
+        "8051": {
+          "id": 8051,
+          "name": "Japeri"
+        },
+        "8153": {
+          "id": 8153,
+          "name": "Macae"
+        },
+        "8164": {
+          "id": 8164,
+          "name": "Mage"
+        },
+        "8180": {
+          "id": 8180,
+          "name": "Mangaratiba"
+        },
+        "8211": {
+          "id": 8211,
+          "name": "Marica"
+        },
+        "8242": {
+          "id": 8242,
+          "name": "Mendes"
+        },
+        "8247": {
+          "id": 8247,
+          "name": "Miguel Pereira"
+        },
+        "8256": {
+          "id": 8256,
+          "name": "Miracema"
+        },
+        "8320": {
+          "id": 8320,
+          "name": "Natividade"
+        },
+        "8330": {
+          "id": 8330,
+          "name": "Nilopolis"
+        },
+        "8334": {
+          "id": 8334,
+          "name": "Niteroi"
+        },
+        "8345": {
+          "id": 8345,
+          "name": "Nova Friburgo"
+        },
+        "8347": {
+          "id": 8347,
+          "name": "Nova Iguacu"
+        },
+        "8419": {
+          "id": 8419,
+          "name": "Paracambi"
+        },
+        "8426": {
+          "id": 8426,
+          "name": "Paraiba Do Sul"
+        },
+        "8440": {
+          "id": 8440,
+          "name": "Parati"
+        },
+        "8498": {
+          "id": 8498,
+          "name": "Petropolis"
+        },
+        "8514": {
+          "id": 8514,
+          "name": "Pinheiral"
+        },
+        "8525": {
+          "id": 8525,
+          "name": "Pirai"
+        },
+        "8572": {
+          "id": 8572,
+          "name": "Porciuncula"
+        },
+        "8589": {
+          "id": 8589,
+          "name": "Porto Real"
+        },
+        "8615": {
+          "id": 8615,
+          "name": "Quatis"
+        },
+        "8620": {
+          "id": 8620,
+          "name": "Queimados"
+        },
+        "8641": {
+          "id": 8641,
+          "name": "Resende"
+        },
+        "8661": {
+          "id": 8661,
+          "name": "Rio Bonito"
+        },
+        "8666": {
+          "id": 8666,
+          "name": "Rio Claro"
+        },
+        "8668": {
+          "id": 8668,
+          "name": "Rio Das Ostras"
+        },
+        "8670": {
+          "id": 8670,
+          "name": "Rio De Janeiro"
+        },
+        "8767": {
+          "id": 8767,
+          "name": "Santo Antonio De Padua"
+        },
+        "8799": {
+          "id": 8799,
+          "name": "Sao Fidelis"
+        },
+        "8812": {
+          "id": 8812,
+          "name": "Sao Goncalo"
+        },
+        "8817": {
+          "id": 8817,
+          "name": "Sao Joao Da Barra"
+        },
+        "8821": {
+          "id": 8821,
+          "name": "Sao Joao De Meriti"
+        },
+        "8873": {
+          "id": 8873,
+          "name": "Sao Pedro Da Aldeia"
+        },
+        "8891": {
+          "id": 8891,
+          "name": "Sapucaia"
+        },
+        "8893": {
+          "id": 8893,
+          "name": "Saquarema"
+        },
+        "8910": {
+          "id": 8910,
+          "name": "Seropedica"
+        },
+        "8926": {
+          "id": 8926,
+          "name": "Silva Jardim"
+        },
+        "8960": {
+          "id": 8960,
+          "name": "Tangua"
+        },
+        "8988": {
+          "id": 8988,
+          "name": "Teresopolis"
+        },
+        "9027": {
+          "id": 9027,
+          "name": "Tres Rios"
+        },
+        "9083": {
+          "id": 9083,
+          "name": "Valenca"
+        },
+        "9097": {
+          "id": 9097,
+          "name": "Vassouras"
+        },
+        "9124": {
+          "id": 9124,
+          "name": "Volta Redonda"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Rio Grande do Norte",
+      "cities": {
+        "7124": {
+          "id": 7124,
+          "name": "Acari"
+        },
+        "7126": {
+          "id": 7126,
+          "name": "Acu"
+        },
+        "7130": {
+          "id": 7130,
+          "name": "Afonso Bezerra"
+        },
+        "7154": {
+          "id": 7154,
+          "name": "Alexandria"
+        },
+        "7203": {
+          "id": 7203,
+          "name": "Angicos"
+        },
+        "7211": {
+          "id": 7211,
+          "name": "Apodi"
+        },
+        "7251": {
+          "id": 7251,
+          "name": "Areia Branca"
+        },
+        "7254": {
+          "id": 7254,
+          "name": "Ares"
+        },
+        "7293": {
+          "id": 7293,
+          "name": "Barauna"
+        },
+        "7395": {
+          "id": 7395,
+          "name": "Brejinho"
+        },
+        "7447": {
+          "id": 7447,
+          "name": "Caico"
+        },
+        "7502": {
+          "id": 7502,
+          "name": "Canguaretama"
+        },
+        "7535": {
+          "id": 7535,
+          "name": "Caraubas"
+        },
+        "7582": {
+          "id": 7582,
+          "name": "Ceara-mirim"
+        },
+        "7681": {
+          "id": 7681,
+          "name": "Currais Novos"
+        },
+        "7742": {
+          "id": 7742,
+          "name": "Extremoz"
+        },
+        "7797": {
+          "id": 7797,
+          "name": "Goianinha"
+        },
+        "7801": {
+          "id": 7801,
+          "name": "Governador Dix-sept Rosado"
+        },
+        "7911": {
+          "id": 7911,
+          "name": "Ipanguacu"
+        },
+        "8056": {
+          "id": 8056,
+          "name": "Jardim De Piranhas"
+        },
+        "8057": {
+          "id": 8057,
+          "name": "Jardim Do Serido"
+        },
+        "8076": {
+          "id": 8076,
+          "name": "Joao Camara"
+        },
+        "8091": {
+          "id": 8091,
+          "name": "Jucurutu"
+        },
+        "8113": {
+          "id": 8113,
+          "name": "Lagoa Nova"
+        },
+        "8154": {
+          "id": 8154,
+          "name": "Macaiba"
+        },
+        "8159": {
+          "id": 8159,
+          "name": "Macau"
+        },
+        "8277": {
+          "id": 8277,
+          "name": "Montanhas"
+        },
+        "8281": {
+          "id": 8281,
+          "name": "Monte Alegre"
+        },
+        "8302": {
+          "id": 8302,
+          "name": "Mossoro"
+        },
+        "8319": {
+          "id": 8319,
+          "name": "Natal"
+        },
+        "8333": {
+          "id": 8333,
+          "name": "Nisia Floresta"
+        },
+        "8341": {
+          "id": 8341,
+          "name": "Nova Cruz"
+        },
+        "8442": {
+          "id": 8442,
+          "name": "Parelhas"
+        },
+        "8447": {
+          "id": 8447,
+          "name": "Parnamirim"
+        },
+        "8462": {
+          "id": 8462,
+          "name": "Patu"
+        },
+        "8464": {
+          "id": 8464,
+          "name": "Pau Dos Ferros"
+        },
+        "8483": {
+          "id": 8483,
+          "name": "Pedro Velho"
+        },
+        "8487": {
+          "id": 8487,
+          "name": "Pendencias"
+        },
+        "8551": {
+          "id": 8551,
+          "name": "Poco Branco"
+        },
+        "8719": {
+          "id": 8719,
+          "name": "Santa Cruz"
+        },
+        "8742": {
+          "id": 8742,
+          "name": "Santana Do Matos"
+        },
+        "8775": {
+          "id": 8775,
+          "name": "Santo Antonio"
+        },
+        "8809": {
+          "id": 8809,
+          "name": "Sao Goncalo Do Amarante"
+        },
+        "8836": {
+          "id": 8836,
+          "name": "Sao Jose De Mipibu"
+        },
+        "8841": {
+          "id": 8841,
+          "name": "Sao Jose Do Campestre"
+        },
+        "8869": {
+          "id": 8869,
+          "name": "Sao Miguel"
+        },
+        "8871": {
+          "id": 8871,
+          "name": "Sao Paulo Do Potengi"
+        },
+        "8887": {
+          "id": 8887,
+          "name": "Sao Tome"
+        },
+        "8922": {
+          "id": 8922,
+          "name": "Severiano Melo"
+        },
+        "8954": {
+          "id": 8954,
+          "name": "Taipu"
+        },
+        "8959": {
+          "id": 8959,
+          "name": "Tangara"
+        },
+        "9014": {
+          "id": 9014,
+          "name": "Touros"
+        },
+        "9056": {
+          "id": 9056,
+          "name": "Umarizal"
+        },
+        "9067": {
+          "id": 9067,
+          "name": "Upanema"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Rio Grande do Sul",
+      "cities": {
+        "7151": {
+          "id": 7151,
+          "name": "Alegrete"
+        },
+        "7262": {
+          "id": 7262,
+          "name": "Arroio Do Meio"
+        },
+        "7263": {
+          "id": 7263,
+          "name": "Arroio Dos Ratos"
+        },
+        "7264": {
+          "id": 7264,
+          "name": "Arroio Grande"
+        },
+        "7283": {
+          "id": 7283,
+          "name": "Bage"
+        },
+        "7347": {
+          "id": 7347,
+          "name": "Bento Goncalves"
+        },
+        "7417": {
+          "id": 7417,
+          "name": "Butia"
+        },
+        "7426": {
+          "id": 7426,
+          "name": "Cacapava Do Sul"
+        },
+        "7427": {
+          "id": 7427,
+          "name": "Cacequi"
+        },
+        "7430": {
+          "id": 7430,
+          "name": "Cachoeira Do Sul"
+        },
+        "7432": {
+          "id": 7432,
+          "name": "Cachoeirinha"
+        },
+        "7459": {
+          "id": 7459,
+          "name": "Camaqua"
+        },
+        "7477": {
+          "id": 7477,
+          "name": "Campo Bom"
+        },
+        "7497": {
+          "id": 7497,
+          "name": "Candelaria"
+        },
+        "7501": {
+          "id": 7501,
+          "name": "Canela"
+        },
+        "7503": {
+          "id": 7503,
+          "name": "Cangucu"
+        },
+        "7507": {
+          "id": 7507,
+          "name": "Canoas"
+        },
+        "7516": {
+          "id": 7516,
+          "name": "Capao Da Canoa"
+        },
+        "7537": {
+          "id": 7537,
+          "name": "Carazinho"
+        },
+        "7546": {
+          "id": 7546,
+          "name": "Carlos Barbosa"
+        },
+        "7581": {
+          "id": 7581,
+          "name": "Caxias Do Sul"
+        },
+        "7589": {
+          "id": 7589,
+          "name": "Cerro Largo"
+        },
+        "7595": {
+          "id": 7595,
+          "name": "Charqueadas"
+        },
+        "7601": {
+          "id": 7601,
+          "name": "Cidreira"
+        },
+        "7664": {
+          "id": 7664,
+          "name": "Cruz Alta"
+        },
+        "7696": {
+          "id": 7696,
+          "name": "Dois Irmaos"
+        },
+        "7700": {
+          "id": 7700,
+          "name": "Dom Pedrito"
+        },
+        "7717": {
+          "id": 7717,
+          "name": "Encantado"
+        },
+        "7718": {
+          "id": 7718,
+          "name": "Encruzilhada Do Sul"
+        },
+        "7723": {
+          "id": 7723,
+          "name": "Erechim"
+        },
+        "7733": {
+          "id": 7733,
+          "name": "Espumoso"
+        },
+        "7735": {
+          "id": 7735,
+          "name": "Estancia Velha"
+        },
+        "7736": {
+          "id": 7736,
+          "name": "Esteio"
+        },
+        "7738": {
+          "id": 7738,
+          "name": "Estrela"
+        },
+        "7746": {
+          "id": 7746,
+          "name": "Farroupilha"
+        },
+        "7757": {
+          "id": 7757,
+          "name": "Flores Da Cunha"
+        },
+        "7776": {
+          "id": 7776,
+          "name": "Frederico Westphalen"
+        },
+        "7785": {
+          "id": 7785,
+          "name": "Garibaldi"
+        },
+        "7788": {
+          "id": 7788,
+          "name": "Getulio Vargas"
+        },
+        "7791": {
+          "id": 7791,
+          "name": "Girua"
+        },
+        "7804": {
+          "id": 7804,
+          "name": "Gramado"
+        },
+        "7808": {
+          "id": 7808,
+          "name": "Gravatai"
+        },
+        "7810": {
+          "id": 7810,
+          "name": "Guaiba"
+        },
+        "7821": {
+          "id": 7821,
+          "name": "Guapore"
+        },
+        "7847": {
+          "id": 7847,
+          "name": "Horizontina"
+        },
+        "7869": {
+          "id": 7869,
+          "name": "Ibiruba"
+        },
+        "7885": {
+          "id": 7885,
+          "name": "Igrejinha"
+        },
+        "7891": {
+          "id": 7891,
+          "name": "Ijui"
+        },
+        "7995": {
+          "id": 7995,
+          "name": "Itaqui"
+        },
+        "8025": {
+          "id": 8025,
+          "name": "Ivoti"
+        },
+        "8037": {
+          "id": 8037,
+          "name": "Jaguarao"
+        },
+        "8093": {
+          "id": 8093,
+          "name": "Julio De Castilhos"
+        },
+        "8116": {
+          "id": 8116,
+          "name": "Lagoa Vermelha"
+        },
+        "8119": {
+          "id": 8119,
+          "name": "Lajeado"
+        },
+        "8201": {
+          "id": 8201,
+          "name": "Marau"
+        },
+        "8289": {
+          "id": 8289,
+          "name": "Montenegro"
+        },
+        "8318": {
+          "id": 8318,
+          "name": "Nao-me-toque"
+        },
+        "8353": {
+          "id": 8353,
+          "name": "Nova Petropolis"
+        },
+        "8354": {
+          "id": 8354,
+          "name": "Nova Prata"
+        },
+        "8362": {
+          "id": 8362,
+          "name": "Novo Hamburgo"
+        },
+        "8384": {
+          "id": 8384,
+          "name": "Osorio"
+        },
+        "8391": {
+          "id": 8391,
+          "name": "Ouro Fino"
+        },
+        "8402": {
+          "id": 8402,
+          "name": "Palmares Do Sul"
+        },
+        "8407": {
+          "id": 8407,
+          "name": "Palmeira Das Missoes"
+        },
+        "8413": {
+          "id": 8413,
+          "name": "Panambi"
+        },
+        "8450": {
+          "id": 8450,
+          "name": "Parobe"
+        },
+        "8455": {
+          "id": 8455,
+          "name": "Passo Fundo"
+        },
+        "8484": {
+          "id": 8484,
+          "name": "Pelotas"
+        },
+        "8515": {
+          "id": 8515,
+          "name": "Pinheiro Machado"
+        },
+        "8574": {
+          "id": 8574,
+          "name": "Portao"
+        },
+        "8577": {
+          "id": 8577,
+          "name": "Porto Alegre"
+        },
+        "8613": {
+          "id": 8613,
+          "name": "Quarai"
+        },
+        "8674": {
+          "id": 8674,
+          "name": "Rio Grande"
+        },
+        "8681": {
+          "id": 8681,
+          "name": "Rio Pardo"
+        },
+        "8689": {
+          "id": 8689,
+          "name": "Rolante"
+        },
+        "8692": {
+          "id": 8692,
+          "name": "Rosario Do Sul"
+        },
+        "8709": {
+          "id": 8709,
+          "name": "Sananduva"
+        },
+        "8718": {
+          "id": 8718,
+          "name": "Santa Cruz Do Sul"
+        },
+        "8737": {
+          "id": 8737,
+          "name": "Santa Maria"
+        },
+        "8741": {
+          "id": 8741,
+          "name": "Santana Do Livramento"
+        },
+        "8754": {
+          "id": 8754,
+          "name": "Santa Rosa"
+        },
+        "8756": {
+          "id": 8756,
+          "name": "Santa Vitoria Do Palmar"
+        },
+        "8758": {
+          "id": 8758,
+          "name": "Santiago"
+        },
+        "8764": {
+          "id": 8764,
+          "name": "Santo Angelo"
+        },
+        "8776": {
+          "id": 8776,
+          "name": "Santo Augusto"
+        },
+        "8787": {
+          "id": 8787,
+          "name": "Sao Borja"
+        },
+        "8800": {
+          "id": 8800,
+          "name": "Sao Francisco De Assis"
+        },
+        "8801": {
+          "id": 8801,
+          "name": "Sao Francisco De Paula"
+        },
+        "8806": {
+          "id": 8806,
+          "name": "Sao Gabriel"
+        },
+        "8814": {
+          "id": 8814,
+          "name": "Sao Jeronimo"
+        },
+        "8848": {
+          "id": 8848,
+          "name": "Sao Leopoldo"
+        },
+        "8852": {
+          "id": 8852,
+          "name": "Sao Lourenco Do Sul"
+        },
+        "8857": {
+          "id": 8857,
+          "name": "Sao Luiz Gonzaga"
+        },
+        "8859": {
+          "id": 8859,
+          "name": "Sao Marcos"
+        },
+        "8875": {
+          "id": 8875,
+          "name": "Sao Pedro Do Sul"
+        },
+        "8880": {
+          "id": 8880,
+          "name": "Sao Sebastiao Do Cai"
+        },
+        "8885": {
+          "id": 8885,
+          "name": "Sao Sepe"
+        },
+        "8890": {
+          "id": 8890,
+          "name": "Sapiranga"
+        },
+        "8892": {
+          "id": 8892,
+          "name": "Sapucaia"
+        },
+        "8895": {
+          "id": 8895,
+          "name": "Sarandi"
+        },
+        "8933": {
+          "id": 8933,
+          "name": "Sobradinho"
+        },
+        "8938": {
+          "id": 8938,
+          "name": "Soledade"
+        },
+        "8964": {
+          "id": 8964,
+          "name": "Tapejara"
+        },
+        "8967": {
+          "id": 8967,
+          "name": "Tapes"
+        },
+        "8970": {
+          "id": 8970,
+          "name": "Taquara"
+        },
+        "8971": {
+          "id": 8971,
+          "name": "Taquari"
+        },
+        "8994": {
+          "id": 8994,
+          "name": "Teutonia"
+        },
+        "9013": {
+          "id": 9013,
+          "name": "Torres"
+        },
+        "9017": {
+          "id": 9017,
+          "name": "Tramandai"
+        },
+        "9022": {
+          "id": 9022,
+          "name": "Tres Coroas"
+        },
+        "9023": {
+          "id": 9023,
+          "name": "Tres De Maio"
+        },
+        "9025": {
+          "id": 9025,
+          "name": "Tres Passos"
+        },
+        "9031": {
+          "id": 9031,
+          "name": "Triunfo"
+        },
+        "9039": {
+          "id": 9039,
+          "name": "Tupancireta"
+        },
+        "9076": {
+          "id": 9076,
+          "name": "Uruguaiana"
+        },
+        "9080": {
+          "id": 9080,
+          "name": "Vacaria"
+        },
+        "9099": {
+          "id": 9099,
+          "name": "Venancio Aires"
+        },
+        "9101": {
+          "id": 9101,
+          "name": "Veranopolis"
+        },
+        "9103": {
+          "id": 9103,
+          "name": "Viamao"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Rondonia",
+      "cities": {
+        "7257": {
+          "id": 7257,
+          "name": "Ariquemes"
+        },
+        "7437": {
+          "id": 7437,
+          "name": "Cacoal"
+        },
+        "7815": {
+          "id": 7815,
+          "name": "Guajara-mirim"
+        },
+        "8062": {
+          "id": 8062,
+          "name": "Jaru"
+        },
+        "8070": {
+          "id": 8070,
+          "name": "Ji-parana"
+        },
+        "8392": {
+          "id": 8392,
+          "name": "Ouro Preto Do Oeste"
+        },
+        "8508": {
+          "id": 8508,
+          "name": "Pimenta Bueno"
+        },
+        "8592": {
+          "id": 8592,
+          "name": "Porto Velho"
+        },
+        "8604": {
+          "id": 8604,
+          "name": "Presidente Medici"
+        },
+        "8687": {
+          "id": 8687,
+          "name": "Rodrigues Alves"
+        },
+        "8690": {
+          "id": 8690,
+          "name": "Rolim De Moura"
+        },
+        "9114": {
+          "id": 9114,
+          "name": "Vilhena"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Roraima",
+      "cities": {
+        "7361": {
+          "id": 7361,
+          "name": "Boa Vista"
+        },
+        "7378": {
+          "id": 7378,
+          "name": "Bonfim"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Santa Catarina",
+      "cities": {
+        "7233": {
+          "id": 7233,
+          "name": "Araquari"
+        },
+        "7235": {
+          "id": 7235,
+          "name": "Ararangua"
+        },
+        "7311": {
+          "id": 7311,
+          "name": "Barra Velha"
+        },
+        "7353": {
+          "id": 7353,
+          "name": "Biguacu"
+        },
+        "7356": {
+          "id": 7356,
+          "name": "Blumenau"
+        },
+        "7389": {
+          "id": 7389,
+          "name": "Braco Do Norte"
+        },
+        "7404": {
+          "id": 7404,
+          "name": "Brusque"
+        },
+        "7424": {
+          "id": 7424,
+          "name": "Cacador"
+        },
+        "7463": {
+          "id": 7463,
+          "name": "Camboriu"
+        },
+        "7489": {
+          "id": 7489,
+          "name": "Campos Novos"
+        },
+        "7508": {
+          "id": 7508,
+          "name": "Canoinhas"
+        },
+        "7523": {
+          "id": 7523,
+          "name": "Capinzal"
+        },
+        "7593": {
+          "id": 7593,
+          "name": "Chapeco"
+        },
+        "7628": {
+          "id": 7628,
+          "name": "Concordia"
+        },
+        "7648": {
+          "id": 7648,
+          "name": "Correia Pinto"
+        },
+        "7660": {
+          "id": 7660,
+          "name": "Criciuma"
+        },
+        "7680": {
+          "id": 7680,
+          "name": "Curitibanos"
+        },
+        "7762": {
+          "id": 7762,
+          "name": "Florianopolis"
+        },
+        "7768": {
+          "id": 7768,
+          "name": "Forquilhinha"
+        },
+        "7786": {
+          "id": 7786,
+          "name": "Gaspar"
+        },
+        "7825": {
+          "id": 7825,
+          "name": "Guaramirim"
+        },
+        "7865": {
+          "id": 7865,
+          "name": "Ibirama"
+        },
+        "7873": {
+          "id": 7873,
+          "name": "Icara"
+        },
+        "7895": {
+          "id": 7895,
+          "name": "Imbituba"
+        },
+        "7898": {
+          "id": 7898,
+          "name": "Indaial"
+        },
+        "7956": {
+          "id": 7956,
+          "name": "Itajai"
+        },
+        "7975": {
+          "id": 7975,
+          "name": "Itapema"
+        },
+        "8020": {
+          "id": 8020,
+          "name": "Ituporanga"
+        },
+        "8043": {
+          "id": 8043,
+          "name": "Jaguaruna"
+        },
+        "8054": {
+          "id": 8054,
+          "name": "Jaragua Do Sul"
+        },
+        "8072": {
+          "id": 8072,
+          "name": "Joacaba"
+        },
+        "8083": {
+          "id": 8083,
+          "name": "Joinville"
+        },
+        "8108": {
+          "id": 8108,
+          "name": "Lages"
+        },
+        "8118": {
+          "id": 8118,
+          "name": "Laguna"
+        },
+        "8129": {
+          "id": 8129,
+          "name": "Lauro Muller"
+        },
+        "8163": {
+          "id": 8163,
+          "name": "Mafra"
+        },
+        "8202": {
+          "id": 8202,
+          "name": "Maravilha"
+        },
+        "8300": {
+          "id": 8300,
+          "name": "Morro Da Fumaca"
+        },
+        "8322": {
+          "id": 8322,
+          "name": "Navegantes"
+        },
+        "8379": {
+          "id": 8379,
+          "name": "Orleans"
+        },
+        "8386": {
+          "id": 8386,
+          "name": "Otacilio Costa"
+        },
+        "8401": {
+          "id": 8401,
+          "name": "Palhoca"
+        },
+        "8489": {
+          "id": 8489,
+          "name": "Penha"
+        },
+        "8560": {
+          "id": 8560,
+          "name": "Pomerode"
+        },
+        "8578": {
+          "id": 8578,
+          "name": "Porto Belo"
+        },
+        "8591": {
+          "id": 8591,
+          "name": "Porto Uniao"
+        },
+        "8671": {
+          "id": 8671,
+          "name": "Rio Do Sul"
+        },
+        "8676": {
+          "id": 8676,
+          "name": "Rio Negrinho"
+        },
+        "8713": {
+          "id": 8713,
+          "name": "Santa Cecilia"
+        },
+        "8759": {
+          "id": 8759,
+          "name": "Santo Amaro Da Imperatriz"
+        },
+        "8781": {
+          "id": 8781,
+          "name": "Sao Bento Do Sul"
+        },
+        "8803": {
+          "id": 8803,
+          "name": "Sao Francisco Do Sul"
+        },
+        "8816": {
+          "id": 8816,
+          "name": "Sao Joao Batista"
+        },
+        "8832": {
+          "id": 8832,
+          "name": "Sao Joaquim"
+        },
+        "8847": {
+          "id": 8847,
+          "name": "Sao Jose"
+        },
+        "8851": {
+          "id": 8851,
+          "name": "Sao Lourenco Do Oeste"
+        },
+        "8866": {
+          "id": 8866,
+          "name": "Sao Miguel Do Oeste"
+        },
+        "8899": {
+          "id": 8899,
+          "name": "Schroeder"
+        },
+        "8901": {
+          "id": 8901,
+          "name": "Seara"
+        },
+        "8924": {
+          "id": 8924,
+          "name": "Sideropolis"
+        },
+        "8939": {
+          "id": 8939,
+          "name": "Sombrio"
+        },
+        "8998": {
+          "id": 8998,
+          "name": "Tijucas"
+        },
+        "9001": {
+          "id": 9001,
+          "name": "Timbo"
+        },
+        "9020": {
+          "id": 9020,
+          "name": "Tres Barras"
+        },
+        "9032": {
+          "id": 9032,
+          "name": "Tubarao"
+        },
+        "9078": {
+          "id": 9078,
+          "name": "Urussanga"
+        },
+        "9111": {
+          "id": 9111,
+          "name": "Videira"
+        },
+        "9129": {
+          "id": 9129,
+          "name": "Xanxere"
+        },
+        "9131": {
+          "id": 9131,
+          "name": "Xaxim"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Sao Paulo",
+      "cities": {
+        "7128": {
+          "id": 7128,
+          "name": "Adamantina"
+        },
+        "7136": {
+          "id": 7136,
+          "name": "Aguai"
+        },
+        "7139": {
+          "id": 7139,
+          "name": "Aguas De Lindoia"
+        },
+        "7142": {
+          "id": 7142,
+          "name": "Agudos"
+        },
+        "7167": {
+          "id": 7167,
+          "name": "Altinopolis"
+        },
+        "7176": {
+          "id": 7176,
+          "name": "Alvares Machado"
+        },
+        "7186": {
+          "id": 7186,
+          "name": "Americana"
+        },
+        "7187": {
+          "id": 7187,
+          "name": "Americo Brasiliense"
+        },
+        "7189": {
+          "id": 7189,
+          "name": "Amparo"
+        },
+        "7200": {
+          "id": 7200,
+          "name": "Andradina"
+        },
+        "7202": {
+          "id": 7202,
+          "name": "Angatuba"
+        },
+        "7208": {
+          "id": 7208,
+          "name": "Aparecida"
+        },
+        "7210": {
+          "id": 7210,
+          "name": "Apiai"
+        },
+        "7218": {
+          "id": 7218,
+          "name": "Aracatuba"
+        },
+        "7222": {
+          "id": 7222,
+          "name": "Aracoiaba Da Serra"
+        },
+        "7236": {
+          "id": 7236,
+          "name": "Araraquara"
+        },
+        "7237": {
+          "id": 7237,
+          "name": "Araras"
+        },
+        "7265": {
+          "id": 7265,
+          "name": "Artur Nogueira"
+        },
+        "7266": {
+          "id": 7266,
+          "name": "Aruja"
+        },
+        "7269": {
+          "id": 7269,
+          "name": "Assis"
+        },
+        "7273": {
+          "id": 7273,
+          "name": "Atibaia"
+        },
+        "7275": {
+          "id": 7275,
+          "name": "Auriflama"
+        },
+        "7278": {
+          "id": 7278,
+          "name": "Avare"
+        },
+        "7281": {
+          "id": 7281,
+          "name": "Bady Bassitt"
+        },
+        "7299": {
+          "id": 7299,
+          "name": "Bariri"
+        },
+        "7301": {
+          "id": 7301,
+          "name": "Barra Bonita"
+        },
+        "7316": {
+          "id": 7316,
+          "name": "Barretos"
+        },
+        "7317": {
+          "id": 7317,
+          "name": "Barrinha"
+        },
+        "7321": {
+          "id": 7321,
+          "name": "Barueri"
+        },
+        "7322": {
+          "id": 7322,
+          "name": "Bastos"
+        },
+        "7326": {
+          "id": 7326,
+          "name": "Batatais"
+        },
+        "7328": {
+          "id": 7328,
+          "name": "Bauru"
+        },
+        "7330": {
+          "id": 7330,
+          "name": "Bebedouro"
+        },
+        "7349": {
+          "id": 7349,
+          "name": "Bernardino De Campos"
+        },
+        "7354": {
+          "id": 7354,
+          "name": "Birigui"
+        },
+        "7355": {
+          "id": 7355,
+          "name": "Biritiba-mirim"
+        },
+        "7359": {
+          "id": 7359,
+          "name": "Boa Esperanca Do Sul"
+        },
+        "7366": {
+          "id": 7366,
+          "name": "Boituva"
+        },
+        "7376": {
+          "id": 7376,
+          "name": "Bom Jesus Dos Perdoes"
+        },
+        "7385": {
+          "id": 7385,
+          "name": "Borborema"
+        },
+        "7388": {
+          "id": 7388,
+          "name": "Botucatu"
+        },
+        "7391": {
+          "id": 7391,
+          "name": "Braganca Paulista"
+        },
+        "7400": {
+          "id": 7400,
+          "name": "Brodowski"
+        },
+        "7401": {
+          "id": 7401,
+          "name": "Brotas"
+        },
+        "7409": {
+          "id": 7409,
+          "name": "Buri"
+        },
+        "7410": {
+          "id": 7410,
+          "name": "Buritama"
+        },
+        "7422": {
+          "id": 7422,
+          "name": "Cabreuva"
+        },
+        "7425": {
+          "id": 7425,
+          "name": "Cacapava"
+        },
+        "7438": {
+          "id": 7438,
+          "name": "Caconde"
+        },
+        "7445": {
+          "id": 7445,
+          "name": "Cafelandia"
+        },
+        "7448": {
+          "id": 7448,
+          "name": "Caieiras"
+        },
+        "7449": {
+          "id": 7449,
+          "name": "Cajamar"
+        },
+        "7450": {
+          "id": 7450,
+          "name": "Cajati"
+        },
+        "7453": {
+          "id": 7453,
+          "name": "Cajuru"
+        },
+        "7474": {
+          "id": 7474,
+          "name": "Campinas"
+        },
+        "7487": {
+          "id": 7487,
+          "name": "Campos Do Jordao"
+        },
+        "7492": {
+          "id": 7492,
+          "name": "Cananeia"
+        },
+        "7500": {
+          "id": 7500,
+          "name": "Candido Mota"
+        },
+        "7515": {
+          "id": 7515,
+          "name": "Capao Bonito"
+        },
+        "7519": {
+          "id": 7519,
+          "name": "Capela Do Alto"
+        },
+        "7525": {
+          "id": 7525,
+          "name": "Capivari"
+        },
+        "7527": {
+          "id": 7527,
+          "name": "Caraguatatuba"
+        },
+        "7532": {
+          "id": 7532,
+          "name": "Carapicuiba"
+        },
+        "7538": {
+          "id": 7538,
+          "name": "Cardoso"
+        },
+        "7558": {
+          "id": 7558,
+          "name": "Casa Branca"
+        },
+        "7568": {
+          "id": 7568,
+          "name": "Castilho"
+        },
+        "7573": {
+          "id": 7573,
+          "name": "Catanduva"
+        },
+        "7587": {
+          "id": 7587,
+          "name": "Cerqueira Cesar"
+        },
+        "7588": {
+          "id": 7588,
+          "name": "Cerquilho"
+        },
+        "7594": {
+          "id": 7594,
+          "name": "Charqueada"
+        },
+        "7596": {
+          "id": 7596,
+          "name": "Chavantes"
+        },
+        "7612": {
+          "id": 7612,
+          "name": "Colina"
+        },
+        "7626": {
+          "id": 7626,
+          "name": "Conchal"
+        },
+        "7627": {
+          "id": 7627,
+          "name": "Conchas"
+        },
+        "7639": {
+          "id": 7639,
+          "name": "Cordeiropolis"
+        },
+        "7653": {
+          "id": 7653,
+          "name": "Cosmopolis"
+        },
+        "7655": {
+          "id": 7655,
+          "name": "Cotia"
+        },
+        "7659": {
+          "id": 7659,
+          "name": "Cravinhos"
+        },
+        "7668": {
+          "id": 7668,
+          "name": "Cruzeiro"
+        },
+        "7672": {
+          "id": 7672,
+          "name": "Cubatao"
+        },
+        "7676": {
+          "id": 7676,
+          "name": "Cunha"
+        },
+        "7688": {
+          "id": 7688,
+          "name": "Descalvado"
+        },
+        "7690": {
+          "id": 7690,
+          "name": "Diadema"
+        },
+        "7695": {
+          "id": 7695,
+          "name": "Dois Corregos"
+        },
+        "7705": {
+          "id": 7705,
+          "name": "Dracena"
+        },
+        "7706": {
+          "id": 7706,
+          "name": "Duartina"
+        },
+        "7713": {
+          "id": 7713,
+          "name": "Elias Fausto"
+        },
+        "7715": {
+          "id": 7715,
+          "name": "Embu"
+        },
+        "7716": {
+          "id": 7716,
+          "name": "Embu-guacu"
+        },
+        "7731": {
+          "id": 7731,
+          "name": "Espirito Santo Do Pinhal"
+        },
+        "7747": {
+          "id": 7747,
+          "name": "Fartura"
+        },
+        "7753": {
+          "id": 7753,
+          "name": "Fernandopolis"
+        },
+        "7754": {
+          "id": 7754,
+          "name": "Ferraz De Vasconcelos"
+        },
+        "7771": {
+          "id": 7771,
+          "name": "Franca"
+        },
+        "7773": {
+          "id": 7773,
+          "name": "Francisco Morato"
+        },
+        "7775": {
+          "id": 7775,
+          "name": "Franco Da Rocha"
+        },
+        "7784": {
+          "id": 7784,
+          "name": "Garca"
+        },
+        "7787": {
+          "id": 7787,
+          "name": "General Salgado"
+        },
+        "7812": {
+          "id": 7812,
+          "name": "Guaira"
+        },
+        "7818": {
+          "id": 7818,
+          "name": "Guapiacu"
+        },
+        "7824": {
+          "id": 7824,
+          "name": "Guara"
+        },
+        "7830": {
+          "id": 7830,
+          "name": "Guararapes"
+        },
+        "7831": {
+          "id": 7831,
+          "name": "Guararema"
+        },
+        "7833": {
+          "id": 7833,
+          "name": "Guaratingueta"
+        },
+        "7835": {
+          "id": 7835,
+          "name": "Guariba"
+        },
+        "7836": {
+          "id": 7836,
+          "name": "Guaruja"
+        },
+        "7837": {
+          "id": 7837,
+          "name": "Guarulhos"
+        },
+        "7848": {
+          "id": 7848,
+          "name": "Hortolandia"
+        },
+        "7855": {
+          "id": 7855,
+          "name": "Ibate"
+        },
+        "7870": {
+          "id": 7870,
+          "name": "Ibitinga"
+        },
+        "7871": {
+          "id": 7871,
+          "name": "Ibiuna"
+        },
+        "7878": {
+          "id": 7878,
+          "name": "Igaracu Do Tiete"
+        },
+        "7879": {
+          "id": 7879,
+          "name": "Igarapava"
+        },
+        "7888": {
+          "id": 7888,
+          "name": "Iguape"
+        },
+        "7892": {
+          "id": 7892,
+          "name": "Ilhabela"
+        },
+        "7899": {
+          "id": 7899,
+          "name": "Indaiatuba"
+        },
+        "7913": {
+          "id": 7913,
+          "name": "Ipaussu"
+        },
+        "7914": {
+          "id": 7914,
+          "name": "Ipero"
+        },
+        "7921": {
+          "id": 7921,
+          "name": "Ipua"
+        },
+        "7925": {
+          "id": 7925,
+          "name": "Iracemapolis"
+        },
+        "7939": {
+          "id": 7939,
+          "name": "Itabera"
+        },
+        "7952": {
+          "id": 7952,
+          "name": "Itai"
+        },
+        "7957": {
+          "id": 7957,
+          "name": "Itajobi"
+        },
+        "7965": {
+          "id": 7965,
+          "name": "Itanhaem"
+        },
+        "7973": {
+          "id": 7973,
+          "name": "Itapecerica Da Serra"
+        },
+        "7980": {
+          "id": 7980,
+          "name": "Itapetininga"
+        },
+        "7981": {
+          "id": 7981,
+          "name": "Itapeva"
+        },
+        "7982": {
+          "id": 7982,
+          "name": "Itapevi"
+        },
+        "7985": {
+          "id": 7985,
+          "name": "Itapira"
+        },
+        "7988": {
+          "id": 7988,
+          "name": "Itapolis"
+        },
+        "7991": {
+          "id": 7991,
+          "name": "Itaporanga"
+        },
+        "7992": {
+          "id": 7992,
+          "name": "Itapui"
+        },
+        "7994": {
+          "id": 7994,
+          "name": "Itaquaquecetuba"
+        },
+        "7999": {
+          "id": 7999,
+          "name": "Itarare"
+        },
+        "8002": {
+          "id": 8002,
+          "name": "Itatiba"
+        },
+        "8003": {
+          "id": 8003,
+          "name": "Itatinga"
+        },
+        "8009": {
+          "id": 8009,
+          "name": "Itirapina"
+        },
+        "8015": {
+          "id": 8015,
+          "name": "Itu"
+        },
+        "8022": {
+          "id": 8022,
+          "name": "Ituverava"
+        },
+        "8027": {
+          "id": 8027,
+          "name": "Jaboticabal"
+        },
+        "8030": {
+          "id": 8030,
+          "name": "Jacarei"
+        },
+        "8034": {
+          "id": 8034,
+          "name": "Jacupiranga"
+        },
+        "8041": {
+          "id": 8041,
+          "name": "Jaguariuna"
+        },
+        "8045": {
+          "id": 8045,
+          "name": "Jales"
+        },
+        "8048": {
+          "id": 8048,
+          "name": "Jandira"
+        },
+        "8060": {
+          "id": 8060,
+          "name": "Jardinopolis"
+        },
+        "8061": {
+          "id": 8061,
+          "name": "Jarinu"
+        },
+        "8065": {
+          "id": 8065,
+          "name": "Jau"
+        },
+        "8074": {
+          "id": 8074,
+          "name": "Joanopolis"
+        },
+        "8084": {
+          "id": 8084,
+          "name": "Jose Bonifacio"
+        },
+        "8094": {
+          "id": 8094,
+          "name": "Jundiai"
+        },
+        "8097": {
+          "id": 8097,
+          "name": "Junqueiropolis"
+        },
+        "8098": {
+          "id": 8098,
+          "name": "Juquia"
+        },
+        "8099": {
+          "id": 8099,
+          "name": "Juquitiba"
+        },
+        "8126": {
+          "id": 8126,
+          "name": "Laranjal Paulista"
+        },
+        "8132": {
+          "id": 8132,
+          "name": "Leme"
+        },
+        "8133": {
+          "id": 8133,
+          "name": "Lencois Paulista"
+        },
+        "8136": {
+          "id": 8136,
+          "name": "Limeira"
+        },
+        "8142": {
+          "id": 8142,
+          "name": "Lins"
+        },
+        "8146": {
+          "id": 8146,
+          "name": "Lorena"
+        },
+        "8147": {
+          "id": 8147,
+          "name": "Louveira"
+        },
+        "8148": {
+          "id": 8148,
+          "name": "Lucelia"
+        },
+        "8157": {
+          "id": 8157,
+          "name": "Macatuba"
+        },
+        "8166": {
+          "id": 8166,
+          "name": "Mairinque"
+        },
+        "8167": {
+          "id": 8167,
+          "name": "Mairipora"
+        },
+        "8190": {
+          "id": 8190,
+          "name": "Maracai"
+        },
+        "8213": {
+          "id": 8213,
+          "name": "Marilia"
+        },
+        "8217": {
+          "id": 8217,
+          "name": "Martinopolis"
+        },
+        "8224": {
+          "id": 8224,
+          "name": "Matao"
+        },
+        "8235": {
+          "id": 8235,
+          "name": "Maua"
+        },
+        "8246": {
+          "id": 8246,
+          "name": "Miguelopolis"
+        },
+        "8254": {
+          "id": 8254,
+          "name": "Miracatu"
+        },
+        "8260": {
+          "id": 8260,
+          "name": "Mirandopolis"
+        },
+        "8262": {
+          "id": 8262,
+          "name": "Mirante Do Paranapanema"
+        },
+        "8263": {
+          "id": 8263,
+          "name": "Mirassol"
+        },
+        "8266": {
+          "id": 8266,
+          "name": "Mococa"
+        },
+        "8269": {
+          "id": 8269,
+          "name": "Moji Das Cruzes"
+        },
+        "8270": {
+          "id": 8270,
+          "name": "Moji-mirim"
+        },
+        "8274": {
+          "id": 8274,
+          "name": "Mongagua"
+        },
+        "8282": {
+          "id": 8282,
+          "name": "Monte Alto"
+        },
+        "8283": {
+          "id": 8283,
+          "name": "Monte Aprazivel"
+        },
+        "8285": {
+          "id": 8285,
+          "name": "Monte Azul Paulista"
+        },
+        "8288": {
+          "id": 8288,
+          "name": "Monte Mor"
+        },
+        "8299": {
+          "id": 8299,
+          "name": "Morro Agudo"
+        },
+        "8346": {
+          "id": 8346,
+          "name": "Nova Granada"
+        },
+        "8350": {
+          "id": 8350,
+          "name": "Nova Odessa"
+        },
+        "8363": {
+          "id": 8363,
+          "name": "Novo Horizonte"
+        },
+        "8370": {
+          "id": 8370,
+          "name": "Olimpia"
+        },
+        "8378": {
+          "id": 8378,
+          "name": "Orlandia"
+        },
+        "8383": {
+          "id": 8383,
+          "name": "Osasco"
+        },
+        "8385": {
+          "id": 8385,
+          "name": "Osvaldo Cruz"
+        },
+        "8389": {
+          "id": 8389,
+          "name": "Ourinhos"
+        },
+        "8394": {
+          "id": 8394,
+          "name": "Pacaembu"
+        },
+        "8411": {
+          "id": 8411,
+          "name": "Palmital"
+        },
+        "8416": {
+          "id": 8416,
+          "name": "Panorama"
+        },
+        "8425": {
+          "id": 8425,
+          "name": "Paraguacu Paulista"
+        },
+        "8434": {
+          "id": 8434,
+          "name": "Paranapanema"
+        },
+        "8445": {
+          "id": 8445,
+          "name": "Pariquera-acu"
+        },
+        "8466": {
+          "id": 8466,
+          "name": "Paulinia"
+        },
+        "8473": {
+          "id": 8473,
+          "name": "Pederneiras"
+        },
+        "8478": {
+          "id": 8478,
+          "name": "Pedregulho"
+        },
+        "8479": {
+          "id": 8479,
+          "name": "Pedreira"
+        },
+        "8486": {
+          "id": 8486,
+          "name": "Penapolis"
+        },
+        "8492": {
+          "id": 8492,
+          "name": "Pereira Barreto"
+        },
+        "8493": {
+          "id": 8493,
+          "name": "Peruibe"
+        },
+        "8503": {
+          "id": 8503,
+          "name": "Piedade"
+        },
+        "8505": {
+          "id": 8505,
+          "name": "Pilar Do Sul"
+        },
+        "8510": {
+          "id": 8510,
+          "name": "Pindamonhangaba"
+        },
+        "8512": {
+          "id": 8512,
+          "name": "Pindorama"
+        },
+        "8519": {
+          "id": 8519,
+          "name": "Piquete"
+        },
+        "8520": {
+          "id": 8520,
+          "name": "Piracaia"
+        },
+        "8522": {
+          "id": 8522,
+          "name": "Piracicaba"
+        },
+        "8526": {
+          "id": 8526,
+          "name": "Pirajui"
+        },
+        "8527": {
+          "id": 8527,
+          "name": "Piraju"
+        },
+        "8531": {
+          "id": 8531,
+          "name": "Pirapora Do Bom Jesus"
+        },
+        "8533": {
+          "id": 8533,
+          "name": "Pirapozinho"
+        },
+        "8535": {
+          "id": 8535,
+          "name": "Pirassununga"
+        },
+        "8542": {
+          "id": 8542,
+          "name": "Pitangueiras"
+        },
+        "8548": {
+          "id": 8548,
+          "name": "Poa"
+        },
+        "8561": {
+          "id": 8561,
+          "name": "Pompeia"
+        },
+        "8566": {
+          "id": 8566,
+          "name": "Pontal"
+        },
+        "8582": {
+          "id": 8582,
+          "name": "Porto Feliz"
+        },
+        "8583": {
+          "id": 8583,
+          "name": "Porto Ferreira"
+        },
+        "8596": {
+          "id": 8596,
+          "name": "Pradopolis"
+        },
+        "8598": {
+          "id": 8598,
+          "name": "Praia Grande"
+        },
+        "8601": {
+          "id": 8601,
+          "name": "Presidente Bernardes"
+        },
+        "8603": {
+          "id": 8603,
+          "name": "Presidente Epitacio"
+        },
+        "8606": {
+          "id": 8606,
+          "name": "Presidente Prudente"
+        },
+        "8607": {
+          "id": 8607,
+          "name": "Presidente Venceslau"
+        },
+        "8609": {
+          "id": 8609,
+          "name": "Promissao"
+        },
+        "8614": {
+          "id": 8614,
+          "name": "Quata"
+        },
+        "8627": {
+          "id": 8627,
+          "name": "Rancharia"
+        },
+        "8636": {
+          "id": 8636,
+          "name": "Regente Feijo"
+        },
+        "8637": {
+          "id": 8637,
+          "name": "Registro"
+        },
+        "8652": {
+          "id": 8652,
+          "name": "Ribeirao Bonito"
+        },
+        "8653": {
+          "id": 8653,
+          "name": "Ribeirao Branco"
+        },
+        "8656": {
+          "id": 8656,
+          "name": "Ribeirao Pires"
+        },
+        "8657": {
+          "id": 8657,
+          "name": "Ribeirao Preto"
+        },
+        "8667": {
+          "id": 8667,
+          "name": "Rio Claro"
+        },
+        "8669": {
+          "id": 8669,
+          "name": "Rio Das Pedras"
+        },
+        "8673": {
+          "id": 8673,
+          "name": "Rio Grande Da Serra"
+        },
+        "8706": {
+          "id": 8706,
+          "name": "Salto De Pirapora"
+        },
+        "8707": {
+          "id": 8707,
+          "name": "Salto"
+        },
+        "8710": {
+          "id": 8710,
+          "name": "Santa Adelia"
+        },
+        "8712": {
+          "id": 8712,
+          "name": "Santa Branca"
+        },
+        "8715": {
+          "id": 8715,
+          "name": "Santa Cruz Das Palmeiras"
+        },
+        "8717": {
+          "id": 8717,
+          "name": "Santa Cruz Do Rio Pardo"
+        },
+        "8720": {
+          "id": 8720,
+          "name": "Santa Fe Do Sul"
+        },
+        "8721": {
+          "id": 8721,
+          "name": "Santa Gertrudes"
+        },
+        "8728": {
+          "id": 8728,
+          "name": "Santa Isabel"
+        },
+        "8738": {
+          "id": 8738,
+          "name": "Santana De Parnaiba"
+        },
+        "8749": {
+          "id": 8749,
+          "name": "Santa Rita Do Passa Quatro"
+        },
+        "8753": {
+          "id": 8753,
+          "name": "Santa Rosa De Viterbo"
+        },
+        "8762": {
+          "id": 8762,
+          "name": "Santo Anastacio"
+        },
+        "8763": {
+          "id": 8763,
+          "name": "Santo Andre"
+        },
+        "8768": {
+          "id": 8768,
+          "name": "Santo Antonio De Posse"
+        },
+        "8779": {
+          "id": 8779,
+          "name": "Santos"
+        },
+        "8785": {
+          "id": 8785,
+          "name": "Sao Bernardo Do Campo"
+        },
+        "8789": {
+          "id": 8789,
+          "name": "Sao Caetano Do Sul"
+        },
+        "8791": {
+          "id": 8791,
+          "name": "Sao Carlos"
+        },
+        "8818": {
+          "id": 8818,
+          "name": "Sao Joao Da Boa Vista"
+        },
+        "8829": {
+          "id": 8829,
+          "name": "Sao Joaquim Da Barra"
+        },
+        "8843": {
+          "id": 8843,
+          "name": "Sao Jose Do Rio Pardo"
+        },
+        "8844": {
+          "id": 8844,
+          "name": "Sao Jose Do Rio Preto"
+        },
+        "8845": {
+          "id": 8845,
+          "name": "Sao Jose Dos Campos"
+        },
+        "8850": {
+          "id": 8850,
+          "name": "Sao Lourenco Da Serra"
+        },
+        "8858": {
+          "id": 8858,
+          "name": "Sao Manuel"
+        },
+        "8872": {
+          "id": 8872,
+          "name": "Sao Paulo"
+        },
+        "8876": {
+          "id": 8876,
+          "name": "Sao Pedro"
+        },
+        "8879": {
+          "id": 8879,
+          "name": "Sao Roque"
+        },
+        "8884": {
+          "id": 8884,
+          "name": "Sao Sebastiao"
+        },
+        "8886": {
+          "id": 8886,
+          "name": "Sao Simao"
+        },
+        "8888": {
+          "id": 8888,
+          "name": "Sao Vicente"
+        },
+        "8912": {
+          "id": 8912,
+          "name": "Serrana"
+        },
+        "8913": {
+          "id": 8913,
+          "name": "Serra Negra"
+        },
+        "8920": {
+          "id": 8920,
+          "name": "Sertaozinho"
+        },
+        "8923": {
+          "id": 8923,
+          "name": "Severinia"
+        },
+        "8935": {
+          "id": 8935,
+          "name": "Socorro"
+        },
+        "8940": {
+          "id": 8940,
+          "name": "Sorocaba"
+        },
+        "8943": {
+          "id": 8943,
+          "name": "Sumare"
+        },
+        "8946": {
+          "id": 8946,
+          "name": "Suzano"
+        },
+        "8948": {
+          "id": 8948,
+          "name": "Tabatinga"
+        },
+        "8950": {
+          "id": 8950,
+          "name": "Taboao Da Serra"
+        },
+        "8956": {
+          "id": 8956,
+          "name": "Tambau"
+        },
+        "8958": {
+          "id": 8958,
+          "name": "Tanabi"
+        },
+        "8973": {
+          "id": 8973,
+          "name": "Taquaritinga"
+        },
+        "8974": {
+          "id": 8974,
+          "name": "Taquarituba"
+        },
+        "8976": {
+          "id": 8976,
+          "name": "Taruma"
+        },
+        "8977": {
+          "id": 8977,
+          "name": "Tatui"
+        },
+        "8979": {
+          "id": 8979,
+          "name": "Taubate"
+        },
+        "8984": {
+          "id": 8984,
+          "name": "Teodoro Sampaio"
+        },
+        "8997": {
+          "id": 8997,
+          "name": "Tiete"
+        },
+        "9019": {
+          "id": 9019,
+          "name": "Tremembe"
+        },
+        "9040": {
+          "id": 9040,
+          "name": "Tupa"
+        },
+        "9041": {
+          "id": 9041,
+          "name": "Tupi Paulista"
+        },
+        "9051": {
+          "id": 9051,
+          "name": "Ubatuba"
+        },
+        "9077": {
+          "id": 9077,
+          "name": "Urupes"
+        },
+        "9085": {
+          "id": 9085,
+          "name": "Valinhos"
+        },
+        "9086": {
+          "id": 9086,
+          "name": "Valparaiso"
+        },
+        "9088": {
+          "id": 9088,
+          "name": "Vargem Grande Do Sul"
+        },
+        "9095": {
+          "id": 9095,
+          "name": "Varzea Paulista"
+        },
+        "9115": {
+          "id": 9115,
+          "name": "Vinhedo"
+        },
+        "9116": {
+          "id": 9116,
+          "name": "Viradouro"
+        },
+        "9125": {
+          "id": 9125,
+          "name": "Votorantim"
+        }
+      }
+    },
+    "28": {
+      "code": "28",
+      "name": "Sergipe",
+      "cities": {
+        "7213": {
+          "id": 7213,
+          "name": "Aquidaba"
+        },
+        "7216": {
+          "id": 7216,
+          "name": "Aracaju"
+        },
+        "7243": {
+          "id": 7243,
+          "name": "Araua"
+        },
+        "7252": {
+          "id": 7252,
+          "name": "Areia Branca"
+        },
+        "7308": {
+          "id": 7308,
+          "name": "Barra Dos Coqueiros"
+        },
+        "7382": {
+          "id": 7382,
+          "name": "Boquim"
+        },
+        "7478": {
+          "id": 7478,
+          "name": "Campo Do Brito"
+        },
+        "7506": {
+          "id": 7506,
+          "name": "Caninde De Sao Francisco"
+        },
+        "7518": {
+          "id": 7518,
+          "name": "Capela"
+        },
+        "7543": {
+          "id": 7543,
+          "name": "Carira"
+        },
+        "7662": {
+          "id": 7662,
+          "name": "Cristinapolis"
+        },
+        "7734": {
+          "id": 7734,
+          "name": "Estancia"
+        },
+        "7777": {
+          "id": 7777,
+          "name": "Frei Paulo"
+        },
+        "7783": {
+          "id": 7783,
+          "name": "Gararu"
+        },
+        "7901": {
+          "id": 7901,
+          "name": "Indiaroba"
+        },
+        "7935": {
+          "id": 7935,
+          "name": "Itabaiana"
+        },
+        "7936": {
+          "id": 7936,
+          "name": "Itabaianinha"
+        },
+        "8050": {
+          "id": 8050,
+          "name": "Japaratuba"
+        },
+        "8052": {
+          "id": 8052,
+          "name": "Japoata"
+        },
+        "8107": {
+          "id": 8107,
+          "name": "Lagarto"
+        },
+        "8128": {
+          "id": 8128,
+          "name": "Laranjeiras"
+        },
+        "8170": {
+          "id": 8170,
+          "name": "Malhador"
+        },
+        "8218": {
+          "id": 8218,
+          "name": "Maruim"
+        },
+        "8268": {
+          "id": 8268,
+          "name": "Moita Bonita"
+        },
+        "8279": {
+          "id": 8279,
+          "name": "Monte Alegre De Sergipe"
+        },
+        "8326": {
+          "id": 8326,
+          "name": "Neopolis"
+        },
+        "8337": {
+          "id": 8337,
+          "name": "Nossa Senhora Da Gloria"
+        },
+        "8338": {
+          "id": 8338,
+          "name": "Nossa Senhora Das Dores"
+        },
+        "8339": {
+          "id": 8339,
+          "name": "Nossa Senhora Do Socorro"
+        },
+        "8397": {
+          "id": 8397,
+          "name": "Pacatuba"
+        },
+        "8556": {
+          "id": 8556,
+          "name": "Poco Verde"
+        },
+        "8580": {
+          "id": 8580,
+          "name": "Porto Da Folha"
+        },
+        "8610": {
+          "id": 8610,
+          "name": "Propria"
+        },
+        "8645": {
+          "id": 8645,
+          "name": "Riachao Do Dantas"
+        },
+        "8659": {
+          "id": 8659,
+          "name": "Ribeiropolis"
+        },
+        "8702": {
+          "id": 8702,
+          "name": "Salgado"
+        },
+        "8760": {
+          "id": 8760,
+          "name": "Santo Amaro Das Brotas"
+        },
+        "8792": {
+          "id": 8792,
+          "name": "Sao Cristovao"
+        },
+        "8928": {
+          "id": 8928,
+          "name": "Simao Dias"
+        },
+        "9005": {
+          "id": 9005,
+          "name": "Tobias Barreto"
+        },
+        "9009": {
+          "id": 9009,
+          "name": "Tomar Do Geru"
+        },
+        "9057": {
+          "id": 9057,
+          "name": "Umbauba"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Goias",
+      "cities": {
+        "7117": {
+          "id": 7117,
+          "name": "Abadiania"
+        },
+        "7196": {
+          "id": 7196,
+          "name": "Anapolis"
+        },
+        "7205": {
+          "id": 7205,
+          "name": "Anicuns"
+        },
+        "7225": {
+          "id": 7225,
+          "name": "Aragarcas"
+        },
+        "7334": {
+          "id": 7334,
+          "name": "Bela Vista De Goias"
+        },
+        "7411": {
+          "id": 7411,
+          "name": "Buriti Alegre"
+        },
+        "7439": {
+          "id": 7439,
+          "name": "Cacu"
+        },
+        "7446": {
+          "id": 7446,
+          "name": "Caiaponia"
+        },
+        "7454": {
+          "id": 7454,
+          "name": "Caldas Novas"
+        },
+        "7485": {
+          "id": 7485,
+          "name": "Campos Belos"
+        },
+        "7552": {
+          "id": 7552,
+          "name": "Carmo Do Rio Verde"
+        },
+        "7572": {
+          "id": 7572,
+          "name": "Catalao"
+        },
+        "7578": {
+          "id": 7578,
+          "name": "Cavalcante"
+        },
+        "7586": {
+          "id": 7586,
+          "name": "Ceres"
+        },
+        "7661": {
+          "id": 7661,
+          "name": "Cristalina"
+        },
+        "7663": {
+          "id": 7663,
+          "name": "Crixas"
+        },
+        "7709": {
+          "id": 7709,
+          "name": "Edeia"
+        },
+        "7755": {
+          "id": 7755,
+          "name": "Firminopolis"
+        },
+        "7766": {
+          "id": 7766,
+          "name": "Formosa"
+        },
+        "7794": {
+          "id": 7794,
+          "name": "Goianapolis"
+        },
+        "7795": {
+          "id": 7795,
+          "name": "Goianesia"
+        },
+        "7796": {
+          "id": 7796,
+          "name": "Goiania"
+        },
+        "7798": {
+          "id": 7798,
+          "name": "Goianira"
+        },
+        "7799": {
+          "id": 7799,
+          "name": "Goias"
+        },
+        "7800": {
+          "id": 7800,
+          "name": "Goiatuba"
+        },
+        "7820": {
+          "id": 7820,
+          "name": "Guapo"
+        },
+        "7845": {
+          "id": 7845,
+          "name": "Hidrolandia"
+        },
+        "7851": {
+          "id": 7851,
+          "name": "Iaciara"
+        },
+        "7907": {
+          "id": 7907,
+          "name": "Inhumas"
+        },
+        "7909": {
+          "id": 7909,
+          "name": "Ipameri"
+        },
+        "7920": {
+          "id": 7920,
+          "name": "Ipora"
+        },
+        "7938": {
+          "id": 7938,
+          "name": "Itaberai"
+        },
+        "7970": {
+          "id": 7970,
+          "name": "Itapaci"
+        },
+        "7986": {
+          "id": 7986,
+          "name": "Itapirapua"
+        },
+        "7993": {
+          "id": 7993,
+          "name": "Itapuranga"
+        },
+        "8017": {
+          "id": 8017,
+          "name": "Itumbiara"
+        },
+        "8055": {
+          "id": 8055,
+          "name": "Jaragua"
+        },
+        "8063": {
+          "id": 8063,
+          "name": "Jatai"
+        },
+        "8150": {
+          "id": 8150,
+          "name": "Luziania"
+        },
+        "8252": {
+          "id": 8252,
+          "name": "Mineiros"
+        },
+        "8298": {
+          "id": 8298,
+          "name": "Morrinhos"
+        },
+        "8303": {
+          "id": 8303,
+          "name": "Mozarlandia"
+        },
+        "8328": {
+          "id": 8328,
+          "name": "Neropolis"
+        },
+        "8332": {
+          "id": 8332,
+          "name": "Niquelandia"
+        },
+        "8377": {
+          "id": 8377,
+          "name": "Orizona"
+        },
+        "8398": {
+          "id": 8398,
+          "name": "Padre Bernardo"
+        },
+        "8410": {
+          "id": 8410,
+          "name": "Palmeiras De Goias"
+        },
+        "8441": {
+          "id": 8441,
+          "name": "Parauna"
+        },
+        "8496": {
+          "id": 8496,
+          "name": "Petrolina De Goias"
+        },
+        "8521": {
+          "id": 8521,
+          "name": "Piracanjuba"
+        },
+        "8529": {
+          "id": 8529,
+          "name": "Piranhas"
+        },
+        "8536": {
+          "id": 8536,
+          "name": "Pirenopolis"
+        },
+        "8537": {
+          "id": 8537,
+          "name": "Pires Do Rio"
+        },
+        "8565": {
+          "id": 8565,
+          "name": "Pontalina"
+        },
+        "8571": {
+          "id": 8571,
+          "name": "Porangatu"
+        },
+        "8594": {
+          "id": 8594,
+          "name": "Posse"
+        },
+        "8623": {
+          "id": 8623,
+          "name": "Quirinopolis"
+        },
+        "8649": {
+          "id": 8649,
+          "name": "Rialma"
+        },
+        "8695": {
+          "id": 8695,
+          "name": "Rubiataba"
+        },
+        "8722": {
+          "id": 8722,
+          "name": "Santa Helena De Goias"
+        },
+        "8796": {
+          "id": 8796,
+          "name": "Sao Domingos"
+        },
+        "8854": {
+          "id": 8854,
+          "name": "Sao Luis De Montes Belos"
+        },
+        "8863": {
+          "id": 8863,
+          "name": "Sao Miguel Do Araguaia"
+        },
+        "8902": {
+          "id": 8902,
+          "name": "Senador Canedo"
+        },
+        "8927": {
+          "id": 8927,
+          "name": "Silvania"
+        },
+        "9028": {
+          "id": 9028,
+          "name": "Trindade"
+        },
+        "9069": {
+          "id": 9069,
+          "name": "Uruacu"
+        },
+        "9070": {
+          "id": 9070,
+          "name": "Uruana"
+        },
+        "9106": {
+          "id": 9106,
+          "name": "Vianopolis"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Pernambuco",
+      "cities": {
+        "7120": {
+          "id": 7120,
+          "name": "Abreu E Lima"
+        },
+        "7129": {
+          "id": 7129,
+          "name": "Afogados Da Ingazeira"
+        },
+        "7133": {
+          "id": 7133,
+          "name": "Agrestina"
+        },
+        "7137": {
+          "id": 7137,
+          "name": "Agua Preta"
+        },
+        "7138": {
+          "id": 7138,
+          "name": "Aguas Belas"
+        },
+        "7158": {
+          "id": 7158,
+          "name": "Alianca"
+        },
+        "7166": {
+          "id": 7166,
+          "name": "Altinho"
+        },
+        "7181": {
+          "id": 7181,
+          "name": "Amaraji"
+        },
+        "7221": {
+          "id": 7221,
+          "name": "Aracoiaba"
+        },
+        "7240": {
+          "id": 7240,
+          "name": "Araripina"
+        },
+        "7247": {
+          "id": 7247,
+          "name": "Arcoverde"
+        },
+        "7315": {
+          "id": 7315,
+          "name": "Barreiros"
+        },
+        "7338": {
+          "id": 7338,
+          "name": "Belem De Sao Francisco"
+        },
+        "7342": {
+          "id": 7342,
+          "name": "Belo Jardim"
+        },
+        "7351": {
+          "id": 7351,
+          "name": "Bezerros"
+        },
+        "7365": {
+          "id": 7365,
+          "name": "Bodoco"
+        },
+        "7367": {
+          "id": 7367,
+          "name": "Bom Conselho"
+        },
+        "7371": {
+          "id": 7371,
+          "name": "Bom Jardim"
+        },
+        "7380": {
+          "id": 7380,
+          "name": "Bonito"
+        },
+        "7397": {
+          "id": 7397,
+          "name": "Brejo Da Madre De Deus"
+        },
+        "7407": {
+          "id": 7407,
+          "name": "Buique"
+        },
+        "7423": {
+          "id": 7423,
+          "name": "Cabrobo"
+        },
+        "7433": {
+          "id": 7433,
+          "name": "Cachoeirinha"
+        },
+        "7442": {
+          "id": 7442,
+          "name": "Caetes"
+        },
+        "7460": {
+          "id": 7460,
+          "name": "Camaragibe"
+        },
+        "7469": {
+          "id": 7469,
+          "name": "Camocim De Sao Felix"
+        },
+        "7504": {
+          "id": 7504,
+          "name": "Canhotinho"
+        },
+        "7526": {
+          "id": 7526,
+          "name": "Capoeiras"
+        },
+        "7553": {
+          "id": 7553,
+          "name": "Carnaiba"
+        },
+        "7555": {
+          "id": 7555,
+          "name": "Carpina"
+        },
+        "7556": {
+          "id": 7556,
+          "name": "Caruaru"
+        },
+        "7574": {
+          "id": 7574,
+          "name": "Catende"
+        },
+        "7590": {
+          "id": 7590,
+          "name": "Cha Grande"
+        },
+        "7629": {
+          "id": 7629,
+          "name": "Condado"
+        },
+        "7675": {
+          "id": 7675,
+          "name": "Cumaru"
+        },
+        "7677": {
+          "id": 7677,
+          "name": "Cupira"
+        },
+        "7685": {
+          "id": 7685,
+          "name": "Custodia"
+        },
+        "7724": {
+          "id": 7724,
+          "name": "Escada"
+        },
+        "7743": {
+          "id": 7743,
+          "name": "Exu"
+        },
+        "7752": {
+          "id": 7752,
+          "name": "Feira Nova"
+        },
+        "7758": {
+          "id": 7758,
+          "name": "Flores"
+        },
+        "7759": {
+          "id": 7759,
+          "name": "Floresta"
+        },
+        "7780": {
+          "id": 7780,
+          "name": "Gameleira"
+        },
+        "7782": {
+          "id": 7782,
+          "name": "Garanhuns"
+        },
+        "7792": {
+          "id": 7792,
+          "name": "Gloria Do Goita"
+        },
+        "7793": {
+          "id": 7793,
+          "name": "Goiana"
+        },
+        "7807": {
+          "id": 7807,
+          "name": "Gravata"
+        },
+        "7861": {
+          "id": 7861,
+          "name": "Ibimirim"
+        },
+        "7883": {
+          "id": 7883,
+          "name": "Igarassu"
+        },
+        "7918": {
+          "id": 7918,
+          "name": "Ipojuca"
+        },
+        "7922": {
+          "id": 7922,
+          "name": "Ipubi"
+        },
+        "7951": {
+          "id": 7951,
+          "name": "Itaiba"
+        },
+        "7960": {
+          "id": 7960,
+          "name": "Itamaraca"
+        },
+        "7987": {
+          "id": 7987,
+          "name": "Itapissuma"
+        },
+        "7996": {
+          "id": 7996,
+          "name": "Itaquitinga"
+        },
+        "8026": {
+          "id": 8026,
+          "name": "Jaboatao"
+        },
+        "8075": {
+          "id": 8075,
+          "name": "Joao Alfredo"
+        },
+        "8082": {
+          "id": 8082,
+          "name": "Joaquim Nabuco"
+        },
+        "8111": {
+          "id": 8111,
+          "name": "Lagoa Do Itaenga"
+        },
+        "8120": {
+          "id": 8120,
+          "name": "Lajedo"
+        },
+        "8140": {
+          "id": 8140,
+          "name": "Limoeiro"
+        },
+        "8156": {
+          "id": 8156,
+          "name": "Macaparana"
+        },
+        "8197": {
+          "id": 8197,
+          "name": "Maraial"
+        },
+        "8297": {
+          "id": 8297,
+          "name": "Moreno"
+        },
+        "8324": {
+          "id": 8324,
+          "name": "Nazare Da Mata"
+        },
+        "8371": {
+          "id": 8371,
+          "name": "Olinda"
+        },
+        "8380": {
+          "id": 8380,
+          "name": "Orobo"
+        },
+        "8388": {
+          "id": 8388,
+          "name": "Ouricuri"
+        },
+        "8403": {
+          "id": 8403,
+          "name": "Palmares"
+        },
+        "8415": {
+          "id": 8415,
+          "name": "Panelas"
+        },
+        "8448": {
+          "id": 8448,
+          "name": "Parnamirim"
+        },
+        "8453": {
+          "id": 8453,
+          "name": "Passira"
+        },
+        "8468": {
+          "id": 8468,
+          "name": "Paulista"
+        },
+        "8476": {
+          "id": 8476,
+          "name": "Pedra"
+        },
+        "8494": {
+          "id": 8494,
+          "name": "Pesqueira"
+        },
+        "8495": {
+          "id": 8495,
+          "name": "Petrolandia"
+        },
+        "8497": {
+          "id": 8497,
+          "name": "Petrolina"
+        },
+        "8559": {
+          "id": 8559,
+          "name": "Pombos"
+        },
+        "8622": {
+          "id": 8622,
+          "name": "Quipapa"
+        },
+        "8632": {
+          "id": 8632,
+          "name": "Recife"
+        },
+        "8658": {
+          "id": 8658,
+          "name": "Ribeirao"
+        },
+        "8672": {
+          "id": 8672,
+          "name": "Rio Formoso"
+        },
+        "8703": {
+          "id": 8703,
+          "name": "Salgueiro"
+        },
+        "8716": {
+          "id": 8716,
+          "name": "Santa Cruz Do Capibaribe"
+        },
+        "8733": {
+          "id": 8733,
+          "name": "Santa Maria Da Boa Vista"
+        },
+        "8782": {
+          "id": 8782,
+          "name": "Sao Bento Do Una"
+        },
+        "8790": {
+          "id": 8790,
+          "name": "Sao Caitano"
+        },
+        "8828": {
+          "id": 8828,
+          "name": "Sao Joao"
+        },
+        "8831": {
+          "id": 8831,
+          "name": "Sao Joaquim Do Monte"
+        },
+        "8833": {
+          "id": 8833,
+          "name": "Sao Jose Da Coroa Grande"
+        },
+        "8839": {
+          "id": 8839,
+          "name": "Sao Jose Do Belmonte"
+        },
+        "8842": {
+          "id": 8842,
+          "name": "Sao Jose Do Egito"
+        },
+        "8849": {
+          "id": 8849,
+          "name": "Sao Lourenco Da Mata"
+        },
+        "8915": {
+          "id": 8915,
+          "name": "Serra Talhada"
+        },
+        "8918": {
+          "id": 8918,
+          "name": "Sertania"
+        },
+        "8945": {
+          "id": 8945,
+          "name": "Surubim"
+        },
+        "8949": {
+          "id": 8949,
+          "name": "Tabira"
+        },
+        "8955": {
+          "id": 8955,
+          "name": "Tamandare"
+        },
+        "8972": {
+          "id": 8972,
+          "name": "Taquaritinga Do Norte"
+        },
+        "8999": {
+          "id": 8999,
+          "name": "Timbauba"
+        },
+        "9012": {
+          "id": 9012,
+          "name": "Toritama"
+        },
+        "9029": {
+          "id": 9029,
+          "name": "Trindade"
+        },
+        "9038": {
+          "id": 9038,
+          "name": "Tupanatinga"
+        },
+        "9107": {
+          "id": 9107,
+          "name": "Vicencia"
+        },
+        "9120": {
+          "id": 9120,
+          "name": "Vitoria De Santo Antao"
+        }
+      }
+    },
+    "31": {
+      "code": "31",
+      "name": "Tocantins",
+      "cities": {
+        "7178": {
+          "id": 7178,
+          "name": "Alvorada"
+        },
+        "7194": {
+          "id": 7194,
+          "name": "Ananas"
+        },
+        "7226": {
+          "id": 7226,
+          "name": "Araguacu"
+        },
+        "7227": {
+          "id": 7227,
+          "name": "Araguaina"
+        },
+        "7229": {
+          "id": 7229,
+          "name": "Araguatins"
+        },
+        "7261": {
+          "id": 7261,
+          "name": "Arraias"
+        },
+        "7279": {
+          "id": 7279,
+          "name": "Axixa Do Tocantins"
+        },
+        "7693": {
+          "id": 7693,
+          "name": "Dianopolis"
+        },
+        "7767": {
+          "id": 7767,
+          "name": "Formoso Do Araguaia"
+        },
+        "7843": {
+          "id": 7843,
+          "name": "Gurupi"
+        },
+        "8255": {
+          "id": 8255,
+          "name": "Miracema Do Tocantins"
+        },
+        "8261": {
+          "id": 8261,
+          "name": "Miranorte"
+        },
+        "8406": {
+          "id": 8406,
+          "name": "Palmas"
+        },
+        "8435": {
+          "id": 8435,
+          "name": "Parana"
+        },
+        "8586": {
+          "id": 8586,
+          "name": "Porto Nacional"
+        },
+        "8931": {
+          "id": 8931,
+          "name": "Sitio Novo Do Tocantins"
+        },
+        "8952": {
+          "id": 8952,
+          "name": "Taguatinga"
+        },
+        "9006": {
+          "id": 9006,
+          "name": "Tocantinopolis"
+        },
+        "9126": {
+          "id": 9126,
+          "name": "Wanderlandia"
+        },
+        "9128": {
+          "id": 9128,
+          "name": "Xambioa"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Acre",
+      "cities": {
+        "7392": {
+          "id": 7392,
+          "name": "Brasileia"
+        },
+        "7670": {
+          "id": 7670,
+          "name": "Cruzeiro Do Sul"
+        },
+        "7749": {
+          "id": 7749,
+          "name": "Feijo"
+        },
+        "8176": {
+          "id": 8176,
+          "name": "Mancio Lima"
+        },
+        "8184": {
+          "id": 8184,
+          "name": "Manoel Urbano"
+        },
+        "8546": {
+          "id": 8546,
+          "name": "Placido De Castro"
+        },
+        "8593": {
+          "id": 8593,
+          "name": "Porto Walter"
+        },
+        "8663": {
+          "id": 8663,
+          "name": "Rio Branco"
+        },
+        "8903": {
+          "id": 8903,
+          "name": "Senador Guiomard"
+        },
+        "8906": {
+          "id": 8906,
+          "name": "Sena Madureira"
+        },
+        "8975": {
+          "id": 8975,
+          "name": "Tarauaca"
+        },
+        "9130": {
+          "id": 9130,
+          "name": "Xapuri"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Alagoas",
+      "cities": {
+        "7134": {
+          "id": 7134,
+          "name": "Agua Branca"
+        },
+        "7191": {
+          "id": 7191,
+          "name": "Anadia"
+        },
+        "7231": {
+          "id": 7231,
+          "name": "Arapiraca"
+        },
+        "7272": {
+          "id": 7272,
+          "name": "Atalaia"
+        },
+        "7324": {
+          "id": 7324,
+          "name": "Batalha"
+        },
+        "7362": {
+          "id": 7362,
+          "name": "Boca Da Mata"
+        },
+        "7436": {
+          "id": 7436,
+          "name": "Cacimbinhas"
+        },
+        "7452": {
+          "id": 7452,
+          "name": "Cajueiro"
+        },
+        "7476": {
+          "id": 7476,
+          "name": "Campo Alegre"
+        },
+        "7480": {
+          "id": 7480,
+          "name": "Campo Grande"
+        },
+        "7493": {
+          "id": 7493,
+          "name": "Canapi"
+        },
+        "7517": {
+          "id": 7517,
+          "name": "Capela"
+        },
+        "7610": {
+          "id": 7610,
+          "name": "Coite Do Noia"
+        },
+        "7615": {
+          "id": 7615,
+          "name": "Colonia Leopoldina"
+        },
+        "7652": {
+          "id": 7652,
+          "name": "Coruripe"
+        },
+        "7686": {
+          "id": 7686,
+          "name": "Delmiro Gouveia"
+        },
+        "7697": {
+          "id": 7697,
+          "name": "Dois Riachos"
+        },
+        "7751": {
+          "id": 7751,
+          "name": "Feira Grande"
+        },
+        "7756": {
+          "id": 7756,
+          "name": "Flexeiras"
+        },
+        "7790": {
+          "id": 7790,
+          "name": "Girau Do Ponciano"
+        },
+        "7854": {
+          "id": 7854,
+          "name": "Ibateguara"
+        },
+        "7877": {
+          "id": 7877,
+          "name": "Igaci"
+        },
+        "7884": {
+          "id": 7884,
+          "name": "Igreja Nova"
+        },
+        "7904": {
+          "id": 7904,
+          "name": "Inhapi"
+        },
+        "8081": {
+          "id": 8081,
+          "name": "Joaquim Gomes"
+        },
+        "8095": {
+          "id": 8095,
+          "name": "Jundia"
+        },
+        "8096": {
+          "id": 8096,
+          "name": "Junqueiro"
+        },
+        "8109": {
+          "id": 8109,
+          "name": "Lagoa Da Canoa"
+        },
+        "8137": {
+          "id": 8137,
+          "name": "Limoeiro De Anadia"
+        },
+        "8160": {
+          "id": 8160,
+          "name": "Maceio"
+        },
+        "8168": {
+          "id": 8168,
+          "name": "Major Isidoro"
+        },
+        "8195": {
+          "id": 8195,
+          "name": "Maragogi"
+        },
+        "8206": {
+          "id": 8206,
+          "name": "Marechal Deodoro"
+        },
+        "8210": {
+          "id": 8210,
+          "name": "Maribondo"
+        },
+        "8223": {
+          "id": 8223,
+          "name": "Mata Grande"
+        },
+        "8234": {
+          "id": 8234,
+          "name": "Matriz De Camaragibe"
+        },
+        "8243": {
+          "id": 8243,
+          "name": "Messias"
+        },
+        "8250": {
+          "id": 8250,
+          "name": "Minador Do Negrao"
+        },
+        "8312": {
+          "id": 8312,
+          "name": "Murici"
+        },
+        "8364": {
+          "id": 8364,
+          "name": "Novo Lino"
+        },
+        "8375": {
+          "id": 8375,
+          "name": "Olivenca"
+        },
+        "8417": {
+          "id": 8417,
+          "name": "Pao De Acucar"
+        },
+        "8454": {
+          "id": 8454,
+          "name": "Passo De Camaragibe"
+        },
+        "8488": {
+          "id": 8488,
+          "name": "Penedo"
+        },
+        "8499": {
+          "id": 8499,
+          "name": "Piacabucu"
+        },
+        "8506": {
+          "id": 8506,
+          "name": "Pilar"
+        },
+        "8528": {
+          "id": 8528,
+          "name": "Piranhas"
+        },
+        "8552": {
+          "id": 8552,
+          "name": "Poco Das Trincheiras"
+        },
+        "8579": {
+          "id": 8579,
+          "name": "Porto Calvo"
+        },
+        "8588": {
+          "id": 8588,
+          "name": "Porto Real Do Colegio"
+        },
+        "8602": {
+          "id": 8602,
+          "name": "Presidente Dutra"
+        },
+        "8617": {
+          "id": 8617,
+          "name": "Quebrangulo"
+        },
+        "8675": {
+          "id": 8675,
+          "name": "Rio Largo"
+        },
+        "8740": {
+          "id": 8740,
+          "name": "Santana Do Ipanema"
+        },
+        "8743": {
+          "id": 8743,
+          "name": "Santana Do Mundau"
+        },
+        "8834": {
+          "id": 8834,
+          "name": "Sao Jose Da Laje"
+        },
+        "8835": {
+          "id": 8835,
+          "name": "Sao Jose Da Tapera"
+        },
+        "8855": {
+          "id": 8855,
+          "name": "Sao Luis Do Quitunde"
+        },
+        "8867": {
+          "id": 8867,
+          "name": "Sao Miguel Dos Campos"
+        },
+        "8883": {
+          "id": 8883,
+          "name": "Sao Sebastiao"
+        },
+        "8897": {
+          "id": 8897,
+          "name": "Satuba"
+        },
+        "8969": {
+          "id": 8969,
+          "name": "Taquarana"
+        },
+        "9015": {
+          "id": 9015,
+          "name": "Traipu"
+        },
+        "9065": {
+          "id": 9065,
+          "name": "Uniao Dos Palmares"
+        },
+        "9109": {
+          "id": 9109,
+          "name": "Vicosa"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Amapa",
+      "cities": {
+        "7180": {
+          "id": 7180,
+          "name": "Amapa"
+        },
+        "8155": {
+          "id": 8155,
+          "name": "Macapa"
+        },
+        "8238": {
+          "id": 8238,
+          "name": "Mazagao"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Amazonas",
+      "cities": {
+        "7175": {
+          "id": 7175,
+          "name": "Alvaraes"
+        },
+        "7206": {
+          "id": 7206,
+          "name": "Anori"
+        },
+        "7277": {
+          "id": 7277,
+          "name": "Autazes"
+        },
+        "7298": {
+          "id": 7298,
+          "name": "Barcelos"
+        },
+        "7313": {
+          "id": 7313,
+          "name": "Barreirinha"
+        },
+        "7346": {
+          "id": 7346,
+          "name": "Benjamin Constant"
+        },
+        "7363": {
+          "id": 7363,
+          "name": "Boca Do Acre"
+        },
+        "7384": {
+          "id": 7384,
+          "name": "Borba"
+        },
+        "7513": {
+          "id": 7513,
+          "name": "Canutama"
+        },
+        "7534": {
+          "id": 7534,
+          "name": "Carauari"
+        },
+        "7539": {
+          "id": 7539,
+          "name": "Careiro"
+        },
+        "7540": {
+          "id": 7540,
+          "name": "Careiro Da Varzea"
+        },
+        "7605": {
+          "id": 7605,
+          "name": "Coari"
+        },
+        "7607": {
+          "id": 7607,
+          "name": "Codajas"
+        },
+        "7710": {
+          "id": 7710,
+          "name": "Eirunepe"
+        },
+        "7722": {
+          "id": 7722,
+          "name": "Envira"
+        },
+        "7763": {
+          "id": 7763,
+          "name": "Fonte Boa"
+        },
+        "7814": {
+          "id": 7814,
+          "name": "Guajara"
+        },
+        "7849": {
+          "id": 7849,
+          "name": "Humaita"
+        },
+        "7917": {
+          "id": 7917,
+          "name": "Ipixuna"
+        },
+        "7926": {
+          "id": 7926,
+          "name": "Iranduba"
+        },
+        "7946": {
+          "id": 7946,
+          "name": "Itacoatiara"
+        },
+        "8053": {
+          "id": 8053,
+          "name": "Japura"
+        },
+        "8104": {
+          "id": 8104,
+          "name": "Jutai"
+        },
+        "8105": {
+          "id": 8105,
+          "name": "Labrea"
+        },
+        "8172": {
+          "id": 8172,
+          "name": "Manacapuru"
+        },
+        "8174": {
+          "id": 8174,
+          "name": "Manaquiri"
+        },
+        "8175": {
+          "id": 8175,
+          "name": "Manaus"
+        },
+        "8183": {
+          "id": 8183,
+          "name": "Manicore"
+        },
+        "8187": {
+          "id": 8187,
+          "name": "Maraa"
+        },
+        "8236": {
+          "id": 8236,
+          "name": "Maues"
+        },
+        "8329": {
+          "id": 8329,
+          "name": "Nhamunda"
+        },
+        "8352": {
+          "id": 8352,
+          "name": "Nova Olinda Do Norte"
+        },
+        "8360": {
+          "id": 8360,
+          "name": "Novo Aripuana"
+        },
+        "8443": {
+          "id": 8443,
+          "name": "Parintins"
+        },
+        "8465": {
+          "id": 8465,
+          "name": "Pauini"
+        },
+        "8727": {
+          "id": 8727,
+          "name": "Santa Isabel Do Rio Negro"
+        },
+        "8770": {
+          "id": 8770,
+          "name": "Santo Antonio Do Ica"
+        },
+        "8805": {
+          "id": 8805,
+          "name": "Sao Gabriel Da Cachoeira"
+        },
+        "8870": {
+          "id": 8870,
+          "name": "Sao Paulo De Olivenca"
+        },
+        "8947": {
+          "id": 8947,
+          "name": "Tabatinga"
+        },
+        "8962": {
+          "id": 8962,
+          "name": "Tapaua"
+        },
+        "8981": {
+          "id": 8981,
+          "name": "Tefe"
+        },
+        "9011": {
+          "id": 9011,
+          "name": "Tonantins"
+        },
+        "9045": {
+          "id": 9045,
+          "name": "Uarini"
+        },
+        "9072": {
+          "id": 9072,
+          "name": "Urucara"
+        },
+        "9075": {
+          "id": 9075,
+          "name": "Urucurituba"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Bahia",
+      "cities": {
+        "7121": {
+          "id": 7121,
+          "name": "Acajutiba"
+        },
+        "7148": {
+          "id": 7148,
+          "name": "Alagoinhas"
+        },
+        "7184": {
+          "id": 7184,
+          "name": "Amargosa"
+        },
+        "7185": {
+          "id": 7185,
+          "name": "America Dourada"
+        },
+        "7192": {
+          "id": 7192,
+          "name": "Anage"
+        },
+        "7219": {
+          "id": 7219,
+          "name": "Araci"
+        },
+        "7285": {
+          "id": 7285,
+          "name": "Baixa Grande"
+        },
+        "7300": {
+          "id": 7300,
+          "name": "Barra"
+        },
+        "7302": {
+          "id": 7302,
+          "name": "Barra Da Estiva"
+        },
+        "7312": {
+          "id": 7312,
+          "name": "Barreiras"
+        },
+        "7340": {
+          "id": 7340,
+          "name": "Belmonte"
+        },
+        "7373": {
+          "id": 7373,
+          "name": "Bom Jesus Da Lapa"
+        },
+        "7383": {
+          "id": 7383,
+          "name": "Boquira"
+        },
+        "7403": {
+          "id": 7403,
+          "name": "Brumado"
+        },
+        "7406": {
+          "id": 7406,
+          "name": "Buerarema"
+        },
+        "7429": {
+          "id": 7429,
+          "name": "Cachoeira"
+        },
+        "7440": {
+          "id": 7440,
+          "name": "Cacule"
+        },
+        "7443": {
+          "id": 7443,
+          "name": "Caetite"
+        },
+        "7444": {
+          "id": 7444,
+          "name": "Cafarnaum"
+        },
+        "7455": {
+          "id": 7455,
+          "name": "Camacari"
+        },
+        "7456": {
+          "id": 7456,
+          "name": "Camamu"
+        },
+        "7479": {
+          "id": 7479,
+          "name": "Campo Formoso"
+        },
+        "7494": {
+          "id": 7494,
+          "name": "Canarana"
+        },
+        "7495": {
+          "id": 7495,
+          "name": "Canavieiras"
+        },
+        "7496": {
+          "id": 7496,
+          "name": "Candeias"
+        },
+        "7509": {
+          "id": 7509,
+          "name": "Cansancao"
+        },
+        "7521": {
+          "id": 7521,
+          "name": "Capim Grosso"
+        },
+        "7536": {
+          "id": 7536,
+          "name": "Caravelas"
+        },
+        "7542": {
+          "id": 7542,
+          "name": "Carinhanha"
+        },
+        "7559": {
+          "id": 7559,
+          "name": "Casa Nova"
+        },
+        "7569": {
+          "id": 7569,
+          "name": "Castro Alves"
+        },
+        "7576": {
+          "id": 7576,
+          "name": "Catu"
+        },
+        "7600": {
+          "id": 7600,
+          "name": "Cicero Dantas"
+        },
+        "7604": {
+          "id": 7604,
+          "name": "Coaraci"
+        },
+        "7618": {
+          "id": 7618,
+          "name": "Conceicao Da Feira"
+        },
+        "7620": {
+          "id": 7620,
+          "name": "Conceicao Do Almeida"
+        },
+        "7623": {
+          "id": 7623,
+          "name": "Conceicao Do Coite"
+        },
+        "7630": {
+          "id": 7630,
+          "name": "Conde"
+        },
+        "7636": {
+          "id": 7636,
+          "name": "Coracao De Maria"
+        },
+        "7650": {
+          "id": 7650,
+          "name": "Correntina"
+        },
+        "7666": {
+          "id": 7666,
+          "name": "Cruz Das Almas"
+        },
+        "7678": {
+          "id": 7678,
+          "name": "Curaca"
+        },
+        "7719": {
+          "id": 7719,
+          "name": "Encruzilhada"
+        },
+        "7721": {
+          "id": 7721,
+          "name": "Entre Rios"
+        },
+        "7732": {
+          "id": 7732,
+          "name": "Esplanada"
+        },
+        "7739": {
+          "id": 7739,
+          "name": "Euclides Da Cunha"
+        },
+        "7750": {
+          "id": 7750,
+          "name": "Feira De Santana"
+        },
+        "7765": {
+          "id": 7765,
+          "name": "Formosa Do Rio Preto"
+        },
+        "7781": {
+          "id": 7781,
+          "name": "Gandu"
+        },
+        "7816": {
+          "id": 7816,
+          "name": "Guanambi"
+        },
+        "7832": {
+          "id": 7832,
+          "name": "Guaratinga"
+        },
+        "7852": {
+          "id": 7852,
+          "name": "Iacu"
+        },
+        "7859": {
+          "id": 7859,
+          "name": "Ibicarai"
+        },
+        "7860": {
+          "id": 7860,
+          "name": "Ibicui"
+        },
+        "7862": {
+          "id": 7862,
+          "name": "Ibipeba"
+        },
+        "7866": {
+          "id": 7866,
+          "name": "Ibirapitanga"
+        },
+        "7867": {
+          "id": 7867,
+          "name": "Ibirataia"
+        },
+        "7872": {
+          "id": 7872,
+          "name": "Ibotirama"
+        },
+        "7887": {
+          "id": 7887,
+          "name": "Iguai"
+        },
+        "7893": {
+          "id": 7893,
+          "name": "Ilheus"
+        },
+        "7903": {
+          "id": 7903,
+          "name": "Inhambupe"
+        },
+        "7915": {
+          "id": 7915,
+          "name": "Ipiau"
+        },
+        "7916": {
+          "id": 7916,
+          "name": "Ipira"
+        },
+        "7927": {
+          "id": 7927,
+          "name": "Iraquara"
+        },
+        "7928": {
+          "id": 7928,
+          "name": "Irara"
+        },
+        "7931": {
+          "id": 7931,
+          "name": "Irece"
+        },
+        "7937": {
+          "id": 7937,
+          "name": "Itaberaba"
+        },
+        "7943": {
+          "id": 7943,
+          "name": "Itabuna"
+        },
+        "7945": {
+          "id": 7945,
+          "name": "Itacare"
+        },
+        "7947": {
+          "id": 7947,
+          "name": "Itagiba"
+        },
+        "7948": {
+          "id": 7948,
+          "name": "Itagi"
+        },
+        "7959": {
+          "id": 7959,
+          "name": "Itajuipe"
+        },
+        "7961": {
+          "id": 7961,
+          "name": "Itamaraju"
+        },
+        "7964": {
+          "id": 7964,
+          "name": "Itambe"
+        },
+        "7967": {
+          "id": 7967,
+          "name": "Itanhem"
+        },
+        "7972": {
+          "id": 7972,
+          "name": "Itaparica"
+        },
+        "7979": {
+          "id": 7979,
+          "name": "Itapetinga"
+        },
+        "7983": {
+          "id": 7983,
+          "name": "Itapicuru"
+        },
+        "7998": {
+          "id": 7998,
+          "name": "Itarantim"
+        },
+        "8010": {
+          "id": 8010,
+          "name": "Itirucu"
+        },
+        "8011": {
+          "id": 8011,
+          "name": "Itiuba"
+        },
+        "8012": {
+          "id": 8012,
+          "name": "Itororo"
+        },
+        "8013": {
+          "id": 8013,
+          "name": "Ituacu"
+        },
+        "8014": {
+          "id": 8014,
+          "name": "Itubera"
+        },
+        "8018": {
+          "id": 8018,
+          "name": "Itupeva"
+        },
+        "8033": {
+          "id": 8033,
+          "name": "Jacobina"
+        },
+        "8036": {
+          "id": 8036,
+          "name": "Jaguaquara"
+        },
+        "8038": {
+          "id": 8038,
+          "name": "Jaguarari"
+        },
+        "8066": {
+          "id": 8066,
+          "name": "Jequie"
+        },
+        "8068": {
+          "id": 8068,
+          "name": "Jeremoabo"
+        },
+        "8071": {
+          "id": 8071,
+          "name": "Jitauna"
+        },
+        "8089": {
+          "id": 8089,
+          "name": "Juazeiro"
+        },
+        "8121": {
+          "id": 8121,
+          "name": "Laje"
+        },
+        "8124": {
+          "id": 8124,
+          "name": "Lapao"
+        },
+        "8143": {
+          "id": 8143,
+          "name": "Livramento"
+        },
+        "8158": {
+          "id": 8158,
+          "name": "Macaubas"
+        },
+        "8162": {
+          "id": 8162,
+          "name": "Madre De Deus"
+        },
+        "8165": {
+          "id": 8165,
+          "name": "Mairi"
+        },
+        "8194": {
+          "id": 8194,
+          "name": "Maracas"
+        },
+        "8196": {
+          "id": 8196,
+          "name": "Maragogipe"
+        },
+        "8200": {
+          "id": 8200,
+          "name": "Marau"
+        },
+        "8219": {
+          "id": 8219,
+          "name": "Mascote"
+        },
+        "8222": {
+          "id": 8222,
+          "name": "Mata De Sao Joao"
+        },
+        "8239": {
+          "id": 8239,
+          "name": "Medeiros Neto"
+        },
+        "8245": {
+          "id": 8245,
+          "name": "Miguel Calmon"
+        },
+        "8292": {
+          "id": 8292,
+          "name": "Monte Santo"
+        },
+        "8306": {
+          "id": 8306,
+          "name": "Mucuri"
+        },
+        "8308": {
+          "id": 8308,
+          "name": "Mundo Novo"
+        },
+        "8313": {
+          "id": 8313,
+          "name": "Muritiba"
+        },
+        "8314": {
+          "id": 8314,
+          "name": "Mutuipe"
+        },
+        "8325": {
+          "id": 8325,
+          "name": "Nazare"
+        },
+        "8357": {
+          "id": 8357,
+          "name": "Nova Soure"
+        },
+        "8359": {
+          "id": 8359,
+          "name": "Nova Vicosa"
+        },
+        "8372": {
+          "id": 8372,
+          "name": "Olindina"
+        },
+        "8373": {
+          "id": 8373,
+          "name": "Oliveira Dos Brejinhos"
+        },
+        "8404": {
+          "id": 8404,
+          "name": "Palmas De Monte Alto"
+        },
+        "8431": {
+          "id": 8431,
+          "name": "Paramirim"
+        },
+        "8439": {
+          "id": 8439,
+          "name": "Paratinga"
+        },
+        "8444": {
+          "id": 8444,
+          "name": "Paripiranga"
+        },
+        "8463": {
+          "id": 8463,
+          "name": "Pau Brasil"
+        },
+        "8469": {
+          "id": 8469,
+          "name": "Paulo Afonso"
+        },
+        "8504": {
+          "id": 8504,
+          "name": "Pilao Arcado"
+        },
+        "8511": {
+          "id": 8511,
+          "name": "Pindobacu"
+        },
+        "8539": {
+          "id": 8539,
+          "name": "Piritiba"
+        },
+        "8553": {
+          "id": 8553,
+          "name": "Pocoes"
+        },
+        "8557": {
+          "id": 8557,
+          "name": "Pojuca"
+        },
+        "8570": {
+          "id": 8570,
+          "name": "Ponto Novo"
+        },
+        "8590": {
+          "id": 8590,
+          "name": "Porto Seguro"
+        },
+        "8597": {
+          "id": 8597,
+          "name": "Prado"
+        },
+        "8618": {
+          "id": 8618,
+          "name": "Queimadas"
+        },
+        "8621": {
+          "id": 8621,
+          "name": "Quijingue"
+        },
+        "8638": {
+          "id": 8638,
+          "name": "Remanso"
+        },
+        "8644": {
+          "id": 8644,
+          "name": "Riachao Das Neves"
+        },
+        "8646": {
+          "id": 8646,
+          "name": "Riachao Do Jacuipe"
+        },
+        "8648": {
+          "id": 8648,
+          "name": "Riacho De Santana"
+        },
+        "8651": {
+          "id": 8651,
+          "name": "Ribeira Do Pombal"
+        },
+        "8684": {
+          "id": 8684,
+          "name": "Rio Real"
+        },
+        "8697": {
+          "id": 8697,
+          "name": "Ruy Barbosa"
+        },
+        "8708": {
+          "id": 8708,
+          "name": "Salvador"
+        },
+        "8714": {
+          "id": 8714,
+          "name": "Santa Cruz Cabralia"
+        },
+        "8724": {
+          "id": 8724,
+          "name": "Santa Ines"
+        },
+        "8734": {
+          "id": 8734,
+          "name": "Santa Maria Da Vitoria"
+        },
+        "8745": {
+          "id": 8745,
+          "name": "Santana"
+        },
+        "8761": {
+          "id": 8761,
+          "name": "Santo Amaro"
+        },
+        "8766": {
+          "id": 8766,
+          "name": "Santo Antonio De Jesus"
+        },
+        "8777": {
+          "id": 8777,
+          "name": "Santo Estevao"
+        },
+        "8793": {
+          "id": 8793,
+          "name": "Sao Desiderio"
+        },
+        "8797": {
+          "id": 8797,
+          "name": "Sao Felipe"
+        },
+        "8802": {
+          "id": 8802,
+          "name": "Sao Francisco Do Conde"
+        },
+        "8811": {
+          "id": 8811,
+          "name": "Sao Goncalo Dos Campos"
+        },
+        "8882": {
+          "id": 8882,
+          "name": "Sao Sebastiao Do Passe"
+        },
+        "8898": {
+          "id": 8898,
+          "name": "Saubara"
+        },
+        "8900": {
+          "id": 8900,
+          "name": "Seabra"
+        },
+        "8908": {
+          "id": 8908,
+          "name": "Senhor Do Bonfim"
+        },
+        "8909": {
+          "id": 8909,
+          "name": "Sento Se"
+        },
+        "8916": {
+          "id": 8916,
+          "name": "Serrinha"
+        },
+        "8932": {
+          "id": 8932,
+          "name": "Sobradinho"
+        },
+        "8961": {
+          "id": 8961,
+          "name": "Tanhacu"
+        },
+        "8965": {
+          "id": 8965,
+          "name": "Taperoa"
+        },
+        "8968": {
+          "id": 8968,
+          "name": "Tapiramuta"
+        },
+        "8990": {
+          "id": 8990,
+          "name": "Terra Nova"
+        },
+        "9018": {
+          "id": 9018,
+          "name": "Tremedal"
+        },
+        "9033": {
+          "id": 9033,
+          "name": "Tucano"
+        },
+        "9046": {
+          "id": 9046,
+          "name": "Uaua"
+        },
+        "9047": {
+          "id": 9047,
+          "name": "Ubaira"
+        },
+        "9048": {
+          "id": 9048,
+          "name": "Ubaitaba"
+        },
+        "9050": {
+          "id": 9050,
+          "name": "Ubata"
+        },
+        "9063": {
+          "id": 9063,
+          "name": "Una"
+        },
+        "9073": {
+          "id": 9073,
+          "name": "Urucuca"
+        },
+        "9079": {
+          "id": 9079,
+          "name": "Utinga"
+        },
+        "9082": {
+          "id": 9082,
+          "name": "Valenca"
+        },
+        "9084": {
+          "id": 9084,
+          "name": "Valente"
+        },
+        "9100": {
+          "id": 9100,
+          "name": "Vera Cruz"
+        },
+        "9119": {
+          "id": 9119,
+          "name": "Vitoria Da Conquista"
+        },
+        "9132": {
+          "id": 9132,
+          "name": "Xique-xique"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Ceara",
+      "cities": {
+        "7123": {
+          "id": 7123,
+          "name": "Acarau"
+        },
+        "7125": {
+          "id": 7125,
+          "name": "Acopiara"
+        },
+        "7188": {
+          "id": 7188,
+          "name": "Amontada"
+        },
+        "7215": {
+          "id": 7215,
+          "name": "Aquiraz"
+        },
+        "7217": {
+          "id": 7217,
+          "name": "Aracati"
+        },
+        "7220": {
+          "id": 7220,
+          "name": "Aracoiaba"
+        },
+        "7239": {
+          "id": 7239,
+          "name": "Araripe"
+        },
+        "7268": {
+          "id": 7268,
+          "name": "Assare"
+        },
+        "7276": {
+          "id": 7276,
+          "name": "Aurora"
+        },
+        "7295": {
+          "id": 7295,
+          "name": "Barbalha"
+        },
+        "7318": {
+          "id": 7318,
+          "name": "Barro"
+        },
+        "7319": {
+          "id": 7319,
+          "name": "Barroquinha"
+        },
+        "7327": {
+          "id": 7327,
+          "name": "Baturite"
+        },
+        "7331": {
+          "id": 7331,
+          "name": "Beberibe"
+        },
+        "7332": {
+          "id": 7332,
+          "name": "Bela Cruz"
+        },
+        "7360": {
+          "id": 7360,
+          "name": "Boa Viagem"
+        },
+        "7398": {
+          "id": 7398,
+          "name": "Brejo Santo"
+        },
+        "7468": {
+          "id": 7468,
+          "name": "Camocim"
+        },
+        "7490": {
+          "id": 7490,
+          "name": "Campos Sales"
+        },
+        "7505": {
+          "id": 7505,
+          "name": "Caninde"
+        },
+        "7545": {
+          "id": 7545,
+          "name": "Caririacu"
+        },
+        "7560": {
+          "id": 7560,
+          "name": "Cascavel"
+        },
+        "7577": {
+          "id": 7577,
+          "name": "Caucaia"
+        },
+        "7583": {
+          "id": 7583,
+          "name": "Cedro"
+        },
+        "7598": {
+          "id": 7598,
+          "name": "Chorozinho"
+        },
+        "7640": {
+          "id": 7640,
+          "name": "Coreau"
+        },
+        "7657": {
+          "id": 7657,
+          "name": "Crateus"
+        },
+        "7658": {
+          "id": 7658,
+          "name": "Crato"
+        },
+        "7665": {
+          "id": 7665,
+          "name": "Cruz"
+        },
+        "7740": {
+          "id": 7740,
+          "name": "Eusebio"
+        },
+        "7745": {
+          "id": 7745,
+          "name": "Farias Brito"
+        },
+        "7805": {
+          "id": 7805,
+          "name": "Granja"
+        },
+        "7813": {
+          "id": 7813,
+          "name": "Guaiuba"
+        },
+        "7823": {
+          "id": 7823,
+          "name": "Guaraciaba Do Norte"
+        },
+        "7844": {
+          "id": 7844,
+          "name": "Hidrolandia"
+        },
+        "7846": {
+          "id": 7846,
+          "name": "Horizonte"
+        },
+        "7858": {
+          "id": 7858,
+          "name": "Ibiapina"
+        },
+        "7875": {
+          "id": 7875,
+          "name": "Ico"
+        },
+        "7890": {
+          "id": 7890,
+          "name": "Iguatu"
+        },
+        "7900": {
+          "id": 7900,
+          "name": "Independencia"
+        },
+        "7923": {
+          "id": 7923,
+          "name": "Ipueiras"
+        },
+        "7924": {
+          "id": 7924,
+          "name": "Ipu"
+        },
+        "7930": {
+          "id": 7930,
+          "name": "Iraucuba"
+        },
+        "7954": {
+          "id": 7954,
+          "name": "Itaitinga"
+        },
+        "7971": {
+          "id": 7971,
+          "name": "Itapage"
+        },
+        "7984": {
+          "id": 7984,
+          "name": "Itapipoca"
+        },
+        "8000": {
+          "id": 8000,
+          "name": "Itarema"
+        },
+        "8040": {
+          "id": 8040,
+          "name": "Jaguaribe"
+        },
+        "8042": {
+          "id": 8042,
+          "name": "Jaguaruana"
+        },
+        "8058": {
+          "id": 8058,
+          "name": "Jardim"
+        },
+        "8088": {
+          "id": 8088,
+          "name": "Juazeiro Do Norte"
+        },
+        "8090": {
+          "id": 8090,
+          "name": "Jucas"
+        },
+        "8130": {
+          "id": 8130,
+          "name": "Lavras Da Mangabeira"
+        },
+        "8139": {
+          "id": 8139,
+          "name": "Limoeiro Do Norte"
+        },
+        "8193": {
+          "id": 8193,
+          "name": "Maracanau"
+        },
+        "8203": {
+          "id": 8203,
+          "name": "Marco"
+        },
+        "8220": {
+          "id": 8220,
+          "name": "Massape"
+        },
+        "8237": {
+          "id": 8237,
+          "name": "Mauriti"
+        },
+        "8248": {
+          "id": 8248,
+          "name": "Milagres"
+        },
+        "8264": {
+          "id": 8264,
+          "name": "Missao Velha"
+        },
+        "8295": {
+          "id": 8295,
+          "name": "Morada Nova"
+        },
+        "8355": {
+          "id": 8355,
+          "name": "Nova Russas"
+        },
+        "8365": {
+          "id": 8365,
+          "name": "Novo Oriente"
+        },
+        "8367": {
+          "id": 8367,
+          "name": "Ocara"
+        },
+        "8381": {
+          "id": 8381,
+          "name": "Oros"
+        },
+        "8395": {
+          "id": 8395,
+          "name": "Pacajus"
+        },
+        "8396": {
+          "id": 8396,
+          "name": "Pacatuba"
+        },
+        "8421": {
+          "id": 8421,
+          "name": "Paracuru"
+        },
+        "8428": {
+          "id": 8428,
+          "name": "Paraipaba"
+        },
+        "8430": {
+          "id": 8430,
+          "name": "Parambu"
+        },
+        "8475": {
+          "id": 8475,
+          "name": "Pedra Branca"
+        },
+        "8490": {
+          "id": 8490,
+          "name": "Pentecoste"
+        },
+        "8624": {
+          "id": 8624,
+          "name": "Quixada"
+        },
+        "8625": {
+          "id": 8625,
+          "name": "Quixeramobim"
+        },
+        "8626": {
+          "id": 8626,
+          "name": "Quixere"
+        },
+        "8634": {
+          "id": 8634,
+          "name": "Redencao"
+        },
+        "8640": {
+          "id": 8640,
+          "name": "Reriutaba"
+        },
+        "8696": {
+          "id": 8696,
+          "name": "Russas"
+        },
+        "8739": {
+          "id": 8739,
+          "name": "Santana Do Acarau"
+        },
+        "8747": {
+          "id": 8747,
+          "name": "Santa Quiteria"
+        },
+        "8808": {
+          "id": 8808,
+          "name": "Sao Goncalo Do Amarante"
+        },
+        "8905": {
+          "id": 8905,
+          "name": "Senador Pompeu"
+        },
+        "8934": {
+          "id": 8934,
+          "name": "Sobral"
+        },
+        "8951": {
+          "id": 8951,
+          "name": "Tabuleiro Do Norte"
+        },
+        "8957": {
+          "id": 8957,
+          "name": "Tamboril"
+        },
+        "8978": {
+          "id": 8978,
+          "name": "Taua"
+        },
+        "8995": {
+          "id": 8995,
+          "name": "Tiangua"
+        },
+        "9016": {
+          "id": 9016,
+          "name": "Trairi"
+        },
+        "9049": {
+          "id": 9049,
+          "name": "Ubajara"
+        },
+        "9060": {
+          "id": 9060,
+          "name": "Umirim"
+        },
+        "9071": {
+          "id": 9071,
+          "name": "Uruburetama"
+        },
+        "9091": {
+          "id": 9091,
+          "name": "Varjota"
+        },
+        "9092": {
+          "id": 9092,
+          "name": "Varzea Alegre"
+        },
+        "9108": {
+          "id": 9108,
+          "name": "Vicosa Do Ceara"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Distrito Federal",
+      "cities": {
+        "7393": {
+          "id": 7393,
+          "name": "Brasilia"
+        },
+        "8547": {
+          "id": 8547,
+          "name": "Planaltina"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Espirito Santo",
+      "cities": {
+        "7131": {
+          "id": 7131,
+          "name": "Afonso Claudio"
+        },
+        "7143": {
+          "id": 7143,
+          "name": "Aguia Branca"
+        },
+        "7150": {
+          "id": 7150,
+          "name": "Alegre"
+        },
+        "7156": {
+          "id": 7156,
+          "name": "Alfredo Chaves"
+        },
+        "7223": {
+          "id": 7223,
+          "name": "Aracruz"
+        },
+        "7286": {
+          "id": 7286,
+          "name": "Baixo Guandu"
+        },
+        "7303": {
+          "id": 7303,
+          "name": "Barra De Sao Francisco"
+        },
+        "7357": {
+          "id": 7357,
+          "name": "Boa Esperanca"
+        },
+        "7434": {
+          "id": 7434,
+          "name": "Cachoeiro De Itapemirim"
+        },
+        "7541": {
+          "id": 7541,
+          "name": "Cariacica"
+        },
+        "7566": {
+          "id": 7566,
+          "name": "Castelo"
+        },
+        "7611": {
+          "id": 7611,
+          "name": "Colatina"
+        },
+        "7617": {
+          "id": 7617,
+          "name": "Conceicao Da Barra"
+        },
+        "7622": {
+          "id": 7622,
+          "name": "Conceicao Do Castelo"
+        },
+        "7699": {
+          "id": 7699,
+          "name": "Domingos Martins"
+        },
+        "7708": {
+          "id": 7708,
+          "name": "Ecoporanga"
+        },
+        "7779": {
+          "id": 7779,
+          "name": "Fundao"
+        },
+        "7809": {
+          "id": 7809,
+          "name": "Guacui"
+        },
+        "7828": {
+          "id": 7828,
+          "name": "Guarapari"
+        },
+        "7856": {
+          "id": 7856,
+          "name": "Ibatiba"
+        },
+        "7864": {
+          "id": 7864,
+          "name": "Ibiracu"
+        },
+        "7876": {
+          "id": 7876,
+          "name": "Iconha"
+        },
+        "7933": {
+          "id": 7933,
+          "name": "Irupi"
+        },
+        "7949": {
+          "id": 7949,
+          "name": "Itaguacu"
+        },
+        "7976": {
+          "id": 7976,
+          "name": "Itapemirim"
+        },
+        "7997": {
+          "id": 7997,
+          "name": "Itarana"
+        },
+        "8023": {
+          "id": 8023,
+          "name": "Iuna"
+        },
+        "8069": {
+          "id": 8069,
+          "name": "Jeronimo Monteiro"
+        },
+        "8078": {
+          "id": 8078,
+          "name": "Joao Neiva"
+        },
+        "8125": {
+          "id": 8125,
+          "name": "Laranja Da Terra"
+        },
+        "8141": {
+          "id": 8141,
+          "name": "Linhares"
+        },
+        "8186": {
+          "id": 8186,
+          "name": "Mantenopolis"
+        },
+        "8199": {
+          "id": 8199,
+          "name": "Marataizes"
+        },
+        "8207": {
+          "id": 8207,
+          "name": "Marechal Floriano"
+        },
+        "8212": {
+          "id": 8212,
+          "name": "Marilandia"
+        },
+        "8249": {
+          "id": 8249,
+          "name": "Mimoso Do Sul"
+        },
+        "8276": {
+          "id": 8276,
+          "name": "Montanha"
+        },
+        "8305": {
+          "id": 8305,
+          "name": "Mucurici"
+        },
+        "8309": {
+          "id": 8309,
+          "name": "Muniz Freire"
+        },
+        "8310": {
+          "id": 8310,
+          "name": "Muqui"
+        },
+        "8358": {
+          "id": 8358,
+          "name": "Nova Venecia"
+        },
+        "8414": {
+          "id": 8414,
+          "name": "Pancas"
+        },
+        "8545": {
+          "id": 8545,
+          "name": "Piuma"
+        },
+        "8660": {
+          "id": 8660,
+          "name": "Rio Bananal"
+        },
+        "8678": {
+          "id": 8678,
+          "name": "Rio Novo Do Sul"
+        },
+        "8729": {
+          "id": 8729,
+          "name": "Santa Leopoldina"
+        },
+        "8755": {
+          "id": 8755,
+          "name": "Santa Teresa"
+        },
+        "8840": {
+          "id": 8840,
+          "name": "Sao Jose Do Calcado"
+        },
+        "8862": {
+          "id": 8862,
+          "name": "Sao Mateus"
+        },
+        "8914": {
+          "id": 8914,
+          "name": "Serra"
+        },
+        "9087": {
+          "id": 9087,
+          "name": "Vargem Alta"
+        },
+        "9104": {
+          "id": 9104,
+          "name": "Viana"
+        },
+        "9113": {
+          "id": 9113,
+          "name": "Vila Velha"
+        },
+        "9122": {
+          "id": 9122,
+          "name": "Vitoria"
+        }
+      }
+    }
+  }
+}

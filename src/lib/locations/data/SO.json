@@ -1,0 +1,206 @@
+{
+  "code": "SO",
+  "name": "Somalia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Mudug",
+      "cities": {
+        "44145": {
+          "id": 44145,
+          "name": "Hobyo"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Nugaal",
+      "cities": {
+        "44142": {
+          "id": 44142,
+          "name": "Eyl"
+        },
+        "44143": {
+          "id": 44143,
+          "name": "Garowe"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Sanaag",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Shabeellaha Dhexe",
+      "cities": {
+        "44147": {
+          "id": 44147,
+          "name": "Jawhar"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Shabeellaha Hoose",
+      "cities": {
+        "44130": {
+          "id": 44130,
+          "name": "Afgoye"
+        },
+        "44133": {
+          "id": 44133,
+          "name": "Barawe"
+        },
+        "44150": {
+          "id": 44150,
+          "name": "Mahadday Weyne"
+        },
+        "44155": {
+          "id": 44155,
+          "name": "Wanlaweyn"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Togdheer",
+      "cities": {
+        "44152": {
+          "id": 44152,
+          "name": "Odweyne"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Woqooyi Galbeed",
+      "cities": {
+        "44135": {
+          "id": 44135,
+          "name": "Berbera"
+        },
+        "44137": {
+          "id": 44137,
+          "name": "Borama"
+        },
+        "44144": {
+          "id": 44144,
+          "name": "Hargeysa"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Bakool",
+      "cities": {
+        "44154": {
+          "id": 44154,
+          "name": "Wajid"
+        },
+        "44156": {
+          "id": 44156,
+          "name": "Xuddur"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Banaadir",
+      "cities": {
+        "44151": {
+          "id": 44151,
+          "name": "Mogadishu"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Bari",
+      "cities": {
+        "44132": {
+          "id": 44132,
+          "name": "Bandarbeyla"
+        },
+        "44134": {
+          "id": 44134,
+          "name": "Bargal"
+        },
+        "44136": {
+          "id": 44136,
+          "name": "Bereda"
+        },
+        "44138": {
+          "id": 44138,
+          "name": "Bosaso"
+        },
+        "44153": {
+          "id": 44153,
+          "name": "Qandala"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Bay",
+      "cities": {
+        "44140": {
+          "id": 44140,
+          "name": "Dinsor"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Galguduud",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Gedo",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Hiiraan",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Jubbada Dhexe",
+      "cities": {
+        "44141": {
+          "id": 44141,
+          "name": "Dujuma"
+        },
+        "44148": {
+          "id": 44148,
+          "name": "Jilib"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Jubbada Hoose",
+      "cities": {
+        "44131": {
+          "id": 44131,
+          "name": "Afmadu"
+        },
+        "44139": {
+          "id": 44139,
+          "name": "Bur Gabo"
+        },
+        "44146": {
+          "id": 44146,
+          "name": "Jamame"
+        },
+        "44149": {
+          "id": 44149,
+          "name": "Kismayo"
+        }
+      }
+    }
+  }
+}

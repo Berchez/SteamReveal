@@ -1,0 +1,1211 @@
+{
+  "code": "PE",
+  "name": "Peru",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Huanuco",
+      "cities": {
+        "31261": {
+          "id": 31261,
+          "name": "Ambo"
+        },
+        "31326": {
+          "id": 31326,
+          "name": "Huallanca"
+        },
+        "31333": {
+          "id": 31333,
+          "name": "Huanuco"
+        },
+        "31369": {
+          "id": 31369,
+          "name": "La Union"
+        },
+        "31373": {
+          "id": 31373,
+          "name": "Llata"
+        },
+        "31457": {
+          "id": 31457,
+          "name": "San Miguel De Cauri"
+        },
+        "31495": {
+          "id": 31495,
+          "name": "Tingo Maria"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Ica",
+      "cities": {
+        "31304": {
+          "id": 31304,
+          "name": "Chincha Alta"
+        },
+        "31343": {
+          "id": 31343,
+          "name": "Ica"
+        },
+        "31375": {
+          "id": 31375,
+          "name": "Los Aquijes"
+        },
+        "31380": {
+          "id": 31380,
+          "name": "Marcona"
+        },
+        "31394": {
+          "id": 31394,
+          "name": "Nazca"
+        },
+        "31411": {
+          "id": 31411,
+          "name": "Palpa"
+        },
+        "31423": {
+          "id": 31423,
+          "name": "Pisco"
+        },
+        "31442": {
+          "id": 31442,
+          "name": "Rio Grande"
+        },
+        "31449": {
+          "id": 31449,
+          "name": "San Clemente"
+        },
+        "31455": {
+          "id": 31455,
+          "name": "San Juan Bautista"
+        },
+        "31470": {
+          "id": 31470,
+          "name": "Santiago"
+        },
+        "31482": {
+          "id": 31482,
+          "name": "Subtanjalla"
+        },
+        "31510": {
+          "id": 31510,
+          "name": "Vista Alegre"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Junin",
+      "cities": {
+        "31259": {
+          "id": 31259,
+          "name": "Acolla"
+        },
+        "31287": {
+          "id": 31287,
+          "name": "Carhuamayo"
+        },
+        "31311": {
+          "id": 31311,
+          "name": "Chupaca"
+        },
+        "31314": {
+          "id": 31314,
+          "name": "Concepcion"
+        },
+        "31331": {
+          "id": 31331,
+          "name": "Huancayo"
+        },
+        "31338": {
+          "id": 31338,
+          "name": "Huasahuasi"
+        },
+        "31340": {
+          "id": 31340,
+          "name": "Huayucachi"
+        },
+        "31351": {
+          "id": 31351,
+          "name": "Jauja"
+        },
+        "31357": {
+          "id": 31357,
+          "name": "Junin"
+        },
+        "31365": {
+          "id": 31365,
+          "name": "La Oroya"
+        },
+        "31382": {
+          "id": 31382,
+          "name": "Mazamari"
+        },
+        "31388": {
+          "id": 31388,
+          "name": "Morococha"
+        },
+        "31400": {
+          "id": 31400,
+          "name": "Orcotuna"
+        },
+        "31418": {
+          "id": 31418,
+          "name": "Perene"
+        },
+        "31421": {
+          "id": 31421,
+          "name": "Pilcomayo"
+        },
+        "31447": {
+          "id": 31447,
+          "name": "San Agustin"
+        },
+        "31451": {
+          "id": 31451,
+          "name": "San Jeronimo De Tunan"
+        },
+        "31459": {
+          "id": 31459,
+          "name": "San Pedro De Cajas"
+        },
+        "31461": {
+          "id": 31461,
+          "name": "San Ramon"
+        },
+        "31475": {
+          "id": 31475,
+          "name": "Satipo"
+        },
+        "31479": {
+          "id": 31479,
+          "name": "Sicaya"
+        },
+        "31494": {
+          "id": 31494,
+          "name": "Tarma"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "La Libertad",
+      "cities": {
+        "31265": {
+          "id": 31265,
+          "name": "Ascope"
+        },
+        "31298": {
+          "id": 31298,
+          "name": "Chepen"
+        },
+        "31299": {
+          "id": 31299,
+          "name": "Chicama"
+        },
+        "31306": {
+          "id": 31306,
+          "name": "Chocope"
+        },
+        "31324": {
+          "id": 31324,
+          "name": "Guadalupe"
+        },
+        "31328": {
+          "id": 31328,
+          "name": "Huamachuco"
+        },
+        "31367": {
+          "id": 31367,
+          "name": "Laredo"
+        },
+        "31383": {
+          "id": 31383,
+          "name": "Moche"
+        },
+        "31402": {
+          "id": 31402,
+          "name": "Otuzco"
+        },
+        "31406": {
+          "id": 31406,
+          "name": "Pacanga"
+        },
+        "31407": {
+          "id": 31407,
+          "name": "Pacasmayo"
+        },
+        "31409": {
+          "id": 31409,
+          "name": "Paijan"
+        },
+        "31427": {
+          "id": 31427,
+          "name": "Pucara"
+        },
+        "31428": {
+          "id": 31428,
+          "name": "Pueblo Nuevo"
+        },
+        "31437": {
+          "id": 31437,
+          "name": "Quiruvilca"
+        },
+        "31445": {
+          "id": 31445,
+          "name": "Salaverry"
+        },
+        "31460": {
+          "id": 31460,
+          "name": "San Pedro De Lloc"
+        },
+        "31468": {
+          "id": 31468,
+          "name": "Santiago De Cao"
+        },
+        "31469": {
+          "id": 31469,
+          "name": "Santiago De Chuco"
+        },
+        "31499": {
+          "id": 31499,
+          "name": "Trujillo"
+        },
+        "31509": {
+          "id": 31509,
+          "name": "Viru"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Lambayeque",
+      "cities": {
+        "31301": {
+          "id": 31301,
+          "name": "Chiclayo"
+        },
+        "31307": {
+          "id": 31307,
+          "name": "Chongoyape"
+        },
+        "31322": {
+          "id": 31322,
+          "name": "Eten"
+        },
+        "31323": {
+          "id": 31323,
+          "name": "Ferrenafe"
+        },
+        "31346": {
+          "id": 31346,
+          "name": "Illimo"
+        },
+        "31352": {
+          "id": 31352,
+          "name": "Jayanca"
+        },
+        "31363": {
+          "id": 31363,
+          "name": "Lambayeque"
+        },
+        "31384": {
+          "id": 31384,
+          "name": "Mochumi"
+        },
+        "31386": {
+          "id": 31386,
+          "name": "Monsefu"
+        },
+        "31389": {
+          "id": 31389,
+          "name": "Morrope"
+        },
+        "31391": {
+          "id": 31391,
+          "name": "Motupe"
+        },
+        "31398": {
+          "id": 31398,
+          "name": "Olmos"
+        },
+        "31405": {
+          "id": 31405,
+          "name": "Oyotun"
+        },
+        "31420": {
+          "id": 31420,
+          "name": "Picsi"
+        },
+        "31422": {
+          "id": 31422,
+          "name": "Pimentel"
+        },
+        "31429": {
+          "id": 31429,
+          "name": "Pueblo Nuevo"
+        },
+        "31440": {
+          "id": 31440,
+          "name": "Reque"
+        },
+        "31444": {
+          "id": 31444,
+          "name": "Salas"
+        },
+        "31448": {
+          "id": 31448,
+          "name": "Sana"
+        },
+        "31454": {
+          "id": 31454,
+          "name": "San Jose"
+        },
+        "31466": {
+          "id": 31466,
+          "name": "Santa Rosa"
+        },
+        "31500": {
+          "id": 31500,
+          "name": "Tucume"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Lima",
+      "cities": {
+        "31273": {
+          "id": 31273,
+          "name": "Barranca"
+        },
+        "31283": {
+          "id": 31283,
+          "name": "Caleta De Carquin"
+        },
+        "31295": {
+          "id": 31295,
+          "name": "Chancay"
+        },
+        "31300": {
+          "id": 31300,
+          "name": "Chicla"
+        },
+        "31302": {
+          "id": 31302,
+          "name": "Chilca"
+        },
+        "31308": {
+          "id": 31308,
+          "name": "Chosica"
+        },
+        "31325": {
+          "id": 31325,
+          "name": "Huacho"
+        },
+        "31327": {
+          "id": 31327,
+          "name": "Hualmay"
+        },
+        "31334": {
+          "id": 31334,
+          "name": "Huaral"
+        },
+        "31339": {
+          "id": 31339,
+          "name": "Huaura"
+        },
+        "31348": {
+          "id": 31348,
+          "name": "Imperial"
+        },
+        "31371": {
+          "id": 31371,
+          "name": "Lima"
+        },
+        "31377": {
+          "id": 31377,
+          "name": "Mala"
+        },
+        "31381": {
+          "id": 31381,
+          "name": "Matucana"
+        },
+        "31395": {
+          "id": 31395,
+          "name": "Nicolas De Pierola"
+        },
+        "31396": {
+          "id": 31396,
+          "name": "Nuevo Imperial"
+        },
+        "31404": {
+          "id": 31404,
+          "name": "Oyon"
+        },
+        "31415": {
+          "id": 31415,
+          "name": "Paramonga"
+        },
+        "31416": {
+          "id": 31416,
+          "name": "Pativilca"
+        },
+        "31436": {
+          "id": 31436,
+          "name": "Quilmana"
+        },
+        "31441": {
+          "id": 31441,
+          "name": "Ricardo Palma"
+        },
+        "31456": {
+          "id": 31456,
+          "name": "San Luis"
+        },
+        "31463": {
+          "id": 31463,
+          "name": "Santa Eulalia"
+        },
+        "31465": {
+          "id": 31465,
+          "name": "Santa Maria"
+        },
+        "31472": {
+          "id": 31472,
+          "name": "San Vicente De Canete"
+        },
+        "31477": {
+          "id": 31477,
+          "name": "Sayan"
+        },
+        "31484": {
+          "id": 31484,
+          "name": "Supe"
+        },
+        "31505": {
+          "id": 31505,
+          "name": "Vegueta"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Loreto",
+      "cities": {
+        "31274": {
+          "id": 31274,
+          "name": "Barranca"
+        },
+        "31315": {
+          "id": 31315,
+          "name": "Contamana"
+        },
+        "31349": {
+          "id": 31349,
+          "name": "Iquitos"
+        },
+        "31360": {
+          "id": 31360,
+          "name": "Lagunas"
+        },
+        "31393": {
+          "id": 31393,
+          "name": "Nauta"
+        },
+        "31438": {
+          "id": 31438,
+          "name": "Ramon Castilla"
+        },
+        "31439": {
+          "id": 31439,
+          "name": "Requena"
+        },
+        "31474": {
+          "id": 31474,
+          "name": "Saquena"
+        },
+        "31517": {
+          "id": 31517,
+          "name": "Yurimaguas"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Madre de Dios",
+      "cities": {
+        "31342": {
+          "id": 31342,
+          "name": "Iberia"
+        },
+        "31430": {
+          "id": 31430,
+          "name": "Puerto Maldonado"
+        },
+        "31491": {
+          "id": 31491,
+          "name": "Tambopata"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Moquegua",
+      "cities": {
+        "31347": {
+          "id": 31347,
+          "name": "Ilo"
+        },
+        "31387": {
+          "id": 31387,
+          "name": "Moquegua"
+        },
+        "31408": {
+          "id": 31408,
+          "name": "Pacocha"
+        },
+        "31498": {
+          "id": 31498,
+          "name": "Torata"
+        },
+        "31515": {
+          "id": 31515,
+          "name": "Yunguyo"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Pasco",
+      "cities": {
+        "31293": {
+          "id": 31293,
+          "name": "Cerro De Pasco"
+        },
+        "31296": {
+          "id": 31296,
+          "name": "Chaupimarca"
+        },
+        "31403": {
+          "id": 31403,
+          "name": "Oxapampa"
+        },
+        "31496": {
+          "id": 31496,
+          "name": "Tinyahuarco"
+        },
+        "31508": {
+          "id": 31508,
+          "name": "Villa Rica"
+        },
+        "31511": {
+          "id": 31511,
+          "name": "Yanacancha"
+        },
+        "31512": {
+          "id": 31512,
+          "name": "Yanahuanca"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Piura",
+      "cities": {
+        "31266": {
+          "id": 31266,
+          "name": "Ayabaca"
+        },
+        "31277": {
+          "id": 31277,
+          "name": "Bernal"
+        },
+        "31278": {
+          "id": 31278,
+          "name": "Buenos Aires"
+        },
+        "31291": {
+          "id": 31291,
+          "name": "Catacaos"
+        },
+        "31310": {
+          "id": 31310,
+          "name": "Chulucanas"
+        },
+        "31313": {
+          "id": 31313,
+          "name": "Colan"
+        },
+        "31321": {
+          "id": 31321,
+          "name": "El Alto"
+        },
+        "31329": {
+          "id": 31329,
+          "name": "Huancabamba"
+        },
+        "31358": {
+          "id": 31358,
+          "name": "La Arena"
+        },
+        "31359": {
+          "id": 31359,
+          "name": "La Brea"
+        },
+        "31361": {
+          "id": 31361,
+          "name": "La Huaca"
+        },
+        "31368": {
+          "id": 31368,
+          "name": "Las Lomas"
+        },
+        "31370": {
+          "id": 31370,
+          "name": "La Union"
+        },
+        "31378": {
+          "id": 31378,
+          "name": "Mancora"
+        },
+        "31379": {
+          "id": 31379,
+          "name": "Marcavelica"
+        },
+        "31390": {
+          "id": 31390,
+          "name": "Morropon"
+        },
+        "31410": {
+          "id": 31410,
+          "name": "Paita"
+        },
+        "31424": {
+          "id": 31424,
+          "name": "Piura"
+        },
+        "31435": {
+          "id": 31435,
+          "name": "Querecotillo"
+        },
+        "31446": {
+          "id": 31446,
+          "name": "Salitral"
+        },
+        "31478": {
+          "id": 31478,
+          "name": "Sechura"
+        },
+        "31483": {
+          "id": 31483,
+          "name": "Sullana"
+        },
+        "31487": {
+          "id": 31487,
+          "name": "Talara"
+        },
+        "31489": {
+          "id": 31489,
+          "name": "Tamarindo"
+        },
+        "31490": {
+          "id": 31490,
+          "name": "Tambo Grande"
+        },
+        "31506": {
+          "id": 31506,
+          "name": "Vice"
+        },
+        "31507": {
+          "id": 31507,
+          "name": "Vichayal"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Puno",
+      "cities": {
+        "31268": {
+          "id": 31268,
+          "name": "Ayaviri"
+        },
+        "31270": {
+          "id": 31270,
+          "name": "Azangaro"
+        },
+        "31320": {
+          "id": 31320,
+          "name": "Desaguadero"
+        },
+        "31345": {
+          "id": 31345,
+          "name": "Ilave"
+        },
+        "31355": {
+          "id": 31355,
+          "name": "Juliaca"
+        },
+        "31356": {
+          "id": 31356,
+          "name": "Juli"
+        },
+        "31364": {
+          "id": 31364,
+          "name": "Lampa"
+        },
+        "31376": {
+          "id": 31376,
+          "name": "Macusani"
+        },
+        "31397": {
+          "id": 31397,
+          "name": "Nunoa"
+        },
+        "31431": {
+          "id": 31431,
+          "name": "Puno"
+        },
+        "31434": {
+          "id": 31434,
+          "name": "Putina"
+        },
+        "31464": {
+          "id": 31464,
+          "name": "Santa Lucia"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "San Martin",
+      "cities": {
+        "31276": {
+          "id": 31276,
+          "name": "Bellavista"
+        },
+        "31297": {
+          "id": 31297,
+          "name": "Chazuta"
+        },
+        "31341": {
+          "id": 31341,
+          "name": "Huicungo"
+        },
+        "31353": {
+          "id": 31353,
+          "name": "Jepelacio"
+        },
+        "31354": {
+          "id": 31354,
+          "name": "Juanjui"
+        },
+        "31362": {
+          "id": 31362,
+          "name": "Lamas"
+        },
+        "31392": {
+          "id": 31392,
+          "name": "Moyobamba"
+        },
+        "31419": {
+          "id": 31419,
+          "name": "Picota"
+        },
+        "31443": {
+          "id": 31443,
+          "name": "Rioja"
+        },
+        "31453": {
+          "id": 31453,
+          "name": "San Jose De Sisa"
+        },
+        "31473": {
+          "id": 31473,
+          "name": "Saposoa"
+        },
+        "31476": {
+          "id": 31476,
+          "name": "Sauce"
+        },
+        "31481": {
+          "id": 31481,
+          "name": "Soritor"
+        },
+        "31485": {
+          "id": 31485,
+          "name": "Tabalosos"
+        },
+        "31497": {
+          "id": 31497,
+          "name": "Tocache"
+        },
+        "31502": {
+          "id": 31502,
+          "name": "Uchiza"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Tacna",
+      "cities": {
+        "31344": {
+          "id": 31344,
+          "name": "Ilabaya"
+        },
+        "31486": {
+          "id": 31486,
+          "name": "Tacna"
+        },
+        "31493": {
+          "id": 31493,
+          "name": "Tarata"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Tumbes",
+      "cities": {
+        "31260": {
+          "id": 31260,
+          "name": "Aguas Verdes"
+        },
+        "31414": {
+          "id": 31414,
+          "name": "Papayal"
+        },
+        "31501": {
+          "id": 31501,
+          "name": "Tumbes"
+        },
+        "31518": {
+          "id": 31518,
+          "name": "Zarumilla"
+        },
+        "31519": {
+          "id": 31519,
+          "name": "Zorritos"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Ucayali",
+      "cities": {
+        "31285": {
+          "id": 31285,
+          "name": "Campoverde"
+        },
+        "31426": {
+          "id": 31426,
+          "name": "Pucallpa"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Amazonas",
+      "cities": {
+        "31271": {
+          "id": 31271,
+          "name": "Bagua Grande"
+        },
+        "31281": {
+          "id": 31281,
+          "name": "Cajaruro"
+        },
+        "31294": {
+          "id": 31294,
+          "name": "Chachapoyas"
+        },
+        "31366": {
+          "id": 31366,
+          "name": "La Peca"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Ancash",
+      "cities": {
+        "31286": {
+          "id": 31286,
+          "name": "Caraz"
+        },
+        "31288": {
+          "id": 31288,
+          "name": "Carhuaz"
+        },
+        "31290": {
+          "id": 31290,
+          "name": "Casma"
+        },
+        "31303": {
+          "id": 31303,
+          "name": "Chimbote"
+        },
+        "31335": {
+          "id": 31335,
+          "name": "Huaraz"
+        },
+        "31336": {
+          "id": 31336,
+          "name": "Huari"
+        },
+        "31337": {
+          "id": 31337,
+          "name": "Huarmey"
+        },
+        "31425": {
+          "id": 31425,
+          "name": "Pomabamba"
+        },
+        "31467": {
+          "id": 31467,
+          "name": "Santa"
+        },
+        "31513": {
+          "id": 31513,
+          "name": "Yauya"
+        },
+        "31514": {
+          "id": 31514,
+          "name": "Yungay"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Apurimac",
+      "cities": {
+        "31256": {
+          "id": 31256,
+          "name": "Abancay"
+        },
+        "31262": {
+          "id": 31262,
+          "name": "Andahuaylas"
+        },
+        "31452": {
+          "id": 31452,
+          "name": "San Jeronimo"
+        },
+        "31488": {
+          "id": 31488,
+          "name": "Talavera"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Arequipa",
+      "cities": {
+        "31257": {
+          "id": 31257,
+          "name": "Acari"
+        },
+        "31264": {
+          "id": 31264,
+          "name": "Arequipa"
+        },
+        "31284": {
+          "id": 31284,
+          "name": "Camana"
+        },
+        "31305": {
+          "id": 31305,
+          "name": "Chivay"
+        },
+        "31312": {
+          "id": 31312,
+          "name": "Cocachacra"
+        },
+        "31317": {
+          "id": 31317,
+          "name": "Corrales"
+        },
+        "31374": {
+          "id": 31374,
+          "name": "Lluta"
+        },
+        "31385": {
+          "id": 31385,
+          "name": "Mollendo"
+        },
+        "31399": {
+          "id": 31399,
+          "name": "Orcopampa"
+        },
+        "31432": {
+          "id": 31432,
+          "name": "Punta De Bombon"
+        },
+        "31516": {
+          "id": 31516,
+          "name": "Yura"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Ayacucho",
+      "cities": {
+        "31267": {
+          "id": 31267,
+          "name": "Ayacucho"
+        },
+        "31269": {
+          "id": 31269,
+          "name": "Ayna"
+        },
+        "31316": {
+          "id": 31316,
+          "name": "Coracora"
+        },
+        "31332": {
+          "id": 31332,
+          "name": "Huanta"
+        },
+        "31433": {
+          "id": 31433,
+          "name": "Puquio"
+        },
+        "31458": {
+          "id": 31458,
+          "name": "San Miguel"
+        },
+        "31492": {
+          "id": 31492,
+          "name": "Tambo"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Cajamarca",
+      "cities": {
+        "31272": {
+          "id": 31272,
+          "name": "Bambamarca"
+        },
+        "31275": {
+          "id": 31275,
+          "name": "Bellavista"
+        },
+        "31279": {
+          "id": 31279,
+          "name": "Cajabamba"
+        },
+        "31280": {
+          "id": 31280,
+          "name": "Cajamarca"
+        },
+        "31289": {
+          "id": 31289,
+          "name": "Cascas"
+        },
+        "31292": {
+          "id": 31292,
+          "name": "Celendin"
+        },
+        "31309": {
+          "id": 31309,
+          "name": "Chota"
+        },
+        "31319": {
+          "id": 31319,
+          "name": "Cutervo"
+        },
+        "31350": {
+          "id": 31350,
+          "name": "Jaen"
+        },
+        "31450": {
+          "id": 31450,
+          "name": "San Ignacio"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Callao",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Cusco",
+      "cities": {
+        "31263": {
+          "id": 31263,
+          "name": "Anta"
+        },
+        "31282": {
+          "id": 31282,
+          "name": "Calca"
+        },
+        "31318": {
+          "id": 31318,
+          "name": "Cusco"
+        },
+        "31401": {
+          "id": 31401,
+          "name": "Oropesa"
+        },
+        "31413": {
+          "id": 31413,
+          "name": "Pangoa"
+        },
+        "31417": {
+          "id": 31417,
+          "name": "Paucartambo"
+        },
+        "31462": {
+          "id": 31462,
+          "name": "Santa Ana"
+        },
+        "31471": {
+          "id": 31471,
+          "name": "Santo Tomas"
+        },
+        "31480": {
+          "id": 31480,
+          "name": "Sicuani"
+        },
+        "31503": {
+          "id": 31503,
+          "name": "Urcos"
+        },
+        "31504": {
+          "id": 31504,
+          "name": "Urubamba"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Huancavelica",
+      "cities": {
+        "31258": {
+          "id": 31258,
+          "name": "Acobamba"
+        },
+        "31330": {
+          "id": 31330,
+          "name": "Huancavelica"
+        },
+        "31372": {
+          "id": 31372,
+          "name": "Lircay"
+        },
+        "31412": {
+          "id": 31412,
+          "name": "Pampas"
+        }
+      }
+    }
+  }
+}

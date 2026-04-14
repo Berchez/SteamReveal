@@ -1,0 +1,104 @@
+{
+  "code": "BB",
+  "name": "Barbados",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Saint Philip",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Saint Thomas",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Christ Church",
+      "cities": {
+        "6125": {
+          "id": 6125,
+          "name": "Oistins"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Saint Andrew",
+      "cities": {
+        "6122": {
+          "id": 6122,
+          "name": "Greenland"
+        },
+        "6123": {
+          "id": 6123,
+          "name": "Hillaby"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Saint George",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Saint James",
+      "cities": {
+        "6124": {
+          "id": 6124,
+          "name": "Holetown"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Saint John",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Saint Joseph",
+      "cities": {
+        "6118": {
+          "id": 6118,
+          "name": "Bathsheba"
+        },
+        "6119": {
+          "id": 6119,
+          "name": "Blackmans"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Saint Lucy",
+      "cities": {
+        "6121": {
+          "id": 6121,
+          "name": "Crab Hill"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Saint Michael",
+      "cities": {
+        "6120": {
+          "id": 6120,
+          "name": "Bridgetown"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Saint Peter",
+      "cities": {
+        "6126": {
+          "id": 6126,
+          "name": "Speightstown"
+        }
+      }
+    }
+  }
+}

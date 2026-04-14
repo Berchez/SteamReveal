@@ -1,0 +1,402 @@
+{
+  "code": "AF",
+  "name": "Afghanistan",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Helmand",
+      "cities": {
+        "5100": {
+          "id": 5100,
+          "name": "Laskar Gah"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Herat",
+      "cities": {
+        "5092": {
+          "id": 5092,
+          "name": "Herat"
+        },
+        "5098": {
+          "id": 5098,
+          "name": "Kuhestan"
+        },
+        "5117": {
+          "id": 5117,
+          "name": "Tir Pol"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Kabol",
+      "cities": {
+        "5081": {
+          "id": 5081,
+          "name": "Bagrami"
+        },
+        "5095": {
+          "id": 5095,
+          "name": "Kabul"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Kapisa",
+      "cities": {
+        "5115": {
+          "id": 5115,
+          "name": "Tagab"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Konar",
+      "cities": {
+        "5077": {
+          "id": 5077,
+          "name": "Asmar"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Laghman",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Lowgar",
+      "cities": {
+        "5082": {
+          "id": 5082,
+          "name": "Baraki Barak"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Nangarhar",
+      "cities": {
+        "5073": {
+          "id": 5073,
+          "name": "Acin"
+        },
+        "5093": {
+          "id": 5093,
+          "name": "Jalalabad"
+        },
+        "5112": {
+          "id": 5112,
+          "name": "Sangin"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Nimruz",
+      "cities": {
+        "5102": {
+          "id": 5102,
+          "name": "Mirabad"
+        },
+        "5111": {
+          "id": 5111,
+          "name": "Rudbar"
+        },
+        "5120": {
+          "id": 5120,
+          "name": "Zaranj"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Oruzgan",
+      "cities": {
+        "5088": {
+          "id": 5088,
+          "name": "Deh Rawud"
+        },
+        "5119": {
+          "id": 5119,
+          "name": "Uruzgan"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Paktia",
+      "cities": {
+        "5079": {
+          "id": 5079,
+          "name": "Azrow"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Parvan",
+      "cities": {
+        "5084": {
+          "id": 5084,
+          "name": "Carikar"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Kandahar",
+      "cities": {
+        "5106": {
+          "id": 5106,
+          "name": "Qandahar"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Kondoz",
+      "cities": {
+        "5109": {
+          "id": 5109,
+          "name": "Qunduz"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Takhar",
+      "cities": {
+        "5083": {
+          "id": 5083,
+          "name": "Cah Ab"
+        },
+        "5110": {
+          "id": 5110,
+          "name": "Rostaq"
+        },
+        "5116": {
+          "id": 5116,
+          "name": "Taloqan"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Vardak",
+      "cities": {
+        "5090": {
+          "id": 5090,
+          "name": "Gardan Diwal"
+        }
+      }
+    },
+    "28": {
+      "code": "28",
+      "name": "Zabol",
+      "cities": {}
+    },
+    "29": {
+      "code": "29",
+      "name": "Paktika",
+      "cities": {
+        "5104": {
+          "id": 5104,
+          "name": "Orgun"
+        },
+        "5113": {
+          "id": 5113,
+          "name": "Sharan"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Balkh",
+      "cities": {
+        "5087": {
+          "id": 5087,
+          "name": "Dawlatabad"
+        },
+        "5107": {
+          "id": 5107,
+          "name": "Qarchi Gak"
+        }
+      }
+    },
+    "31": {
+      "code": "31",
+      "name": "Jowzjan",
+      "cities": {
+        "5099": {
+          "id": 5099,
+          "name": "Lar Gerd"
+        },
+        "5108": {
+          "id": 5108,
+          "name": "Qarqin"
+        },
+        "5114": {
+          "id": 5114,
+          "name": "Shibarghan"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Samangan",
+      "cities": {
+        "5078": {
+          "id": 5078,
+          "name": "Aybak"
+        },
+        "5096": {
+          "id": 5096,
+          "name": "Kholm"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "Sar-e Pol",
+      "cities": {
+        "5085": {
+          "id": 5085,
+          "name": "Ciras"
+        },
+        "5118": {
+          "id": 5118,
+          "name": "Tokzar"
+        }
+      }
+    },
+    "34": {
+      "code": "34",
+      "name": "Konar",
+      "cities": {
+        "5076": {
+          "id": 5076,
+          "name": "Asadabad"
+        }
+      }
+    },
+    "35": {
+      "code": "35",
+      "name": "Laghman",
+      "cities": {
+        "5101": {
+          "id": 5101,
+          "name": "Mehtar Lam"
+        }
+      }
+    },
+    "36": {
+      "code": "36",
+      "name": "Paktia",
+      "cities": {
+        "5091": {
+          "id": 5091,
+          "name": "Gardez"
+        }
+      }
+    },
+    "37": {
+      "code": "37",
+      "name": "Khowst",
+      "cities": {
+        "5097": {
+          "id": 5097,
+          "name": "Khowst"
+        }
+      }
+    },
+    "38": {
+      "code": "38",
+      "name": "Nurestan",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Badakhshan",
+      "cities": {
+        "5094": {
+          "id": 5094,
+          "name": "Jurm"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Badghis",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Baghlan",
+      "cities": {
+        "5075": {
+          "id": 5075,
+          "name": "Andarab"
+        },
+        "5080": {
+          "id": 5080,
+          "name": "Baglan"
+        },
+        "5103": {
+          "id": 5103,
+          "name": "Nahrin"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Bamian",
+      "cities": {
+        "5105": {
+          "id": 5105,
+          "name": "Panjab"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Farah",
+      "cities": {
+        "5074": {
+          "id": 5074,
+          "name": "Anar Darreh"
+        },
+        "5089": {
+          "id": 5089,
+          "name": "Farah"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Faryab",
+      "cities": {
+        "5086": {
+          "id": 5086,
+          "name": "Dawlatabad"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Ghazni",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Ghowr",
+      "cities": {}
+    }
+  }
+}

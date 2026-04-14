@@ -1,0 +1,84 @@
+{
+  "code": "LR",
+  "name": "Liberia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Sino",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Grand Bassa",
+      "cities": {
+        "26609": {
+          "id": 26609,
+          "name": "Buchanan"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Montserrado",
+      "cities": {
+        "26608": {
+          "id": 26608,
+          "name": "Bensonville"
+        },
+        "26613": {
+          "id": 26613,
+          "name": "Monrovia"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Bong",
+      "cities": {
+        "26611": {
+          "id": 26611,
+          "name": "Gbarnga"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Grand Jide",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Grand Cape Mount",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Lofa",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Maryland",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Monrovia",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Nimba",
+      "cities": {
+        "26610": {
+          "id": 26610,
+          "name": "Ganta"
+        },
+        "26616": {
+          "id": 26616,
+          "name": "Yekepa"
+        }
+      }
+    }
+  }
+}

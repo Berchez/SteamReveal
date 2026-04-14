@@ -1,0 +1,63 @@
+{
+  "code": "LB",
+  "name": "Lebanon",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Beqaa",
+      "cities": {
+        "26524": {
+          "id": 26524,
+          "name": "Jubb Jannin"
+        },
+        "26526": {
+          "id": 26526,
+          "name": "Riyaq"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Liban-Nord",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Beyrouth",
+      "cities": {
+        "26520": {
+          "id": 26520,
+          "name": "Bayrut"
+        },
+        "26521": {
+          "id": 26521,
+          "name": "Beirut"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Mont-Liban",
+      "cities": {
+        "26523": {
+          "id": 26523,
+          "name": "Jubayl"
+        },
+        "26525": {
+          "id": 26525,
+          "name": "Juniyah"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Liban-Sud",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Nabatiye",
+      "cities": {}
+    }
+  }
+}

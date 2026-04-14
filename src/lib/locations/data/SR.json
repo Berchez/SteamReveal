@@ -1,0 +1,117 @@
+{
+  "code": "SR",
+  "name": "Suriname",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Brokopondo",
+      "cities": {
+        "44158": {
+          "id": 44158,
+          "name": "Brokopondo"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Commewijne",
+      "cities": {
+        "44161": {
+          "id": 44161,
+          "name": "Marienburg"
+        },
+        "44162": {
+          "id": 44162,
+          "name": "Meerzorg"
+        },
+        "44164": {
+          "id": 44164,
+          "name": "Nieuw Amsterdam"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Coronie",
+      "cities": {
+        "44168": {
+          "id": 44168,
+          "name": "Totness"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Marowijne",
+      "cities": {
+        "44157": {
+          "id": 44157,
+          "name": "Albina"
+        },
+        "44163": {
+          "id": 44163,
+          "name": "Moengo"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Nickerie",
+      "cities": {
+        "44165": {
+          "id": 44165,
+          "name": "Nieuw Nickerie"
+        },
+        "44169": {
+          "id": 44169,
+          "name": "Wageningen"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Para",
+      "cities": {
+        "44166": {
+          "id": 44166,
+          "name": "Onverwacht"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Paramaribo",
+      "cities": {
+        "44167": {
+          "id": 44167,
+          "name": "Paramaribo"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Saramacca",
+      "cities": {
+        "44159": {
+          "id": 44159,
+          "name": "Groningen"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Sipaliwini",
+      "cities": {}
+    },
+    "19": {
+      "code": "19",
+      "name": "Wanica",
+      "cities": {
+        "44160": {
+          "id": 44160,
+          "name": "Lelydorp"
+        }
+      }
+    }
+  }
+}

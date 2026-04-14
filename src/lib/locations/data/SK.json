@@ -1,0 +1,502 @@
+{
+  "code": "SK",
+  "name": "Slovakia",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Banska Bystrica",
+      "cities": {
+        "43893": {
+          "id": 43893,
+          "name": "Banska Bystrica"
+        },
+        "43894": {
+          "id": 43894,
+          "name": "Banska Stiavnica"
+        },
+        "43898": {
+          "id": 43898,
+          "name": "Brezno"
+        },
+        "43903": {
+          "id": 43903,
+          "name": "Detva"
+        },
+        "43911": {
+          "id": 43911,
+          "name": "Handlova"
+        },
+        "43914": {
+          "id": 43914,
+          "name": "Hrinova"
+        },
+        "43922": {
+          "id": 43922,
+          "name": "Kremnica"
+        },
+        "43924": {
+          "id": 43924,
+          "name": "Krupina"
+        },
+        "43929": {
+          "id": 43929,
+          "name": "Liptovsky Hradok"
+        },
+        "43930": {
+          "id": 43930,
+          "name": "Liptovsky Mikulas"
+        },
+        "43931": {
+          "id": 43931,
+          "name": "Lucenec"
+        },
+        "43950": {
+          "id": 43950,
+          "name": "Poltar"
+        },
+        "43954": {
+          "id": 43954,
+          "name": "Prievidza"
+        },
+        "43957": {
+          "id": 43957,
+          "name": "Revuca"
+        },
+        "43958": {
+          "id": 43958,
+          "name": "Rimavska Sobota"
+        },
+        "43969": {
+          "id": 43969,
+          "name": "Sliac"
+        },
+        "43985": {
+          "id": 43985,
+          "name": "Tisovec"
+        },
+        "43992": {
+          "id": 43992,
+          "name": "Turcianske Teplice"
+        },
+        "43999": {
+          "id": 43999,
+          "name": "Zarnovica"
+        },
+        "44003": {
+          "id": 44003,
+          "name": "Zvolen"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Bratislava",
+      "cities": {
+        "43897": {
+          "id": 43897,
+          "name": "Bratislava"
+        },
+        "43906": {
+          "id": 43906,
+          "name": "Dunajska Streda"
+        },
+        "43908": {
+          "id": 43908,
+          "name": "Gbely"
+        },
+        "43913": {
+          "id": 43913,
+          "name": "Holic"
+        },
+        "43932": {
+          "id": 43932,
+          "name": "Malacky"
+        },
+        "43937": {
+          "id": 43937,
+          "name": "Modra"
+        },
+        "43948": {
+          "id": 43948,
+          "name": "Pezinok"
+        },
+        "43963": {
+          "id": 43963,
+          "name": "Samorin"
+        },
+        "43965": {
+          "id": 43965,
+          "name": "Senec"
+        },
+        "43978": {
+          "id": 43978,
+          "name": "Stupava"
+        },
+        "43981": {
+          "id": 43981,
+          "name": "Svaty Jur"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Kosice",
+      "cities": {
+        "43902": {
+          "id": 43902,
+          "name": "Cierna Nad Tisou"
+        },
+        "43904": {
+          "id": 43904,
+          "name": "Dobsina"
+        },
+        "43909": {
+          "id": 43909,
+          "name": "Gelnica"
+        },
+        "43915": {
+          "id": 43915,
+          "name": "Humenne"
+        },
+        "43921": {
+          "id": 43921,
+          "name": "Kosice"
+        },
+        "43934": {
+          "id": 43934,
+          "name": "Medzev"
+        },
+        "43936": {
+          "id": 43936,
+          "name": "Michalovce"
+        },
+        "43938": {
+          "id": 43938,
+          "name": "Moldava Nad Bodvou"
+        },
+        "43959": {
+          "id": 43959,
+          "name": "Roznava"
+        },
+        "43964": {
+          "id": 43964,
+          "name": "Secovce"
+        },
+        "43970": {
+          "id": 43970,
+          "name": "Snina"
+        },
+        "43971": {
+          "id": 43971,
+          "name": "Sobrance"
+        },
+        "43976": {
+          "id": 43976,
+          "name": "Strazske"
+        },
+        "43987": {
+          "id": 43987,
+          "name": "Trebisov"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Nitra",
+      "cities": {
+        "43916": {
+          "id": 43916,
+          "name": "Hurbanovo"
+        },
+        "43919": {
+          "id": 43919,
+          "name": "Kolarovo"
+        },
+        "43920": {
+          "id": 43920,
+          "name": "Komarno"
+        },
+        "43927": {
+          "id": 43927,
+          "name": "Levice"
+        },
+        "43942": {
+          "id": 43942,
+          "name": "Nitra"
+        },
+        "43943": {
+          "id": 43943,
+          "name": "Nova Bana"
+        },
+        "43946": {
+          "id": 43946,
+          "name": "Nove Zamky"
+        },
+        "43962": {
+          "id": 43962,
+          "name": "Sahy"
+        },
+        "43979": {
+          "id": 43979,
+          "name": "Sturovo"
+        },
+        "43980": {
+          "id": 43980,
+          "name": "Surany"
+        },
+        "43984": {
+          "id": 43984,
+          "name": "Svodin"
+        },
+        "43986": {
+          "id": 43986,
+          "name": "Tlmace"
+        },
+        "43995": {
+          "id": 43995,
+          "name": "Vrable"
+        },
+        "44000": {
+          "id": 44000,
+          "name": "Zeliezovce"
+        },
+        "44002": {
+          "id": 44002,
+          "name": "Zlate Moravce"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Presov",
+      "cities": {
+        "43895": {
+          "id": 43895,
+          "name": "Bardejov"
+        },
+        "43910": {
+          "id": 43910,
+          "name": "Giraltovce"
+        },
+        "43918": {
+          "id": 43918,
+          "name": "Kezmarok"
+        },
+        "43923": {
+          "id": 43923,
+          "name": "Krompachy"
+        },
+        "43928": {
+          "id": 43928,
+          "name": "Lipany"
+        },
+        "43935": {
+          "id": 43935,
+          "name": "Medzilaborce"
+        },
+        "43949": {
+          "id": 43949,
+          "name": "Podolinec"
+        },
+        "43951": {
+          "id": 43951,
+          "name": "Poprad"
+        },
+        "43953": {
+          "id": 43953,
+          "name": "Presov"
+        },
+        "43961": {
+          "id": 43961,
+          "name": "Sabinov"
+        },
+        "43972": {
+          "id": 43972,
+          "name": "Spisska Bela"
+        },
+        "43973": {
+          "id": 43973,
+          "name": "Spisska Nova Ves"
+        },
+        "43974": {
+          "id": 43974,
+          "name": "Spisske Podhradie"
+        },
+        "43977": {
+          "id": 43977,
+          "name": "Stropkov"
+        },
+        "43982": {
+          "id": 43982,
+          "name": "Svidnik"
+        },
+        "43983": {
+          "id": 43983,
+          "name": "Svit"
+        },
+        "43996": {
+          "id": 43996,
+          "name": "Vranov"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Trencin",
+      "cities": {
+        "43892": {
+          "id": 43892,
+          "name": "Banovce"
+        },
+        "43896": {
+          "id": 43896,
+          "name": "Bojnice"
+        },
+        "43917": {
+          "id": 43917,
+          "name": "Ilava"
+        },
+        "43939": {
+          "id": 43939,
+          "name": "Myjava"
+        },
+        "43941": {
+          "id": 43941,
+          "name": "Nemsova"
+        },
+        "43944": {
+          "id": 43944,
+          "name": "Nova Dubnica"
+        },
+        "43945": {
+          "id": 43945,
+          "name": "Novaky"
+        },
+        "43947": {
+          "id": 43947,
+          "name": "Partizanske"
+        },
+        "43967": {
+          "id": 43967,
+          "name": "Skalica"
+        },
+        "43975": {
+          "id": 43975,
+          "name": "Stara Tura"
+        },
+        "43988": {
+          "id": 43988,
+          "name": "Trencianske Teplice"
+        },
+        "43989": {
+          "id": 43989,
+          "name": "Trencin"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Trnava",
+      "cities": {
+        "43899": {
+          "id": 43899,
+          "name": "Brezova Pod Bradlom"
+        },
+        "43907": {
+          "id": 43907,
+          "name": "Galanta"
+        },
+        "43912": {
+          "id": 43912,
+          "name": "Hlohovec"
+        },
+        "43926": {
+          "id": 43926,
+          "name": "Leopoldov"
+        },
+        "43966": {
+          "id": 43966,
+          "name": "Senica"
+        },
+        "43968": {
+          "id": 43968,
+          "name": "Sladkovicovo"
+        },
+        "43990": {
+          "id": 43990,
+          "name": "Trnava"
+        },
+        "43997": {
+          "id": 43997,
+          "name": "Vrbove"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Zilina",
+      "cities": {
+        "43900": {
+          "id": 43900,
+          "name": "Bytca"
+        },
+        "43901": {
+          "id": 43901,
+          "name": "Cadca"
+        },
+        "43905": {
+          "id": 43905,
+          "name": "Dolny Kubin"
+        },
+        "43925": {
+          "id": 43925,
+          "name": "Kysucke Nove Mesto"
+        },
+        "43933": {
+          "id": 43933,
+          "name": "Martin"
+        },
+        "43940": {
+          "id": 43940,
+          "name": "Namestovo"
+        },
+        "43952": {
+          "id": 43952,
+          "name": "Povazska Bystrica"
+        },
+        "43955": {
+          "id": 43955,
+          "name": "Puchov"
+        },
+        "43956": {
+          "id": 43956,
+          "name": "Rajec"
+        },
+        "43960": {
+          "id": 43960,
+          "name": "Ruzomberok"
+        },
+        "43991": {
+          "id": 43991,
+          "name": "Trstena"
+        },
+        "43993": {
+          "id": 43993,
+          "name": "Turzovka"
+        },
+        "43994": {
+          "id": 43994,
+          "name": "Tvrdosin"
+        },
+        "43998": {
+          "id": 43998,
+          "name": "Vrutky"
+        },
+        "44001": {
+          "id": 44001,
+          "name": "Zilina"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "code": "FJ",
+  "name": "Fiji",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Central",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Eastern",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Northern",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Rotuma",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Western",
+      "cities": {}
+    }
+  }
+}

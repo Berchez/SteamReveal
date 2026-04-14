@@ -1,0 +1,531 @@
+{
+  "code": "NZ",
+  "name": "New Zealand",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Chatham Islands",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Cheviot",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Clifton",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Clutha",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Cook",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "Dannevirke",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Egmont",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Eketahuna",
+      "cities": {}
+    },
+    "19": {
+      "code": "19",
+      "name": "Ellesmere",
+      "cities": {}
+    },
+    "20": {
+      "code": "20",
+      "name": "Eltham",
+      "cities": {}
+    },
+    "21": {
+      "code": "21",
+      "name": "Eyre",
+      "cities": {}
+    },
+    "22": {
+      "code": "22",
+      "name": "Featherston",
+      "cities": {}
+    },
+    "24": {
+      "code": "24",
+      "name": "Franklin",
+      "cities": {}
+    },
+    "26": {
+      "code": "26",
+      "name": "Golden Bay",
+      "cities": {}
+    },
+    "27": {
+      "code": "27",
+      "name": "Great Barrier Island",
+      "cities": {}
+    },
+    "28": {
+      "code": "28",
+      "name": "Grey",
+      "cities": {}
+    },
+    "29": {
+      "code": "29",
+      "name": "Hauraki Plains",
+      "cities": {}
+    },
+    "30": {
+      "code": "30",
+      "name": "Hawera",
+      "cities": {}
+    },
+    "31": {
+      "code": "31",
+      "name": "Hawke's Bay",
+      "cities": {}
+    },
+    "32": {
+      "code": "32",
+      "name": "Heathcote",
+      "cities": {}
+    },
+    "33": {
+      "code": "33",
+      "name": "Hobson",
+      "cities": {}
+    },
+    "34": {
+      "code": "34",
+      "name": "Hokianga",
+      "cities": {}
+    },
+    "35": {
+      "code": "35",
+      "name": "Horowhenua",
+      "cities": {}
+    },
+    "36": {
+      "code": "36",
+      "name": "Hutt",
+      "cities": {}
+    },
+    "37": {
+      "code": "37",
+      "name": "Inangahua",
+      "cities": {}
+    },
+    "38": {
+      "code": "38",
+      "name": "Inglewood",
+      "cities": {}
+    },
+    "39": {
+      "code": "39",
+      "name": "Kaikoura",
+      "cities": {}
+    },
+    "40": {
+      "code": "40",
+      "name": "Kairanga",
+      "cities": {}
+    },
+    "41": {
+      "code": "41",
+      "name": "Kiwitea",
+      "cities": {}
+    },
+    "43": {
+      "code": "43",
+      "name": "Lake",
+      "cities": {}
+    },
+    "45": {
+      "code": "45",
+      "name": "Mackenzie",
+      "cities": {}
+    },
+    "46": {
+      "code": "46",
+      "name": "Malvern",
+      "cities": {}
+    },
+    "47": {
+      "code": "47",
+      "name": "Manawatu",
+      "cities": {}
+    },
+    "48": {
+      "code": "48",
+      "name": "Mangonui",
+      "cities": {}
+    },
+    "49": {
+      "code": "49",
+      "name": "Maniototo",
+      "cities": {}
+    },
+    "50": {
+      "code": "50",
+      "name": "Marlborough",
+      "cities": {}
+    },
+    "51": {
+      "code": "51",
+      "name": "Masterton",
+      "cities": {}
+    },
+    "52": {
+      "code": "52",
+      "name": "Matamata",
+      "cities": {}
+    },
+    "53": {
+      "code": "53",
+      "name": "Mount Herbert",
+      "cities": {}
+    },
+    "54": {
+      "code": "54",
+      "name": "Ohinemuri",
+      "cities": {}
+    },
+    "55": {
+      "code": "55",
+      "name": "Opotiki",
+      "cities": {}
+    },
+    "56": {
+      "code": "56",
+      "name": "Oroua",
+      "cities": {}
+    },
+    "57": {
+      "code": "57",
+      "name": "Otamatea",
+      "cities": {}
+    },
+    "58": {
+      "code": "58",
+      "name": "Otorohanga",
+      "cities": {}
+    },
+    "59": {
+      "code": "59",
+      "name": "Oxford",
+      "cities": {}
+    },
+    "60": {
+      "code": "60",
+      "name": "Pahiatua",
+      "cities": {}
+    },
+    "61": {
+      "code": "61",
+      "name": "Paparua",
+      "cities": {}
+    },
+    "63": {
+      "code": "63",
+      "name": "Patea",
+      "cities": {}
+    },
+    "65": {
+      "code": "65",
+      "name": "Piako",
+      "cities": {}
+    },
+    "66": {
+      "code": "66",
+      "name": "Pohangina",
+      "cities": {}
+    },
+    "67": {
+      "code": "67",
+      "name": "Raglan",
+      "cities": {}
+    },
+    "68": {
+      "code": "68",
+      "name": "Rangiora",
+      "cities": {}
+    },
+    "69": {
+      "code": "69",
+      "name": "Rangitikei",
+      "cities": {}
+    },
+    "70": {
+      "code": "70",
+      "name": "Rodney",
+      "cities": {}
+    },
+    "71": {
+      "code": "71",
+      "name": "Rotorua",
+      "cities": {}
+    },
+    "72": {
+      "code": "72",
+      "name": "Southland",
+      "cities": {}
+    },
+    "73": {
+      "code": "73",
+      "name": "Stewart Island",
+      "cities": {}
+    },
+    "74": {
+      "code": "74",
+      "name": "Stratford",
+      "cities": {}
+    },
+    "76": {
+      "code": "76",
+      "name": "Taranaki",
+      "cities": {}
+    },
+    "77": {
+      "code": "77",
+      "name": "Taumarunui",
+      "cities": {}
+    },
+    "78": {
+      "code": "78",
+      "name": "Taupo",
+      "cities": {}
+    },
+    "79": {
+      "code": "79",
+      "name": "Tauranga",
+      "cities": {}
+    },
+    "81": {
+      "code": "81",
+      "name": "Tuapeka",
+      "cities": {}
+    },
+    "82": {
+      "code": "82",
+      "name": "Vincent",
+      "cities": {}
+    },
+    "83": {
+      "code": "83",
+      "name": "Waiapu",
+      "cities": {}
+    },
+    "84": {
+      "code": "84",
+      "name": "Waihemo",
+      "cities": {}
+    },
+    "85": {
+      "code": "85",
+      "name": "Waikato",
+      "cities": {}
+    },
+    "86": {
+      "code": "86",
+      "name": "Waikohu",
+      "cities": {}
+    },
+    "88": {
+      "code": "88",
+      "name": "Waimairi",
+      "cities": {}
+    },
+    "89": {
+      "code": "89",
+      "name": "Waimarino",
+      "cities": {}
+    },
+    "90": {
+      "code": "90",
+      "name": "Waimate",
+      "cities": {}
+    },
+    "91": {
+      "code": "91",
+      "name": "Waimate West",
+      "cities": {}
+    },
+    "92": {
+      "code": "92",
+      "name": "Waimea",
+      "cities": {}
+    },
+    "93": {
+      "code": "93",
+      "name": "Waipa",
+      "cities": {}
+    },
+    "95": {
+      "code": "95",
+      "name": "Waipawa",
+      "cities": {}
+    },
+    "96": {
+      "code": "96",
+      "name": "Waipukurau",
+      "cities": {}
+    },
+    "97": {
+      "code": "97",
+      "name": "Wairarapa South",
+      "cities": {}
+    },
+    "98": {
+      "code": "98",
+      "name": "Wairewa",
+      "cities": {}
+    },
+    "99": {
+      "code": "99",
+      "name": "Wairoa",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Akaroa",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Amuri",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Ashburton",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Bay of Islands",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Bruce",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Buller",
+      "cities": {}
+    },
+    "A1": {
+      "code": "A1",
+      "name": "Whangarei",
+      "cities": {}
+    },
+    "A2": {
+      "code": "A2",
+      "name": "Whangaroa",
+      "cities": {}
+    },
+    "A3": {
+      "code": "A3",
+      "name": "Woodville",
+      "cities": {}
+    },
+    "A4": {
+      "code": "A4",
+      "name": "Waitaki",
+      "cities": {}
+    },
+    "A6": {
+      "code": "A6",
+      "name": "Waitomo",
+      "cities": {}
+    },
+    "A8": {
+      "code": "A8",
+      "name": "Waitotara",
+      "cities": {}
+    },
+    "B2": {
+      "code": "B2",
+      "name": "Wanganui",
+      "cities": {}
+    },
+    "B3": {
+      "code": "B3",
+      "name": "Westland",
+      "cities": {}
+    },
+    "B4": {
+      "code": "B4",
+      "name": "Whakatane",
+      "cities": {}
+    },
+    "D4": {
+      "code": "D4",
+      "name": "Hurunui",
+      "cities": {}
+    },
+    "D5": {
+      "code": "D5",
+      "name": "Silverpeaks",
+      "cities": {}
+    },
+    "D6": {
+      "code": "D6",
+      "name": "Strathallan",
+      "cities": {}
+    },
+    "D8": {
+      "code": "D8",
+      "name": "Waiheke",
+      "cities": {}
+    },
+    "D9": {
+      "code": "D9",
+      "name": "Hikurangi",
+      "cities": {}
+    },
+    "E1": {
+      "code": "E1",
+      "name": "Manaia",
+      "cities": {}
+    },
+    "E2": {
+      "code": "E2",
+      "name": "Runanga",
+      "cities": {}
+    },
+    "E3": {
+      "code": "E3",
+      "name": "Saint Kilda",
+      "cities": {}
+    },
+    "E4": {
+      "code": "E4",
+      "name": "Thames-Coromandel",
+      "cities": {}
+    },
+    "E5": {
+      "code": "E5",
+      "name": "Waverley",
+      "cities": {}
+    },
+    "E6": {
+      "code": "E6",
+      "name": "Wallace",
+      "cities": {}
+    }
+  }
+}

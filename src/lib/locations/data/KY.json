@@ -1,0 +1,46 @@
+{
+  "code": "KY",
+  "name": "Cayman Islands",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Creek",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Eastern",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Midland",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "South Town",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Spot Bay",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Stake Bay",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "West End",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Western",
+      "cities": {}
+    }
+  }
+}

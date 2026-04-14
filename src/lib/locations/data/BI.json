@@ -1,0 +1,160 @@
+{
+  "code": "BI",
+  "name": "Burundi",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Bururi",
+      "cities": {
+        "6965": {
+          "id": 6965,
+          "name": "Bururi"
+        },
+        "6977": {
+          "id": 6977,
+          "name": "Rumonge"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Cankuzo",
+      "cities": {
+        "6966": {
+          "id": 6966,
+          "name": "Cankuzo"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Cibitoke",
+      "cities": {
+        "6967": {
+          "id": 6967,
+          "name": "Cibitoke"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Gitega",
+      "cities": {
+        "6968": {
+          "id": 6968,
+          "name": "Gitega"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Karuzi",
+      "cities": {
+        "6969": {
+          "id": 6969,
+          "name": "Karuzi"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Kayanza",
+      "cities": {
+        "6970": {
+          "id": 6970,
+          "name": "Kayanza"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Kirundo",
+      "cities": {
+        "6971": {
+          "id": 6971,
+          "name": "Kirundo"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Makamba",
+      "cities": {
+        "6972": {
+          "id": 6972,
+          "name": "Makamba"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Muyinga",
+      "cities": {
+        "6974": {
+          "id": 6974,
+          "name": "Muyinga"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Ngozi",
+      "cities": {
+        "6976": {
+          "id": 6976,
+          "name": "Ngozi"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Rutana",
+      "cities": {
+        "6978": {
+          "id": 6978,
+          "name": "Rutana"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Ruyigi",
+      "cities": {
+        "6979": {
+          "id": 6979,
+          "name": "Ruyigi"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Muramvya",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Mwaro",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Bujumbura",
+      "cities": {
+        "6964": {
+          "id": 6964,
+          "name": "Bujumbura"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Bubanza",
+      "cities": {
+        "6963": {
+          "id": 6963,
+          "name": "Bubanza"
+        }
+      }
+    }
+  }
+}

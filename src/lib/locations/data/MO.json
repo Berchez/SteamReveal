@@ -1,0 +1,16 @@
+{
+  "code": "MO",
+  "name": "Macau",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Ilhas",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Macau",
+      "cities": {}
+    }
+  }
+}

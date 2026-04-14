@@ -1,0 +1,121 @@
+{
+  "code": "CG",
+  "name": "Congo",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Sangha",
+      "cities": {
+        "9330": {
+          "id": 9330,
+          "name": "Ouesso"
+        },
+        "9332": {
+          "id": 9332,
+          "name": "Sembe"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Pool",
+      "cities": {
+        "9323": {
+          "id": 9323,
+          "name": "Kinkala"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Brazzaville",
+      "cities": {
+        "9318": {
+          "id": 9318,
+          "name": "Brazzaville"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Bouenza",
+      "cities": {
+        "9326": {
+          "id": 9326,
+          "name": "Madingou"
+        },
+        "9329": {
+          "id": 9329,
+          "name": "Nkayi"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Cuvette",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Kouilou",
+      "cities": {
+        "9324": {
+          "id": 9324,
+          "name": "Loandjili"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Lekoumou",
+      "cities": {
+        "9333": {
+          "id": 9333,
+          "name": "Sibiti"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Likouala",
+      "cities": {
+        "9322": {
+          "id": 9322,
+          "name": "Impfondo"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Niari",
+      "cities": {
+        "9325": {
+          "id": 9325,
+          "name": "Loubomo"
+        },
+        "9327": {
+          "id": 9327,
+          "name": "Matsanga"
+        },
+        "9328": {
+          "id": 9328,
+          "name": "Mossendjo"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Plateaux",
+      "cities": {
+        "9319": {
+          "id": 9319,
+          "name": "Djambala"
+        },
+        "9321": {
+          "id": 9321,
+          "name": "Gamboma"
+        }
+      }
+    }
+  }
+}

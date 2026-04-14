@@ -1,0 +1,332 @@
+{
+  "code": "ZM",
+  "name": "Zambia",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Western",
+      "cities": {
+        "46900": {
+          "id": 46900,
+          "name": "Kabompo"
+        },
+        "46904": {
+          "id": 46904,
+          "name": "Kalengwa"
+        },
+        "46907": {
+          "id": 46907,
+          "name": "Kansanshi"
+        },
+        "46912": {
+          "id": 46912,
+          "name": "Kasempa"
+        },
+        "46936": {
+          "id": 46936,
+          "name": "Mufumbwe"
+        },
+        "46940": {
+          "id": 46940,
+          "name": "Mwinilunga"
+        },
+        "46954": {
+          "id": 46954,
+          "name": "Solwezi"
+        },
+        "46955": {
+          "id": 46955,
+          "name": "Zambezi"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Central",
+      "cities": {
+        "46890": {
+          "id": 46890,
+          "name": "Chambishi"
+        },
+        "46892": {
+          "id": 46892,
+          "name": "Chililabombwe"
+        },
+        "46893": {
+          "id": 46893,
+          "name": "Chingola"
+        },
+        "46906": {
+          "id": 46906,
+          "name": "Kalulushi"
+        },
+        "46915": {
+          "id": 46915,
+          "name": "Kitwe"
+        },
+        "46919": {
+          "id": 46919,
+          "name": "Luanshya"
+        },
+        "46932": {
+          "id": 46932,
+          "name": "Mpongwe"
+        },
+        "46935": {
+          "id": 46935,
+          "name": "Mufulira"
+        },
+        "46945": {
+          "id": 46945,
+          "name": "Ndola"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Eastern",
+      "cities": {
+        "46903": {
+          "id": 46903,
+          "name": "Kalabo"
+        },
+        "46908": {
+          "id": 46908,
+          "name": "Kaoma"
+        },
+        "46916": {
+          "id": 46916,
+          "name": "Limulunga"
+        },
+        "46920": {
+          "id": 46920,
+          "name": "Lukulu"
+        },
+        "46929": {
+          "id": 46929,
+          "name": "Mongu"
+        },
+        "46949": {
+          "id": 46949,
+          "name": "Senanga"
+        },
+        "46951": {
+          "id": 46951,
+          "name": "Sesheke"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Luapula",
+      "cities": {
+        "46896": {
+          "id": 46896,
+          "name": "Choma"
+        },
+        "46898": {
+          "id": 46898,
+          "name": "Gwembe"
+        },
+        "46905": {
+          "id": 46905,
+          "name": "Kalomo"
+        },
+        "46917": {
+          "id": 46917,
+          "name": "Livingstone"
+        },
+        "46924": {
+          "id": 46924,
+          "name": "Maamba"
+        },
+        "46926": {
+          "id": 46926,
+          "name": "Mazabuka"
+        },
+        "46930": {
+          "id": 46930,
+          "name": "Monze"
+        },
+        "46941": {
+          "id": 46941,
+          "name": "Nakambala"
+        },
+        "46943": {
+          "id": 46943,
+          "name": "Namwala"
+        },
+        "46952": {
+          "id": 46952,
+          "name": "Siavonga"
+        },
+        "46953": {
+          "id": 46953,
+          "name": "Sinazongwe"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Northern",
+      "cities": {
+        "46891": {
+          "id": 46891,
+          "name": "Chibombo"
+        },
+        "46901": {
+          "id": 46901,
+          "name": "Kabwe"
+        },
+        "46909": {
+          "id": 46909,
+          "name": "Kapiri Mposhi"
+        },
+        "46918": {
+          "id": 46918,
+          "name": "Luangwa"
+        },
+        "46928": {
+          "id": 46928,
+          "name": "Mkushi"
+        },
+        "46937": {
+          "id": 46937,
+          "name": "Mumbwa"
+        },
+        "46950": {
+          "id": 46950,
+          "name": "Serenje"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "North-Western",
+      "cities": {
+        "46888": {
+          "id": 46888,
+          "name": "Chadiza"
+        },
+        "46889": {
+          "id": 46889,
+          "name": "Chama"
+        },
+        "46895": {
+          "id": 46895,
+          "name": "Chipata"
+        },
+        "46913": {
+          "id": 46913,
+          "name": "Katete"
+        },
+        "46921": {
+          "id": 46921,
+          "name": "Lundazi"
+        },
+        "46946": {
+          "id": 46946,
+          "name": "Nyimba"
+        },
+        "46947": {
+          "id": 46947,
+          "name": "Petauke"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Southern",
+      "cities": {
+        "46894": {
+          "id": 46894,
+          "name": "Chinsali"
+        },
+        "46899": {
+          "id": 46899,
+          "name": "Isoka"
+        },
+        "46910": {
+          "id": 46910,
+          "name": "Kaputa"
+        },
+        "46911": {
+          "id": 46911,
+          "name": "Kasama"
+        },
+        "46923": {
+          "id": 46923,
+          "name": "Luwingu"
+        },
+        "46927": {
+          "id": 46927,
+          "name": "Mbala"
+        },
+        "46931": {
+          "id": 46931,
+          "name": "Mpika"
+        },
+        "46933": {
+          "id": 46933,
+          "name": "Mporokoso"
+        },
+        "46934": {
+          "id": 46934,
+          "name": "Mpulungu"
+        },
+        "46938": {
+          "id": 46938,
+          "name": "Mungwi"
+        },
+        "46942": {
+          "id": 46942,
+          "name": "Nakonde"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Copperbelt",
+      "cities": {
+        "46914": {
+          "id": 46914,
+          "name": "Kawambwa"
+        },
+        "46925": {
+          "id": 46925,
+          "name": "Mansa"
+        },
+        "46939": {
+          "id": 46939,
+          "name": "Mwense"
+        },
+        "46944": {
+          "id": 46944,
+          "name": "Nchelenge"
+        },
+        "46948": {
+          "id": 46948,
+          "name": "Samfya"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Lusaka",
+      "cities": {
+        "46897": {
+          "id": 46897,
+          "name": "Chongwe"
+        },
+        "46902": {
+          "id": 46902,
+          "name": "Kafue"
+        },
+        "46922": {
+          "id": 46922,
+          "name": "Lusaka"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1562 @@
+{
+  "code": "EE",
+  "name": "Estonia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Parnu",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Parnumaa",
+      "cities": {
+        "14466": {
+          "id": 14466,
+          "name": "Are"
+        },
+        "14471": {
+          "id": 14471,
+          "name": "Audru"
+        },
+        "14479": {
+          "id": 14479,
+          "name": "Haademeeste"
+        },
+        "14503": {
+          "id": 14503,
+          "name": "Joesuu"
+        },
+        "14506": {
+          "id": 14506,
+          "name": "Joopre"
+        },
+        "14514": {
+          "id": 14514,
+          "name": "Kabli"
+        },
+        "14541": {
+          "id": 14541,
+          "name": "Kilingi-nomme"
+        },
+        "14558": {
+          "id": 14558,
+          "name": "Koonga"
+        },
+        "14585": {
+          "id": 14585,
+          "name": "Lavassaare"
+        },
+        "14592": {
+          "id": 14592,
+          "name": "Libatse"
+        },
+        "14620": {
+          "id": 14620,
+          "name": "Mustla"
+        },
+        "14639": {
+          "id": 14639,
+          "name": "Paikuse"
+        },
+        "14646": {
+          "id": 14646,
+          "name": "Papsaare"
+        },
+        "14649": {
+          "id": 14649,
+          "name": "Parnu-jaagupi"
+        },
+        "14650": {
+          "id": 14650,
+          "name": "Parnu"
+        },
+        "14681": {
+          "id": 14681,
+          "name": "Reiu"
+        },
+        "14700": {
+          "id": 14700,
+          "name": "Sauga"
+        },
+        "14702": {
+          "id": 14702,
+          "name": "Seljametsa"
+        },
+        "14703": {
+          "id": 14703,
+          "name": "Selja"
+        },
+        "14708": {
+          "id": 14708,
+          "name": "Sindi"
+        },
+        "14717": {
+          "id": 14717,
+          "name": "Suigu"
+        },
+        "14720": {
+          "id": 14720,
+          "name": "Surju"
+        },
+        "14726": {
+          "id": 14726,
+          "name": "Tali"
+        },
+        "14730": {
+          "id": 14730,
+          "name": "Tammiste"
+        },
+        "14736": {
+          "id": 14736,
+          "name": "Tihemetsa"
+        },
+        "14739": {
+          "id": 14739,
+          "name": "Tootsi"
+        },
+        "14741": {
+          "id": 14741,
+          "name": "Tori"
+        },
+        "14744": {
+          "id": 14744,
+          "name": "Tostamaa"
+        },
+        "14760": {
+          "id": 14760,
+          "name": "Uulu"
+        },
+        "14776": {
+          "id": 14776,
+          "name": "Vandra"
+        },
+        "14789": {
+          "id": 14789,
+          "name": "Vihtra"
+        },
+        "14799": {
+          "id": 14799,
+          "name": "Voiste"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Polvamaa",
+      "cities": {
+        "14452": {
+          "id": 14452,
+          "name": "Ahja"
+        },
+        "14475": {
+          "id": 14475,
+          "name": "Erastvere"
+        },
+        "14490": {
+          "id": 14490,
+          "name": "Himmaste"
+        },
+        "14521": {
+          "id": 14521,
+          "name": "Kanepi"
+        },
+        "14530": {
+          "id": 14530,
+          "name": "Kauksi"
+        },
+        "14566": {
+          "id": 14566,
+          "name": "Krootuse"
+        },
+        "14596": {
+          "id": 14596,
+          "name": "Linte"
+        },
+        "14610": {
+          "id": 14610,
+          "name": "Mammaste"
+        },
+        "14614": {
+          "id": 14614,
+          "name": "Mikitamae"
+        },
+        "14617": {
+          "id": 14617,
+          "name": "Mooste"
+        },
+        "14631": {
+          "id": 14631,
+          "name": "Orava"
+        },
+        "14655": {
+          "id": 14655,
+          "name": "Polgaste"
+        },
+        "14657": {
+          "id": 14657,
+          "name": "Polva"
+        },
+        "14678": {
+          "id": 14678,
+          "name": "Rapina"
+        },
+        "14689": {
+          "id": 14689,
+          "name": "Rosma"
+        },
+        "14701": {
+          "id": 14701,
+          "name": "Saverna"
+        },
+        "14737": {
+          "id": 14737,
+          "name": "Tilsi"
+        },
+        "14780": {
+          "id": 14780,
+          "name": "Varska"
+        },
+        "14785": {
+          "id": 14785,
+          "name": "Vastse-kuuste"
+        },
+        "14788": {
+          "id": 14788,
+          "name": "Veriora"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Raplamaa",
+      "cities": {
+        "14473": {
+          "id": 14473,
+          "name": "Eidapere"
+        },
+        "14501": {
+          "id": 14501,
+          "name": "Jarvakandi"
+        },
+        "14508": {
+          "id": 14508,
+          "name": "Juuru"
+        },
+        "14516": {
+          "id": 14516,
+          "name": "Kaerepere"
+        },
+        "14518": {
+          "id": 14518,
+          "name": "Kaiu"
+        },
+        "14529": {
+          "id": 14529,
+          "name": "Karu"
+        },
+        "14531": {
+          "id": 14531,
+          "name": "Keava"
+        },
+        "14534": {
+          "id": 14534,
+          "name": "Kehtna"
+        },
+        "14543": {
+          "id": 14543,
+          "name": "Kivi-vigala"
+        },
+        "14546": {
+          "id": 14546,
+          "name": "Kodila"
+        },
+        "14548": {
+          "id": 14548,
+          "name": "Kohila"
+        },
+        "14568": {
+          "id": 14568,
+          "name": "Kuimetsa"
+        },
+        "14591": {
+          "id": 14591,
+          "name": "Lelle"
+        },
+        "14611": {
+          "id": 14611,
+          "name": "Marjamaa"
+        },
+        "14632": {
+          "id": 14632,
+          "name": "Orgita"
+        },
+        "14658": {
+          "id": 14658,
+          "name": "Prillimae"
+        },
+        "14670": {
+          "id": 14670,
+          "name": "Raikkula"
+        },
+        "14679": {
+          "id": 14679,
+          "name": "Rapla"
+        },
+        "14710": {
+          "id": 14710,
+          "name": "Sipa"
+        },
+        "14728": {
+          "id": 14728,
+          "name": "Tamme"
+        },
+        "14774": {
+          "id": 14774,
+          "name": "Vana-vigala"
+        },
+        "14779": {
+          "id": 14779,
+          "name": "Varbola"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Saaremaa",
+      "cities": {
+        "14470": {
+          "id": 14470,
+          "name": "Aste"
+        },
+        "14527": {
+          "id": 14527,
+          "name": "Karla"
+        },
+        "14537": {
+          "id": 14537,
+          "name": "Kihelkonna"
+        },
+        "14567": {
+          "id": 14567,
+          "name": "Kudjape"
+        },
+        "14575": {
+          "id": 14575,
+          "name": "Kuressaare"
+        },
+        "14590": {
+          "id": 14590,
+          "name": "Leisi"
+        },
+        "14619": {
+          "id": 14619,
+          "name": "Mustjala"
+        },
+        "14625": {
+          "id": 14625,
+          "name": "Nasva"
+        },
+        "14633": {
+          "id": 14633,
+          "name": "Orissaare"
+        },
+        "14696": {
+          "id": 14696,
+          "name": "Salme"
+        },
+        "14770": {
+          "id": 14770,
+          "name": "Valjala"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Sillamae",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "Tallinn",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Tartu",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Tartumaa",
+      "cities": {
+        "14454": {
+          "id": 14454,
+          "name": "Aksi"
+        },
+        "14455": {
+          "id": 14455,
+          "name": "Alatskivi"
+        },
+        "14461": {
+          "id": 14461,
+          "name": "Annikoru"
+        },
+        "14464": {
+          "id": 14464,
+          "name": "Aravu"
+        },
+        "14474": {
+          "id": 14474,
+          "name": "Elva"
+        },
+        "14480": {
+          "id": 14480,
+          "name": "Haage"
+        },
+        "14494": {
+          "id": 14494,
+          "name": "Ignase"
+        },
+        "14496": {
+          "id": 14496,
+          "name": "Ilmatsalu"
+        },
+        "14511": {
+          "id": 14511,
+          "name": "Kaardi"
+        },
+        "14519": {
+          "id": 14519,
+          "name": "Kallaste"
+        },
+        "14520": {
+          "id": 14520,
+          "name": "Kambja"
+        },
+        "14554": {
+          "id": 14554,
+          "name": "Kolkja"
+        },
+        "14559": {
+          "id": 14559,
+          "name": "Koosa"
+        },
+        "14561": {
+          "id": 14561,
+          "name": "Korvekula"
+        },
+        "14569": {
+          "id": 14569,
+          "name": "Kulitse"
+        },
+        "14580": {
+          "id": 14580,
+          "name": "Laeva"
+        },
+        "14582": {
+          "id": 14582,
+          "name": "Lahte"
+        },
+        "14597": {
+          "id": 14597,
+          "name": "Lohkva"
+        },
+        "14603": {
+          "id": 14603,
+          "name": "Luke"
+        },
+        "14607": {
+          "id": 14607,
+          "name": "Luunja"
+        },
+        "14612": {
+          "id": 14612,
+          "name": "Melliste"
+        },
+        "14626": {
+          "id": 14626,
+          "name": "Noo"
+        },
+        "14660": {
+          "id": 14660,
+          "name": "Puhja"
+        },
+        "14669": {
+          "id": 14669,
+          "name": "Rahinge"
+        },
+        "14676": {
+          "id": 14676,
+          "name": "Rani"
+        },
+        "14677": {
+          "id": 14677,
+          "name": "Rannu"
+        },
+        "14686": {
+          "id": 14686,
+          "name": "Roiu"
+        },
+        "14687": {
+          "id": 14687,
+          "name": "Rongu"
+        },
+        "14712": {
+          "id": 14712,
+          "name": "Soinaste"
+        },
+        "14735": {
+          "id": 14735,
+          "name": "Tartu"
+        },
+        "14740": {
+          "id": 14740,
+          "name": "Toravere"
+        },
+        "14754": {
+          "id": 14754,
+          "name": "Uhti"
+        },
+        "14756": {
+          "id": 14756,
+          "name": "Ulenurme"
+        },
+        "14757": {
+          "id": 14757,
+          "name": "Ulila"
+        },
+        "14778": {
+          "id": 14778,
+          "name": "Vara"
+        },
+        "14801": {
+          "id": 14801,
+          "name": "Vonnu"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Valgamaa",
+      "cities": {
+        "14446": {
+          "id": 14446,
+          "name": "Aakre"
+        },
+        "14489": {
+          "id": 14489,
+          "name": "Helme"
+        },
+        "14492": {
+          "id": 14492,
+          "name": "Hummuli"
+        },
+        "14509": {
+          "id": 14509,
+          "name": "Kaagjarve"
+        },
+        "14532": {
+          "id": 14532,
+          "name": "Keeni"
+        },
+        "14594": {
+          "id": 14594,
+          "name": "Linna"
+        },
+        "14604": {
+          "id": 14604,
+          "name": "Lullemae"
+        },
+        "14636": {
+          "id": 14636,
+          "name": "Otepaa"
+        },
+        "14663": {
+          "id": 14663,
+          "name": "Puka"
+        },
+        "14704": {
+          "id": 14704,
+          "name": "Sihva"
+        },
+        "14716": {
+          "id": 14716,
+          "name": "Sooru"
+        },
+        "14743": {
+          "id": 14743,
+          "name": "Torva"
+        },
+        "14746": {
+          "id": 14746,
+          "name": "Tsirguliina"
+        },
+        "14769": {
+          "id": 14769,
+          "name": "Valga"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Viljandimaa",
+      "cities": {
+        "14449": {
+          "id": 14449,
+          "name": "Abja-paluoja"
+        },
+        "14485": {
+          "id": 14485,
+          "name": "Halliste"
+        },
+        "14498": {
+          "id": 14498,
+          "name": "Jamejala"
+        },
+        "14525": {
+          "id": 14525,
+          "name": "Karksi"
+        },
+        "14526": {
+          "id": 14526,
+          "name": "Karksi-nuia"
+        },
+        "14528": {
+          "id": 14528,
+          "name": "Karstna"
+        },
+        "14552": {
+          "id": 14552,
+          "name": "Kolga-jaani"
+        },
+        "14557": {
+          "id": 14557,
+          "name": "Koo"
+        },
+        "14560": {
+          "id": 14560,
+          "name": "Kopu"
+        },
+        "14589": {
+          "id": 14589,
+          "name": "Leie"
+        },
+        "14616": {
+          "id": 14616,
+          "name": "Moisakula"
+        },
+        "14628": {
+          "id": 14628,
+          "name": "Oisu"
+        },
+        "14630": {
+          "id": 14630,
+          "name": "Olustvere"
+        },
+        "14640": {
+          "id": 14640,
+          "name": "Paistu"
+        },
+        "14647": {
+          "id": 14647,
+          "name": "Pari"
+        },
+        "14661": {
+          "id": 14661,
+          "name": "Puiatu"
+        },
+        "14674": {
+          "id": 14674,
+          "name": "Ramsi"
+        },
+        "14692": {
+          "id": 14692,
+          "name": "Saarepeedi"
+        },
+        "14711": {
+          "id": 14711,
+          "name": "Soe"
+        },
+        "14718": {
+          "id": 14718,
+          "name": "Suislepa"
+        },
+        "14719": {
+          "id": 14719,
+          "name": "Surgavere"
+        },
+        "14721": {
+          "id": 14721,
+          "name": "Suure-jaani"
+        },
+        "14761": {
+          "id": 14761,
+          "name": "Uusna"
+        },
+        "14775": {
+          "id": 14775,
+          "name": "Vana-voidu"
+        },
+        "14784": {
+          "id": 14784,
+          "name": "Vastemoisa"
+        },
+        "14791": {
+          "id": 14791,
+          "name": "Viiratsi"
+        },
+        "14792": {
+          "id": 14792,
+          "name": "Viljandi"
+        },
+        "14797": {
+          "id": 14797,
+          "name": "Vohma"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Vorumaa",
+      "cities": {
+        "14462": {
+          "id": 14462,
+          "name": "Antsla"
+        },
+        "14510": {
+          "id": 14510,
+          "name": "Kaapa"
+        },
+        "14545": {
+          "id": 14545,
+          "name": "Kobela"
+        },
+        "14555": {
+          "id": 14555,
+          "name": "Kollino"
+        },
+        "14563": {
+          "id": 14563,
+          "name": "Kose"
+        },
+        "14584": {
+          "id": 14584,
+          "name": "Lasva"
+        },
+        "14615": {
+          "id": 14615,
+          "name": "Misso"
+        },
+        "14635": {
+          "id": 14635,
+          "name": "Osula"
+        },
+        "14648": {
+          "id": 14648,
+          "name": "Parksepa"
+        },
+        "14662": {
+          "id": 14662,
+          "name": "Puiga"
+        },
+        "14690": {
+          "id": 14690,
+          "name": "Rouge"
+        },
+        "14698": {
+          "id": 14698,
+          "name": "Saru"
+        },
+        "14713": {
+          "id": 14713,
+          "name": "Somerpalu"
+        },
+        "14747": {
+          "id": 14747,
+          "name": "Tsooru"
+        },
+        "14767": {
+          "id": 14767,
+          "name": "Vaimela"
+        },
+        "14772": {
+          "id": 14772,
+          "name": "Vana-antsla"
+        },
+        "14781": {
+          "id": 14781,
+          "name": "Varstu"
+        },
+        "14786": {
+          "id": 14786,
+          "name": "Vastseliina"
+        },
+        "14803": {
+          "id": 14803,
+          "name": "Voru"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Harjumaa",
+      "cities": {
+        "14447": {
+          "id": 14447,
+          "name": "Aasmae"
+        },
+        "14451": {
+          "id": 14451,
+          "name": "Aegviidu"
+        },
+        "14456": {
+          "id": 14456,
+          "name": "Alavere"
+        },
+        "14458": {
+          "id": 14458,
+          "name": "Alliku"
+        },
+        "14459": {
+          "id": 14459,
+          "name": "Amari"
+        },
+        "14465": {
+          "id": 14465,
+          "name": "Ardu"
+        },
+        "14467": {
+          "id": 14467,
+          "name": "Arukula"
+        },
+        "14469": {
+          "id": 14469,
+          "name": "Assaku"
+        },
+        "14478": {
+          "id": 14478,
+          "name": "Haabneeme"
+        },
+        "14482": {
+          "id": 14482,
+          "name": "Habaja"
+        },
+        "14483": {
+          "id": 14483,
+          "name": "Haiba"
+        },
+        "14486": {
+          "id": 14486,
+          "name": "Harju-risti"
+        },
+        "14487": {
+          "id": 14487,
+          "name": "Harku"
+        },
+        "14488": {
+          "id": 14488,
+          "name": "Harkujarve"
+        },
+        "14493": {
+          "id": 14493,
+          "name": "Huuru"
+        },
+        "14507": {
+          "id": 14507,
+          "name": "Juri"
+        },
+        "14524": {
+          "id": 14524,
+          "name": "Karjakula"
+        },
+        "14533": {
+          "id": 14533,
+          "name": "Kehra"
+        },
+        "14535": {
+          "id": 14535,
+          "name": "Keila-joa"
+        },
+        "14536": {
+          "id": 14536,
+          "name": "Keila"
+        },
+        "14538": {
+          "id": 14538,
+          "name": "Kiili"
+        },
+        "14539": {
+          "id": 14539,
+          "name": "Kiisa"
+        },
+        "14540": {
+          "id": 14540,
+          "name": "Kiiu"
+        },
+        "14544": {
+          "id": 14544,
+          "name": "Klooga"
+        },
+        "14553": {
+          "id": 14553,
+          "name": "Kolga"
+        },
+        "14562": {
+          "id": 14562,
+          "name": "Kose"
+        },
+        "14564": {
+          "id": 14564,
+          "name": "Kose-uuemoisa"
+        },
+        "14565": {
+          "id": 14565,
+          "name": "Kostivere"
+        },
+        "14571": {
+          "id": 14571,
+          "name": "Kumna"
+        },
+        "14576": {
+          "id": 14576,
+          "name": "Kurtna"
+        },
+        "14577": {
+          "id": 14577,
+          "name": "Kuusalu"
+        },
+        "14578": {
+          "id": 14578,
+          "name": "Laagri"
+        },
+        "14581": {
+          "id": 14581,
+          "name": "Lagedi"
+        },
+        "14586": {
+          "id": 14586,
+          "name": "Lehola"
+        },
+        "14587": {
+          "id": 14587,
+          "name": "Lehtmetsa"
+        },
+        "14599": {
+          "id": 14599,
+          "name": "Loksa"
+        },
+        "14600": {
+          "id": 14600,
+          "name": "Loo"
+        },
+        "14602": {
+          "id": 14602,
+          "name": "Luige"
+        },
+        "14608": {
+          "id": 14608,
+          "name": "Maardu"
+        },
+        "14613": {
+          "id": 14613,
+          "name": "Miiduranna"
+        },
+        "14618": {
+          "id": 14618,
+          "name": "Muraste"
+        },
+        "14634": {
+          "id": 14634,
+          "name": "Oru"
+        },
+        "14637": {
+          "id": 14637,
+          "name": "Padise"
+        },
+        "14643": {
+          "id": 14643,
+          "name": "Paldiski"
+        },
+        "14651": {
+          "id": 14651,
+          "name": "Peetri"
+        },
+        "14659": {
+          "id": 14659,
+          "name": "Pringi"
+        },
+        "14666": {
+          "id": 14666,
+          "name": "Puunsi"
+        },
+        "14668": {
+          "id": 14668,
+          "name": "Raasiku"
+        },
+        "14675": {
+          "id": 14675,
+          "name": "Randvere"
+        },
+        "14680": {
+          "id": 14680,
+          "name": "Ravila"
+        },
+        "14682": {
+          "id": 14682,
+          "name": "Riisipere"
+        },
+        "14685": {
+          "id": 14685,
+          "name": "Rohuneeme"
+        },
+        "14691": {
+          "id": 14691,
+          "name": "Rummu"
+        },
+        "14695": {
+          "id": 14695,
+          "name": "Saku"
+        },
+        "14699": {
+          "id": 14699,
+          "name": "Saue"
+        },
+        "14723": {
+          "id": 14723,
+          "name": "Tabasalu"
+        },
+        "14727": {
+          "id": 14727,
+          "name": "Tallinn"
+        },
+        "14750": {
+          "id": 14750,
+          "name": "Turba"
+        },
+        "14763": {
+          "id": 14763,
+          "name": "Vaida"
+        },
+        "14771": {
+          "id": 14771,
+          "name": "Valkla"
+        },
+        "14773": {
+          "id": 14773,
+          "name": "Vanamoisa"
+        },
+        "14782": {
+          "id": 14782,
+          "name": "Vasalemma"
+        },
+        "14783": {
+          "id": 14783,
+          "name": "Vaskjala"
+        },
+        "14790": {
+          "id": 14790,
+          "name": "Viimsi"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Hiiumaa",
+      "cities": {
+        "14517": {
+          "id": 14517,
+          "name": "Kaina"
+        },
+        "14523": {
+          "id": 14523,
+          "name": "Kardla"
+        },
+        "14722": {
+          "id": 14722,
+          "name": "Suuremoisa"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Ida-Virumaa",
+      "cities": {
+        "14468": {
+          "id": 14468,
+          "name": "Aseri"
+        },
+        "14472": {
+          "id": 14472,
+          "name": "Avinurme"
+        },
+        "14495": {
+          "id": 14495,
+          "name": "Iisaku"
+        },
+        "14502": {
+          "id": 14502,
+          "name": "Jarve"
+        },
+        "14505": {
+          "id": 14505,
+          "name": "Johvi"
+        },
+        "14542": {
+          "id": 14542,
+          "name": "Kivioli"
+        },
+        "14549": {
+          "id": 14549,
+          "name": "Kohtla-jarve"
+        },
+        "14550": {
+          "id": 14550,
+          "name": "Kohtla-nomme"
+        },
+        "14574": {
+          "id": 14574,
+          "name": "Kuremae"
+        },
+        "14598": {
+          "id": 14598,
+          "name": "Lohusuu"
+        },
+        "14601": {
+          "id": 14601,
+          "name": "Luganuse"
+        },
+        "14609": {
+          "id": 14609,
+          "name": "Maetaguse"
+        },
+        "14623": {
+          "id": 14623,
+          "name": "Narva-joesuu"
+        },
+        "14624": {
+          "id": 14624,
+          "name": "Narva"
+        },
+        "14629": {
+          "id": 14629,
+          "name": "Olgina"
+        },
+        "14664": {
+          "id": 14664,
+          "name": "Purtse"
+        },
+        "14665": {
+          "id": 14665,
+          "name": "Pussi"
+        },
+        "14706": {
+          "id": 14706,
+          "name": "Sillamae"
+        },
+        "14709": {
+          "id": 14709,
+          "name": "Sinimae"
+        },
+        "14715": {
+          "id": 14715,
+          "name": "Sonda"
+        },
+        "14729": {
+          "id": 14729,
+          "name": "Tammiku"
+        },
+        "14738": {
+          "id": 14738,
+          "name": "Toila"
+        },
+        "14748": {
+          "id": 14748,
+          "name": "Tudulinna"
+        },
+        "14800": {
+          "id": 14800,
+          "name": "Voka"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Jarvamaa",
+      "cities": {
+        "14453": {
+          "id": 14453,
+          "name": "Ahula"
+        },
+        "14457": {
+          "id": 14457,
+          "name": "Albu"
+        },
+        "14460": {
+          "id": 14460,
+          "name": "Ambla"
+        },
+        "14463": {
+          "id": 14463,
+          "name": "Aravete"
+        },
+        "14497": {
+          "id": 14497,
+          "name": "Imavere"
+        },
+        "14499": {
+          "id": 14499,
+          "name": "Janeda"
+        },
+        "14500": {
+          "id": 14500,
+          "name": "Jarva-jaani"
+        },
+        "14513": {
+          "id": 14513,
+          "name": "Kabala"
+        },
+        "14522": {
+          "id": 14522,
+          "name": "Karavete"
+        },
+        "14547": {
+          "id": 14547,
+          "name": "Koeru"
+        },
+        "14551": {
+          "id": 14551,
+          "name": "Koigi"
+        },
+        "14588": {
+          "id": 14588,
+          "name": "Lehtse"
+        },
+        "14627": {
+          "id": 14627,
+          "name": "Oisu"
+        },
+        "14638": {
+          "id": 14638,
+          "name": "Paide"
+        },
+        "14652": {
+          "id": 14652,
+          "name": "Peetri"
+        },
+        "14688": {
+          "id": 14688,
+          "name": "Roosna-alliku"
+        },
+        "14697": {
+          "id": 14697,
+          "name": "Sarevere"
+        },
+        "14732": {
+          "id": 14732,
+          "name": "Tapa"
+        },
+        "14733": {
+          "id": 14733,
+          "name": "Tapa"
+        },
+        "14734": {
+          "id": 14734,
+          "name": "Tarbja"
+        },
+        "14751": {
+          "id": 14751,
+          "name": "Turi-alliku"
+        },
+        "14752": {
+          "id": 14752,
+          "name": "Turi"
+        },
+        "14762": {
+          "id": 14762,
+          "name": "Vaatsa"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Jogevamaa",
+      "cities": {
+        "14450": {
+          "id": 14450,
+          "name": "Adavere"
+        },
+        "14476": {
+          "id": 14476,
+          "name": "Esku"
+        },
+        "14504": {
+          "id": 14504,
+          "name": "Jogeva"
+        },
+        "14512": {
+          "id": 14512,
+          "name": "Kaarepere"
+        },
+        "14573": {
+          "id": 14573,
+          "name": "Kuremaa"
+        },
+        "14583": {
+          "id": 14583,
+          "name": "Laiuse"
+        },
+        "14605": {
+          "id": 14605,
+          "name": "Lustivere"
+        },
+        "14606": {
+          "id": 14606,
+          "name": "Luua"
+        },
+        "14621": {
+          "id": 14621,
+          "name": "Mustvee"
+        },
+        "14642": {
+          "id": 14642,
+          "name": "Palamuse"
+        },
+        "14654": {
+          "id": 14654,
+          "name": "Pisisaare"
+        },
+        "14656": {
+          "id": 14656,
+          "name": "Poltsamaa"
+        },
+        "14667": {
+          "id": 14667,
+          "name": "Puurmani"
+        },
+        "14671": {
+          "id": 14671,
+          "name": "Raja"
+        },
+        "14694": {
+          "id": 14694,
+          "name": "Sadala"
+        },
+        "14705": {
+          "id": 14705,
+          "name": "Siimusti"
+        },
+        "14724": {
+          "id": 14724,
+          "name": "Tabivere"
+        },
+        "14742": {
+          "id": 14742,
+          "name": "Torma"
+        },
+        "14764": {
+          "id": 14764,
+          "name": "Vaike-kamari"
+        },
+        "14766": {
+          "id": 14766,
+          "name": "Vaimastvere"
+        },
+        "14798": {
+          "id": 14798,
+          "name": "Voisiku"
+        },
+        "14802": {
+          "id": 14802,
+          "name": "Voore"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Kohtla-Jarve",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Laanemaa",
+      "cities": {
+        "14481": {
+          "id": 14481,
+          "name": "Haapsalu"
+        },
+        "14556": {
+          "id": 14556,
+          "name": "Koluvere"
+        },
+        "14570": {
+          "id": 14570,
+          "name": "Kullamaa"
+        },
+        "14593": {
+          "id": 14593,
+          "name": "Lihula"
+        },
+        "14595": {
+          "id": 14595,
+          "name": "Linnamae"
+        },
+        "14644": {
+          "id": 14644,
+          "name": "Palivere"
+        },
+        "14645": {
+          "id": 14645,
+          "name": "Panga"
+        },
+        "14683": {
+          "id": 14683,
+          "name": "Risti"
+        },
+        "14725": {
+          "id": 14725,
+          "name": "Taebla"
+        },
+        "14759": {
+          "id": 14759,
+          "name": "Uuemoisa"
+        },
+        "14794": {
+          "id": 14794,
+          "name": "Virtsu"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Laane-Virumaa",
+      "cities": {
+        "14448": {
+          "id": 14448,
+          "name": "Aaspere"
+        },
+        "14477": {
+          "id": 14477,
+          "name": "Essu"
+        },
+        "14484": {
+          "id": 14484,
+          "name": "Haljala"
+        },
+        "14491": {
+          "id": 14491,
+          "name": "Hulja"
+        },
+        "14515": {
+          "id": 14515,
+          "name": "Kadrina"
+        },
+        "14572": {
+          "id": 14572,
+          "name": "Kunda"
+        },
+        "14579": {
+          "id": 14579,
+          "name": "Laekvere"
+        },
+        "14622": {
+          "id": 14622,
+          "name": "Napi"
+        },
+        "14641": {
+          "id": 14641,
+          "name": "Pajusti"
+        },
+        "14653": {
+          "id": 14653,
+          "name": "Piira"
+        },
+        "14672": {
+          "id": 14672,
+          "name": "Rakke"
+        },
+        "14673": {
+          "id": 14673,
+          "name": "Rakvere"
+        },
+        "14684": {
+          "id": 14684,
+          "name": "Roela"
+        },
+        "14693": {
+          "id": 14693,
+          "name": "Saase"
+        },
+        "14707": {
+          "id": 14707,
+          "name": "Simuna"
+        },
+        "14714": {
+          "id": 14714,
+          "name": "Someru"
+        },
+        "14731": {
+          "id": 14731,
+          "name": "Tamsalu"
+        },
+        "14745": {
+          "id": 14745,
+          "name": "Triigi"
+        },
+        "14749": {
+          "id": 14749,
+          "name": "Tudu"
+        },
+        "14753": {
+          "id": 14753,
+          "name": "Ubja"
+        },
+        "14755": {
+          "id": 14755,
+          "name": "Uhtna"
+        },
+        "14758": {
+          "id": 14758,
+          "name": "Ulvi"
+        },
+        "14765": {
+          "id": 14765,
+          "name": "Vaike-maarja"
+        },
+        "14768": {
+          "id": 14768,
+          "name": "Vajangu"
+        },
+        "14777": {
+          "id": 14777,
+          "name": "Vao"
+        },
+        "14787": {
+          "id": 14787,
+          "name": "Veltsi"
+        },
+        "14793": {
+          "id": 14793,
+          "name": "Vinni"
+        },
+        "14795": {
+          "id": 14795,
+          "name": "Viru-jaagupi"
+        },
+        "14796": {
+          "id": 14796,
+          "name": "Viru-nigula"
+        },
+        "14804": {
+          "id": 14804,
+          "name": "Vosu"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Narva",
+      "cities": {}
+    }
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "code": "SA",
+  "name": "Saudi Arabia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Ar Riyad",
+      "cities": {
+        "43609": {
+          "id": 43609,
+          "name": "Riyadh"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Ha'il",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Makkah",
+      "cities": {
+        "43605": {
+          "id": 43605,
+          "name": "Jiddah"
+        },
+        "43607": {
+          "id": 43607,
+          "name": "Mecca"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Al Hudud ash Shamaliyah",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "Najran",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Jizan",
+      "cities": {
+        "43602": {
+          "id": 43602,
+          "name": "Abha"
+        },
+        "43606": {
+          "id": 43606,
+          "name": "Jizan"
+        },
+        "43608": {
+          "id": 43608,
+          "name": "Najran"
+        },
+        "43610": {
+          "id": 43610,
+          "name": "Sabya"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Tabuk",
+      "cities": {
+        "43617": {
+          "id": 43617,
+          "name": "Umm Lajj"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Al Jawf",
+      "cities": {
+        "43612": {
+          "id": 43612,
+          "name": "Sakakah"
+        },
+        "43614": {
+          "id": 43614,
+          "name": "Tabuk"
+        },
+        "43616": {
+          "id": 43616,
+          "name": "Turayf"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Al Bahah",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Al Jawf",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Al Madinah",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Ash Sharqiyah",
+      "cities": {
+        "43603": {
+          "id": 43603,
+          "name": "Buqayq"
+        },
+        "43611": {
+          "id": 43611,
+          "name": "Safwah"
+        },
+        "43613": {
+          "id": 43613,
+          "name": "Sayhat"
+        },
+        "43615": {
+          "id": 43615,
+          "name": "Tarut"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Al Qasim",
+      "cities": {
+        "43604": {
+          "id": 43604,
+          "name": "Buraydah"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Al Qurayyat",
+      "cities": {}
+    }
+  }
+}

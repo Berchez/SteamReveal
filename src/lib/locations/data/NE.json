@@ -1,0 +1,160 @@
+{
+  "code": "NE",
+  "name": "Niger",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Agadez",
+      "cities": {
+        "29650": {
+          "id": 29650,
+          "name": "Agadez"
+        },
+        "29652": {
+          "id": 29652,
+          "name": "Arlit"
+        },
+        "29654": {
+          "id": 29654,
+          "name": "Bilma"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Diffa",
+      "cities": {
+        "29657": {
+          "id": 29657,
+          "name": "Diffa"
+        },
+        "29669": {
+          "id": 29669,
+          "name": "Maine-soroa"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Dosso",
+      "cities": {
+        "29658": {
+          "id": 29658,
+          "name": "Dogondoutchi"
+        },
+        "29659": {
+          "id": 29659,
+          "name": "Dosso"
+        },
+        "29661": {
+          "id": 29661,
+          "name": "Gaya"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Maradi",
+      "cities": {
+        "29651": {
+          "id": 29651,
+          "name": "Aguie"
+        },
+        "29656": {
+          "id": 29656,
+          "name": "Dakoro"
+        },
+        "29667": {
+          "id": 29667,
+          "name": "Madarounfa"
+        },
+        "29670": {
+          "id": 29670,
+          "name": "Maradi"
+        },
+        "29672": {
+          "id": 29672,
+          "name": "Mayahi"
+        },
+        "29680": {
+          "id": 29680,
+          "name": "Tessaoua"
+        },
+        "29681": {
+          "id": 29681,
+          "name": "Tibiri"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Niamey",
+      "cities": {
+        "29673": {
+          "id": 29673,
+          "name": "Niamey"
+        },
+        "29674": {
+          "id": 29674,
+          "name": "Niamey"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Tahoua",
+      "cities": {
+        "29649": {
+          "id": 29649,
+          "name": "Abalak"
+        },
+        "29655": {
+          "id": 29655,
+          "name": "Bouza"
+        },
+        "29663": {
+          "id": 29663,
+          "name": "Illela"
+        },
+        "29664": {
+          "id": 29664,
+          "name": "Keita"
+        },
+        "29666": {
+          "id": 29666,
+          "name": "Madaoua"
+        },
+        "29677": {
+          "id": 29677,
+          "name": "Tahoua"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Zinder",
+      "cities": {
+        "29662": {
+          "id": 29662,
+          "name": "Goure"
+        },
+        "29668": {
+          "id": 29668,
+          "name": "Magaria"
+        },
+        "29671": {
+          "id": 29671,
+          "name": "Matameye"
+        },
+        "29678": {
+          "id": 29678,
+          "name": "Tanout"
+        },
+        "29683": {
+          "id": 29683,
+          "name": "Zinder"
+        }
+      }
+    }
+  }
+}

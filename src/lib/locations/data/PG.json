@@ -1,0 +1,289 @@
+{
+  "code": "PG",
+  "name": "Papua New Guinea",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "East New Britain",
+      "cities": {
+        "31587": {
+          "id": 31587,
+          "name": "Kokopo"
+        },
+        "31601": {
+          "id": 31601,
+          "name": "Rabaul"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "East Sepik",
+      "cities": {
+        "31569": {
+          "id": 31569,
+          "name": "Ambunti"
+        },
+        "31570": {
+          "id": 31570,
+          "name": "Angoram"
+        },
+        "31607": {
+          "id": 31607,
+          "name": "Wewak"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Madang",
+      "cities": {
+        "31592": {
+          "id": 31592,
+          "name": "Madang"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Manus",
+      "cities": {
+        "31591": {
+          "id": 31591,
+          "name": "Lorengau"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Morobe",
+      "cities": {
+        "31574": {
+          "id": 31574,
+          "name": "Bulolo"
+        },
+        "31576": {
+          "id": 31576,
+          "name": "Finschhafen"
+        },
+        "31589": {
+          "id": 31589,
+          "name": "Lae"
+        },
+        "31606": {
+          "id": 31606,
+          "name": "Wau"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "New Ireland",
+      "cities": {
+        "31581": {
+          "id": 31581,
+          "name": "Kavieng"
+        },
+        "31596": {
+          "id": 31596,
+          "name": "Namatanai"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Western Highlands",
+      "cities": {
+        "31595": {
+          "id": 31595,
+          "name": "Mount Hagen"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "West New Britain",
+      "cities": {
+        "31580": {
+          "id": 31580,
+          "name": "Kandrian"
+        },
+        "31584": {
+          "id": 31584,
+          "name": "Kimbe"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Sandaun",
+      "cities": {
+        "31567": {
+          "id": 31567,
+          "name": "Aitape"
+        },
+        "31604": {
+          "id": 31604,
+          "name": "Vanimo"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Enga",
+      "cities": {
+        "31590": {
+          "id": 31590,
+          "name": "Laiagam"
+        },
+        "31599": {
+          "id": 31599,
+          "name": "Porgera"
+        },
+        "31605": {
+          "id": 31605,
+          "name": "Wabag"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "National Capital",
+      "cities": {
+        "31600": {
+          "id": 31600,
+          "name": "Port Moresby"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Central",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Gulf",
+      "cities": {
+        "31582": {
+          "id": 31582,
+          "name": "Kerema"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Milne Bay",
+      "cities": {
+        "31568": {
+          "id": 31568,
+          "name": "Alotau"
+        },
+        "31602": {
+          "id": 31602,
+          "name": "Samarai"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Northern",
+      "cities": {
+        "31586": {
+          "id": 31586,
+          "name": "Kokoda"
+        },
+        "31598": {
+          "id": 31598,
+          "name": "Popondetta"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Southern Highlands",
+      "cities": {
+        "31578": {
+          "id": 31578,
+          "name": "Ialibu"
+        },
+        "31593": {
+          "id": 31593,
+          "name": "Mendi"
+        },
+        "31603": {
+          "id": 31603,
+          "name": "Tari"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Western",
+      "cities": {
+        "31572": {
+          "id": 31572,
+          "name": "Balimo"
+        },
+        "31575": {
+          "id": 31575,
+          "name": "Daru"
+        },
+        "31585": {
+          "id": 31585,
+          "name": "Kiunga"
+        },
+        "31594": {
+          "id": 31594,
+          "name": "Morehead"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "North Solomons",
+      "cities": {
+        "31571": {
+          "id": 31571,
+          "name": "Arawa"
+        },
+        "31573": {
+          "id": 31573,
+          "name": "Buin"
+        },
+        "31583": {
+          "id": 31583,
+          "name": "Kieta"
+        },
+        "31597": {
+          "id": 31597,
+          "name": "Panguna"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Chimbu",
+      "cities": {
+        "31588": {
+          "id": 31588,
+          "name": "Kundiawa"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Eastern Highlands",
+      "cities": {
+        "31577": {
+          "id": 31577,
+          "name": "Goroka"
+        },
+        "31579": {
+          "id": 31579,
+          "name": "Kainantu"
+        }
+      }
+    }
+  }
+}

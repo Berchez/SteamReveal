@@ -1,0 +1,314 @@
+{
+  "code": "SL",
+  "name": "Sierra Leone",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Eastern",
+      "cities": {
+        "44006": {
+          "id": 44006,
+          "name": "Baoma"
+        },
+        "44007": {
+          "id": 44007,
+          "name": "Baoma"
+        },
+        "44008": {
+          "id": 44008,
+          "name": "Barma"
+        },
+        "44010": {
+          "id": 44010,
+          "name": "Blama"
+        },
+        "44011": {
+          "id": 44011,
+          "name": "Boajibu"
+        },
+        "44015": {
+          "id": 44015,
+          "name": "Buedu"
+        },
+        "44017": {
+          "id": 44017,
+          "name": "Bunumbu"
+        },
+        "44018": {
+          "id": 44018,
+          "name": "Daru"
+        },
+        "44023": {
+          "id": 44023,
+          "name": "Giehun"
+        },
+        "44025": {
+          "id": 44025,
+          "name": "Gorahun"
+        },
+        "44026": {
+          "id": 44026,
+          "name": "Hangha"
+        },
+        "44028": {
+          "id": 44028,
+          "name": "Jojoima"
+        },
+        "44030": {
+          "id": 44030,
+          "name": "Kailahun"
+        },
+        "44034": {
+          "id": 44034,
+          "name": "Kenema"
+        },
+        "44035": {
+          "id": 44035,
+          "name": "Koidu"
+        },
+        "44036": {
+          "id": 44036,
+          "name": "Koindu"
+        },
+        "44047": {
+          "id": 44047,
+          "name": "Manowa"
+        },
+        "44051": {
+          "id": 44051,
+          "name": "Mobai"
+        },
+        "44052": {
+          "id": 44052,
+          "name": "Motema"
+        },
+        "44054": {
+          "id": 44054,
+          "name": "Panguma"
+        },
+        "44055": {
+          "id": 44055,
+          "name": "Pendembu"
+        },
+        "44057": {
+          "id": 44057,
+          "name": "Peyima"
+        },
+        "44064": {
+          "id": 44064,
+          "name": "Segbwema"
+        },
+        "44065": {
+          "id": 44065,
+          "name": "Seidu"
+        },
+        "44067": {
+          "id": 44067,
+          "name": "Simbakoro"
+        },
+        "44072": {
+          "id": 44072,
+          "name": "Yengema"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Northern",
+      "cities": {
+        "44004": {
+          "id": 44004,
+          "name": "Alikalia"
+        },
+        "44009": {
+          "id": 44009,
+          "name": "Bindi"
+        },
+        "44016": {
+          "id": 44016,
+          "name": "Bumbuna"
+        },
+        "44022": {
+          "id": 44022,
+          "name": "Gberia Fotombu"
+        },
+        "44029": {
+          "id": 44029,
+          "name": "Kabala"
+        },
+        "44031": {
+          "id": 44031,
+          "name": "Kamakwie"
+        },
+        "44032": {
+          "id": 44032,
+          "name": "Kambia"
+        },
+        "44033": {
+          "id": 44033,
+          "name": "Kasiri"
+        },
+        "44037": {
+          "id": 44037,
+          "name": "Kukuna"
+        },
+        "44039": {
+          "id": 44039,
+          "name": "Lungi"
+        },
+        "44040": {
+          "id": 44040,
+          "name": "Lunsar"
+        },
+        "44041": {
+          "id": 44041,
+          "name": "Magburaka"
+        },
+        "44042": {
+          "id": 44042,
+          "name": "Makali"
+        },
+        "44043": {
+          "id": 44043,
+          "name": "Makeni"
+        },
+        "44044": {
+          "id": 44044,
+          "name": "Mambolo"
+        },
+        "44046": {
+          "id": 44046,
+          "name": "Mange"
+        },
+        "44048": {
+          "id": 44048,
+          "name": "Masingbi"
+        },
+        "44049": {
+          "id": 44049,
+          "name": "Masoyila"
+        },
+        "44056": {
+          "id": 44056,
+          "name": "Pepel"
+        },
+        "44058": {
+          "id": 44058,
+          "name": "Port Loko"
+        },
+        "44061": {
+          "id": 44061,
+          "name": "Rokupr"
+        },
+        "44063": {
+          "id": 44063,
+          "name": "Sawkta"
+        },
+        "44071": {
+          "id": 44071,
+          "name": "Yele"
+        },
+        "44073": {
+          "id": 44073,
+          "name": "Yonibana"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Southern",
+      "cities": {
+        "44005": {
+          "id": 44005,
+          "name": "Baiima"
+        },
+        "44012": {
+          "id": 44012,
+          "name": "Bo"
+        },
+        "44013": {
+          "id": 44013,
+          "name": "Bomi"
+        },
+        "44014": {
+          "id": 44014,
+          "name": "Bonthe"
+        },
+        "44019": {
+          "id": 44019,
+          "name": "Foindu"
+        },
+        "44021": {
+          "id": 44021,
+          "name": "Gandorhun"
+        },
+        "44038": {
+          "id": 44038,
+          "name": "Largo"
+        },
+        "44045": {
+          "id": 44045,
+          "name": "Mamboma"
+        },
+        "44050": {
+          "id": 44050,
+          "name": "Mattru"
+        },
+        "44053": {
+          "id": 44053,
+          "name": "Moyamba"
+        },
+        "44059": {
+          "id": 44059,
+          "name": "Potoru"
+        },
+        "44060": {
+          "id": 44060,
+          "name": "Pujehun"
+        },
+        "44062": {
+          "id": 44062,
+          "name": "Rotifunk"
+        },
+        "44066": {
+          "id": 44066,
+          "name": "Serabu"
+        },
+        "44068": {
+          "id": 44068,
+          "name": "Sumbuya"
+        },
+        "44070": {
+          "id": 44070,
+          "name": "Yamandu"
+        },
+        "44074": {
+          "id": 44074,
+          "name": "Zimmi"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Western Area",
+      "cities": {
+        "44020": {
+          "id": 44020,
+          "name": "Freetown"
+        },
+        "44024": {
+          "id": 44024,
+          "name": "Goderich"
+        },
+        "44027": {
+          "id": 44027,
+          "name": "Hastings"
+        },
+        "44069": {
+          "id": 44069,
+          "name": "Waterloo"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,991 @@
+{
+  "code": "BG",
+  "name": "Bulgaria",
+  "states": {
+    "33": {
+      "code": "33",
+      "name": "Mikhaylovgrad",
+      "cities": {}
+    },
+    "38": {
+      "code": "38",
+      "name": "Blagoevgrad",
+      "cities": {
+        "6766": {
+          "id": 6766,
+          "name": "Bansko"
+        },
+        "6770": {
+          "id": 6770,
+          "name": "Belica"
+        },
+        "6777": {
+          "id": 6777,
+          "name": "Blagoevgrad"
+        },
+        "6825": {
+          "id": 6825,
+          "name": "Jakoruda"
+        },
+        "6847": {
+          "id": 6847,
+          "name": "Kresna"
+        },
+        "6848": {
+          "id": 6848,
+          "name": "Kresna"
+        },
+        "6888": {
+          "id": 6888,
+          "name": "Petric"
+        },
+        "6905": {
+          "id": 6905,
+          "name": "Razlog"
+        },
+        "6914": {
+          "id": 6914,
+          "name": "Sandanski"
+        },
+        "6920": {
+          "id": 6920,
+          "name": "Simitli"
+        }
+      }
+    },
+    "39": {
+      "code": "39",
+      "name": "Burgas",
+      "cities": {
+        "6758": {
+          "id": 6758,
+          "name": "Ahtopol"
+        },
+        "6759": {
+          "id": 6759,
+          "name": "Ajtos"
+        },
+        "6764": {
+          "id": 6764,
+          "name": "Balgarovo"
+        },
+        "6788": {
+          "id": 6788,
+          "name": "Burgas"
+        },
+        "6789": {
+          "id": 6789,
+          "name": "Carevo"
+        },
+        "6828": {
+          "id": 6828,
+          "name": "Kameno"
+        },
+        "6831": {
+          "id": 6831,
+          "name": "Karnobat"
+        },
+        "6835": {
+          "id": 6835,
+          "name": "Kermen"
+        },
+        "6865": {
+          "id": 6865,
+          "name": "Malko Tarnovo"
+        },
+        "6872": {
+          "id": 6872,
+          "name": "Nesebar"
+        },
+        "6878": {
+          "id": 6878,
+          "name": "Obzor"
+        },
+        "6894": {
+          "id": 6894,
+          "name": "Pomorie"
+        },
+        "6898": {
+          "id": 6898,
+          "name": "Primorsko"
+        },
+        "6927": {
+          "id": 6927,
+          "name": "Sozopol"
+        },
+        "6928": {
+          "id": 6928,
+          "name": "Sredec"
+        },
+        "6935": {
+          "id": 6935,
+          "name": "Sungurlare"
+        }
+      }
+    },
+    "40": {
+      "code": "40",
+      "name": "Dobrich",
+      "cities": {
+        "6797": {
+          "id": 6797,
+          "name": "Dobric"
+        },
+        "6833": {
+          "id": 6833,
+          "name": "Kavarna"
+        },
+        "6910": {
+          "id": 6910,
+          "name": "Sabla"
+        },
+        "6940": {
+          "id": 6940,
+          "name": "Tervel"
+        }
+      }
+    },
+    "41": {
+      "code": "41",
+      "name": "Gabrovo",
+      "cities": {
+        "6803": {
+          "id": 6803,
+          "name": "Drjanovo"
+        },
+        "6811": {
+          "id": 6811,
+          "name": "Gabrovo"
+        },
+        "6917": {
+          "id": 6917,
+          "name": "Sevlievo"
+        }
+      }
+    },
+    "42": {
+      "code": "42",
+      "name": "Grad Sofiya",
+      "cities": {
+        "6765": {
+          "id": 6765,
+          "name": "Bankja"
+        },
+        "6787": {
+          "id": 6787,
+          "name": "Buhovo"
+        },
+        "6876": {
+          "id": 6876,
+          "name": "Novi Iskar"
+        },
+        "6925": {
+          "id": 6925,
+          "name": "Sofia"
+        }
+      }
+    },
+    "43": {
+      "code": "43",
+      "name": "Khaskovo",
+      "cities": {
+        "6795": {
+          "id": 6795,
+          "name": "Dimitrovgrad"
+        },
+        "6816": {
+          "id": 6816,
+          "name": "Gurkovo"
+        },
+        "6817": {
+          "id": 6817,
+          "name": "Gurkovo"
+        },
+        "6818": {
+          "id": 6818,
+          "name": "Harmanli"
+        },
+        "6819": {
+          "id": 6819,
+          "name": "Haskovo"
+        },
+        "6823": {
+          "id": 6823,
+          "name": "Ivajlovgrad"
+        },
+        "6858": {
+          "id": 6858,
+          "name": "Ljubimec"
+        },
+        "6867": {
+          "id": 6867,
+          "name": "Mericleri"
+        },
+        "6919": {
+          "id": 6919,
+          "name": "Simeonovgrad"
+        },
+        "6921": {
+          "id": 6921,
+          "name": "Sipka"
+        },
+        "6937": {
+          "id": 6937,
+          "name": "Svilengrad"
+        },
+        "6942": {
+          "id": 6942,
+          "name": "Topolovgrad"
+        }
+      }
+    },
+    "44": {
+      "code": "44",
+      "name": "Kurdzhali",
+      "cities": {
+        "6762": {
+          "id": 6762,
+          "name": "Ardino"
+        },
+        "6851": {
+          "id": 6851,
+          "name": "Krumovgrad"
+        },
+        "6869": {
+          "id": 6869,
+          "name": "Momcilgrad"
+        }
+      }
+    },
+    "45": {
+      "code": "45",
+      "name": "Kyustendil",
+      "cities": {
+        "6778": {
+          "id": 6778,
+          "name": "Bobosevo"
+        },
+        "6779": {
+          "id": 6779,
+          "name": "Bobovdol"
+        },
+        "6805": {
+          "id": 6805,
+          "name": "Dupnica"
+        },
+        "6837": {
+          "id": 6837,
+          "name": "Kjustendil"
+        },
+        "6840": {
+          "id": 6840,
+          "name": "Kocerinovo"
+        },
+        "6906": {
+          "id": 6906,
+          "name": "Rila"
+        }
+      }
+    },
+    "46": {
+      "code": "46",
+      "name": "Lovech",
+      "cities": {
+        "6793": {
+          "id": 6793,
+          "name": "Debelec"
+        },
+        "6807": {
+          "id": 6807,
+          "name": "Elena"
+        },
+        "6824": {
+          "id": 6824,
+          "name": "Jablanica"
+        },
+        "6836": {
+          "id": 6836,
+          "name": "Kilifarevo"
+        },
+        "6841": {
+          "id": 6841,
+          "name": "Kojnare"
+        },
+        "6855": {
+          "id": 6855,
+          "name": "Letnica"
+        },
+        "6860": {
+          "id": 6860,
+          "name": "Lovec"
+        },
+        "6862": {
+          "id": 6862,
+          "name": "Lukovit"
+        },
+        "6873": {
+          "id": 6873,
+          "name": "Nikolaevo"
+        },
+        "6890": {
+          "id": 6890,
+          "name": "Plackovci"
+        },
+        "6922": {
+          "id": 6922,
+          "name": "Slavjanovo"
+        },
+        "6926": {
+          "id": 6926,
+          "name": "Sopot"
+        },
+        "6941": {
+          "id": 6941,
+          "name": "Teteven"
+        },
+        "6944": {
+          "id": 6944,
+          "name": "Trastenik"
+        },
+        "6945": {
+          "id": 6945,
+          "name": "Trjavna"
+        },
+        "6946": {
+          "id": 6946,
+          "name": "Trojan"
+        },
+        "6949": {
+          "id": 6949,
+          "name": "Ugarcin"
+        }
+      }
+    },
+    "47": {
+      "code": "47",
+      "name": "Montana",
+      "cities": {
+        "6774": {
+          "id": 6774,
+          "name": "Berkovica"
+        },
+        "6859": {
+          "id": 6859,
+          "name": "Lom"
+        },
+        "6870": {
+          "id": 6870,
+          "name": "Montana"
+        }
+      }
+    },
+    "48": {
+      "code": "48",
+      "name": "Pazardzhik",
+      "cities": {
+        "6767": {
+          "id": 6767,
+          "name": "Batak"
+        },
+        "6773": {
+          "id": 6773,
+          "name": "Belovo"
+        },
+        "6783": {
+          "id": 6783,
+          "name": "Bracigovo"
+        },
+        "6882": {
+          "id": 6882,
+          "name": "Panagjuriste"
+        },
+        "6884": {
+          "id": 6884,
+          "name": "Pazardzik"
+        },
+        "6887": {
+          "id": 6887,
+          "name": "Pestera"
+        },
+        "6902": {
+          "id": 6902,
+          "name": "Rakitovo"
+        },
+        "6916": {
+          "id": 6916,
+          "name": "Septemvri"
+        },
+        "6932": {
+          "id": 6932,
+          "name": "Strelca"
+        }
+      }
+    },
+    "49": {
+      "code": "49",
+      "name": "Pernik",
+      "cities": {
+        "6785": {
+          "id": 6785,
+          "name": "Breznik"
+        },
+        "6885": {
+          "id": 6885,
+          "name": "Pernik"
+        },
+        "6901": {
+          "id": 6901,
+          "name": "Radomir"
+        },
+        "6943": {
+          "id": 6943,
+          "name": "Tran"
+        },
+        "6957": {
+          "id": 6957,
+          "name": "Zemen"
+        }
+      }
+    },
+    "50": {
+      "code": "50",
+      "name": "Pleven",
+      "cities": {
+        "6769": {
+          "id": 6769,
+          "name": "Belene"
+        },
+        "6799": {
+          "id": 6799,
+          "name": "Dolna Mitropolija"
+        },
+        "6800": {
+          "id": 6800,
+          "name": "Dolni Dabnik"
+        },
+        "6815": {
+          "id": 6815,
+          "name": "Guljanci"
+        },
+        "6856": {
+          "id": 6856,
+          "name": "Levski"
+        },
+        "6874": {
+          "id": 6874,
+          "name": "Nikopol"
+        },
+        "6891": {
+          "id": 6891,
+          "name": "Pleven"
+        },
+        "6896": {
+          "id": 6896,
+          "name": "Pordim"
+        }
+      }
+    },
+    "51": {
+      "code": "51",
+      "name": "Plovdiv",
+      "cities": {
+        "6763": {
+          "id": 6763,
+          "name": "Asenovgrad"
+        },
+        "6786": {
+          "id": 6786,
+          "name": "Brezovo"
+        },
+        "6827": {
+          "id": 6827,
+          "name": "Kalofer"
+        },
+        "6830": {
+          "id": 6830,
+          "name": "Karlovo"
+        },
+        "6838": {
+          "id": 6838,
+          "name": "Klisura"
+        },
+        "6849": {
+          "id": 6849,
+          "name": "Kricim"
+        },
+        "6854": {
+          "id": 6854,
+          "name": "Laki"
+        },
+        "6863": {
+          "id": 6863,
+          "name": "Madan"
+        },
+        "6886": {
+          "id": 6886,
+          "name": "Perustica"
+        },
+        "6893": {
+          "id": 6893,
+          "name": "Plovdiv"
+        },
+        "6903": {
+          "id": 6903,
+          "name": "Rakovski"
+        },
+        "6908": {
+          "id": 6908,
+          "name": "Rudozem"
+        },
+        "6911": {
+          "id": 6911,
+          "name": "Sadovo"
+        },
+        "6912": {
+          "id": 6912,
+          "name": "Saedinenie"
+        },
+        "6952": {
+          "id": 6952,
+          "name": "Velingrad"
+        },
+        "6960": {
+          "id": 6960,
+          "name": "Zlatograd"
+        }
+      }
+    },
+    "52": {
+      "code": "52",
+      "name": "Razgrad",
+      "cities": {
+        "6822": {
+          "id": 6822,
+          "name": "Isperih"
+        },
+        "6852": {
+          "id": 6852,
+          "name": "Kubrat"
+        },
+        "6904": {
+          "id": 6904,
+          "name": "Razgrad"
+        },
+        "6915": {
+          "id": 6915,
+          "name": "Senovo"
+        },
+        "6918": {
+          "id": 6918,
+          "name": "Silistra"
+        },
+        "6956": {
+          "id": 6956,
+          "name": "Zavet"
+        }
+      }
+    },
+    "53": {
+      "code": "53",
+      "name": "Ruse",
+      "cities": {
+        "6775": {
+          "id": 6775,
+          "name": "Bjala"
+        },
+        "6781": {
+          "id": 6781,
+          "name": "Borovo"
+        },
+        "6806": {
+          "id": 6806,
+          "name": "Dve Mogili"
+        },
+        "6909": {
+          "id": 6909,
+          "name": "Ruse"
+        },
+        "6953": {
+          "id": 6953,
+          "name": "Vetovo"
+        }
+      }
+    },
+    "54": {
+      "code": "54",
+      "name": "Shumen",
+      "cities": {
+        "6829": {
+          "id": 6829,
+          "name": "Kaolinovo"
+        },
+        "6832": {
+          "id": 6832,
+          "name": "Kaspican"
+        },
+        "6877": {
+          "id": 6877,
+          "name": "Novi Pazar"
+        },
+        "6934": {
+          "id": 6934,
+          "name": "Sumen"
+        },
+        "6951": {
+          "id": 6951,
+          "name": "Veliki Preslav"
+        }
+      }
+    },
+    "55": {
+      "code": "55",
+      "name": "Silistra",
+      "cities": {
+        "6760": {
+          "id": 6760,
+          "name": "Alfatar"
+        },
+        "6804": {
+          "id": 6804,
+          "name": "Dulovo"
+        },
+        "6947": {
+          "id": 6947,
+          "name": "Tutrakan"
+        }
+      }
+    },
+    "56": {
+      "code": "56",
+      "name": "Sliven",
+      "cities": {
+        "6845": {
+          "id": 6845,
+          "name": "Kotel"
+        },
+        "6875": {
+          "id": 6875,
+          "name": "Nova Zagora"
+        },
+        "6923": {
+          "id": 6923,
+          "name": "Sliven"
+        },
+        "6948": {
+          "id": 6948,
+          "name": "Tvardica"
+        }
+      }
+    },
+    "57": {
+      "code": "57",
+      "name": "Smolyan",
+      "cities": {
+        "6790": {
+          "id": 6790,
+          "name": "Cepelare"
+        },
+        "6794": {
+          "id": 6794,
+          "name": "Devin"
+        },
+        "6801": {
+          "id": 6801,
+          "name": "Dospat"
+        },
+        "6871": {
+          "id": 6871,
+          "name": "Nedelino"
+        },
+        "6924": {
+          "id": 6924,
+          "name": "Smoljan"
+        }
+      }
+    },
+    "58": {
+      "code": "58",
+      "name": "Sofiya",
+      "cities": {
+        "6768": {
+          "id": 6768,
+          "name": "Batanovci"
+        },
+        "6782": {
+          "id": 6782,
+          "name": "Botevgrad"
+        },
+        "6798": {
+          "id": 6798,
+          "name": "Dolna Banja"
+        },
+        "6802": {
+          "id": 6802,
+          "name": "Dragoman"
+        },
+        "6809": {
+          "id": 6809,
+          "name": "Elin Pelin"
+        },
+        "6810": {
+          "id": 6810,
+          "name": "Etropole"
+        },
+        "6813": {
+          "id": 6813,
+          "name": "Godec"
+        },
+        "6820": {
+          "id": 6820,
+          "name": "Ihtiman"
+        },
+        "6842": {
+          "id": 6842,
+          "name": "Koprivstica"
+        },
+        "6843": {
+          "id": 6843,
+          "name": "Kostenec"
+        },
+        "6844": {
+          "id": 6844,
+          "name": "Kostinbrod"
+        },
+        "6866": {
+          "id": 6866,
+          "name": "Melnik"
+        },
+        "6889": {
+          "id": 6889,
+          "name": "Pirdop"
+        },
+        "6897": {
+          "id": 6897,
+          "name": "Pravec"
+        },
+        "6913": {
+          "id": 6913,
+          "name": "Samokov"
+        },
+        "6939": {
+          "id": 6939,
+          "name": "Svoge"
+        },
+        "6959": {
+          "id": 6959,
+          "name": "Zlatica"
+        }
+      }
+    },
+    "59": {
+      "code": "59",
+      "name": "Stara Zagora",
+      "cities": {
+        "6791": {
+          "id": 6791,
+          "name": "Cirpan"
+        },
+        "6812": {
+          "id": 6812,
+          "name": "Galabovo"
+        },
+        "6834": {
+          "id": 6834,
+          "name": "Kazanlak"
+        },
+        "6864": {
+          "id": 6864,
+          "name": "Magliz"
+        },
+        "6900": {
+          "id": 6900,
+          "name": "Radnevo"
+        },
+        "6929": {
+          "id": 6929,
+          "name": "Stara Zagora"
+        }
+      }
+    },
+    "60": {
+      "code": "60",
+      "name": "Turgovishte",
+      "cities": {
+        "6761": {
+          "id": 6761,
+          "name": "Antonovo"
+        },
+        "6879": {
+          "id": 6879,
+          "name": "Omurtag"
+        },
+        "6880": {
+          "id": 6880,
+          "name": "Opaka"
+        },
+        "6895": {
+          "id": 6895,
+          "name": "Popovo"
+        }
+      }
+    },
+    "61": {
+      "code": "61",
+      "name": "Varna",
+      "cities": {
+        "6772": {
+          "id": 6772,
+          "name": "Beloslav"
+        },
+        "6776": {
+          "id": 6776,
+          "name": "Bjala"
+        },
+        "6792": {
+          "id": 6792,
+          "name": "Dalgopol"
+        },
+        "6821": {
+          "id": 6821,
+          "name": "Iskar"
+        },
+        "6861": {
+          "id": 6861,
+          "name": "Loznica"
+        },
+        "6892": {
+          "id": 6892,
+          "name": "Pliska"
+        },
+        "6899": {
+          "id": 6899,
+          "name": "Provadija"
+        },
+        "6936": {
+          "id": 6936,
+          "name": "Suvorovo"
+        },
+        "6950": {
+          "id": 6950,
+          "name": "Varna"
+        }
+      }
+    },
+    "62": {
+      "code": "62",
+      "name": "Veliko Turnovo",
+      "cities": {
+        "6857": {
+          "id": 6857,
+          "name": "Ljaskovec"
+        },
+        "6883": {
+          "id": 6883,
+          "name": "Pavlikeni"
+        },
+        "6931": {
+          "id": 6931,
+          "name": "Strazica"
+        },
+        "6933": {
+          "id": 6933,
+          "name": "Suhindol"
+        },
+        "6938": {
+          "id": 6938,
+          "name": "Svistov"
+        },
+        "6958": {
+          "id": 6958,
+          "name": "Zlatarica"
+        }
+      }
+    },
+    "63": {
+      "code": "63",
+      "name": "Vidin",
+      "cities": {
+        "6771": {
+          "id": 6771,
+          "name": "Belogradcik"
+        },
+        "6784": {
+          "id": 6784,
+          "name": "Bregovo"
+        },
+        "6796": {
+          "id": 6796,
+          "name": "Dimovo"
+        },
+        "6814": {
+          "id": 6814,
+          "name": "Gramada"
+        },
+        "6853": {
+          "id": 6853,
+          "name": "Kula"
+        },
+        "6954": {
+          "id": 6954,
+          "name": "Vidin"
+        }
+      }
+    },
+    "64": {
+      "code": "64",
+      "name": "Vratsa",
+      "cities": {
+        "6839": {
+          "id": 6839,
+          "name": "Kneza"
+        },
+        "6846": {
+          "id": 6846,
+          "name": "Kozloduj"
+        },
+        "6850": {
+          "id": 6850,
+          "name": "Krivodol"
+        },
+        "6868": {
+          "id": 6868,
+          "name": "Mezdra"
+        },
+        "6881": {
+          "id": 6881,
+          "name": "Orjahovo"
+        },
+        "6907": {
+          "id": 6907,
+          "name": "Roman"
+        },
+        "6955": {
+          "id": 6955,
+          "name": "Vraca"
+        }
+      }
+    },
+    "65": {
+      "code": "65",
+      "name": "Yambol",
+      "cities": {
+        "6780": {
+          "id": 6780,
+          "name": "Boljarovo"
+        },
+        "6808": {
+          "id": 6808,
+          "name": "Elhovo"
+        },
+        "6826": {
+          "id": 6826,
+          "name": "Jambol"
+        },
+        "6930": {
+          "id": 6930,
+          "name": "Straldza"
+        }
+      }
+    }
+  }
+}

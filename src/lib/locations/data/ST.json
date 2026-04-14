@@ -1,0 +1,16 @@
+{
+  "code": "ST",
+  "name": "Sao Tome & Principe",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Principe",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Sao Tome",
+      "cities": {}
+    }
+  }
+}

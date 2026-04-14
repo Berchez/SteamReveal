@@ -1,0 +1,75 @@
+{
+  "code": "QA",
+  "name": "Qatar",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Al Wakrah",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Jariyan al Batnah",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Umm Sa'id",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Ad Dawhah",
+      "cities": {
+        "36670": {
+          "id": 36670,
+          "name": "Doha"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Al Ghuwariyah",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Al Jumaliyah",
+      "cities": {
+        "36669": {
+          "id": 36669,
+          "name": "Abu Samrah"
+        },
+        "36672": {
+          "id": 36672,
+          "name": "Umm Bab"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Al Khawr",
+      "cities": {
+        "36671": {
+          "id": 36671,
+          "name": "Khor"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Ar Rayyan",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Madinat ach Shamal",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Umm Salal",
+      "cities": {}
+    }
+  }
+}

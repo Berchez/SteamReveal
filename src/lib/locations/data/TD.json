@@ -1,0 +1,233 @@
+{
+  "code": "TD",
+  "name": "Chad",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Mayo-Kebbi",
+      "cities": {
+        "44321": {
+          "id": 44321,
+          "name": "Bongor"
+        },
+        "44326": {
+          "id": 44326,
+          "name": "Fianga"
+        },
+        "44328": {
+          "id": 44328,
+          "name": "Guelengdeng"
+        },
+        "44343": {
+          "id": 44343,
+          "name": "Pala"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Moyen-Chari",
+      "cities": {
+        "44327": {
+          "id": 44327,
+          "name": "Goundi"
+        },
+        "44330": {
+          "id": 44330,
+          "name": "Koumra"
+        },
+        "44331": {
+          "id": 44331,
+          "name": "Kyabe"
+        },
+        "44337": {
+          "id": 44337,
+          "name": "Moissala"
+        },
+        "44344": {
+          "id": 44344,
+          "name": "Sarh"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Ouaddai",
+      "cities": {
+        "44309": {
+          "id": 44309,
+          "name": "Abeche"
+        },
+        "44310": {
+          "id": 44310,
+          "name": "Adre"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Salamat",
+      "cities": {
+        "44311": {
+          "id": 44311,
+          "name": "Am Timan"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Tandjile",
+      "cities": {
+        "44316": {
+          "id": 44316,
+          "name": "Bere"
+        },
+        "44329": {
+          "id": 44329,
+          "name": "Kelo"
+        },
+        "44332": {
+          "id": 44332,
+          "name": "Lai"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Batha",
+      "cities": {
+        "44312": {
+          "id": 44312,
+          "name": "Ati"
+        },
+        "44342": {
+          "id": 44342,
+          "name": "Oum Hadjer"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Biltine",
+      "cities": {
+        "44317": {
+          "id": 44317,
+          "name": "Biltine"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Borkou-Ennedi-Tibesti",
+      "cities": {
+        "44325": {
+          "id": 44325,
+          "name": "Faya"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Chari-Baguirmi",
+      "cities": {
+        "44319": {
+          "id": 44319,
+          "name": "Bokoro"
+        },
+        "44322": {
+          "id": 44322,
+          "name": "Bousso"
+        },
+        "44324": {
+          "id": 44324,
+          "name": "Dourbali"
+        },
+        "44334": {
+          "id": 44334,
+          "name": "Massaguet"
+        },
+        "44335": {
+          "id": 44335,
+          "name": "Massakory"
+        },
+        "44341": {
+          "id": 44341,
+          "name": "Ngama"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Guera",
+      "cities": {
+        "44318": {
+          "id": 44318,
+          "name": "Bitkine"
+        },
+        "44336": {
+          "id": 44336,
+          "name": "Melfi"
+        },
+        "44338": {
+          "id": 44338,
+          "name": "Mongo"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Kanem",
+      "cities": {
+        "44333": {
+          "id": 44333,
+          "name": "Mao"
+        },
+        "44340": {
+          "id": 44340,
+          "name": "Moussoro"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Lac",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Logone Occidental",
+      "cities": {
+        "44314": {
+          "id": 44314,
+          "name": "Beinamar"
+        },
+        "44315": {
+          "id": 44315,
+          "name": "Benoy"
+        },
+        "44339": {
+          "id": 44339,
+          "name": "Moundou"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Logone Oriental",
+      "cities": {
+        "44313": {
+          "id": 44313,
+          "name": "Beboto"
+        },
+        "44320": {
+          "id": 44320,
+          "name": "Bol"
+        },
+        "44323": {
+          "id": 44323,
+          "name": "Doba"
+        }
+      }
+    }
+  }
+}

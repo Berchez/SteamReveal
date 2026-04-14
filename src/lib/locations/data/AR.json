@@ -1,0 +1,486 @@
+{
+  "code": "AR",
+  "name": "Argentina",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Jujuy",
+      "cities": {
+        "5549": {
+          "id": 5549,
+          "name": "Jujuy"
+        },
+        "5553": {
+          "id": 5553,
+          "name": "Libertador General San Martin"
+        },
+        "5591": {
+          "id": 5591,
+          "name": "San Pedro"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "La Pampa",
+      "cities": {
+        "5544": {
+          "id": 5544,
+          "name": "General Pico"
+        },
+        "5595": {
+          "id": 5595,
+          "name": "Santa Rosa"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "La Rioja",
+      "cities": {
+        "5552": {
+          "id": 5552,
+          "name": "La Rioja"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Mendoza",
+      "cities": {
+        "5556": {
+          "id": 5556,
+          "name": "Lujan"
+        },
+        "5558": {
+          "id": 5558,
+          "name": "Mendoza"
+        },
+        "5580": {
+          "id": 5580,
+          "name": "Rivadavia"
+        },
+        "5588": {
+          "id": 5588,
+          "name": "San Martin"
+        },
+        "5592": {
+          "id": 5592,
+          "name": "San Rafael"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Misiones",
+      "cities": {
+        "5542": {
+          "id": 5542,
+          "name": "Eldorado"
+        },
+        "5565": {
+          "id": 5565,
+          "name": "Obera"
+        },
+        "5569": {
+          "id": 5569,
+          "name": "Posadas"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Neuquen",
+      "cities": {
+        "5563": {
+          "id": 5563,
+          "name": "Neuquen"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Rio Negro",
+      "cities": {
+        "5545": {
+          "id": 5545,
+          "name": "General Roca"
+        },
+        "5583": {
+          "id": 5583,
+          "name": "San Carlos De Bariloche"
+        },
+        "5607": {
+          "id": 5607,
+          "name": "Viedma"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Salta",
+      "cities": {
+        "5582": {
+          "id": 5582,
+          "name": "Salta"
+        },
+        "5593": {
+          "id": 5593,
+          "name": "San Ramon De La Nueva Oran"
+        },
+        "5599": {
+          "id": 5599,
+          "name": "Tartagal"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "San Juan",
+      "cities": {
+        "5585": {
+          "id": 5585,
+          "name": "San Juan"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "San Luis",
+      "cities": {
+        "5561": {
+          "id": 5561,
+          "name": "Mercedes"
+        },
+        "5587": {
+          "id": 5587,
+          "name": "San Luis"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Santa Cruz",
+      "cities": {
+        "5578": {
+          "id": 5578,
+          "name": "Rio Gallegos"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Santa Fe",
+      "cities": {
+        "5573": {
+          "id": 5573,
+          "name": "Rafaela"
+        },
+        "5575": {
+          "id": 5575,
+          "name": "Reconquista"
+        },
+        "5581": {
+          "id": 5581,
+          "name": "Rosario"
+        },
+        "5594": {
+          "id": 5594,
+          "name": "Santa Fe"
+        },
+        "5605": {
+          "id": 5605,
+          "name": "Venado Tuerto"
+        },
+        "5609": {
+          "id": 5609,
+          "name": "Villa Constitucion"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Santiago del Estero",
+      "cities": {
+        "5596": {
+          "id": 5596,
+          "name": "Santiago Del Estero"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Tierra del Fuego",
+      "cities": {
+        "5603": {
+          "id": 5603,
+          "name": "Ushuaia"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Tucuman",
+      "cities": {
+        "5602": {
+          "id": 5602,
+          "name": "Tucuman"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Buenos Aires",
+      "cities": {
+        "5529": {
+          "id": 5529,
+          "name": "Azul"
+        },
+        "5530": {
+          "id": 5530,
+          "name": "Bahia Blanca"
+        },
+        "5532": {
+          "id": 5532,
+          "name": "Campana"
+        },
+        "5534": {
+          "id": 5534,
+          "name": "Chacabuco"
+        },
+        "5535": {
+          "id": 5535,
+          "name": "Chivilcoy"
+        },
+        "5541": {
+          "id": 5541,
+          "name": "Dolores"
+        },
+        "5550": {
+          "id": 5550,
+          "name": "Junin"
+        },
+        "5551": {
+          "id": 5551,
+          "name": "La Plata"
+        },
+        "5554": {
+          "id": 5554,
+          "name": "Lincoln"
+        },
+        "5555": {
+          "id": 5555,
+          "name": "Lujan"
+        },
+        "5557": {
+          "id": 5557,
+          "name": "Mar Del Plata"
+        },
+        "5559": {
+          "id": 5559,
+          "name": "Mercedes"
+        },
+        "5562": {
+          "id": 5562,
+          "name": "Necochea"
+        },
+        "5564": {
+          "id": 5564,
+          "name": "Nueve De Julio"
+        },
+        "5566": {
+          "id": 5566,
+          "name": "Olavarria"
+        },
+        "5568": {
+          "id": 5568,
+          "name": "Pergamino"
+        },
+        "5572": {
+          "id": 5572,
+          "name": "Punta Alta"
+        },
+        "5589": {
+          "id": 5589,
+          "name": "San Nicolas"
+        },
+        "5590": {
+          "id": 5590,
+          "name": "San Pedro"
+        },
+        "5597": {
+          "id": 5597,
+          "name": "San Vicente"
+        },
+        "5598": {
+          "id": 5598,
+          "name": "Tandil"
+        },
+        "5601": {
+          "id": 5601,
+          "name": "Tres Arroyos"
+        },
+        "5604": {
+          "id": 5604,
+          "name": "Veinticinco De Mayo"
+        },
+        "5611": {
+          "id": 5611,
+          "name": "Zarate"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Catamarca",
+      "cities": {
+        "5533": {
+          "id": 5533,
+          "name": "Catamarca"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Chaco",
+      "cities": {
+        "5570": {
+          "id": 5570,
+          "name": "Presidencia Roque Saenz Pena"
+        },
+        "5576": {
+          "id": 5576,
+          "name": "Resistencia"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Chubut",
+      "cities": {
+        "5571": {
+          "id": 5571,
+          "name": "Puerto Madryn"
+        },
+        "5574": {
+          "id": 5574,
+          "name": "Rawson"
+        },
+        "5600": {
+          "id": 5600,
+          "name": "Trelew"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Cordoba",
+      "cities": {
+        "5528": {
+          "id": 5528,
+          "name": "Alta Gracia"
+        },
+        "5531": {
+          "id": 5531,
+          "name": "Bell Ville"
+        },
+        "5539": {
+          "id": 5539,
+          "name": "Cordoba"
+        },
+        "5577": {
+          "id": 5577,
+          "name": "Rio Cuarto"
+        },
+        "5579": {
+          "id": 5579,
+          "name": "Rio Tercero"
+        },
+        "5584": {
+          "id": 5584,
+          "name": "San Francisco"
+        },
+        "5608": {
+          "id": 5608,
+          "name": "Villa Carlos Paz"
+        },
+        "5610": {
+          "id": 5610,
+          "name": "Villa Maria"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Corrientes",
+      "cities": {
+        "5540": {
+          "id": 5540,
+          "name": "Corrientes"
+        },
+        "5546": {
+          "id": 5546,
+          "name": "Goya"
+        },
+        "5560": {
+          "id": 5560,
+          "name": "Mercedes"
+        },
+        "5586": {
+          "id": 5586,
+          "name": "San Lorenzo"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Distrito Federal",
+      "cities": {
+        "5536": {
+          "id": 5536,
+          "name": "Comodoro Rivadavia"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Entre Rios",
+      "cities": {
+        "5537": {
+          "id": 5537,
+          "name": "Concepcion Del Uruguay"
+        },
+        "5538": {
+          "id": 5538,
+          "name": "Concordia"
+        },
+        "5547": {
+          "id": 5547,
+          "name": "Gualeguaychu"
+        },
+        "5548": {
+          "id": 5548,
+          "name": "Gualeguay"
+        },
+        "5567": {
+          "id": 5567,
+          "name": "Parana"
+        },
+        "5606": {
+          "id": 5606,
+          "name": "Victoria"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Formosa",
+      "cities": {
+        "5543": {
+          "id": 5543,
+          "name": "Formosa"
+        }
+      }
+    }
+  }
+}

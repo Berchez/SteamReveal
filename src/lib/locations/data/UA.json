@@ -1,0 +1,3314 @@
+{
+  "code": "UA",
+  "name": "Ukraine",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Kirovohrads'ka Oblast'",
+      "cities": {
+        "45393": {
+          "id": 45393,
+          "name": "Adzhamka"
+        },
+        "45394": {
+          "id": 45394,
+          "name": "Aleksandriya"
+        },
+        "45520": {
+          "id": 45520,
+          "name": "Dmytrivka"
+        },
+        "45544": {
+          "id": 45544,
+          "name": "Dymytrove"
+        },
+        "45556": {
+          "id": 45556,
+          "name": "Hayvoron"
+        },
+        "45600": {
+          "id": 45600,
+          "name": "Kapitanivka"
+        },
+        "45606": {
+          "id": 45606,
+          "name": "Kazanka"
+        },
+        "45624": {
+          "id": 45624,
+          "name": "Kirovohrad"
+        },
+        "45640": {
+          "id": 45640,
+          "name": "Kompaniyivka"
+        },
+        "45726": {
+          "id": 45726,
+          "name": "Lypnyazhka"
+        },
+        "45742": {
+          "id": 45742,
+          "name": "Mala Vyska"
+        },
+        "45765": {
+          "id": 45765,
+          "name": "Molodizhne"
+        },
+        "45798": {
+          "id": 45798,
+          "name": "Nova Praha"
+        },
+        "45802": {
+          "id": 45802,
+          "name": "Novhorodka"
+        },
+        "45809": {
+          "id": 45809,
+          "name": "Novomyrhorod"
+        },
+        "45816": {
+          "id": 45816,
+          "name": "Novoukrayinka"
+        },
+        "45821": {
+          "id": 45821,
+          "name": "Novyy Starodub"
+        },
+        "45837": {
+          "id": 45837,
+          "name": "Oleksandrivka"
+        },
+        "45840": {
+          "id": 45840,
+          "name": "Onufriyivka"
+        },
+        "45856": {
+          "id": 45856,
+          "name": "Pantayivka"
+        },
+        "45864": {
+          "id": 45864,
+          "name": "Pavlysh"
+        },
+        "45866": {
+          "id": 45866,
+          "name": "Perehonivka"
+        },
+        "45876": {
+          "id": 45876,
+          "name": "Petrove"
+        },
+        "45893": {
+          "id": 45893,
+          "name": "Pomichna"
+        },
+        "45906": {
+          "id": 45906,
+          "name": "Pryyutivka"
+        },
+        "45919": {
+          "id": 45919,
+          "name": "Rivne"
+        },
+        "46018": {
+          "id": 46018,
+          "name": "Subottsi"
+        },
+        "46056": {
+          "id": 46056,
+          "name": "Tyshkivka"
+        },
+        "46065": {
+          "id": 46065,
+          "name": "Ustynivka"
+        },
+        "46136": {
+          "id": 46136,
+          "name": "Yelyzavethradka"
+        },
+        "46156": {
+          "id": 46156,
+          "name": "Zavallya"
+        },
+        "46170": {
+          "id": 46170,
+          "name": "Zlynka"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Krym",
+      "cities": {
+        "45395": {
+          "id": 45395,
+          "name": "Alushta"
+        },
+        "45405": {
+          "id": 45405,
+          "name": "Baherove"
+        },
+        "45406": {
+          "id": 45406,
+          "name": "Bakhchysaray"
+        },
+        "45423": {
+          "id": 45423,
+          "name": "Berehove"
+        },
+        "45525": {
+          "id": 45525,
+          "name": "Dobroye"
+        },
+        "45546": {
+          "id": 45546,
+          "name": "Dzhankoy"
+        },
+        "45549": {
+          "id": 45549,
+          "name": "Feodosiya"
+        },
+        "45551": {
+          "id": 45551,
+          "name": "Frunze"
+        },
+        "45576": {
+          "id": 45576,
+          "name": "Hurzuf"
+        },
+        "45603": {
+          "id": 45603,
+          "name": "Katsiveli"
+        },
+        "45609": {
+          "id": 45609,
+          "name": "Kerch"
+        },
+        "45692": {
+          "id": 45692,
+          "name": "Kurpaty"
+        },
+        "45709": {
+          "id": 45709,
+          "name": "Lenine"
+        },
+        "45713": {
+          "id": 45713,
+          "name": "Livadiya"
+        },
+        "45752": {
+          "id": 45752,
+          "name": "Masandra"
+        },
+        "45774": {
+          "id": 45774,
+          "name": "Mykhaylivka"
+        },
+        "45776": {
+          "id": 45776,
+          "name": "Mykolayivka"
+        },
+        "45791": {
+          "id": 45791,
+          "name": "Nikita"
+        },
+        "45823": {
+          "id": 45823,
+          "name": "Novyy Svit"
+        },
+        "45843": {
+          "id": 45843,
+          "name": "Ordzhonikidze"
+        },
+        "45844": {
+          "id": 45844,
+          "name": "Oreanda"
+        },
+        "45846": {
+          "id": 45846,
+          "name": "Orikhove"
+        },
+        "45858": {
+          "id": 45858,
+          "name": "Partenit"
+        },
+        "45870": {
+          "id": 45870,
+          "name": "Pervomayskoye"
+        },
+        "45903": {
+          "id": 45903,
+          "name": "Pryozerne"
+        },
+        "45915": {
+          "id": 45915,
+          "name": "Razdolnoye"
+        },
+        "45921": {
+          "id": 45921,
+          "name": "Rodnykove"
+        },
+        "45943": {
+          "id": 45943,
+          "name": "Saky"
+        },
+        "45960": {
+          "id": 45960,
+          "name": "Shchebetovka"
+        },
+        "46010": {
+          "id": 46010,
+          "name": "Staryy Krym"
+        },
+        "46019": {
+          "id": 46019,
+          "name": "Sudak"
+        },
+        "46059": {
+          "id": 46059,
+          "name": "Uhlove"
+        },
+        "46067": {
+          "id": 46067,
+          "name": "Uyutne"
+        },
+        "46096": {
+          "id": 46096,
+          "name": "Viline"
+        },
+        "46107": {
+          "id": 46107,
+          "name": "Voskhod"
+        },
+        "46108": {
+          "id": 46108,
+          "name": "Voyinka"
+        },
+        "46109": {
+          "id": 46109,
+          "name": "Voykove"
+        },
+        "46130": {
+          "id": 46130,
+          "name": "Yalta"
+        },
+        "46138": {
+          "id": 46138,
+          "name": "Yevpatoriya"
+        },
+        "46161": {
+          "id": 46161,
+          "name": "Zhelyabovka"
+        },
+        "46178": {
+          "id": 46178,
+          "name": "Zuya"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Kyyiv",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Kyyivs'ka Oblast'",
+      "cities": {
+        "45414": {
+          "id": 45414,
+          "name": "Baryshivka"
+        },
+        "45438": {
+          "id": 45438,
+          "name": "Bila Tserkva"
+        },
+        "45453": {
+          "id": 45453,
+          "name": "Bohuslav"
+        },
+        "45457": {
+          "id": 45457,
+          "name": "Borodyanka"
+        },
+        "45460": {
+          "id": 45460,
+          "name": "Borova"
+        },
+        "45465": {
+          "id": 45465,
+          "name": "Boyarka"
+        },
+        "45469": {
+          "id": 45469,
+          "name": "Brovary"
+        },
+        "45517": {
+          "id": 45517,
+          "name": "Desna"
+        },
+        "45543": {
+          "id": 45543,
+          "name": "Dymer"
+        },
+        "45548": {
+          "id": 45548,
+          "name": "Fastiv"
+        },
+        "45586": {
+          "id": 45586,
+          "name": "Ivankiv"
+        },
+        "45592": {
+          "id": 45592,
+          "name": "Kaharlyk"
+        },
+        "45599": {
+          "id": 45599,
+          "name": "Kaniv"
+        },
+        "45601": {
+          "id": 45601,
+          "name": "Karapyshi"
+        },
+        "45604": {
+          "id": 45604,
+          "name": "Katyuzhanka"
+        },
+        "45615": {
+          "id": 45615,
+          "name": "Khotiv"
+        },
+        "45621": {
+          "id": 45621,
+          "name": "Kiev"
+        },
+        "45662": {
+          "id": 45662,
+          "name": "Kozhanka"
+        },
+        "45737": {
+          "id": 45737,
+          "name": "Makariv"
+        },
+        "45781": {
+          "id": 45781,
+          "name": "Myronivka"
+        },
+        "45832": {
+          "id": 45832,
+          "name": "Obukhiv"
+        },
+        "45883": {
+          "id": 45883,
+          "name": "Piskivka"
+        },
+        "45912": {
+          "id": 45912,
+          "name": "Rakitnoye"
+        },
+        "45939": {
+          "id": 45939,
+          "name": "Rzhyshchiv"
+        },
+        "45951": {
+          "id": 45951,
+          "name": "Semypolky"
+        },
+        "45978": {
+          "id": 45978,
+          "name": "Skvyra"
+        },
+        "46013": {
+          "id": 46013,
+          "name": "Stavyshche"
+        },
+        "46030": {
+          "id": 46030,
+          "name": "Tarashcha"
+        },
+        "46040": {
+          "id": 46040,
+          "name": "Tetiyiv"
+        },
+        "46046": {
+          "id": 46046,
+          "name": "Trebukhiv"
+        },
+        "46049": {
+          "id": 46049,
+          "name": "Tsybli"
+        },
+        "46061": {
+          "id": 46061,
+          "name": "Ukrayinka"
+        },
+        "46069": {
+          "id": 46069,
+          "name": "Uzyn"
+        },
+        "46102": {
+          "id": 46102,
+          "name": "Volodarka"
+        },
+        "46118": {
+          "id": 46118,
+          "name": "Vyshhorod"
+        },
+        "46121": {
+          "id": 46121,
+          "name": "Vyshneve"
+        },
+        "46127": {
+          "id": 46127,
+          "name": "Yahotyn"
+        },
+        "46168": {
+          "id": 46168,
+          "name": "Zhurivka"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Luhans'ka Oblast'",
+      "cities": {
+        "45419": {
+          "id": 45419,
+          "name": "Beloye"
+        },
+        "45441": {
+          "id": 45441,
+          "name": "Bilokurakyne"
+        },
+        "45445": {
+          "id": 45445,
+          "name": "Biryukove"
+        },
+        "45471": {
+          "id": 45471,
+          "name": "Bryanka"
+        },
+        "45552": {
+          "id": 45552,
+          "name": "Frunze"
+        },
+        "45628": {
+          "id": 45628,
+          "name": "Klenovyy"
+        },
+        "45670": {
+          "id": 45670,
+          "name": "Krasnodon"
+        },
+        "45676": {
+          "id": 45676,
+          "name": "Krasnyy Kut"
+        },
+        "45677": {
+          "id": 45677,
+          "name": "Krasnyy Luch"
+        },
+        "45681": {
+          "id": 45681,
+          "name": "Kreminna"
+        },
+        "45708": {
+          "id": 45708,
+          "name": "Lenina"
+        },
+        "45750": {
+          "id": 45750,
+          "name": "Markivka"
+        },
+        "45761": {
+          "id": 45761,
+          "name": "Milove"
+        },
+        "45813": {
+          "id": 45813,
+          "name": "Novopskov"
+        },
+        "45827": {
+          "id": 45827,
+          "name": "Nyzhnya Duvanka"
+        },
+        "45861": {
+          "id": 45861,
+          "name": "Pavlivka"
+        },
+        "45871": {
+          "id": 45871,
+          "name": "Pervomaysk"
+        },
+        "45905": {
+          "id": 45905,
+          "name": "Pryvillya"
+        },
+        "45931": {
+          "id": 45931,
+          "name": "Rozkishne"
+        },
+        "45934": {
+          "id": 45934,
+          "name": "Rubizhne"
+        },
+        "45975": {
+          "id": 45975,
+          "name": "Simeykyne"
+        },
+        "45999": {
+          "id": 45999,
+          "name": "Stakhanov"
+        },
+        "46026": {
+          "id": 46026,
+          "name": "Svatove"
+        },
+        "46044": {
+          "id": 46044,
+          "name": "Toshkivka"
+        },
+        "46064": {
+          "id": 46064,
+          "name": "Uspenka"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "L'vivs'ka Oblast'",
+      "cities": {
+        "45420": {
+          "id": 45420,
+          "name": "Belz"
+        },
+        "45462": {
+          "id": 45462,
+          "name": "Boryslav"
+        },
+        "45473": {
+          "id": 45473,
+          "name": "Bryukhovychi"
+        },
+        "45536": {
+          "id": 45536,
+          "name": "Dublyany"
+        },
+        "45540": {
+          "id": 45540,
+          "name": "Duliby"
+        },
+        "45620": {
+          "id": 45620,
+          "name": "Khyriv"
+        },
+        "45639": {
+          "id": 45639,
+          "name": "Komarno"
+        },
+        "45667": {
+          "id": 45667,
+          "name": "Krasne"
+        },
+        "45690": {
+          "id": 45690,
+          "name": "Kulykiv"
+        },
+        "45714": {
+          "id": 45714,
+          "name": "Lokachi"
+        },
+        "45722": {
+          "id": 45722,
+          "name": "Lvov"
+        },
+        "45756": {
+          "id": 45756,
+          "name": "Medenychi"
+        },
+        "45767": {
+          "id": 45767,
+          "name": "Morshyn"
+        },
+        "45771": {
+          "id": 45771,
+          "name": "Murovane"
+        },
+        "45778": {
+          "id": 45778,
+          "name": "Mykolayiv"
+        },
+        "45824": {
+          "id": 45824,
+          "name": "Novyy Yarychiv"
+        },
+        "45867": {
+          "id": 45867,
+          "name": "Peremyshlyany"
+        },
+        "45907": {
+          "id": 45907,
+          "name": "Pustomyty"
+        },
+        "45914": {
+          "id": 45914,
+          "name": "Ralivka"
+        },
+        "45933": {
+          "id": 45933,
+          "name": "Rozvadiv"
+        },
+        "45938": {
+          "id": 45938,
+          "name": "Rykhtychi"
+        },
+        "45944": {
+          "id": 45944,
+          "name": "Sambir"
+        },
+        "45968": {
+          "id": 45968,
+          "name": "Shklo"
+        },
+        "46008": {
+          "id": 46008,
+          "name": "Starychi"
+        },
+        "46014": {
+          "id": 46014,
+          "name": "Stebnyk"
+        },
+        "46017": {
+          "id": 46017,
+          "name": "Stryy"
+        },
+        "46020": {
+          "id": 46020,
+          "name": "Sudova Vyshnya"
+        },
+        "46062": {
+          "id": 46062,
+          "name": "Ulychne"
+        },
+        "46135": {
+          "id": 46135,
+          "name": "Yavoriv"
+        },
+        "46163": {
+          "id": 46163,
+          "name": "Zhovkva"
+        },
+        "46165": {
+          "id": 46165,
+          "name": "Zhovtneve"
+        },
+        "46173": {
+          "id": 46173,
+          "name": "Zolochiv"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Mykolayivs'ka Oblast'",
+      "cities": {
+        "45400": {
+          "id": 45400,
+          "name": "Arbuzynka"
+        },
+        "45415": {
+          "id": 45415,
+          "name": "Bashtanka"
+        },
+        "45426": {
+          "id": 45426,
+          "name": "Berezanka"
+        },
+        "45430": {
+          "id": 45430,
+          "name": "Bereznehuvate"
+        },
+        "45527": {
+          "id": 45527,
+          "name": "Domanivka"
+        },
+        "45659": {
+          "id": 45659,
+          "name": "Kostyantynivka"
+        },
+        "45684": {
+          "id": 45684,
+          "name": "Kryve Ozero"
+        },
+        "45728": {
+          "id": 45728,
+          "name": "Lysa Hora"
+        },
+        "45797": {
+          "id": 45797,
+          "name": "Nova Odesa"
+        },
+        "45820": {
+          "id": 45820,
+          "name": "Novyy Buh"
+        },
+        "45833": {
+          "id": 45833,
+          "name": "Ochakiv"
+        },
+        "45872": {
+          "id": 45872,
+          "name": "Pervomaysk"
+        },
+        "45880": {
+          "id": 45880,
+          "name": "Pidhorodna"
+        },
+        "45966": {
+          "id": 45966,
+          "name": "Shevchenkove"
+        },
+        "45984": {
+          "id": 45984,
+          "name": "Snihurivka"
+        },
+        "46095": {
+          "id": 46095,
+          "name": "Veselynove"
+        },
+        "46111": {
+          "id": 46111,
+          "name": "Vradiyivka"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Odes'ka Oblast'",
+      "cities": {
+        "45401": {
+          "id": 45401,
+          "name": "Artsyz"
+        },
+        "45410": {
+          "id": 45410,
+          "name": "Balta"
+        },
+        "45433": {
+          "id": 45433,
+          "name": "Berezyne"
+        },
+        "45444": {
+          "id": 45444,
+          "name": "Bilyayivka"
+        },
+        "45455": {
+          "id": 45455,
+          "name": "Bolhrad"
+        },
+        "45456": {
+          "id": 45456,
+          "name": "Borodino"
+        },
+        "45468": {
+          "id": 45468,
+          "name": "Broska"
+        },
+        "45521": {
+          "id": 45521,
+          "name": "Dmytrivka"
+        },
+        "45550": {
+          "id": 45550,
+          "name": "Fontanka"
+        },
+        "45553": {
+          "id": 45553,
+          "name": "Frunzivka"
+        },
+        "45566": {
+          "id": 45566,
+          "name": "Horodnye"
+        },
+        "45585": {
+          "id": 45585,
+          "name": "Ivanivka"
+        },
+        "45588": {
+          "id": 45588,
+          "name": "Izmayil"
+        },
+        "45595": {
+          "id": 45595,
+          "name": "Kalcheva"
+        },
+        "45622": {
+          "id": 45622,
+          "name": "Kiliya"
+        },
+        "45634": {
+          "id": 45634,
+          "name": "Kodyma"
+        },
+        "45668": {
+          "id": 45668,
+          "name": "Krasni Okny"
+        },
+        "45674": {
+          "id": 45674,
+          "name": "Krasnosilka"
+        },
+        "45686": {
+          "id": 45686,
+          "name": "Kryzhanivka"
+        },
+        "45687": {
+          "id": 45687,
+          "name": "Kuchurhan"
+        },
+        "45688": {
+          "id": 45688,
+          "name": "Kulevcha"
+        },
+        "45732": {
+          "id": 45732,
+          "name": "Lyubashivka"
+        },
+        "45755": {
+          "id": 45755,
+          "name": "Mayaky"
+        },
+        "45777": {
+          "id": 45777,
+          "name": "Mykolayivka"
+        },
+        "45805": {
+          "id": 45805,
+          "name": "Novi Troyany"
+        },
+        "45834": {
+          "id": 45834,
+          "name": "Odesa"
+        },
+        "45838": {
+          "id": 45838,
+          "name": "Oleksandrivka"
+        },
+        "45854": {
+          "id": 45854,
+          "name": "Ozerne"
+        },
+        "45874": {
+          "id": 45874,
+          "name": "Petrivka"
+        },
+        "45885": {
+          "id": 45885,
+          "name": "Plakhtiyivka"
+        },
+        "45916": {
+          "id": 45916,
+          "name": "Reni"
+        },
+        "45945": {
+          "id": 45945,
+          "name": "Sarata"
+        },
+        "45955": {
+          "id": 45955,
+          "name": "Serpneve"
+        },
+        "45956": {
+          "id": 45956,
+          "name": "Shabo"
+        },
+        "45967": {
+          "id": 45967,
+          "name": "Shevchenkove"
+        },
+        "45974": {
+          "id": 45974,
+          "name": "Shyryayeve"
+        },
+        "45981": {
+          "id": 45981,
+          "name": "Slobidka"
+        },
+        "46007": {
+          "id": 46007,
+          "name": "Starokozache"
+        },
+        "46031": {
+          "id": 46031,
+          "name": "Tarutyne"
+        },
+        "46032": {
+          "id": 46032,
+          "name": "Tatarbunary"
+        },
+        "46033": {
+          "id": 46033,
+          "name": "Tayirove"
+        },
+        "46034": {
+          "id": 46034,
+          "name": "Teplodar"
+        },
+        "46063": {
+          "id": 46063,
+          "name": "Usatove"
+        },
+        "46081": {
+          "id": 46081,
+          "name": "Velyka Mykhaylivka"
+        },
+        "46084": {
+          "id": 46084,
+          "name": "Velykoploske"
+        },
+        "46113": {
+          "id": 46113,
+          "name": "Vylkove"
+        },
+        "46115": {
+          "id": 46115,
+          "name": "Vynohradivka"
+        },
+        "46141": {
+          "id": 46141,
+          "name": "Yuzhne"
+        },
+        "46147": {
+          "id": 46147,
+          "name": "Zaliznychne"
+        },
+        "46154": {
+          "id": 46154,
+          "name": "Zatoka"
+        },
+        "46155": {
+          "id": 46155,
+          "name": "Zatyshshya"
+        },
+        "46176": {
+          "id": 46176,
+          "name": "Zorya"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Poltavs'ka Oblast'",
+      "cities": {
+        "45502": {
+          "id": 45502,
+          "name": "Chornukhy"
+        },
+        "45510": {
+          "id": 45510,
+          "name": "Chutove"
+        },
+        "45557": {
+          "id": 45557,
+          "name": "Hlobyne"
+        },
+        "45572": {
+          "id": 45572,
+          "name": "Hrebinka"
+        },
+        "45602": {
+          "id": 45602,
+          "name": "Karlivka"
+        },
+        "45612": {
+          "id": 45612,
+          "name": "Khorol"
+        },
+        "45630": {
+          "id": 45630,
+          "name": "Kobelyaky"
+        },
+        "45643": {
+          "id": 45643,
+          "name": "Komyshnya"
+        },
+        "45680": {
+          "id": 45680,
+          "name": "Kremenchuk"
+        },
+        "45699": {
+          "id": 45699,
+          "name": "Ladan"
+        },
+        "45715": {
+          "id": 45715,
+          "name": "Lokhvytsya"
+        },
+        "45753": {
+          "id": 45753,
+          "name": "Mashivka"
+        },
+        "45780": {
+          "id": 45780,
+          "name": "Myrhorod"
+        },
+        "45804": {
+          "id": 45804,
+          "name": "Novi Sanzhary"
+        },
+        "45847": {
+          "id": 45847,
+          "name": "Orzhytsya"
+        },
+        "45891": {
+          "id": 45891,
+          "name": "Poltava"
+        },
+        "45908": {
+          "id": 45908,
+          "name": "Pyryatyn"
+        },
+        "45917": {
+          "id": 45917,
+          "name": "Reshetylivka"
+        },
+        "45950": {
+          "id": 45950,
+          "name": "Semenivka"
+        },
+        "45952": {
+          "id": 45952,
+          "name": "Sencha"
+        },
+        "46072": {
+          "id": 46072,
+          "name": "Varva"
+        },
+        "46078": {
+          "id": 46078,
+          "name": "Velyka Bahachka"
+        },
+        "46167": {
+          "id": 46167,
+          "name": "Zhuravka"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Rivnens'ka Oblast'",
+      "cities": {
+        "45425": {
+          "id": 45425,
+          "name": "Berestechko"
+        },
+        "45467": {
+          "id": 45467,
+          "name": "Brody"
+        },
+        "45537": {
+          "id": 45537,
+          "name": "Dubno"
+        },
+        "45539": {
+          "id": 45539,
+          "name": "Dubrovytsya"
+        },
+        "45570": {
+          "id": 45570,
+          "name": "Horodyshche"
+        },
+        "45571": {
+          "id": 45571,
+          "name": "Hoshcha"
+        },
+        "45636": {
+          "id": 45636,
+          "name": "Kolodenka"
+        },
+        "45762": {
+          "id": 45762,
+          "name": "Mizoch"
+        },
+        "45763": {
+          "id": 45763,
+          "name": "Mlyniv"
+        },
+        "45839": {
+          "id": 45839,
+          "name": "Olyka"
+        },
+        "45849": {
+          "id": 45849,
+          "name": "Ostroh"
+        },
+        "45910": {
+          "id": 45910,
+          "name": "Radyvyliv"
+        },
+        "45920": {
+          "id": 45920,
+          "name": "Rivne"
+        },
+        "45924": {
+          "id": 45924,
+          "name": "Rokytne"
+        },
+        "45946": {
+          "id": 45946,
+          "name": "Sarny"
+        },
+        "46055": {
+          "id": 46055,
+          "name": "Tynne"
+        },
+        "46152": {
+          "id": 46152,
+          "name": "Zarichne"
+        },
+        "46159": {
+          "id": 46159,
+          "name": "Zdolbuniv"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Sevastopol'",
+      "cities": {}
+    },
+    "21": {
+      "code": "21",
+      "name": "Sums'ka Oblast'",
+      "cities": {
+        "45442": {
+          "id": 45442,
+          "name": "Bilopillya"
+        },
+        "45458": {
+          "id": 45458,
+          "name": "Boromlya"
+        },
+        "45494": {
+          "id": 45494,
+          "name": "Chervone"
+        },
+        "45533": {
+          "id": 45533,
+          "name": "Druzhba"
+        },
+        "45558": {
+          "id": 45558,
+          "name": "Hlukhiv"
+        },
+        "45645": {
+          "id": 45645,
+          "name": "Konotop"
+        },
+        "45673": {
+          "id": 45673,
+          "name": "Krasnopillya"
+        },
+        "45707": {
+          "id": 45707,
+          "name": "Lebedyn"
+        },
+        "45727": {
+          "id": 45727,
+          "name": "Lypova Dolyna"
+        },
+        "45786": {
+          "id": 45786,
+          "name": "Nedryhayliv"
+        },
+        "45829": {
+          "id": 45829,
+          "name": "Nyzy"
+        },
+        "45835": {
+          "id": 45835,
+          "name": "Okhtyrka"
+        },
+        "45925": {
+          "id": 45925,
+          "name": "Romny"
+        },
+        "45958": {
+          "id": 45958,
+          "name": "Shalyhyne"
+        },
+        "45970": {
+          "id": 45970,
+          "name": "Shostka"
+        },
+        "45982": {
+          "id": 45982,
+          "name": "Sloboda"
+        },
+        "46022": {
+          "id": 46022,
+          "name": "Sumy"
+        },
+        "46038": {
+          "id": 46038,
+          "name": "Terny"
+        },
+        "46083": {
+          "id": 46083,
+          "name": "Velyka Pysarivka"
+        },
+        "46092": {
+          "id": 46092,
+          "name": "Verkhnya Syrovatka"
+        },
+        "46106": {
+          "id": 46106,
+          "name": "Vorozhba"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Ternopil's'ka Oblast'",
+      "cities": {
+        "45427": {
+          "id": 45427,
+          "name": "Berezhany"
+        },
+        "45436": {
+          "id": 45436,
+          "name": "Bila"
+        },
+        "45461": {
+          "id": 45461,
+          "name": "Borshchiv"
+        },
+        "45474": {
+          "id": 45474,
+          "name": "Buchach"
+        },
+        "45504": {
+          "id": 45504,
+          "name": "Chortkiv"
+        },
+        "45534": {
+          "id": 45534,
+          "name": "Druzhba"
+        },
+        "45573": {
+          "id": 45573,
+          "name": "Hrymayliv"
+        },
+        "45577": {
+          "id": 45577,
+          "name": "Husyatyn"
+        },
+        "45614": {
+          "id": 45614,
+          "name": "Khorostkiv"
+        },
+        "45648": {
+          "id": 45648,
+          "name": "Kopychyntsi"
+        },
+        "45663": {
+          "id": 45663,
+          "name": "Kozova"
+        },
+        "45702": {
+          "id": 45702,
+          "name": "Lanivtsi"
+        },
+        "45853": {
+          "id": 45853,
+          "name": "Ozerna"
+        },
+        "45878": {
+          "id": 45878,
+          "name": "Petrykiv"
+        },
+        "45879": {
+          "id": 45879,
+          "name": "Pidhaytsi"
+        },
+        "45894": {
+          "id": 45894,
+          "name": "Pomoryany"
+        },
+        "45976": {
+          "id": 45976,
+          "name": "Skalat"
+        },
+        "46036": {
+          "id": 46036,
+          "name": "Terebovlya"
+        },
+        "46045": {
+          "id": 46045,
+          "name": "Tovste"
+        },
+        "46047": {
+          "id": 46047,
+          "name": "Trybukhivtsi"
+        },
+        "46146": {
+          "id": 46146,
+          "name": "Zalishchyky"
+        },
+        "46149": {
+          "id": 46149,
+          "name": "Zaliztsi"
+        },
+        "46157": {
+          "id": 46157,
+          "name": "Zbarazh"
+        },
+        "46158": {
+          "id": 46158,
+          "name": "Zboriv"
+        },
+        "46175": {
+          "id": 46175,
+          "name": "Zolotyy Potik"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Vinnyts'ka Oblast'",
+      "cities": {
+        "45412": {
+          "id": 45412,
+          "name": "Bar"
+        },
+        "45466": {
+          "id": 45466,
+          "name": "Bratslav"
+        },
+        "45489": {
+          "id": 45489,
+          "name": "Chernivtsi"
+        },
+        "45555": {
+          "id": 45555,
+          "name": "Haysyn"
+        },
+        "45581": {
+          "id": 45581,
+          "name": "Illintsi"
+        },
+        "45597": {
+          "id": 45597,
+          "name": "Kalynivka"
+        },
+        "45627": {
+          "id": 45627,
+          "name": "Klembivka"
+        },
+        "45647": {
+          "id": 45647,
+          "name": "Kopayhorod"
+        },
+        "45664": {
+          "id": 45664,
+          "name": "Kozyatyn"
+        },
+        "45700": {
+          "id": 45700,
+          "name": "Ladyzhyn"
+        },
+        "45712": {
+          "id": 45712,
+          "name": "Lityn"
+        },
+        "45772": {
+          "id": 45772,
+          "name": "Murovani Kurylivtsi"
+        },
+        "45788": {
+          "id": 45788,
+          "name": "Nemyriv"
+        },
+        "45831": {
+          "id": 45831,
+          "name": "Obodivka"
+        },
+        "45841": {
+          "id": 45841,
+          "name": "Orativ"
+        },
+        "45862": {
+          "id": 45862,
+          "name": "Pavlivka"
+        },
+        "45887": {
+          "id": 45887,
+          "name": "Pohrebyshche"
+        },
+        "45959": {
+          "id": 45959,
+          "name": "Sharhorod"
+        },
+        "45987": {
+          "id": 45987,
+          "name": "Sobolivka"
+        },
+        "46023": {
+          "id": 46023,
+          "name": "Sutysky"
+        },
+        "46035": {
+          "id": 46035,
+          "name": "Teplyk"
+        },
+        "46051": {
+          "id": 46051,
+          "name": "Turbiv"
+        },
+        "46071": {
+          "id": 46071,
+          "name": "Vapnyarka"
+        },
+        "46087": {
+          "id": 46087,
+          "name": "Vendychany"
+        },
+        "46097": {
+          "id": 46097,
+          "name": "Vinnytsya"
+        },
+        "46098": {
+          "id": 46098,
+          "name": "Viytivka"
+        },
+        "46105": {
+          "id": 46105,
+          "name": "Voronovytsya"
+        },
+        "46162": {
+          "id": 46162,
+          "name": "Zhmerynka"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Volyns'ka Oblast'",
+      "cities": {
+        "45625": {
+          "id": 45625,
+          "name": "Kivertsi"
+        },
+        "45720": {
+          "id": 45720,
+          "name": "Lukiv"
+        },
+        "45929": {
+          "id": 45929,
+          "name": "Rozhyshche"
+        },
+        "46002": {
+          "id": 46002,
+          "name": "Stara Vyzhivka"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Zakarpats'ka Oblast'",
+      "cities": {
+        "45424": {
+          "id": 45424,
+          "name": "Berehove"
+        },
+        "45431": {
+          "id": 45431,
+          "name": "Bereznyky"
+        },
+        "45432": {
+          "id": 45432,
+          "name": "Berezovo"
+        },
+        "45440": {
+          "id": 45440,
+          "name": "Bilky"
+        },
+        "45450": {
+          "id": 45450,
+          "name": "Bohdan"
+        },
+        "45478": {
+          "id": 45478,
+          "name": "Bushtyno"
+        },
+        "45497": {
+          "id": 45497,
+          "name": "Chop"
+        },
+        "45512": {
+          "id": 45512,
+          "name": "Chynadiyovo"
+        },
+        "45529": {
+          "id": 45529,
+          "name": "Dovhe"
+        },
+        "45531": {
+          "id": 45531,
+          "name": "Drahovo"
+        },
+        "45538": {
+          "id": 45538,
+          "name": "Dubove"
+        },
+        "45561": {
+          "id": 45561,
+          "name": "Horinchovo"
+        },
+        "45582": {
+          "id": 45582,
+          "name": "Irshava"
+        },
+        "45587": {
+          "id": 45587,
+          "name": "Iza"
+        },
+        "45598": {
+          "id": 45598,
+          "name": "Kalyny"
+        },
+        "45618": {
+          "id": 45618,
+          "name": "Khust"
+        },
+        "45635": {
+          "id": 45635,
+          "name": "Kolochava"
+        },
+        "45646": {
+          "id": 45646,
+          "name": "Kopashnovo"
+        },
+        "45650": {
+          "id": 45650,
+          "name": "Korolevo"
+        },
+        "45683": {
+          "id": 45683,
+          "name": "Kryva"
+        },
+        "45693": {
+          "id": 45693,
+          "name": "Kushnytsya"
+        },
+        "45703": {
+          "id": 45703,
+          "name": "Lazeshchyna"
+        },
+        "45705": {
+          "id": 45705,
+          "name": "Lazy"
+        },
+        "45716": {
+          "id": 45716,
+          "name": "Lopukhiv"
+        },
+        "45725": {
+          "id": 45725,
+          "name": "Lypcha"
+        },
+        "45730": {
+          "id": 45730,
+          "name": "Lysychovo"
+        },
+        "45759": {
+          "id": 45759,
+          "name": "Mezhgorye"
+        },
+        "45770": {
+          "id": 45770,
+          "name": "Mukacheve"
+        },
+        "45779": {
+          "id": 45779,
+          "name": "Mynay"
+        },
+        "45787": {
+          "id": 45787,
+          "name": "Nelipyno"
+        },
+        "45789": {
+          "id": 45789,
+          "name": "Neresnytsya"
+        },
+        "45801": {
+          "id": 45801,
+          "name": "Nove Davydkovo"
+        },
+        "45882": {
+          "id": 45882,
+          "name": "Pidvynohradiv"
+        },
+        "45897": {
+          "id": 45897,
+          "name": "Poroshkovo"
+        },
+        "45911": {
+          "id": 45911,
+          "name": "Rakhiv"
+        },
+        "45913": {
+          "id": 45913,
+          "name": "Rakoshyno"
+        },
+        "45923": {
+          "id": 45923,
+          "name": "Rokosovo"
+        },
+        "45954": {
+          "id": 45954,
+          "name": "Serednye Vodyane"
+        },
+        "45993": {
+          "id": 45993,
+          "name": "Solotvyno"
+        },
+        "46016": {
+          "id": 46016,
+          "name": "Strabychovo"
+        },
+        "46024": {
+          "id": 46024,
+          "name": "Svalyava"
+        },
+        "46028": {
+          "id": 46028,
+          "name": "Synevyr"
+        },
+        "46052": {
+          "id": 46052,
+          "name": "Turka"
+        },
+        "46053": {
+          "id": 46053,
+          "name": "Tyachiv"
+        },
+        "46068": {
+          "id": 46068,
+          "name": "Uzhhorod"
+        },
+        "46073": {
+          "id": 46073,
+          "name": "Vary"
+        },
+        "46114": {
+          "id": 46114,
+          "name": "Vylok"
+        },
+        "46119": {
+          "id": 46119,
+          "name": "Vyshkovo"
+        },
+        "46134": {
+          "id": 46134,
+          "name": "Yasinya"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Zaporiz'ka Oblast'",
+      "cities": {
+        "45409": {
+          "id": 45409,
+          "name": "Balky"
+        },
+        "45483": {
+          "id": 45483,
+          "name": "Chapayevka"
+        },
+        "45522": {
+          "id": 45522,
+          "name": "Dniprorudne"
+        },
+        "45523": {
+          "id": 45523,
+          "name": "Dniprovka"
+        },
+        "45575": {
+          "id": 45575,
+          "name": "Hulyaypole"
+        },
+        "45623": {
+          "id": 45623,
+          "name": "Kirove"
+        },
+        "45644": {
+          "id": 45644,
+          "name": "Komyshuvakha"
+        },
+        "45660": {
+          "id": 45660,
+          "name": "Kostyantynivka"
+        },
+        "45694": {
+          "id": 45694,
+          "name": "Kushuhum"
+        },
+        "45697": {
+          "id": 45697,
+          "name": "Kuybysheve"
+        },
+        "45698": {
+          "id": 45698,
+          "name": "Kyrylivka"
+        },
+        "45739": {
+          "id": 45739,
+          "name": "Mala Bilozerka"
+        },
+        "45741": {
+          "id": 45741,
+          "name": "Mala Tokmachka"
+        },
+        "45744": {
+          "id": 45744,
+          "name": "Malokaterynivka"
+        },
+        "45754": {
+          "id": 45754,
+          "name": "Matviyivka"
+        },
+        "45775": {
+          "id": 45775,
+          "name": "Mykhaylivka"
+        },
+        "45806": {
+          "id": 45806,
+          "name": "Novobohdanivka"
+        },
+        "45808": {
+          "id": 45808,
+          "name": "Novomykolayivka"
+        },
+        "45817": {
+          "id": 45817,
+          "name": "Novovasylivka"
+        },
+        "45845": {
+          "id": 45845,
+          "name": "Orikhiv"
+        },
+        "45850": {
+          "id": 45850,
+          "name": "Osypenko"
+        },
+        "45889": {
+          "id": 45889,
+          "name": "Polohy"
+        },
+        "45898": {
+          "id": 45898,
+          "name": "Preobrazhenka"
+        },
+        "45904": {
+          "id": 45904,
+          "name": "Pryshyb"
+        },
+        "45930": {
+          "id": 45930,
+          "name": "Rozivka"
+        },
+        "46037": {
+          "id": 46037,
+          "name": "Ternuvate"
+        },
+        "46039": {
+          "id": 46039,
+          "name": "Terpinnya"
+        },
+        "46041": {
+          "id": 46041,
+          "name": "Tokmak"
+        },
+        "46054": {
+          "id": 46054,
+          "name": "Tymoshivka"
+        },
+        "46075": {
+          "id": 46075,
+          "name": "Vasylivka"
+        },
+        "46079": {
+          "id": 46079,
+          "name": "Velyka Bilozerka"
+        },
+        "46094": {
+          "id": 46094,
+          "name": "Vesele"
+        },
+        "46099": {
+          "id": 46099,
+          "name": "Vodyane"
+        },
+        "46110": {
+          "id": 46110,
+          "name": "Voznesenka"
+        },
+        "46128": {
+          "id": 46128,
+          "name": "Yakymivka"
+        },
+        "46148": {
+          "id": 46148,
+          "name": "Zaliznychne"
+        },
+        "46150": {
+          "id": 46150,
+          "name": "Zaporizhzhya"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Zhytomyrs'ka Oblast'",
+      "cities": {
+        "45397": {
+          "id": 45397,
+          "name": "Andrushivka"
+        },
+        "45421": {
+          "id": 45421,
+          "name": "Berdychiv"
+        },
+        "45437": {
+          "id": 45437,
+          "name": "Bila Krynytsya"
+        },
+        "45470": {
+          "id": 45470,
+          "name": "Brusyliv"
+        },
+        "45475": {
+          "id": 45475,
+          "name": "Buchmany"
+        },
+        "45479": {
+          "id": 45479,
+          "name": "Bykivka"
+        },
+        "45491": {
+          "id": 45491,
+          "name": "Chernyakhiv"
+        },
+        "45495": {
+          "id": 45495,
+          "name": "Chervone"
+        },
+        "45498": {
+          "id": 45498,
+          "name": "Chopovychi"
+        },
+        "45507": {
+          "id": 45507,
+          "name": "Chudniv"
+        },
+        "45518": {
+          "id": 45518,
+          "name": "Dibrova"
+        },
+        "45528": {
+          "id": 45528,
+          "name": "Dovbysh"
+        },
+        "45535": {
+          "id": 45535,
+          "name": "Druzhba"
+        },
+        "45560": {
+          "id": 45560,
+          "name": "Holovyne"
+        },
+        "45567": {
+          "id": 45567,
+          "name": "Horodnytsya"
+        },
+        "45574": {
+          "id": 45574,
+          "name": "Hryshkivtsi"
+        },
+        "45633": {
+          "id": 45633,
+          "name": "Kodra"
+        },
+        "45649": {
+          "id": 45649,
+          "name": "Kornyn"
+        },
+        "45652": {
+          "id": 45652,
+          "name": "Korostyshiv"
+        },
+        "45719": {
+          "id": 45719,
+          "name": "Luhyny"
+        },
+        "45731": {
+          "id": 45731,
+          "name": "Lyubar"
+        },
+        "45746": {
+          "id": 45746,
+          "name": "Malyn"
+        },
+        "45784": {
+          "id": 45784,
+          "name": "Narodychi"
+        },
+        "45794": {
+          "id": 45794,
+          "name": "Nova Borova"
+        },
+        "45803": {
+          "id": 45803,
+          "name": "Novi Bilokorovychi"
+        },
+        "45852": {
+          "id": 45852,
+          "name": "Ovruch"
+        },
+        "45855": {
+          "id": 45855,
+          "name": "Ozerne"
+        },
+        "45869": {
+          "id": 45869,
+          "name": "Pershotravneve"
+        },
+        "45892": {
+          "id": 45892,
+          "name": "Polyanka"
+        },
+        "45937": {
+          "id": 45937,
+          "name": "Ruzhyn"
+        },
+        "46166": {
+          "id": 46166,
+          "name": "Zhovtneve"
+        },
+        "46169": {
+          "id": 46169,
+          "name": "Zhytomyr"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Cherkas'ka Oblast'",
+      "cities": {
+        "45404": {
+          "id": 45404,
+          "name": "Babanka"
+        },
+        "45482": {
+          "id": 45482,
+          "name": "Chapayevka"
+        },
+        "45485": {
+          "id": 45485,
+          "name": "Cherkasy"
+        },
+        "45493": {
+          "id": 45493,
+          "name": "Chervona Sloboda"
+        },
+        "45499": {
+          "id": 45499,
+          "name": "Chornobay"
+        },
+        "45511": {
+          "id": 45511,
+          "name": "Chyhyryn"
+        },
+        "45530": {
+          "id": 45530,
+          "name": "Drabiv"
+        },
+        "45569": {
+          "id": 45569,
+          "name": "Horodyshche"
+        },
+        "45617": {
+          "id": 45617,
+          "name": "Khrystynivka"
+        },
+        "45706": {
+          "id": 45706,
+          "name": "Lebedyn"
+        },
+        "45729": {
+          "id": 45729,
+          "name": "Lysyanka"
+        },
+        "45766": {
+          "id": 45766,
+          "name": "Monastyryshche"
+        },
+        "45768": {
+          "id": 45768,
+          "name": "Moshny"
+        },
+        "45936": {
+          "id": 45936,
+          "name": "Russkaya Polyana"
+        },
+        "45983": {
+          "id": 45983,
+          "name": "Smila"
+        },
+        "46050": {
+          "id": 46050,
+          "name": "Tsybuliv"
+        },
+        "46077": {
+          "id": 46077,
+          "name": "Vatutine"
+        },
+        "46091": {
+          "id": 46091,
+          "name": "Verkhnyachka"
+        },
+        "46137": {
+          "id": 46137,
+          "name": "Yerky"
+        },
+        "46140": {
+          "id": 46140,
+          "name": "Yurkivka"
+        },
+        "46160": {
+          "id": 46160,
+          "name": "Zhashkiv"
+        },
+        "46174": {
+          "id": 46174,
+          "name": "Zolotonosha"
+        },
+        "46179": {
+          "id": 46179,
+          "name": "Zvenyhorodka"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Chernihivs'ka Oblast'",
+      "cities": {
+        "45407": {
+          "id": 45407,
+          "name": "Bakhmach"
+        },
+        "45416": {
+          "id": 45416,
+          "name": "Baturyn"
+        },
+        "45429": {
+          "id": 45429,
+          "name": "Berezna"
+        },
+        "45449": {
+          "id": 45449,
+          "name": "Bobrovytsya"
+        },
+        "45463": {
+          "id": 45463,
+          "name": "Borzna"
+        },
+        "45487": {
+          "id": 45487,
+          "name": "Chernihiv"
+        },
+        "45526": {
+          "id": 45526,
+          "name": "Dobryanka"
+        },
+        "45532": {
+          "id": 45532,
+          "name": "Druzhba"
+        },
+        "45565": {
+          "id": 45565,
+          "name": "Horodnya"
+        },
+        "45580": {
+          "id": 45580,
+          "name": "Ichnya"
+        },
+        "45611": {
+          "id": 45611,
+          "name": "Kholmy"
+        },
+        "45631": {
+          "id": 45631,
+          "name": "Kobyzhcha"
+        },
+        "45651": {
+          "id": 45651,
+          "name": "Korop"
+        },
+        "45654": {
+          "id": 45654,
+          "name": "Koryukivka"
+        },
+        "45689": {
+          "id": 45689,
+          "name": "Kulykivka"
+        },
+        "45733": {
+          "id": 45733,
+          "name": "Lyubech"
+        },
+        "45757": {
+          "id": 45757,
+          "name": "Mena"
+        },
+        "45792": {
+          "id": 45792,
+          "name": "Nizhyn"
+        },
+        "45793": {
+          "id": 45793,
+          "name": "Nosivka"
+        },
+        "45848": {
+          "id": 45848,
+          "name": "Oster"
+        },
+        "45902": {
+          "id": 45902,
+          "name": "Pryluky"
+        },
+        "45918": {
+          "id": 45918,
+          "name": "Ripky"
+        },
+        "45949": {
+          "id": 45949,
+          "name": "Semenivka"
+        },
+        "45962": {
+          "id": 45962,
+          "name": "Shchors"
+        },
+        "45995": {
+          "id": 45995,
+          "name": "Sosnytsya"
+        },
+        "45998": {
+          "id": 45998,
+          "name": "Sribne"
+        },
+        "46029": {
+          "id": 46029,
+          "name": "Talalayivka"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Chernivets'ka Oblast'",
+      "cities": {
+        "45411": {
+          "id": 45411,
+          "name": "Banyliv"
+        },
+        "45422": {
+          "id": 45422,
+          "name": "Berehomet"
+        },
+        "45464": {
+          "id": 45464,
+          "name": "Boyany"
+        },
+        "45488": {
+          "id": 45488,
+          "name": "Chernivtsi"
+        },
+        "45506": {
+          "id": 45506,
+          "name": "Chudey"
+        },
+        "45513": {
+          "id": 45513,
+          "name": "Davydivka"
+        },
+        "45559": {
+          "id": 45559,
+          "name": "Hlyboka"
+        },
+        "45583": {
+          "id": 45583,
+          "name": "Ispas"
+        },
+        "45591": {
+          "id": 45591,
+          "name": "Kadubivtsi"
+        },
+        "45616": {
+          "id": 45616,
+          "name": "Khotyn"
+        },
+        "45629": {
+          "id": 45629,
+          "name": "Klishkivtsi"
+        },
+        "45657": {
+          "id": 45657,
+          "name": "Kostryzhivka"
+        },
+        "45721": {
+          "id": 45721,
+          "name": "Luzhany"
+        },
+        "45764": {
+          "id": 45764,
+          "name": "Molodiya"
+        },
+        "45773": {
+          "id": 45773,
+          "name": "Myhove"
+        },
+        "45814": {
+          "id": 45814,
+          "name": "Novoselytsya"
+        },
+        "45825": {
+          "id": 45825,
+          "name": "Nyzhni Petrivtsi"
+        },
+        "45926": {
+          "id": 45926,
+          "name": "Ropcha"
+        },
+        "45953": {
+          "id": 45953,
+          "name": "Serebriya"
+        },
+        "45971": {
+          "id": 45971,
+          "name": "Shypyntsi"
+        },
+        "45986": {
+          "id": 45986,
+          "name": "Snyatyn"
+        },
+        "45989": {
+          "id": 45989,
+          "name": "Sokyryany"
+        },
+        "46074": {
+          "id": 46074,
+          "name": "Vashkivtsi"
+        },
+        "46089": {
+          "id": 46089,
+          "name": "Verenchanka"
+        },
+        "46103": {
+          "id": 46103,
+          "name": "Voloka"
+        },
+        "46125": {
+          "id": 46125,
+          "name": "Vyzhnytsya"
+        },
+        "46139": {
+          "id": 46139,
+          "name": "Yizhivtsi"
+        },
+        "46153": {
+          "id": 46153,
+          "name": "Zastavna"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Dnipropetrovs'ka Oblast'",
+      "cities": {
+        "45399": {
+          "id": 45399,
+          "name": "Apostolove"
+        },
+        "45402": {
+          "id": 45402,
+          "name": "Auly"
+        },
+        "45496": {
+          "id": 45496,
+          "name": "Chervonohryhorivka"
+        },
+        "45505": {
+          "id": 45505,
+          "name": "Chortomlyk"
+        },
+        "45682": {
+          "id": 45682,
+          "name": "Krynychky"
+        },
+        "45685": {
+          "id": 45685,
+          "name": "Kryvyy Rih"
+        },
+        "45718": {
+          "id": 45718,
+          "name": "Lozuvatka"
+        },
+        "45723": {
+          "id": 45723,
+          "name": "Lykhivka"
+        },
+        "45736": {
+          "id": 45736,
+          "name": "Mahdalynivka"
+        },
+        "45760": {
+          "id": 45760,
+          "name": "Mezhova"
+        },
+        "45807": {
+          "id": 45807,
+          "name": "Novomykolayivka"
+        },
+        "45811": {
+          "id": 45811,
+          "name": "Novopokrovka"
+        },
+        "45818": {
+          "id": 45818,
+          "name": "Novovorontsovka"
+        },
+        "45842": {
+          "id": 45842,
+          "name": "Ordzhonikidze"
+        },
+        "45863": {
+          "id": 45863,
+          "name": "Pavlohrad"
+        },
+        "45875": {
+          "id": 45875,
+          "name": "Petropavlivka"
+        },
+        "45877": {
+          "id": 45877,
+          "name": "Petrykivka"
+        },
+        "45881": {
+          "id": 45881,
+          "name": "Pidhorodne"
+        },
+        "45899": {
+          "id": 45899,
+          "name": "Prosyana"
+        },
+        "45940": {
+          "id": 45940,
+          "name": "Sad"
+        },
+        "45969": {
+          "id": 45969,
+          "name": "Sholokhove"
+        },
+        "45972": {
+          "id": 45972,
+          "name": "Shyroke"
+        },
+        "45988": {
+          "id": 45988,
+          "name": "Sofiyivka"
+        },
+        "45991": {
+          "id": 45991,
+          "name": "Solone"
+        },
+        "45996": {
+          "id": 45996,
+          "name": "Spasskoye"
+        },
+        "46042": {
+          "id": 46042,
+          "name": "Tomakivka"
+        },
+        "46048": {
+          "id": 46048,
+          "name": "Tsarychanka"
+        },
+        "46117": {
+          "id": 46117,
+          "name": "Vyshchetarasivka"
+        },
+        "46120": {
+          "id": 46120,
+          "name": "Vyshneve"
+        },
+        "46164": {
+          "id": 46164,
+          "name": "Zhovti Vody"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Donets'ka Oblast'",
+      "cities": {
+        "45396": {
+          "id": 45396,
+          "name": "Amvrosiyivka"
+        },
+        "45403": {
+          "id": 45403,
+          "name": "Avdiyivka"
+        },
+        "45446": {
+          "id": 45446,
+          "name": "Blagodatnoye"
+        },
+        "45447": {
+          "id": 45447,
+          "name": "Blahodatne"
+        },
+        "45519": {
+          "id": 45519,
+          "name": "Dmytrivka"
+        },
+        "45545": {
+          "id": 45545,
+          "name": "Dzerzhinsk"
+        },
+        "45554": {
+          "id": 45554,
+          "name": "Gornyak"
+        },
+        "45562": {
+          "id": 45562,
+          "name": "Horlivka"
+        },
+        "45608": {
+          "id": 45608,
+          "name": "Keramik"
+        },
+        "45641": {
+          "id": 45641,
+          "name": "Komsomolskoye"
+        },
+        "45658": {
+          "id": 45658,
+          "name": "Kostyantynivka"
+        },
+        "45669": {
+          "id": 45669,
+          "name": "Krasnoarmeysk"
+        },
+        "45675": {
+          "id": 45675,
+          "name": "Krasnotorka"
+        },
+        "45678": {
+          "id": 45678,
+          "name": "Krasnyy Oktyabr"
+        },
+        "45695": {
+          "id": 45695,
+          "name": "Kuteynykove"
+        },
+        "45710": {
+          "id": 45710,
+          "name": "Lesnoye"
+        },
+        "45738": {
+          "id": 45738,
+          "name": "Makiyivka"
+        },
+        "45748": {
+          "id": 45748,
+          "name": "Manhush"
+        },
+        "45769": {
+          "id": 45769,
+          "name": "Mospyne"
+        },
+        "45822": {
+          "id": 45822,
+          "name": "Novyy Svit"
+        },
+        "45828": {
+          "id": 45828,
+          "name": "Nyzhnya Krynka"
+        },
+        "45932": {
+          "id": 45932,
+          "name": "Rozsypne"
+        },
+        "45947": {
+          "id": 45947,
+          "name": "Sartana"
+        },
+        "45957": {
+          "id": 45957,
+          "name": "Shakhtne"
+        },
+        "45961": {
+          "id": 45961,
+          "name": "Shcherbynivka"
+        },
+        "45964": {
+          "id": 45964,
+          "name": "Shevchenko"
+        },
+        "45973": {
+          "id": 45973,
+          "name": "Shyroke"
+        },
+        "45985": {
+          "id": 45985,
+          "name": "Snizhne"
+        },
+        "45990": {
+          "id": 45990,
+          "name": "Soledar"
+        },
+        "46005": {
+          "id": 46005,
+          "name": "Starobesheve"
+        },
+        "46009": {
+          "id": 46009,
+          "name": "Staryy Krym"
+        },
+        "46027": {
+          "id": 46027,
+          "name": "Syedove"
+        },
+        "46043": {
+          "id": 46043,
+          "name": "Torez"
+        },
+        "46101": {
+          "id": 46101,
+          "name": "Volnovakha"
+        },
+        "46122": {
+          "id": 46122,
+          "name": "Vysoke"
+        },
+        "46129": {
+          "id": 46129,
+          "name": "Yalta"
+        },
+        "46177": {
+          "id": 46177,
+          "name": "Zuhres"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Ivano-Frankivs'ka Oblast'",
+      "cities": {
+        "45439": {
+          "id": 45439,
+          "name": "Bili Oslavy"
+        },
+        "45452": {
+          "id": 45452,
+          "name": "Bohorodchany"
+        },
+        "45454": {
+          "id": 45454,
+          "name": "Bolekhiv"
+        },
+        "45477": {
+          "id": 45477,
+          "name": "Burshtyn"
+        },
+        "45480": {
+          "id": 45480,
+          "name": "Bytkiv"
+        },
+        "45486": {
+          "id": 45486,
+          "name": "Chernelytsya"
+        },
+        "45490": {
+          "id": 45490,
+          "name": "Cherniyiv"
+        },
+        "45492": {
+          "id": 45492,
+          "name": "Chernyatyn"
+        },
+        "45501": {
+          "id": 45501,
+          "name": "Chornoliztsi"
+        },
+        "45514": {
+          "id": 45514,
+          "name": "Delyatyn"
+        },
+        "45564": {
+          "id": 45564,
+          "name": "Horodenka"
+        },
+        "45579": {
+          "id": 45579,
+          "name": "Hvizd"
+        },
+        "45596": {
+          "id": 45596,
+          "name": "Kalush"
+        },
+        "45619": {
+          "id": 45619,
+          "name": "Khymchyn"
+        },
+        "45638": {
+          "id": 45638,
+          "name": "Kolomyya"
+        },
+        "45655": {
+          "id": 45655,
+          "name": "Kosiv"
+        },
+        "45656": {
+          "id": 45656,
+          "name": "Kosmach"
+        },
+        "45665": {
+          "id": 45665,
+          "name": "Krasna"
+        },
+        "45696": {
+          "id": 45696,
+          "name": "Kuty"
+        },
+        "45701": {
+          "id": 45701,
+          "name": "Lanchyn"
+        },
+        "45749": {
+          "id": 45749,
+          "name": "Manyava"
+        },
+        "45751": {
+          "id": 45751,
+          "name": "Markova"
+        },
+        "45782": {
+          "id": 45782,
+          "name": "Nadvirna"
+        },
+        "45785": {
+          "id": 45785,
+          "name": "Nebyliv"
+        },
+        "45819": {
+          "id": 45819,
+          "name": "Novytsya"
+        },
+        "45830": {
+          "id": 45830,
+          "name": "Obertyn"
+        },
+        "45851": {
+          "id": 45851,
+          "name": "Otyniya"
+        },
+        "45860": {
+          "id": 45860,
+          "name": "Pasichna"
+        },
+        "45865": {
+          "id": 45865,
+          "name": "Pechenizhyn"
+        },
+        "45873": {
+          "id": 45873,
+          "name": "Petranka"
+        },
+        "45886": {
+          "id": 45886,
+          "name": "Pniv"
+        },
+        "45896": {
+          "id": 45896,
+          "name": "Porohy"
+        },
+        "45909": {
+          "id": 45909,
+          "name": "Radcha"
+        },
+        "45922": {
+          "id": 45922,
+          "name": "Rohatyn"
+        },
+        "45927": {
+          "id": 45927,
+          "name": "Rozhniv"
+        },
+        "45928": {
+          "id": 45928,
+          "name": "Rozhnyativ"
+        },
+        "45941": {
+          "id": 45941,
+          "name": "Sadzhavka"
+        },
+        "45977": {
+          "id": 45977,
+          "name": "Skole"
+        },
+        "45994": {
+          "id": 45994,
+          "name": "Solotvyn"
+        },
+        "45997": {
+          "id": 45997,
+          "name": "Spas"
+        },
+        "46003": {
+          "id": 46003,
+          "name": "Stari Bohorodchany"
+        },
+        "46004": {
+          "id": 46004,
+          "name": "Stari Kuty"
+        },
+        "46015": {
+          "id": 46015,
+          "name": "Stetseva"
+        },
+        "46025": {
+          "id": 46025,
+          "name": "Svarychiv"
+        },
+        "46057": {
+          "id": 46057,
+          "name": "Tysmenychany"
+        },
+        "46058": {
+          "id": 46058,
+          "name": "Tysmenytsya"
+        },
+        "46060": {
+          "id": 46060,
+          "name": "Uhryniv"
+        },
+        "46086": {
+          "id": 46086,
+          "name": "Velykyy Klyuchiv"
+        },
+        "46093": {
+          "id": 46093,
+          "name": "Verkhovyna"
+        },
+        "46104": {
+          "id": 46104,
+          "name": "Vorokhta"
+        },
+        "46126": {
+          "id": 46126,
+          "name": "Yabluniv"
+        },
+        "46131": {
+          "id": 46131,
+          "name": "Yamnytsya"
+        },
+        "46132": {
+          "id": 46132,
+          "name": "Yaremche"
+        },
+        "46142": {
+          "id": 46142,
+          "name": "Zabolotiv"
+        },
+        "46144": {
+          "id": 46144,
+          "name": "Zahvizdya"
+        },
+        "46151": {
+          "id": 46151,
+          "name": "Zarechye"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Kharkivs'ka Oblast'",
+      "cities": {
+        "45408": {
+          "id": 45408,
+          "name": "Balakliya"
+        },
+        "45413": {
+          "id": 45413,
+          "name": "Barvinkove"
+        },
+        "45428": {
+          "id": 45428,
+          "name": "Berezivka"
+        },
+        "45435": {
+          "id": 45435,
+          "name": "Bezlyudivka"
+        },
+        "45448": {
+          "id": 45448,
+          "name": "Blyznyuky"
+        },
+        "45451": {
+          "id": 45451,
+          "name": "Bohodukhiv"
+        },
+        "45459": {
+          "id": 45459,
+          "name": "Borova"
+        },
+        "45476": {
+          "id": 45476,
+          "name": "Budy"
+        },
+        "45481": {
+          "id": 45481,
+          "name": "Chapayeve"
+        },
+        "45508": {
+          "id": 45508,
+          "name": "Chuhuyiv"
+        },
+        "45516": {
+          "id": 45516,
+          "name": "Dergachi"
+        },
+        "45542": {
+          "id": 45542,
+          "name": "Dvorichna"
+        },
+        "45547": {
+          "id": 45547,
+          "name": "Eskhar"
+        },
+        "45578": {
+          "id": 45578,
+          "name": "Huty"
+        },
+        "45590": {
+          "id": 45590,
+          "name": "Izyum"
+        },
+        "45607": {
+          "id": 45607,
+          "name": "Kehychivka"
+        },
+        "45613": {
+          "id": 45613,
+          "name": "Khorosheve"
+        },
+        "45626": {
+          "id": 45626,
+          "name": "Kivsharivka"
+        },
+        "45632": {
+          "id": 45632,
+          "name": "Kochetok"
+        },
+        "45637": {
+          "id": 45637,
+          "name": "Kolomak"
+        },
+        "45653": {
+          "id": 45653,
+          "name": "Korotych"
+        },
+        "45671": {
+          "id": 45671,
+          "name": "Krasnohrad"
+        },
+        "45672": {
+          "id": 45672,
+          "name": "Krasnopavlivka"
+        },
+        "45691": {
+          "id": 45691,
+          "name": "Kulynychi"
+        },
+        "45717": {
+          "id": 45717,
+          "name": "Lozova"
+        },
+        "45724": {
+          "id": 45724,
+          "name": "Lyman"
+        },
+        "45734": {
+          "id": 45734,
+          "name": "Lyubotyn"
+        },
+        "45740": {
+          "id": 45740,
+          "name": "Mala Danylivka"
+        },
+        "45745": {
+          "id": 45745,
+          "name": "Malynivka"
+        },
+        "45747": {
+          "id": 45747,
+          "name": "Manchenky"
+        },
+        "45758": {
+          "id": 45758,
+          "name": "Merefa"
+        },
+        "45800": {
+          "id": 45800,
+          "name": "Nova Vodolaha"
+        },
+        "45812": {
+          "id": 45812,
+          "name": "Novopokrovka"
+        },
+        "45857": {
+          "id": 45857,
+          "name": "Panyutyne"
+        },
+        "45868": {
+          "id": 45868,
+          "name": "Peresichna"
+        },
+        "45884": {
+          "id": 45884,
+          "name": "Pivdenne"
+        },
+        "45888": {
+          "id": 45888,
+          "name": "Pokotylivka"
+        },
+        "45900": {
+          "id": 45900,
+          "name": "Prudyanka"
+        },
+        "45901": {
+          "id": 45901,
+          "name": "Prykolotne"
+        },
+        "45942": {
+          "id": 45942,
+          "name": "Sakhnovshchyna"
+        },
+        "45948": {
+          "id": 45948,
+          "name": "Savyntsi"
+        },
+        "45965": {
+          "id": 45965,
+          "name": "Shevchenkove"
+        },
+        "45979": {
+          "id": 45979,
+          "name": "Slatyne"
+        },
+        "45992": {
+          "id": 45992,
+          "name": "Solonytsivka"
+        },
+        "46011": {
+          "id": 46011,
+          "name": "Staryy Merchyk"
+        },
+        "46012": {
+          "id": 46012,
+          "name": "Staryy Saltiv"
+        },
+        "46066": {
+          "id": 46066,
+          "name": "Utkivka"
+        },
+        "46070": {
+          "id": 46070,
+          "name": "Valky"
+        },
+        "46076": {
+          "id": 46076,
+          "name": "Vasyshcheve"
+        },
+        "46085": {
+          "id": 46085,
+          "name": "Velykyy Burluk"
+        },
+        "46088": {
+          "id": 46088,
+          "name": "Verbivka"
+        },
+        "46100": {
+          "id": 46100,
+          "name": "Volchansk"
+        },
+        "46112": {
+          "id": 46112,
+          "name": "Vvedenka"
+        },
+        "46124": {
+          "id": 46124,
+          "name": "Vysokyy"
+        },
+        "46143": {
+          "id": 46143,
+          "name": "Zachepylivka"
+        },
+        "46171": {
+          "id": 46171,
+          "name": "Zmiyiv"
+        },
+        "46172": {
+          "id": 46172,
+          "name": "Zolochiv"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Khersons'ka Oblast'",
+      "cities": {
+        "45418": {
+          "id": 45418,
+          "name": "Bekhtery"
+        },
+        "45434": {
+          "id": 45434,
+          "name": "Beryslav"
+        },
+        "45443": {
+          "id": 45443,
+          "name": "Bilozerka"
+        },
+        "45472": {
+          "id": 45472,
+          "name": "Brylivka"
+        },
+        "45484": {
+          "id": 45484,
+          "name": "Chaplynka"
+        },
+        "45500": {
+          "id": 45500,
+          "name": "Chornobayivka"
+        },
+        "45503": {
+          "id": 45503,
+          "name": "Chornyanka"
+        },
+        "45509": {
+          "id": 45509,
+          "name": "Chulakivka"
+        },
+        "45524": {
+          "id": 45524,
+          "name": "Dnipryany"
+        },
+        "45563": {
+          "id": 45563,
+          "name": "Hornostayivka"
+        },
+        "45584": {
+          "id": 45584,
+          "name": "Ivanivka"
+        },
+        "45593": {
+          "id": 45593,
+          "name": "Kakhovka"
+        },
+        "45594": {
+          "id": 45594,
+          "name": "Kalanchak"
+        },
+        "45605": {
+          "id": 45605,
+          "name": "Kayiry"
+        },
+        "45610": {
+          "id": 45610,
+          "name": "Kherson"
+        },
+        "45642": {
+          "id": 45642,
+          "name": "Komyshany"
+        },
+        "45661": {
+          "id": 45661,
+          "name": "Kozachi Laheri"
+        },
+        "45666": {
+          "id": 45666,
+          "name": "Krasne"
+        },
+        "45704": {
+          "id": 45704,
+          "name": "Lazurne"
+        },
+        "45735": {
+          "id": 45735,
+          "name": "Lyubymivka"
+        },
+        "45743": {
+          "id": 45743,
+          "name": "Malokakhovka"
+        },
+        "45795": {
+          "id": 45795,
+          "name": "Nova Kakhovka"
+        },
+        "45796": {
+          "id": 45796,
+          "name": "Nova Mayachka"
+        },
+        "45810": {
+          "id": 45810,
+          "name": "Novooleksiyivka"
+        },
+        "45826": {
+          "id": 45826,
+          "name": "Nyzhni Sirohozy"
+        },
+        "45836": {
+          "id": 45836,
+          "name": "Oleksandrivka"
+        },
+        "45859": {
+          "id": 45859,
+          "name": "Partyzany"
+        },
+        "46000": {
+          "id": 46000,
+          "name": "Stanislav"
+        },
+        "46080": {
+          "id": 46080,
+          "name": "Velyka Lepetykha"
+        },
+        "46082": {
+          "id": 46082,
+          "name": "Velyka Oleksandrivka"
+        },
+        "46090": {
+          "id": 46090,
+          "name": "Verkhniy Rohachyk"
+        },
+        "46116": {
+          "id": 46116,
+          "name": "Vynohradove"
+        },
+        "46123": {
+          "id": 46123,
+          "name": "Vysokopillya"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Khmel'nyts'ka Oblast'",
+      "cities": {
+        "45398": {
+          "id": 45398,
+          "name": "Antoniny"
+        },
+        "45417": {
+          "id": 45417,
+          "name": "Bazaliya"
+        },
+        "45515": {
+          "id": 45515,
+          "name": "Derazhnya"
+        },
+        "45541": {
+          "id": 45541,
+          "name": "Dunayivtsi"
+        },
+        "45568": {
+          "id": 45568,
+          "name": "Horodok"
+        },
+        "45589": {
+          "id": 45589,
+          "name": "Izyaslav"
+        },
+        "45679": {
+          "id": 45679,
+          "name": "Krasyliv"
+        },
+        "45711": {
+          "id": 45711,
+          "name": "Letychiv"
+        },
+        "45783": {
+          "id": 45783,
+          "name": "Narkevychi"
+        },
+        "45790": {
+          "id": 45790,
+          "name": "Netishyn"
+        },
+        "45799": {
+          "id": 45799,
+          "name": "Nova Ushytsya"
+        },
+        "45815": {
+          "id": 45815,
+          "name": "Novoselytsya"
+        },
+        "45890": {
+          "id": 45890,
+          "name": "Polonne"
+        },
+        "45895": {
+          "id": 45895,
+          "name": "Poninka"
+        },
+        "45935": {
+          "id": 45935,
+          "name": "Rudno"
+        },
+        "45963": {
+          "id": 45963,
+          "name": "Shepetivka"
+        },
+        "45980": {
+          "id": 45980,
+          "name": "Slavuta"
+        },
+        "46001": {
+          "id": 46001,
+          "name": "Stara Synyava"
+        },
+        "46006": {
+          "id": 46006,
+          "name": "Starokostyantyniv"
+        },
+        "46021": {
+          "id": 46021,
+          "name": "Sukhovolya"
+        },
+        "46133": {
+          "id": 46133,
+          "name": "Yarmolyntsi"
+        },
+        "46145": {
+          "id": 46145,
+          "name": "Zakupne"
+        }
+      }
+    }
+  }
+}

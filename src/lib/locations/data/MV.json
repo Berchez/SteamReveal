@@ -1,0 +1,167 @@
+{
+  "code": "MV",
+  "name": "Maldives",
+  "states": {
+    "12": {
+      "code": "12",
+      "name": "Meemu",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Raa",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Faafu",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Daalu",
+      "cities": {}
+    },
+    "20": {
+      "code": "20",
+      "name": "Baa",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Haa Daalu",
+      "cities": {}
+    },
+    "24": {
+      "code": "24",
+      "name": "Shaviyani",
+      "cities": {}
+    },
+    "25": {
+      "code": "25",
+      "name": "Noonu",
+      "cities": {}
+    },
+    "26": {
+      "code": "26",
+      "name": "Kaafu",
+      "cities": {
+        "27699": {
+          "id": 27699,
+          "name": "Dhidhdhoo"
+        },
+        "27700": {
+          "id": 27700,
+          "name": "Eydhafushi"
+        },
+        "27701": {
+          "id": 27701,
+          "name": "Felidhoo"
+        },
+        "27702": {
+          "id": 27702,
+          "name": "Funadhoo"
+        },
+        "27704": {
+          "id": 27704,
+          "name": "Hithadhoo"
+        },
+        "27705": {
+          "id": 27705,
+          "name": "Kudahuvadhoo"
+        },
+        "27706": {
+          "id": 27706,
+          "name": "Kulhudhuffushi"
+        },
+        "27707": {
+          "id": 27707,
+          "name": "Magoodhoo"
+        },
+        "27710": {
+          "id": 27710,
+          "name": "Manadhoo"
+        },
+        "27711": {
+          "id": 27711,
+          "name": "Muli"
+        },
+        "27712": {
+          "id": 27712,
+          "name": "Naifaru"
+        },
+        "27713": {
+          "id": 27713,
+          "name": "Nolhivaranfaru"
+        },
+        "27714": {
+          "id": 27714,
+          "name": "Thinadhoo"
+        },
+        "27715": {
+          "id": 27715,
+          "name": "Ugoofaaru"
+        },
+        "27716": {
+          "id": 27716,
+          "name": "Viligili"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Gaafu Aliff",
+      "cities": {}
+    },
+    "28": {
+      "code": "28",
+      "name": "Gaafu Daalu",
+      "cities": {}
+    },
+    "29": {
+      "code": "29",
+      "name": "Naviyani",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Seenu",
+      "cities": {
+        "27703": {
+          "id": 27703,
+          "name": "Hithadhoo"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Aliff",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Laviyani",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Waavu",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Laamu",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Haa Aliff",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Thaa",
+      "cities": {}
+    }
+  }
+}

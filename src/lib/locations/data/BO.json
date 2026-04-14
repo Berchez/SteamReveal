@@ -1,0 +1,488 @@
+{
+  "code": "BO",
+  "name": "Bolivia",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Chuquisaca",
+      "cities": {
+        "7020": {
+          "id": 7020,
+          "name": "Camargo"
+        },
+        "7062": {
+          "id": 7062,
+          "name": "Monteagudo"
+        },
+        "7065": {
+          "id": 7065,
+          "name": "Padilla"
+        },
+        "7101": {
+          "id": 7101,
+          "name": "Sucre"
+        },
+        "7102": {
+          "id": 7102,
+          "name": "Tarabuco"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Cochabamba",
+      "cities": {
+        "7012": {
+          "id": 7012,
+          "name": "Aiquile"
+        },
+        "7013": {
+          "id": 7013,
+          "name": "Arani"
+        },
+        "7022": {
+          "id": 7022,
+          "name": "Capinota"
+        },
+        "7027": {
+          "id": 7027,
+          "name": "Chimore"
+        },
+        "7029": {
+          "id": 7029,
+          "name": "Cliza"
+        },
+        "7031": {
+          "id": 7031,
+          "name": "Cochabamba"
+        },
+        "7032": {
+          "id": 7032,
+          "name": "Colomi"
+        },
+        "7048": {
+          "id": 7048,
+          "name": "Irpa Irpa"
+        },
+        "7061": {
+          "id": 7061,
+          "name": "Mizque"
+        },
+        "7074": {
+          "id": 7074,
+          "name": "Punata"
+        },
+        "7099": {
+          "id": 7099,
+          "name": "Sipe Sipe"
+        },
+        "7103": {
+          "id": 7103,
+          "name": "Tarata"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "El Beni",
+      "cities": {
+        "7046": {
+          "id": 7046,
+          "name": "Guayaramerin"
+        },
+        "7076": {
+          "id": 7076,
+          "name": "Reyes"
+        },
+        "7077": {
+          "id": 7077,
+          "name": "Riberalta"
+        },
+        "7079": {
+          "id": 7079,
+          "name": "Rurrenabaque"
+        },
+        "7081": {
+          "id": 7081,
+          "name": "San Borja"
+        },
+        "7093": {
+          "id": 7093,
+          "name": "San Ramon"
+        },
+        "7097": {
+          "id": 7097,
+          "name": "Santa Rosa"
+        },
+        "7107": {
+          "id": 7107,
+          "name": "Trinidad"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "La Paz",
+      "cities": {
+        "7011": {
+          "id": 7011,
+          "name": "Achacachi"
+        },
+        "7024": {
+          "id": 7024,
+          "name": "Caranavi"
+        },
+        "7028": {
+          "id": 7028,
+          "name": "Chulumani"
+        },
+        "7034": {
+          "id": 7034,
+          "name": "Colquiri"
+        },
+        "7037": {
+          "id": 7037,
+          "name": "Copacabana"
+        },
+        "7038": {
+          "id": 7038,
+          "name": "Coripata"
+        },
+        "7039": {
+          "id": 7039,
+          "name": "Coroico"
+        },
+        "7044": {
+          "id": 7044,
+          "name": "Eucaliptus"
+        },
+        "7045": {
+          "id": 7045,
+          "name": "Guanay"
+        },
+        "7052": {
+          "id": 7052,
+          "name": "Lahuachaca"
+        },
+        "7053": {
+          "id": 7053,
+          "name": "La Paz"
+        },
+        "7059": {
+          "id": 7059,
+          "name": "Mapiri"
+        },
+        "7067": {
+          "id": 7067,
+          "name": "Patacamaya"
+        },
+        "7075": {
+          "id": 7075,
+          "name": "Quime"
+        },
+        "7100": {
+          "id": 7100,
+          "name": "Sorata"
+        },
+        "7105": {
+          "id": 7105,
+          "name": "Tipuani"
+        },
+        "7114": {
+          "id": 7114,
+          "name": "Viloco"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Oruro",
+      "cities": {
+        "7023": {
+          "id": 7023,
+          "name": "Caracollo"
+        },
+        "7025": {
+          "id": 7025,
+          "name": "Challapata"
+        },
+        "7047": {
+          "id": 7047,
+          "name": "Huanuni"
+        },
+        "7057": {
+          "id": 7057,
+          "name": "Machacamarca"
+        },
+        "7064": {
+          "id": 7064,
+          "name": "Oruro"
+        },
+        "7068": {
+          "id": 7068,
+          "name": "Poopo"
+        },
+        "7106": {
+          "id": 7106,
+          "name": "Totoral"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Pando",
+      "cities": {
+        "7030": {
+          "id": 7030,
+          "name": "Cobija"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Potosi",
+      "cities": {
+        "7015": {
+          "id": 7015,
+          "name": "Atocha"
+        },
+        "7017": {
+          "id": 7017,
+          "name": "Betanzos"
+        },
+        "7033": {
+          "id": 7033,
+          "name": "Colquechaca"
+        },
+        "7055": {
+          "id": 7055,
+          "name": "Llallagua"
+        },
+        "7070": {
+          "id": 7070,
+          "name": "Potosi"
+        },
+        "7095": {
+          "id": 7095,
+          "name": "Santa Barbara"
+        },
+        "7108": {
+          "id": 7108,
+          "name": "Tupiza"
+        },
+        "7109": {
+          "id": 7109,
+          "name": "Uncia"
+        },
+        "7111": {
+          "id": 7111,
+          "name": "Uyuni"
+        },
+        "7113": {
+          "id": 7113,
+          "name": "Villazon"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Santa Cruz",
+      "cities": {
+        "7010": {
+          "id": 7010,
+          "name": "Abapo"
+        },
+        "7014": {
+          "id": 7014,
+          "name": "Ascension"
+        },
+        "7018": {
+          "id": 7018,
+          "name": "Boyuibe"
+        },
+        "7019": {
+          "id": 7019,
+          "name": "Buena Vista"
+        },
+        "7021": {
+          "id": 7021,
+          "name": "Camiri"
+        },
+        "7026": {
+          "id": 7026,
+          "name": "Charagua"
+        },
+        "7035": {
+          "id": 7035,
+          "name": "Comarapa"
+        },
+        "7036": {
+          "id": 7036,
+          "name": "Concepcion"
+        },
+        "7040": {
+          "id": 7040,
+          "name": "Cotoca"
+        },
+        "7041": {
+          "id": 7041,
+          "name": "El Carmen"
+        },
+        "7042": {
+          "id": 7042,
+          "name": "El Torno"
+        },
+        "7049": {
+          "id": 7049,
+          "name": "Jorochito"
+        },
+        "7050": {
+          "id": 7050,
+          "name": "La Belgica"
+        },
+        "7051": {
+          "id": 7051,
+          "name": "La Guardia"
+        },
+        "7054": {
+          "id": 7054,
+          "name": "Limoncito"
+        },
+        "7056": {
+          "id": 7056,
+          "name": "Los Negros"
+        },
+        "7058": {
+          "id": 7058,
+          "name": "Mairana"
+        },
+        "7060": {
+          "id": 7060,
+          "name": "Mineros"
+        },
+        "7063": {
+          "id": 7063,
+          "name": "Montero"
+        },
+        "7066": {
+          "id": 7066,
+          "name": "Pailon"
+        },
+        "7069": {
+          "id": 7069,
+          "name": "Portachuelo"
+        },
+        "7071": {
+          "id": 7071,
+          "name": "Puerto Pailas"
+        },
+        "7072": {
+          "id": 7072,
+          "name": "Puerto Quijarro"
+        },
+        "7073": {
+          "id": 7073,
+          "name": "Puerto Suarez"
+        },
+        "7078": {
+          "id": 7078,
+          "name": "Robore"
+        },
+        "7080": {
+          "id": 7080,
+          "name": "Samaipata"
+        },
+        "7082": {
+          "id": 7082,
+          "name": "San Carlos"
+        },
+        "7083": {
+          "id": 7083,
+          "name": "San Ignacio"
+        },
+        "7084": {
+          "id": 7084,
+          "name": "San Javier"
+        },
+        "7085": {
+          "id": 7085,
+          "name": "San Joaquin"
+        },
+        "7086": {
+          "id": 7086,
+          "name": "San Jose"
+        },
+        "7087": {
+          "id": 7087,
+          "name": "San Julian"
+        },
+        "7089": {
+          "id": 7089,
+          "name": "San Matias"
+        },
+        "7090": {
+          "id": 7090,
+          "name": "San Miguel"
+        },
+        "7091": {
+          "id": 7091,
+          "name": "San Pedro"
+        },
+        "7092": {
+          "id": 7092,
+          "name": "San Rafael"
+        },
+        "7094": {
+          "id": 7094,
+          "name": "San Ramon"
+        },
+        "7096": {
+          "id": 7096,
+          "name": "Santa Rita"
+        },
+        "7098": {
+          "id": 7098,
+          "name": "Santa Rosa"
+        },
+        "7110": {
+          "id": 7110,
+          "name": "Urubicha"
+        },
+        "7115": {
+          "id": 7115,
+          "name": "Warnes"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Tarija",
+      "cities": {
+        "7016": {
+          "id": 7016,
+          "name": "Bermejo"
+        },
+        "7043": {
+          "id": 7043,
+          "name": "Entre Rios"
+        },
+        "7088": {
+          "id": 7088,
+          "name": "San Lorenzo"
+        },
+        "7104": {
+          "id": 7104,
+          "name": "Tarija"
+        },
+        "7112": {
+          "id": 7112,
+          "name": "Villamontes"
+        },
+        "7116": {
+          "id": 7116,
+          "name": "Yacuiba"
+        }
+      }
+    }
+  }
+}

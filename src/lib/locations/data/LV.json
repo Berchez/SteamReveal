@@ -1,0 +1,506 @@
+{
+  "code": "LV",
+  "name": "Latvia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Jekabpils",
+      "cities": {
+        "27091": {
+          "id": 27091,
+          "name": "Akniste"
+        },
+        "27160": {
+          "id": 27160,
+          "name": "Viesite"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Jelgava",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Jelgavas",
+      "cities": {
+        "27112": {
+          "id": 27112,
+          "name": "Jelgava"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Jurmala",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Kraslava",
+      "cities": {
+        "27103": {
+          "id": 27103,
+          "name": "Dagda"
+        },
+        "27118": {
+          "id": 27118,
+          "name": "Kraslava"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Kuldigas",
+      "cities": {
+        "27119": {
+          "id": 27119,
+          "name": "Kuldiga"
+        },
+        "27146": {
+          "id": 27146,
+          "name": "Skrunda"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Liepaja",
+      "cities": {
+        "27107": {
+          "id": 27107,
+          "name": "Grobina"
+        },
+        "27121": {
+          "id": 27121,
+          "name": "Liepaja"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Liepajas",
+      "cities": {
+        "27090": {
+          "id": 27090,
+          "name": "Aizpute"
+        },
+        "27106": {
+          "id": 27106,
+          "name": "Durbe"
+        },
+        "27131": {
+          "id": 27131,
+          "name": "Pavilosta"
+        },
+        "27135": {
+          "id": 27135,
+          "name": "Priekule"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Limbazu",
+      "cities": {
+        "27088": {
+          "id": 27088,
+          "name": "Ainazi"
+        },
+        "27092": {
+          "id": 27092,
+          "name": "Aloja"
+        },
+        "27123": {
+          "id": 27123,
+          "name": "Limbazi"
+        },
+        "27140": {
+          "id": 27140,
+          "name": "Salacgriva"
+        },
+        "27148": {
+          "id": 27148,
+          "name": "Staicele"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Ludzas",
+      "cities": {
+        "27116": {
+          "id": 27116,
+          "name": "Karsava"
+        },
+        "27126": {
+          "id": 27126,
+          "name": "Ludza"
+        },
+        "27163": {
+          "id": 27163,
+          "name": "Zilupe"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Madonas",
+      "cities": {
+        "27102": {
+          "id": 27102,
+          "name": "Cesvaine"
+        },
+        "27125": {
+          "id": 27125,
+          "name": "Lubana"
+        },
+        "27127": {
+          "id": 27127,
+          "name": "Madona"
+        },
+        "27158": {
+          "id": 27158,
+          "name": "Varaklani"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Ogres",
+      "cities": {
+        "27109": {
+          "id": 27109,
+          "name": "Ikskile"
+        },
+        "27117": {
+          "id": 27117,
+          "name": "Kegums"
+        },
+        "27120": {
+          "id": 27120,
+          "name": "Lielvarde"
+        },
+        "27129": {
+          "id": 27129,
+          "name": "Ogre"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Preilu",
+      "cities": {
+        "27124": {
+          "id": 27124,
+          "name": "Livani"
+        },
+        "27134": {
+          "id": 27134,
+          "name": "Preili"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Rezekne",
+      "cities": {
+        "27136": {
+          "id": 27136,
+          "name": "Rezekne"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Rezeknes",
+      "cities": {
+        "27162": {
+          "id": 27162,
+          "name": "Vilani"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Riga",
+      "cities": {
+        "27113": {
+          "id": 27113,
+          "name": "Jurmala"
+        },
+        "27137": {
+          "id": 27137,
+          "name": "Riga"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Rigas",
+      "cities": {
+        "27096": {
+          "id": 27096,
+          "name": "Baldone"
+        },
+        "27097": {
+          "id": 27097,
+          "name": "Balozi"
+        },
+        "27130": {
+          "id": 27130,
+          "name": "Olaine"
+        },
+        "27141": {
+          "id": 27141,
+          "name": "Salaspils"
+        },
+        "27143": {
+          "id": 27143,
+          "name": "Saulkrasti"
+        },
+        "27145": {
+          "id": 27145,
+          "name": "Sigulda"
+        },
+        "27157": {
+          "id": 27157,
+          "name": "Vangazi"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Saldus",
+      "cities": {
+        "27100": {
+          "id": 27100,
+          "name": "Broceni"
+        },
+        "27142": {
+          "id": 27142,
+          "name": "Saldus"
+        }
+      }
+    },
+    "28": {
+      "code": "28",
+      "name": "Talsu",
+      "cities": {
+        "27139": {
+          "id": 27139,
+          "name": "Sabile"
+        },
+        "27149": {
+          "id": 27149,
+          "name": "Stende"
+        },
+        "27152": {
+          "id": 27152,
+          "name": "Talsi"
+        },
+        "27154": {
+          "id": 27154,
+          "name": "Valdemarpils"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Tukuma",
+      "cities": {
+        "27114": {
+          "id": 27114,
+          "name": "Kalnciems"
+        },
+        "27115": {
+          "id": 27115,
+          "name": "Kandava"
+        },
+        "27153": {
+          "id": 27153,
+          "name": "Tukums"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Valkas",
+      "cities": {
+        "27144": {
+          "id": 27144,
+          "name": "Seda"
+        },
+        "27147": {
+          "id": 27147,
+          "name": "Smiltene"
+        },
+        "27150": {
+          "id": 27150,
+          "name": "Strenci"
+        },
+        "27155": {
+          "id": 27155,
+          "name": "Valka"
+        }
+      }
+    },
+    "31": {
+      "code": "31",
+      "name": "Valmieras",
+      "cities": {
+        "27128": {
+          "id": 27128,
+          "name": "Mazsalaca"
+        },
+        "27138": {
+          "id": 27138,
+          "name": "Rujiena"
+        },
+        "27156": {
+          "id": 27156,
+          "name": "Valmiera"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Ventspils",
+      "cities": {
+        "27159": {
+          "id": 27159,
+          "name": "Ventspils"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "Ventspils",
+      "cities": {
+        "27132": {
+          "id": 27132,
+          "name": "Piltene"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Aizkraukles",
+      "cities": {
+        "27089": {
+          "id": 27089,
+          "name": "Aizkraukle"
+        },
+        "27133": {
+          "id": 27133,
+          "name": "Plavinas"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Aluksnes",
+      "cities": {
+        "27093": {
+          "id": 27093,
+          "name": "Aluksne"
+        },
+        "27094": {
+          "id": 27094,
+          "name": "Ape"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Balvu",
+      "cities": {
+        "27098": {
+          "id": 27098,
+          "name": "Balvi"
+        },
+        "27161": {
+          "id": 27161,
+          "name": "Vilaka"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Bauskas",
+      "cities": {
+        "27099": {
+          "id": 27099,
+          "name": "Bauska"
+        },
+        "27111": {
+          "id": 27111,
+          "name": "Jaunjelgava"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Cesis",
+      "cities": {
+        "27101": {
+          "id": 27101,
+          "name": "Cesis"
+        },
+        "27122": {
+          "id": 27122,
+          "name": "Ligatne"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Daugavpils",
+      "cities": {
+        "27104": {
+          "id": 27104,
+          "name": "Daugavpils"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Daugavpils",
+      "cities": {
+        "27110": {
+          "id": 27110,
+          "name": "Ilukste"
+        },
+        "27151": {
+          "id": 27151,
+          "name": "Subate"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Dobeles",
+      "cities": {
+        "27095": {
+          "id": 27095,
+          "name": "Auce"
+        },
+        "27105": {
+          "id": 27105,
+          "name": "Dobele"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Gulbenes",
+      "cities": {
+        "27108": {
+          "id": 27108,
+          "name": "Gulbene"
+        }
+      }
+    }
+  }
+}

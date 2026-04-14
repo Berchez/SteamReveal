@@ -1,0 +1,455 @@
+{
+  "code": "MU",
+  "name": "Mauritius",
+  "states": {
+    "12": {
+      "code": "12",
+      "name": "Black River",
+      "cities": {
+        "27604": {
+          "id": 27604,
+          "name": "Albion"
+        },
+        "27608": {
+          "id": 27608,
+          "name": "Bambous"
+        },
+        "27624": {
+          "id": 27624,
+          "name": "Cascavelle"
+        },
+        "27625": {
+          "id": 27625,
+          "name": "Chamarel"
+        },
+        "27640": {
+          "id": 27640,
+          "name": "Flic En Flac"
+        },
+        "27646": {
+          "id": 27646,
+          "name": "Grande Riviere Noire"
+        },
+        "27650": {
+          "id": 27650,
+          "name": "Gros Cailloux"
+        },
+        "27651": {
+          "id": 27651,
+          "name": "La Gaulette"
+        },
+        "27668": {
+          "id": 27668,
+          "name": "Petite Riviere"
+        },
+        "27694": {
+          "id": 27694,
+          "name": "Tamarin"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Flacq",
+      "cities": {
+        "27612": {
+          "id": 27612,
+          "name": "Bel Air"
+        },
+        "27615": {
+          "id": 27615,
+          "name": "Bon Accueil"
+        },
+        "27616": {
+          "id": 27616,
+          "name": "Brisee Verdiere"
+        },
+        "27618": {
+          "id": 27618,
+          "name": "Camp De Masque"
+        },
+        "27619": {
+          "id": 27619,
+          "name": "Camp De Masque Pave"
+        },
+        "27621": {
+          "id": 27621,
+          "name": "Camp Ithier"
+        },
+        "27628": {
+          "id": 27628,
+          "name": "Clemencia"
+        },
+        "27636": {
+          "id": 27636,
+          "name": "Ecroignard"
+        },
+        "27648": {
+          "id": 27648,
+          "name": "Grand River South East"
+        },
+        "27652": {
+          "id": 27652,
+          "name": "Lalmatie"
+        },
+        "27653": {
+          "id": 27653,
+          "name": "Laventure"
+        },
+        "27658": {
+          "id": 27658,
+          "name": "Mare La Chaux"
+        },
+        "27666": {
+          "id": 27666,
+          "name": "Olivia"
+        },
+        "27674": {
+          "id": 27674,
+          "name": "Poste De Flacq"
+        },
+        "27678": {
+          "id": 27678,
+          "name": "Quatre Cocos"
+        },
+        "27679": {
+          "id": 27679,
+          "name": "Quatre Soeurs"
+        },
+        "27680": {
+          "id": 27680,
+          "name": "Queen Victoria"
+        },
+        "27689": {
+          "id": 27689,
+          "name": "Saint Julien"
+        },
+        "27691": {
+          "id": 27691,
+          "name": "Sebastopol"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Grand Port",
+      "cities": {
+        "27609": {
+          "id": 27609,
+          "name": "Bambous Virieux"
+        },
+        "27610": {
+          "id": 27610,
+          "name": "Bananes"
+        },
+        "27611": {
+          "id": 27611,
+          "name": "Beau Vallon"
+        },
+        "27614": {
+          "id": 27614,
+          "name": "Bois Des Amourettes"
+        },
+        "27629": {
+          "id": 27629,
+          "name": "Cluny"
+        },
+        "27644": {
+          "id": 27644,
+          "name": "Grand Bel Air"
+        },
+        "27649": {
+          "id": 27649,
+          "name": "Grand Sable"
+        },
+        "27656": {
+          "id": 27656,
+          "name": "Mahebourg"
+        },
+        "27663": {
+          "id": 27663,
+          "name": "New Grove"
+        },
+        "27665": {
+          "id": 27665,
+          "name": "Nouvelle France"
+        },
+        "27671": {
+          "id": 27671,
+          "name": "Plaine Magnien"
+        },
+        "27686": {
+          "id": 27686,
+          "name": "Rose Belle"
+        },
+        "27688": {
+          "id": 27688,
+          "name": "Saint Hubert"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Moka",
+      "cities": {
+        "27622": {
+          "id": 27622,
+          "name": "Camp Thorel"
+        },
+        "27634": {
+          "id": 27634,
+          "name": "Dagotiere"
+        },
+        "27635": {
+          "id": 27635,
+          "name": "Dubreuil"
+        },
+        "27637": {
+          "id": 27637,
+          "name": "Esperance"
+        },
+        "27638": {
+          "id": 27638,
+          "name": "Esperance"
+        },
+        "27659": {
+          "id": 27659,
+          "name": "Melrose"
+        },
+        "27661": {
+          "id": 27661,
+          "name": "Moka"
+        },
+        "27662": {
+          "id": 27662,
+          "name": "Montagne Blanche"
+        },
+        "27667": {
+          "id": 27667,
+          "name": "Pailles"
+        },
+        "27675": {
+          "id": 27675,
+          "name": "Providence"
+        },
+        "27676": {
+          "id": 27676,
+          "name": "Quartier Militaire"
+        },
+        "27681": {
+          "id": 27681,
+          "name": "Ripailles"
+        },
+        "27690": {
+          "id": 27690,
+          "name": "Saint Pierre"
+        },
+        "27698": {
+          "id": 27698,
+          "name": "Verdun"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Pamplemousses",
+      "cities": {
+        "27606": {
+          "id": 27606,
+          "name": "Arsenal"
+        },
+        "27607": {
+          "id": 27607,
+          "name": "Baie Du Tombeau"
+        },
+        "27617": {
+          "id": 27617,
+          "name": "Calebasses"
+        },
+        "27630": {
+          "id": 27630,
+          "name": "Congomah"
+        },
+        "27632": {
+          "id": 27632,
+          "name": "Creve Coeur"
+        },
+        "27641": {
+          "id": 27641,
+          "name": "Fond Du Sac"
+        },
+        "27654": {
+          "id": 27654,
+          "name": "Le Hochet"
+        },
+        "27655": {
+          "id": 27655,
+          "name": "Long Mountain"
+        },
+        "27664": {
+          "id": 27664,
+          "name": "Notre Dame"
+        },
+        "27672": {
+          "id": 27672,
+          "name": "Plaines Des Papayes"
+        },
+        "27695": {
+          "id": 27695,
+          "name": "Terre Rouge"
+        },
+        "27697": {
+          "id": 27697,
+          "name": "Triolet"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Plaines Wilhems",
+      "cities": {
+        "27633": {
+          "id": 27633,
+          "name": "Curepipe"
+        },
+        "27660": {
+          "id": 27660,
+          "name": "Midlands"
+        },
+        "27677": {
+          "id": 27677,
+          "name": "Quatre Bornes"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Port Louis",
+      "cities": {
+        "27673": {
+          "id": 27673,
+          "name": "Port Louis"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Riviere du Rempart",
+      "cities": {
+        "27605": {
+          "id": 27605,
+          "name": "Amaury"
+        },
+        "27613": {
+          "id": 27613,
+          "name": "Belle Vue Maurel"
+        },
+        "27623": {
+          "id": 27623,
+          "name": "Cap Malheureux"
+        },
+        "27631": {
+          "id": 27631,
+          "name": "Cottage"
+        },
+        "27639": {
+          "id": 27639,
+          "name": "Esperance Trebuchet"
+        },
+        "27642": {
+          "id": 27642,
+          "name": "Goodlands"
+        },
+        "27643": {
+          "id": 27643,
+          "name": "Grand Baie"
+        },
+        "27647": {
+          "id": 27647,
+          "name": "Grand Gaube"
+        },
+        "27657": {
+          "id": 27657,
+          "name": "Mapou"
+        },
+        "27669": {
+          "id": 27669,
+          "name": "Petit Raffray"
+        },
+        "27670": {
+          "id": 27670,
+          "name": "Piton"
+        },
+        "27683": {
+          "id": 27683,
+          "name": "Riviere Du Rempart"
+        },
+        "27684": {
+          "id": 27684,
+          "name": "Roches Noires"
+        },
+        "27685": {
+          "id": 27685,
+          "name": "Roche Terre"
+        },
+        "27696": {
+          "id": 27696,
+          "name": "The Vale"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Savanne",
+      "cities": {
+        "27620": {
+          "id": 27620,
+          "name": "Camp Diable"
+        },
+        "27626": {
+          "id": 27626,
+          "name": "Chamouny"
+        },
+        "27627": {
+          "id": 27627,
+          "name": "Chemin Grenier"
+        },
+        "27645": {
+          "id": 27645,
+          "name": "Grand Bois"
+        },
+        "27682": {
+          "id": 27682,
+          "name": "Riviere Des Anguilles"
+        },
+        "27687": {
+          "id": 27687,
+          "name": "Saint Aubin"
+        },
+        "27692": {
+          "id": 27692,
+          "name": "Souillac"
+        },
+        "27693": {
+          "id": 27693,
+          "name": "Surinam"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Agalega Islands",
+      "cities": {}
+    },
+    "22": {
+      "code": "22",
+      "name": "Cargados Carajos",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Rodrigues",
+      "cities": {}
+    }
+  }
+}

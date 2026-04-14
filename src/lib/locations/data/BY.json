@@ -1,0 +1,155 @@
+{
+  "code": "BY",
+  "name": "Belarus",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Brestskaya Voblasts'",
+      "cities": {
+        "9242": {
+          "id": 9242,
+          "name": "Brest"
+        },
+        "9248": {
+          "id": 9248,
+          "name": "Ivanava"
+        },
+        "9250": {
+          "id": 9250,
+          "name": "Kobryn"
+        },
+        "9253": {
+          "id": 9253,
+          "name": "Malaryta"
+        },
+        "9260": {
+          "id": 9260,
+          "name": "Pinsk"
+        },
+        "9264": {
+          "id": 9264,
+          "name": "Stolin"
+        },
+        "9266": {
+          "id": 9266,
+          "name": "Zabinka"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Homyel'skaya Voblasts'",
+      "cities": {
+        "9255": {
+          "id": 9255,
+          "name": "Mazyr"
+        },
+        "9267": {
+          "id": 9267,
+          "name": "Zlobin"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Hrodzyenskaya Voblasts'",
+      "cities": {
+        "9247": {
+          "id": 9247,
+          "name": "Hrodna"
+        },
+        "9251": {
+          "id": 9251,
+          "name": "Lida"
+        },
+        "9254": {
+          "id": 9254,
+          "name": "Masty"
+        },
+        "9257": {
+          "id": 9257,
+          "name": "Navahrudak"
+        },
+        "9263": {
+          "id": 9263,
+          "name": "Slonim"
+        },
+        "9265": {
+          "id": 9265,
+          "name": "Vawkavysk"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Minsk",
+      "cities": {
+        "9246": {
+          "id": 9246,
+          "name": "Horki"
+        },
+        "9256": {
+          "id": 9256,
+          "name": "Minsk"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Minskaya Voblasts'",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Mahilyowskaya Voblasts'",
+      "cities": {
+        "9244": {
+          "id": 9244,
+          "name": "Dzerzhinsk"
+        },
+        "9249": {
+          "id": 9249,
+          "name": "Kleck"
+        },
+        "9252": {
+          "id": 9252,
+          "name": "Lyuban"
+        },
+        "9261": {
+          "id": 9261,
+          "name": "Salihorsk"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Vitsyebskaya Voblasts'",
+      "cities": {
+        "9241": {
+          "id": 9241,
+          "name": "Braslav"
+        },
+        "9243": {
+          "id": 9243,
+          "name": "Disna"
+        },
+        "9245": {
+          "id": 9245,
+          "name": "Haradok"
+        },
+        "9258": {
+          "id": 9258,
+          "name": "Orsha"
+        },
+        "9259": {
+          "id": 9259,
+          "name": "Pastavy"
+        },
+        "9262": {
+          "id": 9262,
+          "name": "Senno"
+        }
+      }
+    }
+  }
+}

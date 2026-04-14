@@ -1,0 +1,165 @@
+{
+  "code": "KH",
+  "name": "Cambodia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Mondol Kiri",
+      "cities": {
+        "26364": {
+          "id": 26364,
+          "name": "Senmonorom"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Phnum Penh",
+      "cities": {
+        "26361": {
+          "id": 26361,
+          "name": "Phnum Penh"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Pouthisat",
+      "cities": {
+        "26363": {
+          "id": 26363,
+          "name": "Pousat"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Preah Vihear",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Prey Veng",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "Rotanokiri",
+      "cities": {
+        "26360": {
+          "id": 26360,
+          "name": "Lumphat"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Siemreab-Otdar Meanchey",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Stoeng Treng",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Svay Rieng",
+      "cities": {
+        "26366": {
+          "id": 26366,
+          "name": "Svay Rieng"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Takev",
+      "cities": {}
+    },
+    "29": {
+      "code": "29",
+      "name": "Batdambang",
+      "cities": {}
+    },
+    "30": {
+      "code": "30",
+      "name": "Pailin",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Kampong Cham",
+      "cities": {
+        "26355": {
+          "id": 26355,
+          "name": "Kampong Cham"
+        },
+        "26362": {
+          "id": 26362,
+          "name": "Phumi Samraong"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Kampong Chhnang",
+      "cities": {
+        "26356": {
+          "id": 26356,
+          "name": "Kampong Chhnang"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Kampong Spoe",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Kampong Thum",
+      "cities": {
+        "26357": {
+          "id": 26357,
+          "name": "Kampong Thum"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Kampot",
+      "cities": {
+        "26358": {
+          "id": 26358,
+          "name": "Kampot"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Kandal",
+      "cities": {
+        "26367": {
+          "id": 26367,
+          "name": "Ta Khmau"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Kaoh Kong",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Kracheh",
+      "cities": {
+        "26359": {
+          "id": 26359,
+          "name": "Kracheh"
+        }
+      }
+    }
+  }
+}

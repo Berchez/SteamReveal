@@ -1,0 +1,1316 @@
+{
+  "code": "DK",
+  "name": "Denmark",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Roskilde",
+      "cities": {
+        "13974": {
+          "id": 13974,
+          "name": "Bjaeverskov"
+        },
+        "13980": {
+          "id": 13980,
+          "name": "Borup"
+        },
+        "13999": {
+          "id": 13999,
+          "name": "Ejby"
+        },
+        "14031": {
+          "id": 14031,
+          "name": "Greve Strand"
+        },
+        "14034": {
+          "id": 14034,
+          "name": "Gundsomagle"
+        },
+        "14044": {
+          "id": 14044,
+          "name": "Harlev"
+        },
+        "14046": {
+          "id": 14046,
+          "name": "Havdrup"
+        },
+        "14076": {
+          "id": 14076,
+          "name": "Hvalso"
+        },
+        "14084": {
+          "id": 14084,
+          "name": "Jyllinge"
+        },
+        "14092": {
+          "id": 14092,
+          "name": "Koge"
+        },
+        "14140": {
+          "id": 14140,
+          "name": "Osted"
+        },
+        "14157": {
+          "id": 14157,
+          "name": "Roskilde"
+        },
+        "14183": {
+          "id": 14183,
+          "name": "Solrod"
+        },
+        "14203": {
+          "id": 14203,
+          "name": "Stroby Egede"
+        },
+        "14213": {
+          "id": 14213,
+          "name": "Svogerslev"
+        },
+        "14231": {
+          "id": 14231,
+          "name": "Tune"
+        },
+        "14245": {
+          "id": 14245,
+          "name": "Viby"
+        },
+        "14250": {
+          "id": 14250,
+          "name": "Vindinge"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Sonderjylland",
+      "cities": {
+        "13953": {
+          "id": 13953,
+          "name": "Aabenraa"
+        },
+        "13967": {
+          "id": 13967,
+          "name": "Augustenborg"
+        },
+        "13985": {
+          "id": 13985,
+          "name": "Broager"
+        },
+        "13990": {
+          "id": 13990,
+          "name": "Christiansfeld"
+        },
+        "13995": {
+          "id": 13995,
+          "name": "Dybbol"
+        },
+        "14028": {
+          "id": 14028,
+          "name": "Gram"
+        },
+        "14029": {
+          "id": 14029,
+          "name": "Grasten"
+        },
+        "14033": {
+          "id": 14033,
+          "name": "Guderup"
+        },
+        "14036": {
+          "id": 14036,
+          "name": "Haderslev"
+        },
+        "14071": {
+          "id": 14071,
+          "name": "Horuphav"
+        },
+        "14096": {
+          "id": 14096,
+          "name": "Krusa"
+        },
+        "14105": {
+          "id": 14105,
+          "name": "Logumkloster"
+        },
+        "14106": {
+          "id": 14106,
+          "name": "Lojt Kirkeby"
+        },
+        "14126": {
+          "id": 14126,
+          "name": "Nordborg"
+        },
+        "14142": {
+          "id": 14142,
+          "name": "Padborg"
+        },
+        "14152": {
+          "id": 14152,
+          "name": "Rodding"
+        },
+        "14153": {
+          "id": 14153,
+          "name": "Rodekro"
+        },
+        "14168": {
+          "id": 14168,
+          "name": "Skaerbaek"
+        },
+        "14185": {
+          "id": 14185,
+          "name": "Sonderborg"
+        },
+        "14189": {
+          "id": 14189,
+          "name": "Starup"
+        },
+        "14221": {
+          "id": 14221,
+          "name": "Tinglev"
+        },
+        "14223": {
+          "id": 14223,
+          "name": "Toftlund"
+        },
+        "14226": {
+          "id": 14226,
+          "name": "Tonder"
+        },
+        "14255": {
+          "id": 14255,
+          "name": "Vojens"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Storstrom",
+      "cities": {
+        "14003": {
+          "id": 14003,
+          "name": "Fakse"
+        },
+        "14004": {
+          "id": 14004,
+          "name": "Fakse Ladeplads"
+        },
+        "14007": {
+          "id": 14007,
+          "name": "Fensmark"
+        },
+        "14062": {
+          "id": 14062,
+          "name": "Holeby"
+        },
+        "14113": {
+          "id": 14113,
+          "name": "Maribo"
+        },
+        "14118": {
+          "id": 14118,
+          "name": "Naestved"
+        },
+        "14119": {
+          "id": 14119,
+          "name": "Nakskov"
+        },
+        "14121": {
+          "id": 14121,
+          "name": "Neder Vindinge"
+        },
+        "14129": {
+          "id": 14129,
+          "name": "Norre Alslev"
+        },
+        "14131": {
+          "id": 14131,
+          "name": "Nykobing"
+        },
+        "14133": {
+          "id": 14133,
+          "name": "Nyrad"
+        },
+        "14139": {
+          "id": 14139,
+          "name": "Orslev"
+        },
+        "14144": {
+          "id": 14144,
+          "name": "Praesto"
+        },
+        "14150": {
+          "id": 14150,
+          "name": "Rodbyhavn"
+        },
+        "14151": {
+          "id": 14151,
+          "name": "Rodby"
+        },
+        "14155": {
+          "id": 14155,
+          "name": "Ronnede"
+        },
+        "14163": {
+          "id": 14163,
+          "name": "Sakskobing"
+        },
+        "14192": {
+          "id": 14192,
+          "name": "Stege"
+        },
+        "14198": {
+          "id": 14198,
+          "name": "Store Heddinge"
+        },
+        "14205": {
+          "id": 14205,
+          "name": "Stubbekobing"
+        },
+        "14206": {
+          "id": 14206,
+          "name": "Sundby"
+        },
+        "14256": {
+          "id": 14256,
+          "name": "Vordingborg"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Vejle",
+      "cities": {
+        "13979": {
+          "id": 13979,
+          "name": "Borkop"
+        },
+        "13981": {
+          "id": 13981,
+          "name": "Braedstrup"
+        },
+        "13984": {
+          "id": 13984,
+          "name": "Brejning"
+        },
+        "13997": {
+          "id": 13997,
+          "name": "Egtved"
+        },
+        "14013": {
+          "id": 14013,
+          "name": "Fredericia"
+        },
+        "14023": {
+          "id": 14023,
+          "name": "Give"
+        },
+        "14047": {
+          "id": 14047,
+          "name": "Hedensted"
+        },
+        "14069": {
+          "id": 14069,
+          "name": "Horsens"
+        },
+        "14081": {
+          "id": 14081,
+          "name": "Jelling"
+        },
+        "14082": {
+          "id": 14082,
+          "name": "Juelsminde"
+        },
+        "14093": {
+          "id": 14093,
+          "name": "Kolding"
+        },
+        "14107": {
+          "id": 14107,
+          "name": "Lunderskov"
+        },
+        "14180": {
+          "id": 14180,
+          "name": "Snoghoj"
+        },
+        "14184": {
+          "id": 14184,
+          "name": "Sonder Bjert"
+        },
+        "14217": {
+          "id": 14217,
+          "name": "Taulov"
+        },
+        "14227": {
+          "id": 14227,
+          "name": "Torring"
+        },
+        "14237": {
+          "id": 14237,
+          "name": "Vamdrup"
+        },
+        "14240": {
+          "id": 14240,
+          "name": "Vejle"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Vestsjalland",
+      "cities": {
+        "13964": {
+          "id": 13964,
+          "name": "Asnaes"
+        },
+        "13992": {
+          "id": 13992,
+          "name": "Dianalund"
+        },
+        "14010": {
+          "id": 14010,
+          "name": "Forlev"
+        },
+        "14014": {
+          "id": 14014,
+          "name": "Frederiksberg"
+        },
+        "14019": {
+          "id": 14019,
+          "name": "Fuglebjerg"
+        },
+        "14026": {
+          "id": 14026,
+          "name": "Gorlev"
+        },
+        "14045": {
+          "id": 14045,
+          "name": "Haslev"
+        },
+        "14061": {
+          "id": 14061,
+          "name": "Holbaek"
+        },
+        "14065": {
+          "id": 14065,
+          "name": "Hong"
+        },
+        "14072": {
+          "id": 14072,
+          "name": "Horve"
+        },
+        "14083": {
+          "id": 14083,
+          "name": "Jyderup"
+        },
+        "14085": {
+          "id": 14085,
+          "name": "Kalundborg"
+        },
+        "14095": {
+          "id": 14095,
+          "name": "Korsor"
+        },
+        "14149": {
+          "id": 14149,
+          "name": "Ringsted"
+        },
+        "14167": {
+          "id": 14167,
+          "name": "Skaelskor"
+        },
+        "14176": {
+          "id": 14176,
+          "name": "Slagelse"
+        },
+        "14187": {
+          "id": 14187,
+          "name": "Soro"
+        },
+        "14193": {
+          "id": 14193,
+          "name": "Stenlille"
+        },
+        "14208": {
+          "id": 14208,
+          "name": "Svebolle"
+        },
+        "14212": {
+          "id": 14212,
+          "name": "Svinninge"
+        },
+        "14224": {
+          "id": 14224,
+          "name": "Tollose"
+        },
+        "14251": {
+          "id": 14251,
+          "name": "Vipperod"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Viborg",
+      "cities": {
+        "13957": {
+          "id": 13957,
+          "name": "Aalestrup"
+        },
+        "13975": {
+          "id": 13975,
+          "name": "Bjerringbro"
+        },
+        "14042": {
+          "id": 14042,
+          "name": "Hanstholm"
+        },
+        "14060": {
+          "id": 14060,
+          "name": "Hojslev"
+        },
+        "14075": {
+          "id": 14075,
+          "name": "Hurup"
+        },
+        "14086": {
+          "id": 14086,
+          "name": "Karup"
+        },
+        "14090": {
+          "id": 14090,
+          "name": "Kjellerup"
+        },
+        "14132": {
+          "id": 14132,
+          "name": "Nykobing"
+        },
+        "14172": {
+          "id": 14172,
+          "name": "Skive"
+        },
+        "14197": {
+          "id": 14197,
+          "name": "Stoholm"
+        },
+        "14218": {
+          "id": 14218,
+          "name": "Thisted"
+        },
+        "14234": {
+          "id": 14234,
+          "name": "Ulstrup"
+        },
+        "14244": {
+          "id": 14244,
+          "name": "Viborg"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Arhus",
+      "cities": {
+        "13960": {
+          "id": 13960,
+          "name": "Allingabro"
+        },
+        "13962": {
+          "id": 13962,
+          "name": "Arhus"
+        },
+        "13966": {
+          "id": 13966,
+          "name": "Assentoft"
+        },
+        "13969": {
+          "id": 13969,
+          "name": "Auning"
+        },
+        "13970": {
+          "id": 13970,
+          "name": "Beder"
+        },
+        "13996": {
+          "id": 13996,
+          "name": "Ebeltoft"
+        },
+        "14011": {
+          "id": 14011,
+          "name": "Framlev"
+        },
+        "14030": {
+          "id": 14030,
+          "name": "Grenaa"
+        },
+        "14037": {
+          "id": 14037,
+          "name": "Hadsten"
+        },
+        "14040": {
+          "id": 14040,
+          "name": "Hammel"
+        },
+        "14053": {
+          "id": 14053,
+          "name": "Hinnerup"
+        },
+        "14057": {
+          "id": 14057,
+          "name": "Hjortshoj"
+        },
+        "14067": {
+          "id": 14067,
+          "name": "Horning"
+        },
+        "14068": {
+          "id": 14068,
+          "name": "Hornslet"
+        },
+        "14094": {
+          "id": 14094,
+          "name": "Kolt"
+        },
+        "14097": {
+          "id": 14097,
+          "name": "Langa"
+        },
+        "14104": {
+          "id": 14104,
+          "name": "Logten"
+        },
+        "14109": {
+          "id": 14109,
+          "name": "Lystrup"
+        },
+        "14110": {
+          "id": 14110,
+          "name": "Malling"
+        },
+        "14112": {
+          "id": 14112,
+          "name": "Mariager"
+        },
+        "14114": {
+          "id": 14114,
+          "name": "Marslet"
+        },
+        "14134": {
+          "id": 14134,
+          "name": "Odder"
+        },
+        "14145": {
+          "id": 14145,
+          "name": "Randers"
+        },
+        "14154": {
+          "id": 14154,
+          "name": "Ronde"
+        },
+        "14159": {
+          "id": 14159,
+          "name": "Ryomgard"
+        },
+        "14160": {
+          "id": 14160,
+          "name": "Ry"
+        },
+        "14161": {
+          "id": 14161,
+          "name": "Sabro"
+        },
+        "14165": {
+          "id": 14165,
+          "name": "Silkeborg"
+        },
+        "14170": {
+          "id": 14170,
+          "name": "Skanderborg"
+        },
+        "14175": {
+          "id": 14175,
+          "name": "Skovby"
+        },
+        "14181": {
+          "id": 14181,
+          "name": "Soften"
+        },
+        "14182": {
+          "id": 14182,
+          "name": "Solbjerg"
+        },
+        "14188": {
+          "id": 14188,
+          "name": "Spentrup"
+        },
+        "14191": {
+          "id": 14191,
+          "name": "Stavtrup"
+        },
+        "14196": {
+          "id": 14196,
+          "name": "Stilling"
+        },
+        "14209": {
+          "id": 14209,
+          "name": "Svejbaek"
+        },
+        "14228": {
+          "id": 14228,
+          "name": "Tranbjerg"
+        },
+        "14229": {
+          "id": 14229,
+          "name": "Trige"
+        },
+        "14252": {
+          "id": 14252,
+          "name": "Virklund"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Bornholm",
+      "cities": {
+        "13955": {
+          "id": 13955,
+          "name": "Aakirkeby"
+        },
+        "14122": {
+          "id": 14122,
+          "name": "Nexo"
+        },
+        "14156": {
+          "id": 14156,
+          "name": "Ronne"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Frederiksborg",
+      "cities": {
+        "13973": {
+          "id": 13973,
+          "name": "Birkerod"
+        },
+        "13976": {
+          "id": 13976,
+          "name": "Blovstrod"
+        },
+        "14001": {
+          "id": 14001,
+          "name": "Espergaerde"
+        },
+        "14006": {
+          "id": 14006,
+          "name": "Farum"
+        },
+        "14012": {
+          "id": 14012,
+          "name": "Fredensborg"
+        },
+        "14016": {
+          "id": 14016,
+          "name": "Frederikssund"
+        },
+        "14017": {
+          "id": 14017,
+          "name": "Frederiksvaerk"
+        },
+        "14020": {
+          "id": 14020,
+          "name": "Ganlose"
+        },
+        "14021": {
+          "id": 14021,
+          "name": "Gilleleje"
+        },
+        "14027": {
+          "id": 14027,
+          "name": "Graested"
+        },
+        "14048": {
+          "id": 14048,
+          "name": "Hellebaek"
+        },
+        "14049": {
+          "id": 14049,
+          "name": "Helsinge"
+        },
+        "14050": {
+          "id": 14050,
+          "name": "Helsingor"
+        },
+        "14052": {
+          "id": 14052,
+          "name": "Hillerod"
+        },
+        "14066": {
+          "id": 14066,
+          "name": "Hornbaek"
+        },
+        "14070": {
+          "id": 14070,
+          "name": "Horsholm"
+        },
+        "14073": {
+          "id": 14073,
+          "name": "Humlebaek"
+        },
+        "14074": {
+          "id": 14074,
+          "name": "Hundested"
+        },
+        "14080": {
+          "id": 14080,
+          "name": "Jaegerspris"
+        },
+        "14100": {
+          "id": 14100,
+          "name": "Lillerod"
+        },
+        "14102": {
+          "id": 14102,
+          "name": "Liseleje"
+        },
+        "14108": {
+          "id": 14108,
+          "name": "Lynge"
+        },
+        "14124": {
+          "id": 14124,
+          "name": "Niva"
+        },
+        "14125": {
+          "id": 14125,
+          "name": "Nodebo"
+        },
+        "14138": {
+          "id": 14138,
+          "name": "Olstykke"
+        },
+        "14171": {
+          "id": 14171,
+          "name": "Skibby"
+        },
+        "14177": {
+          "id": 14177,
+          "name": "Slangerup"
+        },
+        "14190": {
+          "id": 14190,
+          "name": "Stavnsholt"
+        },
+        "14194": {
+          "id": 14194,
+          "name": "Stenlose"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Fyn",
+      "cities": {
+        "13959": {
+          "id": 13959,
+          "name": "Aarup"
+        },
+        "13963": {
+          "id": 13963,
+          "name": "Arslev"
+        },
+        "13965": {
+          "id": 13965,
+          "name": "Assens"
+        },
+        "13971": {
+          "id": 13971,
+          "name": "Bellinge"
+        },
+        "13977": {
+          "id": 13977,
+          "name": "Bogense"
+        },
+        "13989": {
+          "id": 13989,
+          "name": "Bullerup"
+        },
+        "13998": {
+          "id": 13998,
+          "name": "Ejby"
+        },
+        "14002": {
+          "id": 14002,
+          "name": "Faaborg"
+        },
+        "14025": {
+          "id": 14025,
+          "name": "Glamsbjerg"
+        },
+        "14035": {
+          "id": 14035,
+          "name": "Haarby"
+        },
+        "14059": {
+          "id": 14059,
+          "name": "Hojby"
+        },
+        "14088": {
+          "id": 14088,
+          "name": "Kerteminde"
+        },
+        "14098": {
+          "id": 14098,
+          "name": "Langeskov"
+        },
+        "14115": {
+          "id": 14115,
+          "name": "Marstal"
+        },
+        "14116": {
+          "id": 14116,
+          "name": "Middelfart"
+        },
+        "14117": {
+          "id": 14117,
+          "name": "Munkebo"
+        },
+        "14120": {
+          "id": 14120,
+          "name": "Neder Holluf"
+        },
+        "14128": {
+          "id": 14128,
+          "name": "Norre Aaby"
+        },
+        "14130": {
+          "id": 14130,
+          "name": "Nyborg"
+        },
+        "14135": {
+          "id": 14135,
+          "name": "Odense"
+        },
+        "14141": {
+          "id": 14141,
+          "name": "Otterup"
+        },
+        "14147": {
+          "id": 14147,
+          "name": "Ringe"
+        },
+        "14158": {
+          "id": 14158,
+          "name": "Rudkobing"
+        },
+        "14164": {
+          "id": 14164,
+          "name": "Seden"
+        },
+        "14186": {
+          "id": 14186,
+          "name": "Sonderso"
+        },
+        "14195": {
+          "id": 14195,
+          "name": "Stige"
+        },
+        "14202": {
+          "id": 14202,
+          "name": "Strib"
+        },
+        "14210": {
+          "id": 14210,
+          "name": "Svendborg"
+        },
+        "14219": {
+          "id": 14219,
+          "name": "Thuro"
+        },
+        "14225": {
+          "id": 14225,
+          "name": "Tommerup"
+        },
+        "14233": {
+          "id": 14233,
+          "name": "Ullerslev"
+        },
+        "14248": {
+          "id": 14248,
+          "name": "Vindeby"
+        },
+        "14253": {
+          "id": 14253,
+          "name": "Vissenbjerg"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Kobenhavn",
+      "cities": {
+        "13993": {
+          "id": 13993,
+          "name": "Dragor"
+        },
+        "14009": {
+          "id": 14009,
+          "name": "Flong"
+        },
+        "14079": {
+          "id": 14079,
+          "name": "Ishoj"
+        },
+        "14099": {
+          "id": 14099,
+          "name": "Lejre"
+        },
+        "14111": {
+          "id": 14111,
+          "name": "Malov"
+        },
+        "14178": {
+          "id": 14178,
+          "name": "Smorumnedre"
+        },
+        "14214": {
+          "id": 14214,
+          "name": "Taastrup"
+        },
+        "14230": {
+          "id": 14230,
+          "name": "Trorod"
+        },
+        "14236": {
+          "id": 14236,
+          "name": "Vaerlose"
+        },
+        "14241": {
+          "id": 14241,
+          "name": "Vekso"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Staden Kobenhavn",
+      "cities": {
+        "13991": {
+          "id": 13991,
+          "name": "Copenhagen"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Nordjylland",
+      "cities": {
+        "13954": {
+          "id": 13954,
+          "name": "Aabybro"
+        },
+        "13956": {
+          "id": 13956,
+          "name": "Aalborg"
+        },
+        "13958": {
+          "id": 13958,
+          "name": "Aars"
+        },
+        "13961": {
+          "id": 13961,
+          "name": "Arden"
+        },
+        "13986": {
+          "id": 13986,
+          "name": "Bronderslev"
+        },
+        "13988": {
+          "id": 13988,
+          "name": "Brovst"
+        },
+        "13994": {
+          "id": 13994,
+          "name": "Dronninglund"
+        },
+        "14005": {
+          "id": 14005,
+          "name": "Farso"
+        },
+        "14008": {
+          "id": 14008,
+          "name": "Fjerritslev"
+        },
+        "14015": {
+          "id": 14015,
+          "name": "Frederikshavn"
+        },
+        "14018": {
+          "id": 14018,
+          "name": "Frejlev"
+        },
+        "14022": {
+          "id": 14022,
+          "name": "Gistrup"
+        },
+        "14038": {
+          "id": 14038,
+          "name": "Hadsund"
+        },
+        "14039": {
+          "id": 14039,
+          "name": "Hals"
+        },
+        "14054": {
+          "id": 14054,
+          "name": "Hirtshals"
+        },
+        "14055": {
+          "id": 14055,
+          "name": "Hjallerup"
+        },
+        "14056": {
+          "id": 14056,
+          "name": "Hjorring"
+        },
+        "14058": {
+          "id": 14058,
+          "name": "Hobro"
+        },
+        "14087": {
+          "id": 14087,
+          "name": "Kas"
+        },
+        "14091": {
+          "id": 14091,
+          "name": "Klarup"
+        },
+        "14103": {
+          "id": 14103,
+          "name": "Logstor"
+        },
+        "14123": {
+          "id": 14123,
+          "name": "Nibe"
+        },
+        "14143": {
+          "id": 14143,
+          "name": "Pandrup"
+        },
+        "14162": {
+          "id": 14162,
+          "name": "Saeby"
+        },
+        "14166": {
+          "id": 14166,
+          "name": "Sindal"
+        },
+        "14169": {
+          "id": 14169,
+          "name": "Skagen"
+        },
+        "14174": {
+          "id": 14174,
+          "name": "Skorping"
+        },
+        "14199": {
+          "id": 14199,
+          "name": "Storvorde"
+        },
+        "14200": {
+          "id": 14200,
+          "name": "Stovring"
+        },
+        "14201": {
+          "id": 14201,
+          "name": "Strandby"
+        },
+        "14211": {
+          "id": 14211,
+          "name": "Svenstrup"
+        },
+        "14216": {
+          "id": 14216,
+          "name": "Tars"
+        },
+        "14235": {
+          "id": 14235,
+          "name": "Vadum"
+        },
+        "14242": {
+          "id": 14242,
+          "name": "Vestbjerg"
+        },
+        "14243": {
+          "id": 14243,
+          "name": "Vester Hassing"
+        },
+        "14254": {
+          "id": 14254,
+          "name": "Vodskov"
+        },
+        "14257": {
+          "id": 14257,
+          "name": "Vra"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Ribe",
+      "cities": {
+        "13972": {
+          "id": 13972,
+          "name": "Billund"
+        },
+        "13982": {
+          "id": 13982,
+          "name": "Bramming"
+        },
+        "13987": {
+          "id": 13987,
+          "name": "Brorup"
+        },
+        "14000": {
+          "id": 14000,
+          "name": "Esbjerg"
+        },
+        "14032": {
+          "id": 14032,
+          "name": "Grindsted"
+        },
+        "14064": {
+          "id": 14064,
+          "name": "Holsted"
+        },
+        "14127": {
+          "id": 14127,
+          "name": "Nordby"
+        },
+        "14136": {
+          "id": 14136,
+          "name": "Oksbol"
+        },
+        "14137": {
+          "id": 14137,
+          "name": "Olgod"
+        },
+        "14146": {
+          "id": 14146,
+          "name": "Ribe"
+        },
+        "14222": {
+          "id": 14222,
+          "name": "Tjaereborg"
+        },
+        "14238": {
+          "id": 14238,
+          "name": "Varde"
+        },
+        "14239": {
+          "id": 14239,
+          "name": "Vejen"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Ringkobing",
+      "cities": {
+        "13968": {
+          "id": 13968,
+          "name": "Aulum"
+        },
+        "13978": {
+          "id": 13978,
+          "name": "Bording"
+        },
+        "13983": {
+          "id": 13983,
+          "name": "Brande"
+        },
+        "14024": {
+          "id": 14024,
+          "name": "Gjellerup Kirkeby"
+        },
+        "14041": {
+          "id": 14041,
+          "name": "Hammerum"
+        },
+        "14043": {
+          "id": 14043,
+          "name": "Harboore"
+        },
+        "14051": {
+          "id": 14051,
+          "name": "Herning"
+        },
+        "14063": {
+          "id": 14063,
+          "name": "Holstebro"
+        },
+        "14077": {
+          "id": 14077,
+          "name": "Hvide Sande"
+        },
+        "14078": {
+          "id": 14078,
+          "name": "Ikast"
+        },
+        "14089": {
+          "id": 14089,
+          "name": "Kibaek"
+        },
+        "14101": {
+          "id": 14101,
+          "name": "Lind"
+        },
+        "14148": {
+          "id": 14148,
+          "name": "Ringkobing"
+        },
+        "14173": {
+          "id": 14173,
+          "name": "Skjern"
+        },
+        "14179": {
+          "id": 14179,
+          "name": "Snejbjerg"
+        },
+        "14204": {
+          "id": 14204,
+          "name": "Struer"
+        },
+        "14207": {
+          "id": 14207,
+          "name": "Sunds"
+        },
+        "14215": {
+          "id": 14215,
+          "name": "Tarm"
+        },
+        "14220": {
+          "id": 14220,
+          "name": "Thyboron"
+        },
+        "14232": {
+          "id": 14232,
+          "name": "Ulfborg"
+        },
+        "14246": {
+          "id": 14246,
+          "name": "Videbaek"
+        },
+        "14247": {
+          "id": 14247,
+          "name": "Vildbjerg"
+        },
+        "14249": {
+          "id": 14249,
+          "name": "Vinderup"
+        }
+      }
+    }
+  }
+}

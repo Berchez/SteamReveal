@@ -1,0 +1,196 @@
+{
+  "code": "GL",
+  "name": "Greenland",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Nordgronland",
+      "cities": {
+        "17499": {
+          "id": 17499,
+          "name": "Narsaq"
+        },
+        "17504": {
+          "id": 17504,
+          "name": "Qaanaaq"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Ostgronland",
+      "cities": {
+        "17487": {
+          "id": 17487,
+          "name": "Illoqqortoormiut"
+        },
+        "17489": {
+          "id": 17489,
+          "name": "Isortoq"
+        },
+        "17495": {
+          "id": 17495,
+          "name": "Kulusuk"
+        },
+        "17513": {
+          "id": 17513,
+          "name": "Sermiligaaq"
+        },
+        "17515": {
+          "id": 17515,
+          "name": "Tasiilaq"
+        },
+        "17516": {
+          "id": 17516,
+          "name": "Tiniteqilaaq"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Vestgronland",
+      "cities": {
+        "17477": {
+          "id": 17477,
+          "name": "Aappilattoq"
+        },
+        "17478": {
+          "id": 17478,
+          "name": "Aasiaat"
+        },
+        "17479": {
+          "id": 17479,
+          "name": "Akunnaaq"
+        },
+        "17480": {
+          "id": 17480,
+          "name": "Alluitsup Paa"
+        },
+        "17481": {
+          "id": 17481,
+          "name": "Arsuk"
+        },
+        "17482": {
+          "id": 17482,
+          "name": "Atammik"
+        },
+        "17483": {
+          "id": 17483,
+          "name": "Attu"
+        },
+        "17484": {
+          "id": 17484,
+          "name": "Iginniarfik"
+        },
+        "17485": {
+          "id": 17485,
+          "name": "Ikerasaarsuk"
+        },
+        "17486": {
+          "id": 17486,
+          "name": "Ikerasak"
+        },
+        "17488": {
+          "id": 17488,
+          "name": "Ilulissat"
+        },
+        "17490": {
+          "id": 17490,
+          "name": "Itilleq"
+        },
+        "17491": {
+          "id": 17491,
+          "name": "Kangaamiut"
+        },
+        "17492": {
+          "id": 17492,
+          "name": "Kangaatsiaq"
+        },
+        "17493": {
+          "id": 17493,
+          "name": "Kangersuatsiaq"
+        },
+        "17494": {
+          "id": 17494,
+          "name": "Kullorsuaq"
+        },
+        "17496": {
+          "id": 17496,
+          "name": "Maniitsoq"
+        },
+        "17497": {
+          "id": 17497,
+          "name": "Nanortalik"
+        },
+        "17498": {
+          "id": 17498,
+          "name": "Narsaq Kujalleq"
+        },
+        "17500": {
+          "id": 17500,
+          "name": "Narsarsuaq"
+        },
+        "17501": {
+          "id": 17501,
+          "name": "Niaqornaarsuk"
+        },
+        "17502": {
+          "id": 17502,
+          "name": "Nuuk"
+        },
+        "17503": {
+          "id": 17503,
+          "name": "Paamiut"
+        },
+        "17505": {
+          "id": 17505,
+          "name": "Qaarsut"
+        },
+        "17506": {
+          "id": 17506,
+          "name": "Qaqortoq"
+        },
+        "17507": {
+          "id": 17507,
+          "name": "Qasigiannguit"
+        },
+        "17508": {
+          "id": 17508,
+          "name": "Qeqertaq"
+        },
+        "17509": {
+          "id": 17509,
+          "name": "Qeqertarsuatsiaat"
+        },
+        "17510": {
+          "id": 17510,
+          "name": "Saattut"
+        },
+        "17511": {
+          "id": 17511,
+          "name": "Saqqaq"
+        },
+        "17512": {
+          "id": 17512,
+          "name": "Sarfannguit"
+        },
+        "17514": {
+          "id": 17514,
+          "name": "Sisimiut"
+        },
+        "17517": {
+          "id": 17517,
+          "name": "Ukkusissat"
+        },
+        "17518": {
+          "id": 17518,
+          "name": "Upernavik Kujalleq"
+        },
+        "17519": {
+          "id": 17519,
+          "name": "Upernavik"
+        }
+      }
+    }
+  }
+}

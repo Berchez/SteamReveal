@@ -1,0 +1,248 @@
+{
+  "code": "TJ",
+  "name": "Tajikistan",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Kuhistoni Badakhshon",
+      "cities": {
+        "44631": {
+          "id": 44631,
+          "name": "Garavuti"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Khatlon",
+      "cities": {
+        "44621": {
+          "id": 44621,
+          "name": "Boshkengash"
+        },
+        "44623": {
+          "id": 44623,
+          "name": "Bustonkala"
+        },
+        "44625": {
+          "id": 44625,
+          "name": "Chorbog"
+        },
+        "44626": {
+          "id": 44626,
+          "name": "Dangara"
+        },
+        "44627": {
+          "id": 44627,
+          "name": "Dushanbe"
+        },
+        "44628": {
+          "id": 44628,
+          "name": "Dusti"
+        },
+        "44629": {
+          "id": 44629,
+          "name": "Farkhor"
+        },
+        "44632": {
+          "id": 44632,
+          "name": "Garm"
+        },
+        "44633": {
+          "id": 44633,
+          "name": "Hisor"
+        },
+        "44635": {
+          "id": 44635,
+          "name": "Jilikul"
+        },
+        "44640": {
+          "id": 44640,
+          "name": "Kirovskiy"
+        },
+        "44641": {
+          "id": 44641,
+          "name": "Kofarnihon"
+        },
+        "44643": {
+          "id": 44643,
+          "name": "Kulob"
+        },
+        "44645": {
+          "id": 44645,
+          "name": "Leningradskiy"
+        },
+        "44647": {
+          "id": 44647,
+          "name": "Moskovskiy"
+        },
+        "44650": {
+          "id": 44650,
+          "name": "Navabad"
+        },
+        "44652": {
+          "id": 44652,
+          "name": "Obigarm"
+        },
+        "44653": {
+          "id": 44653,
+          "name": "Orzu"
+        },
+        "44658": {
+          "id": 44658,
+          "name": "Rogun"
+        },
+        "44659": {
+          "id": 44659,
+          "name": "Shaartuz"
+        },
+        "44662": {
+          "id": 44662,
+          "name": "Sovetskiy"
+        },
+        "44665": {
+          "id": 44665,
+          "name": "Tartki"
+        },
+        "44666": {
+          "id": 44666,
+          "name": "Tugalan"
+        },
+        "44669": {
+          "id": 44669,
+          "name": "Vakhsh"
+        },
+        "44672": {
+          "id": 44672,
+          "name": "Yovon"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Sughd",
+      "cities": {
+        "44617": {
+          "id": 44617,
+          "name": "Adrasmon"
+        },
+        "44618": {
+          "id": 44618,
+          "name": "Altyn-topkan"
+        },
+        "44619": {
+          "id": 44619,
+          "name": "Asht"
+        },
+        "44620": {
+          "id": 44620,
+          "name": "Ayni"
+        },
+        "44622": {
+          "id": 44622,
+          "name": "Buston"
+        },
+        "44624": {
+          "id": 44624,
+          "name": "Chkalovsk"
+        },
+        "44630": {
+          "id": 44630,
+          "name": "Gafurov"
+        },
+        "44634": {
+          "id": 44634,
+          "name": "Isfara"
+        },
+        "44636": {
+          "id": 44636,
+          "name": "Kansay"
+        },
+        "44637": {
+          "id": 44637,
+          "name": "Karakendzha"
+        },
+        "44638": {
+          "id": 44638,
+          "name": "Khujand"
+        },
+        "44639": {
+          "id": 44639,
+          "name": "Kim"
+        },
+        "44642": {
+          "id": 44642,
+          "name": "Konibodom"
+        },
+        "44644": {
+          "id": 44644,
+          "name": "Kuruksay"
+        },
+        "44646": {
+          "id": 44646,
+          "name": "Matcha"
+        },
+        "44648": {
+          "id": 44648,
+          "name": "Naugarzan"
+        },
+        "44649": {
+          "id": 44649,
+          "name": "Nau"
+        },
+        "44651": {
+          "id": 44651,
+          "name": "Nefteabad"
+        },
+        "44654": {
+          "id": 44654,
+          "name": "Pakhtakoron"
+        },
+        "44655": {
+          "id": 44655,
+          "name": "Palas"
+        },
+        "44656": {
+          "id": 44656,
+          "name": "Panjakent"
+        },
+        "44657": {
+          "id": 44657,
+          "name": "Proletarsk"
+        },
+        "44660": {
+          "id": 44660,
+          "name": "Shakhrinau"
+        },
+        "44661": {
+          "id": 44661,
+          "name": "Shurob"
+        },
+        "44663": {
+          "id": 44663,
+          "name": "Taboshar"
+        },
+        "44664": {
+          "id": 44664,
+          "name": "Takob"
+        },
+        "44667": {
+          "id": 44667,
+          "name": "Tursunzoda"
+        },
+        "44668": {
+          "id": 44668,
+          "name": "Uroteppa"
+        },
+        "44670": {
+          "id": 44670,
+          "name": "Varzob"
+        },
+        "44671": {
+          "id": 44671,
+          "name": "Vorukh"
+        }
+      }
+    }
+  }
+}

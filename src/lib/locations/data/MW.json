@@ -1,0 +1,295 @@
+{
+  "code": "MW",
+  "name": "Malawi",
+  "states": {
+    "11": {
+      "code": "11",
+      "name": "Lilongwe",
+      "cities": {
+        "27727": {
+          "id": 27727,
+          "name": "Lilongwe"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Mangochi",
+      "cities": {
+        "27732": {
+          "id": 27732,
+          "name": "Mangochi"
+        },
+        "27734": {
+          "id": 27734,
+          "name": "Monkey Bay"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Mchinji",
+      "cities": {
+        "27733": {
+          "id": 27733,
+          "name": "Mchinji"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Mzimba",
+      "cities": {
+        "27738": {
+          "id": 27738,
+          "name": "Mzimba"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Ntcheu",
+      "cities": {
+        "27742": {
+          "id": 27742,
+          "name": "Ntcheu"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Nkhata Bay",
+      "cities": {
+        "27739": {
+          "id": 27739,
+          "name": "Nkhata Bay"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Nkhotakota",
+      "cities": {
+        "27740": {
+          "id": 27740,
+          "name": "Nkhotakota"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Nsanje",
+      "cities": {
+        "27741": {
+          "id": 27741,
+          "name": "Nsanje"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Ntchisi",
+      "cities": {
+        "27735": {
+          "id": 27735,
+          "name": "Mponela"
+        },
+        "27743": {
+          "id": 27743,
+          "name": "Ntchisi"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Rumphi",
+      "cities": {
+        "27728": {
+          "id": 27728,
+          "name": "Livingstonia"
+        },
+        "27745": {
+          "id": 27745,
+          "name": "Rumphi"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Salima",
+      "cities": {
+        "27720": {
+          "id": 27720,
+          "name": "Chipoka"
+        },
+        "27746": {
+          "id": 27746,
+          "name": "Salima"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Zomba",
+      "cities": {
+        "27748": {
+          "id": 27748,
+          "name": "Zomba"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Blantyre",
+      "cities": {
+        "27718": {
+          "id": 27718,
+          "name": "Blantyre"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Mwanza",
+      "cities": {
+        "27737": {
+          "id": 27737,
+          "name": "Mwanza"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Balaka",
+      "cities": {
+        "27717": {
+          "id": 27717,
+          "name": "Balaka"
+        },
+        "27729": {
+          "id": 27729,
+          "name": "Liwonde"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Likoma",
+      "cities": {}
+    },
+    "28": {
+      "code": "28",
+      "name": "Machinga",
+      "cities": {
+        "27731": {
+          "id": 27731,
+          "name": "Machinga"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Mulanje",
+      "cities": {
+        "27730": {
+          "id": 27730,
+          "name": "Luchenza"
+        },
+        "27736": {
+          "id": 27736,
+          "name": "Mulanje"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Phalombe",
+      "cities": {
+        "27744": {
+          "id": 27744,
+          "name": "Phalombe"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Chikwawa",
+      "cities": {
+        "27719": {
+          "id": 27719,
+          "name": "Chikwawa"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Chiradzulu",
+      "cities": {
+        "27721": {
+          "id": 27721,
+          "name": "Chiradzulu"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Chitipa",
+      "cities": {
+        "27722": {
+          "id": 27722,
+          "name": "Chitipa"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Thyolo",
+      "cities": {
+        "27747": {
+          "id": 27747,
+          "name": "Thyolo"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Dedza",
+      "cities": {
+        "27723": {
+          "id": 27723,
+          "name": "Dedza"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Dowa",
+      "cities": {
+        "27724": {
+          "id": 27724,
+          "name": "Dowa"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Karonga",
+      "cities": {
+        "27725": {
+          "id": 27725,
+          "name": "Karonga"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Kasungu",
+      "cities": {
+        "27726": {
+          "id": 27726,
+          "name": "Kasungu"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "code": "GD",
+  "name": "Grenada",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Saint Andrew",
+      "cities": {
+        "17322": {
+          "id": 17322,
+          "name": "Grenville"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Saint David",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Saint George",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Saint John",
+      "cities": {
+        "17321": {
+          "id": 17321,
+          "name": "Gouyave"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Saint Mark",
+      "cities": {
+        "17325": {
+          "id": 17325,
+          "name": "Victoria"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Saint Patrick",
+      "cities": {
+        "17323": {
+          "id": 17323,
+          "name": "Hillsborough"
+        },
+        "17324": {
+          "id": 17324,
+          "name": "Sauteurs"
+        }
+      }
+    }
+  }
+}

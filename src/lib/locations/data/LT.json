@@ -1,0 +1,506 @@
+{
+  "code": "LT",
+  "name": "Lithuania",
+  "states": {
+    "56": {
+      "code": "56",
+      "name": "Alytaus Apskritis",
+      "cities": {
+        "26626": {
+          "id": 26626,
+          "name": "Alytus"
+        },
+        "26630": {
+          "id": 26630,
+          "name": "Birstonas"
+        },
+        "26632": {
+          "id": 26632,
+          "name": "Daugai"
+        },
+        "26634": {
+          "id": 26634,
+          "name": "Druskininkai"
+        },
+        "26645": {
+          "id": 26645,
+          "name": "Jieznas"
+        },
+        "26723": {
+          "id": 26723,
+          "name": "Varena"
+        },
+        "26725": {
+          "id": 26725,
+          "name": "Veisiejai"
+        }
+      }
+    },
+    "57": {
+      "code": "57",
+      "name": "Kauno Apskritis",
+      "cities": {
+        "26639": {
+          "id": 26639,
+          "name": "Ezerelis"
+        },
+        "26641": {
+          "id": 26641,
+          "name": "Garliava"
+        },
+        "26646": {
+          "id": 26646,
+          "name": "Jonava"
+        },
+        "26651": {
+          "id": 26651,
+          "name": "Kacergine"
+        },
+        "26652": {
+          "id": 26652,
+          "name": "Kaisiadorys"
+        },
+        "26654": {
+          "id": 26654,
+          "name": "Kaunas"
+        },
+        "26662": {
+          "id": 26662,
+          "name": "Kulautuva"
+        },
+        "26688": {
+          "id": 26688,
+          "name": "Prienai"
+        },
+        "26730": {
+          "id": 26730,
+          "name": "Vilkija"
+        },
+        "26737": {
+          "id": 26737,
+          "name": "Ziezmariai"
+        }
+      }
+    },
+    "58": {
+      "code": "58",
+      "name": "Klaipedos Apskritis",
+      "cities": {
+        "26640": {
+          "id": 26640,
+          "name": "Gargzdai"
+        },
+        "26659": {
+          "id": 26659,
+          "name": "Klaipeda"
+        },
+        "26660": {
+          "id": 26660,
+          "name": "Kretinga"
+        },
+        "26675": {
+          "id": 26675,
+          "name": "Neringa"
+        },
+        "26681": {
+          "id": 26681,
+          "name": "Palanga"
+        },
+        "26687": {
+          "id": 26687,
+          "name": "Priekule"
+        },
+        "26695": {
+          "id": 26695,
+          "name": "Rusne"
+        },
+        "26703": {
+          "id": 26703,
+          "name": "Silute"
+        }
+      }
+    },
+    "59": {
+      "code": "59",
+      "name": "Marijampoles Apskritis",
+      "cities": {
+        "26653": {
+          "id": 26653,
+          "name": "Kalvarija"
+        },
+        "26656": {
+          "id": 26656,
+          "name": "Kazlu Ruda"
+        },
+        "26661": {
+          "id": 26661,
+          "name": "Kudirkos Naumiestis"
+        },
+        "26665": {
+          "id": 26665,
+          "name": "Kybartai"
+        },
+        "26666": {
+          "id": 26666,
+          "name": "Lazdijai"
+        },
+        "26669": {
+          "id": 26669,
+          "name": "Marijampole"
+        },
+        "26696": {
+          "id": 26696,
+          "name": "Sakiai"
+        },
+        "26704": {
+          "id": 26704,
+          "name": "Simnas"
+        },
+        "26729": {
+          "id": 26729,
+          "name": "Vilkaviskis"
+        },
+        "26732": {
+          "id": 26732,
+          "name": "Virbalis"
+        }
+      }
+    },
+    "60": {
+      "code": "60",
+      "name": "Panevezio Apskritis",
+      "cities": {
+        "26627": {
+          "id": 26627,
+          "name": "Anyksciai"
+        },
+        "26628": {
+          "id": 26628,
+          "name": "Ariogala"
+        },
+        "26631": {
+          "id": 26631,
+          "name": "Birzai"
+        },
+        "26633": {
+          "id": 26633,
+          "name": "Dotnuva"
+        },
+        "26635": {
+          "id": 26635,
+          "name": "Dukstas"
+        },
+        "26636": {
+          "id": 26636,
+          "name": "Dusetos"
+        },
+        "26647": {
+          "id": 26647,
+          "name": "Joniskelis"
+        },
+        "26649": {
+          "id": 26649,
+          "name": "Juodupe"
+        },
+        "26655": {
+          "id": 26655,
+          "name": "Kavarskas"
+        },
+        "26657": {
+          "id": 26657,
+          "name": "Kedainiai"
+        },
+        "26663": {
+          "id": 26663,
+          "name": "Kupiskis"
+        },
+        "26672": {
+          "id": 26672,
+          "name": "Naujamiestis"
+        },
+        "26676": {
+          "id": 26676,
+          "name": "Obeliai"
+        },
+        "26677": {
+          "id": 26677,
+          "name": "Pabirze"
+        },
+        "26682": {
+          "id": 26682,
+          "name": "Pandelys"
+        },
+        "26684": {
+          "id": 26684,
+          "name": "Panevezys"
+        },
+        "26685": {
+          "id": 26685,
+          "name": "Pasvalys"
+        },
+        "26690": {
+          "id": 26690,
+          "name": "Ramygala"
+        },
+        "26693": {
+          "id": 26693,
+          "name": "Rokiskis"
+        },
+        "26705": {
+          "id": 26705,
+          "name": "Sirvintos"
+        },
+        "26709": {
+          "id": 26709,
+          "name": "Subacius"
+        },
+        "26711": {
+          "id": 26711,
+          "name": "Svencionys"
+        },
+        "26715": {
+          "id": 26715,
+          "name": "Troskunai"
+        },
+        "26716": {
+          "id": 26716,
+          "name": "Turmantas"
+        },
+        "26719": {
+          "id": 26719,
+          "name": "Ukmerge"
+        },
+        "26722": {
+          "id": 26722,
+          "name": "Vabalninkas"
+        },
+        "26733": {
+          "id": 26733,
+          "name": "Visaginas"
+        },
+        "26735": {
+          "id": 26735,
+          "name": "Zarasai"
+        }
+      }
+    },
+    "61": {
+      "code": "61",
+      "name": "Siauliu Apskritis",
+      "cities": {
+        "26648": {
+          "id": 26648,
+          "name": "Joniskis"
+        },
+        "26658": {
+          "id": 26658,
+          "name": "Kelme"
+        },
+        "26664": {
+          "id": 26664,
+          "name": "Kursenai"
+        },
+        "26668": {
+          "id": 26668,
+          "name": "Linkuva"
+        },
+        "26680": {
+          "id": 26680,
+          "name": "Pakruojis"
+        },
+        "26689": {
+          "id": 26689,
+          "name": "Radviliskis"
+        },
+        "26691": {
+          "id": 26691,
+          "name": "Raseiniai"
+        },
+        "26700": {
+          "id": 26700,
+          "name": "Seduva"
+        },
+        "26701": {
+          "id": 26701,
+          "name": "Siauliai"
+        },
+        "26717": {
+          "id": 26717,
+          "name": "Tyruliai"
+        },
+        "26718": {
+          "id": 26718,
+          "name": "Tytuvenai"
+        },
+        "26721": {
+          "id": 26721,
+          "name": "Uzventis"
+        },
+        "26734": {
+          "id": 26734,
+          "name": "Zagare"
+        }
+      }
+    },
+    "62": {
+      "code": "62",
+      "name": "Taurages Apskritis",
+      "cities": {
+        "26642": {
+          "id": 26642,
+          "name": "Gelgaudiskis"
+        },
+        "26650": {
+          "id": 26650,
+          "name": "Jurbarkas"
+        },
+        "26679": {
+          "id": 26679,
+          "name": "Pagegiai"
+        },
+        "26683": {
+          "id": 26683,
+          "name": "Panemune"
+        },
+        "26702": {
+          "id": 26702,
+          "name": "Silale"
+        },
+        "26706": {
+          "id": 26706,
+          "name": "Skaudvile"
+        },
+        "26708": {
+          "id": 26708,
+          "name": "Smalininkai"
+        },
+        "26712": {
+          "id": 26712,
+          "name": "Taurage"
+        },
+        "26736": {
+          "id": 26736,
+          "name": "Zemaiciu Naumiestis"
+        }
+      }
+    },
+    "63": {
+      "code": "63",
+      "name": "Telsiu Apskritis",
+      "cities": {
+        "26670": {
+          "id": 26670,
+          "name": "Mazeikiai"
+        },
+        "26686": {
+          "id": 26686,
+          "name": "Plunge"
+        },
+        "26692": {
+          "id": 26692,
+          "name": "Rietavas"
+        },
+        "26697": {
+          "id": 26697,
+          "name": "Salantai"
+        },
+        "26699": {
+          "id": 26699,
+          "name": "Seda"
+        },
+        "26707": {
+          "id": 26707,
+          "name": "Skuodas"
+        },
+        "26713": {
+          "id": 26713,
+          "name": "Telsiai"
+        },
+        "26724": {
+          "id": 26724,
+          "name": "Varniai"
+        },
+        "26727": {
+          "id": 26727,
+          "name": "Vieksniai"
+        }
+      }
+    },
+    "64": {
+      "code": "64",
+      "name": "Utenos Apskritis",
+      "cities": {
+        "26644": {
+          "id": 26644,
+          "name": "Ignalina"
+        },
+        "26671": {
+          "id": 26671,
+          "name": "Moletai"
+        },
+        "26710": {
+          "id": 26710,
+          "name": "Svencioneliai"
+        },
+        "26720": {
+          "id": 26720,
+          "name": "Utena"
+        }
+      }
+    },
+    "65": {
+      "code": "65",
+      "name": "Vilniaus Apskritis",
+      "cities": {
+        "26629": {
+          "id": 26629,
+          "name": "Baltoji Voke"
+        },
+        "26637": {
+          "id": 26637,
+          "name": "Eisiskes"
+        },
+        "26638": {
+          "id": 26638,
+          "name": "Elektrenai"
+        },
+        "26643": {
+          "id": 26643,
+          "name": "Grigiskes"
+        },
+        "26667": {
+          "id": 26667,
+          "name": "Lentvaris"
+        },
+        "26674": {
+          "id": 26674,
+          "name": "Nemencine"
+        },
+        "26678": {
+          "id": 26678,
+          "name": "Pabrade"
+        },
+        "26694": {
+          "id": 26694,
+          "name": "Rudiskes"
+        },
+        "26698": {
+          "id": 26698,
+          "name": "Salcininkai"
+        },
+        "26714": {
+          "id": 26714,
+          "name": "Trakai"
+        },
+        "26728": {
+          "id": 26728,
+          "name": "Vievis"
+        },
+        "26731": {
+          "id": 26731,
+          "name": "Vilnius"
+        }
+      }
+    }
+  }
+}
