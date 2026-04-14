@@ -1,1 +1,147 @@
-{"code":"TT","name":"Trinidad & Tobago","states":{"10":{"code":"10","name":"San Fernando","cities":{"45021":{"id":45021,"name":"Marabella"},"45027":{"id":45027,"name":"San Fernando"}}},"11":{"code":"11","name":"Tobago","cities":{"45029":{"id":45029,"name":"Scarborough"}}},"12":{"code":"12","name":"Victoria","cities":{"45020":{"id":45020,"name":"Debe"},"45025":{"id":45025,"name":"Princes Town"}}},"01":{"code":"01","name":"Arima","cities":{"45016":{"id":45016,"name":"Arima"}}},"02":{"code":"02","name":"Caroni","cities":{"45018":{"id":45018,"name":"Chaguanas"},"45019":{"id":45019,"name":"Couva"},"45031":{"id":45031,"name":"Tabaquite"}}},"03":{"code":"03","name":"Mayaro","cities":{}},"04":{"code":"04","name":"Nariva","cities":{"45026":{"id":45026,"name":"Rio Claro"}}},"05":{"code":"05","name":"Port-of-Spain","cities":{}},"06":{"code":"06","name":"Saint Andrew","cities":{"45022":{"id":45022,"name":"Mucurapo"},"45028":{"id":45028,"name":"Sangre Grande"}}},"07":{"code":"07","name":"Saint David","cities":{}},"08":{"code":"08","name":"Saint George","cities":{"45017":{"id":45017,"name":"Arouca"},"45032":{"id":45032,"name":"Tacarigua"},"45033":{"id":45033,"name":"Tunapuna"}}},"09":{"code":"09","name":"Saint Patrick","cities":{"45023":{"id":45023,"name":"Penal"},"45024":{"id":45024,"name":"Point Fortin"},"45030":{"id":45030,"name":"Siparia"}}}}}
+{
+  "code": "TT",
+  "name": "Trinidad & Tobago",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "San Fernando",
+      "cities": {
+        "45021": {
+          "id": 45021,
+          "name": "Marabella"
+        },
+        "45027": {
+          "id": 45027,
+          "name": "San Fernando"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Tobago",
+      "cities": {
+        "45029": {
+          "id": 45029,
+          "name": "Scarborough"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Victoria",
+      "cities": {
+        "45020": {
+          "id": 45020,
+          "name": "Debe"
+        },
+        "45025": {
+          "id": 45025,
+          "name": "Princes Town"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Arima",
+      "cities": {
+        "45016": {
+          "id": 45016,
+          "name": "Arima"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Caroni",
+      "cities": {
+        "45018": {
+          "id": 45018,
+          "name": "Chaguanas"
+        },
+        "45019": {
+          "id": 45019,
+          "name": "Couva"
+        },
+        "45031": {
+          "id": 45031,
+          "name": "Tabaquite"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Mayaro",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Nariva",
+      "cities": {
+        "45026": {
+          "id": 45026,
+          "name": "Rio Claro"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Port-of-Spain",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Saint Andrew",
+      "cities": {
+        "45022": {
+          "id": 45022,
+          "name": "Mucurapo"
+        },
+        "45028": {
+          "id": 45028,
+          "name": "Sangre Grande"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Saint David",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Saint George",
+      "cities": {
+        "45017": {
+          "id": 45017,
+          "name": "Arouca"
+        },
+        "45032": {
+          "id": 45032,
+          "name": "Tacarigua"
+        },
+        "45033": {
+          "id": 45033,
+          "name": "Tunapuna"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Saint Patrick",
+      "cities": {
+        "45023": {
+          "id": 45023,
+          "name": "Penal"
+        },
+        "45024": {
+          "id": 45024,
+          "name": "Point Fortin"
+        },
+        "45030": {
+          "id": 45030,
+          "name": "Siparia"
+        }
+      }
+    }
+  }
+}

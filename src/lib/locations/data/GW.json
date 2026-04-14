@@ -1,1 +1,115 @@
-{"code":"GW","name":"Guinea-Bissau","states":{"10":{"code":"10","name":"Gabu","cities":{"19016":{"id":19016,"name":"Gabu"}}},"11":{"code":"11","name":"Bissau","cities":{"19006":{"id":19006,"name":"Bissau"}}},"12":{"code":"12","name":"Biombo","cities":{}},"01":{"code":"01","name":"Bafata","cities":{"19005":{"id":19005,"name":"Bafata"}}},"02":{"code":"02","name":"Quinara","cities":{"19009":{"id":19009,"name":"Buba"}}},"04":{"code":"04","name":"Oio","cities":{"19007":{"id":19007,"name":"Bissora"},"19014":{"id":19014,"name":"Farim"},"19015":{"id":19015,"name":"Fulacunda"},"19017":{"id":19017,"name":"Mansoa"},"19018":{"id":19018,"name":"Quebo"}}},"05":{"code":"05","name":"Bolama","cities":{"19008":{"id":19008,"name":"Bolama"}}},"06":{"code":"06","name":"Cacheu","cities":{"19010":{"id":19010,"name":"Bubaque"},"19011":{"id":19011,"name":"Cacheu"},"19012":{"id":19012,"name":"Canchungo"}}},"07":{"code":"07","name":"Tombali","cities":{"19013":{"id":19013,"name":"Catio"}}}}}
+{
+  "code": "GW",
+  "name": "Guinea-Bissau",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Gabu",
+      "cities": {
+        "19016": {
+          "id": 19016,
+          "name": "Gabu"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Bissau",
+      "cities": {
+        "19006": {
+          "id": 19006,
+          "name": "Bissau"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Biombo",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Bafata",
+      "cities": {
+        "19005": {
+          "id": 19005,
+          "name": "Bafata"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Quinara",
+      "cities": {
+        "19009": {
+          "id": 19009,
+          "name": "Buba"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Oio",
+      "cities": {
+        "19007": {
+          "id": 19007,
+          "name": "Bissora"
+        },
+        "19014": {
+          "id": 19014,
+          "name": "Farim"
+        },
+        "19015": {
+          "id": 19015,
+          "name": "Fulacunda"
+        },
+        "19017": {
+          "id": 19017,
+          "name": "Mansoa"
+        },
+        "19018": {
+          "id": 19018,
+          "name": "Quebo"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Bolama",
+      "cities": {
+        "19008": {
+          "id": 19008,
+          "name": "Bolama"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Cacheu",
+      "cities": {
+        "19010": {
+          "id": 19010,
+          "name": "Bubaque"
+        },
+        "19011": {
+          "id": 19011,
+          "name": "Cacheu"
+        },
+        "19012": {
+          "id": 19012,
+          "name": "Canchungo"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Tombali",
+      "cities": {
+        "19013": {
+          "id": 19013,
+          "name": "Catio"
+        }
+      }
+    }
+  }
+}

@@ -1,1 +1,58 @@
-{"code":"SB","name":"Solomon Islands","states":{"03":{"code":"03","name":"Malaita","cities":{}},"04":{"code":"04","name":"Western","cities":{}},"05":{"code":"05","name":"Central","cities":{}},"06":{"code":"06","name":"Guadalcanal","cities":{}},"07":{"code":"07","name":"Isabel","cities":{}},"08":{"code":"08","name":"Makira","cities":{"43618":{"id":43618,"name":"Auki"},"43621":{"id":43621,"name":"Honiara"},"43622":{"id":43622,"name":"Kirakira"},"43624":{"id":43624,"name":"Tulagi"}}},"09":{"code":"09","name":"Temotu","cities":{}}}}
+{
+  "code": "SB",
+  "name": "Solomon Islands",
+  "states": {
+    "03": {
+      "code": "03",
+      "name": "Malaita",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Western",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Central",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Guadalcanal",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Isabel",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Makira",
+      "cities": {
+        "43618": {
+          "id": 43618,
+          "name": "Auki"
+        },
+        "43621": {
+          "id": 43621,
+          "name": "Honiara"
+        },
+        "43622": {
+          "id": 43622,
+          "name": "Kirakira"
+        },
+        "43624": {
+          "id": 43624,
+          "name": "Tulagi"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Temotu",
+      "cities": {}
+    }
+  }
+}

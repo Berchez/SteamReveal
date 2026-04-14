@@ -1,1 +1,306 @@
-{"code":"MG","name":"Madagascar","states":{"01":{"code":"01","name":"Antsiranana","cities":{"27249":{"id":27249,"name":"Ambanja"},"27253":{"id":27253,"name":"Ambilobe"},"27260":{"id":27260,"name":"Andapa"},"27266":{"id":27266,"name":"Antalaha"},"27301":{"id":27301,"name":"Sambava"}}},"02":{"code":"02","name":"Fianarantsoa","cities":{"27248":{"id":27248,"name":"Ambalavao"},"27250":{"id":27250,"name":"Ambatofinandrahana"},"27256":{"id":27256,"name":"Ambositra"},"27277":{"id":27277,"name":"Fandriana"},"27278":{"id":27278,"name":"Farafangana"},"27282":{"id":27282,"name":"Fianarantsoa"},"27283":{"id":27283,"name":"Ifanadiana"},"27284":{"id":27284,"name":"Ihosy"},"27285":{"id":27285,"name":"Ikalamavony"},"27286":{"id":27286,"name":"Ikongo"},"27289":{"id":27289,"name":"Manakara"},"27291":{"id":27291,"name":"Mananjary"},"27299":{"id":27299,"name":"Nosy Varika"},"27310":{"id":27310,"name":"Vangaindrano"},"27313":{"id":27313,"name":"Vondrozo"}}},"03":{"code":"03","name":"Mahajanga","cities":{"27270":{"id":27270,"name":"Antsohihy"},"27272":{"id":27272,"name":"Bealanana"},"27287":{"id":27287,"name":"Mahajanga"},"27295":{"id":27295,"name":"Marovoay"},"27307":{"id":27307,"name":"Tsaratanana"}}},"04":{"code":"04","name":"Toamasina","cities":{"27252":{"id":27252,"name":"Ambatondrazaka"},"27255":{"id":27255,"name":"Ambodifototra"},"27259":{"id":27259,"name":"Amparafaravola"},"27261":{"id":27261,"name":"Andevoranto"},"27262":{"id":27262,"name":"Andilamena"},"27280":{"id":27280,"name":"Fenoarivo Atsinanana"},"27288":{"id":27288,"name":"Mahanoro"},"27290":{"id":27290,"name":"Mananara"},"27293":{"id":27293,"name":"Maroantsetra"},"27294":{"id":27294,"name":"Marolambo"},"27297":{"id":27297,"name":"Moramanga"},"27302":{"id":27302,"name":"Soanierana Ivongo"},"27305":{"id":27305,"name":"Toamasina"},"27311":{"id":27311,"name":"Vavatenina"},"27312":{"id":27312,"name":"Vohibinany"}}},"05":{"code":"05","name":"Antananarivo","cities":{"27251":{"id":27251,"name":"Ambatolampy"},"27263":{"id":27263,"name":"Anjozorobe"},"27265":{"id":27265,"name":"Ankazobe"},"27267":{"id":27267,"name":"Antananarivo"},"27268":{"id":27268,"name":"Antanifotsy"},"27269":{"id":27269,"name":"Antsirabe"},"27271":{"id":27271,"name":"Arivonimamo"},"27275":{"id":27275,"name":"Betafo"},"27279":{"id":27279,"name":"Faratsiho"},"27281":{"id":27281,"name":"Fenoarivo"},"27292":{"id":27292,"name":"Manjakandriana"},"27303":{"id":27303,"name":"Soavinandriana"},"27309":{"id":27309,"name":"Tsiroanomandidy"}}},"06":{"code":"06","name":"Toliara","cities":{"27254":{"id":27254,"name":"Amboasary"},"27257":{"id":27257,"name":"Ambovombe"},"27258":{"id":27258,"name":"Ampanihy"},"27264":{"id":27264,"name":"Ankazoabo"},"27273":{"id":27273,"name":"Beloha"},"27274":{"id":27274,"name":"Beroroha"},"27276":{"id":27276,"name":"Betioky"},"27296":{"id":27296,"name":"Miandrivazo"},"27298":{"id":27298,"name":"Morondava"},"27300":{"id":27300,"name":"Sakaraha"},"27304":{"id":27304,"name":"Taolanaro"},"27306":{"id":27306,"name":"Toliary"},"27308":{"id":27308,"name":"Tsihombe"}}}}}
+{
+  "code": "MG",
+  "name": "Madagascar",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Antsiranana",
+      "cities": {
+        "27249": {
+          "id": 27249,
+          "name": "Ambanja"
+        },
+        "27253": {
+          "id": 27253,
+          "name": "Ambilobe"
+        },
+        "27260": {
+          "id": 27260,
+          "name": "Andapa"
+        },
+        "27266": {
+          "id": 27266,
+          "name": "Antalaha"
+        },
+        "27301": {
+          "id": 27301,
+          "name": "Sambava"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Fianarantsoa",
+      "cities": {
+        "27248": {
+          "id": 27248,
+          "name": "Ambalavao"
+        },
+        "27250": {
+          "id": 27250,
+          "name": "Ambatofinandrahana"
+        },
+        "27256": {
+          "id": 27256,
+          "name": "Ambositra"
+        },
+        "27277": {
+          "id": 27277,
+          "name": "Fandriana"
+        },
+        "27278": {
+          "id": 27278,
+          "name": "Farafangana"
+        },
+        "27282": {
+          "id": 27282,
+          "name": "Fianarantsoa"
+        },
+        "27283": {
+          "id": 27283,
+          "name": "Ifanadiana"
+        },
+        "27284": {
+          "id": 27284,
+          "name": "Ihosy"
+        },
+        "27285": {
+          "id": 27285,
+          "name": "Ikalamavony"
+        },
+        "27286": {
+          "id": 27286,
+          "name": "Ikongo"
+        },
+        "27289": {
+          "id": 27289,
+          "name": "Manakara"
+        },
+        "27291": {
+          "id": 27291,
+          "name": "Mananjary"
+        },
+        "27299": {
+          "id": 27299,
+          "name": "Nosy Varika"
+        },
+        "27310": {
+          "id": 27310,
+          "name": "Vangaindrano"
+        },
+        "27313": {
+          "id": 27313,
+          "name": "Vondrozo"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Mahajanga",
+      "cities": {
+        "27270": {
+          "id": 27270,
+          "name": "Antsohihy"
+        },
+        "27272": {
+          "id": 27272,
+          "name": "Bealanana"
+        },
+        "27287": {
+          "id": 27287,
+          "name": "Mahajanga"
+        },
+        "27295": {
+          "id": 27295,
+          "name": "Marovoay"
+        },
+        "27307": {
+          "id": 27307,
+          "name": "Tsaratanana"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Toamasina",
+      "cities": {
+        "27252": {
+          "id": 27252,
+          "name": "Ambatondrazaka"
+        },
+        "27255": {
+          "id": 27255,
+          "name": "Ambodifototra"
+        },
+        "27259": {
+          "id": 27259,
+          "name": "Amparafaravola"
+        },
+        "27261": {
+          "id": 27261,
+          "name": "Andevoranto"
+        },
+        "27262": {
+          "id": 27262,
+          "name": "Andilamena"
+        },
+        "27280": {
+          "id": 27280,
+          "name": "Fenoarivo Atsinanana"
+        },
+        "27288": {
+          "id": 27288,
+          "name": "Mahanoro"
+        },
+        "27290": {
+          "id": 27290,
+          "name": "Mananara"
+        },
+        "27293": {
+          "id": 27293,
+          "name": "Maroantsetra"
+        },
+        "27294": {
+          "id": 27294,
+          "name": "Marolambo"
+        },
+        "27297": {
+          "id": 27297,
+          "name": "Moramanga"
+        },
+        "27302": {
+          "id": 27302,
+          "name": "Soanierana Ivongo"
+        },
+        "27305": {
+          "id": 27305,
+          "name": "Toamasina"
+        },
+        "27311": {
+          "id": 27311,
+          "name": "Vavatenina"
+        },
+        "27312": {
+          "id": 27312,
+          "name": "Vohibinany"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Antananarivo",
+      "cities": {
+        "27251": {
+          "id": 27251,
+          "name": "Ambatolampy"
+        },
+        "27263": {
+          "id": 27263,
+          "name": "Anjozorobe"
+        },
+        "27265": {
+          "id": 27265,
+          "name": "Ankazobe"
+        },
+        "27267": {
+          "id": 27267,
+          "name": "Antananarivo"
+        },
+        "27268": {
+          "id": 27268,
+          "name": "Antanifotsy"
+        },
+        "27269": {
+          "id": 27269,
+          "name": "Antsirabe"
+        },
+        "27271": {
+          "id": 27271,
+          "name": "Arivonimamo"
+        },
+        "27275": {
+          "id": 27275,
+          "name": "Betafo"
+        },
+        "27279": {
+          "id": 27279,
+          "name": "Faratsiho"
+        },
+        "27281": {
+          "id": 27281,
+          "name": "Fenoarivo"
+        },
+        "27292": {
+          "id": 27292,
+          "name": "Manjakandriana"
+        },
+        "27303": {
+          "id": 27303,
+          "name": "Soavinandriana"
+        },
+        "27309": {
+          "id": 27309,
+          "name": "Tsiroanomandidy"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Toliara",
+      "cities": {
+        "27254": {
+          "id": 27254,
+          "name": "Amboasary"
+        },
+        "27257": {
+          "id": 27257,
+          "name": "Ambovombe"
+        },
+        "27258": {
+          "id": 27258,
+          "name": "Ampanihy"
+        },
+        "27264": {
+          "id": 27264,
+          "name": "Ankazoabo"
+        },
+        "27273": {
+          "id": 27273,
+          "name": "Beloha"
+        },
+        "27274": {
+          "id": 27274,
+          "name": "Beroroha"
+        },
+        "27276": {
+          "id": 27276,
+          "name": "Betioky"
+        },
+        "27296": {
+          "id": 27296,
+          "name": "Miandrivazo"
+        },
+        "27298": {
+          "id": 27298,
+          "name": "Morondava"
+        },
+        "27300": {
+          "id": 27300,
+          "name": "Sakaraha"
+        },
+        "27304": {
+          "id": 27304,
+          "name": "Taolanaro"
+        },
+        "27306": {
+          "id": 27306,
+          "name": "Toliary"
+        },
+        "27308": {
+          "id": 27308,
+          "name": "Tsihombe"
+        }
+      }
+    }
+  }
+}

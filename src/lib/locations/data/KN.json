@@ -1,1 +1,143 @@
-{"code":"KN","name":"St. Kitts and Nevis","states":{"10":{"code":"10","name":"Saint Paul Charlestown","cities":{}},"11":{"code":"11","name":"Saint Peter Basseterre","cities":{"26396":{"id":26396,"name":"Monkey Hill"}}},"12":{"code":"12","name":"Saint Thomas Lowland","cities":{"26389":{"id":26389,"name":"Cotton Ground"}}},"13":{"code":"13","name":"Saint Thomas Middle Island","cities":{"26395":{"id":26395,"name":"Middle Island"}}},"15":{"code":"15","name":"Trinity Palmetto Point","cities":{}},"01":{"code":"01","name":"Christ Church Nichola Town","cities":{"26394":{"id":26394,"name":"Mansion"}}},"02":{"code":"02","name":"Saint Anne Sandy Point","cities":{"26391":{"id":26391,"name":"Fig Tree"},"26392":{"id":26392,"name":"Fig Tree"},"26399":{"id":26399,"name":"Sandy Point"}}},"03":{"code":"03","name":"Saint George Basseterre","cities":{"26386":{"id":26386,"name":"Basseterre"}}},"04":{"code":"04","name":"Saint George Gingerland","cities":{"26393":{"id":26393,"name":"Gingerland"}}},"05":{"code":"05","name":"Saint James Windward","cities":{"26397":{"id":26397,"name":"Newcastle"}}},"06":{"code":"06","name":"Saint John Capisterre","cities":{"26390":{"id":26390,"name":"Dieppe Bay"},"26398":{"id":26398,"name":"Sadlers"}}},"07":{"code":"07","name":"Saint John Figtree","cities":{"26388":{"id":26388,"name":"Charlestown"}}},"08":{"code":"08","name":"Saint Mary Cayon","cities":{"26387":{"id":26387,"name":"Cayon"}}},"09":{"code":"09","name":"Saint Paul Capisterre","cities":{}}}}
+{
+  "code": "KN",
+  "name": "St. Kitts and Nevis",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Saint Paul Charlestown",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Saint Peter Basseterre",
+      "cities": {
+        "26396": {
+          "id": 26396,
+          "name": "Monkey Hill"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Saint Thomas Lowland",
+      "cities": {
+        "26389": {
+          "id": 26389,
+          "name": "Cotton Ground"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Saint Thomas Middle Island",
+      "cities": {
+        "26395": {
+          "id": 26395,
+          "name": "Middle Island"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Trinity Palmetto Point",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Christ Church Nichola Town",
+      "cities": {
+        "26394": {
+          "id": 26394,
+          "name": "Mansion"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Saint Anne Sandy Point",
+      "cities": {
+        "26391": {
+          "id": 26391,
+          "name": "Fig Tree"
+        },
+        "26392": {
+          "id": 26392,
+          "name": "Fig Tree"
+        },
+        "26399": {
+          "id": 26399,
+          "name": "Sandy Point"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Saint George Basseterre",
+      "cities": {
+        "26386": {
+          "id": 26386,
+          "name": "Basseterre"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Saint George Gingerland",
+      "cities": {
+        "26393": {
+          "id": 26393,
+          "name": "Gingerland"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Saint James Windward",
+      "cities": {
+        "26397": {
+          "id": 26397,
+          "name": "Newcastle"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Saint John Capisterre",
+      "cities": {
+        "26390": {
+          "id": 26390,
+          "name": "Dieppe Bay"
+        },
+        "26398": {
+          "id": 26398,
+          "name": "Sadlers"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Saint John Figtree",
+      "cities": {
+        "26388": {
+          "id": 26388,
+          "name": "Charlestown"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Saint Mary Cayon",
+      "cities": {
+        "26387": {
+          "id": 26387,
+          "name": "Cayon"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Saint Paul Capisterre",
+      "cities": {}
+    }
+  }
+}

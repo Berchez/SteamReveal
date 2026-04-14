@@ -1,1 +1,76 @@
-{"code":"BH","name":"Bahrain","states":{"10":{"code":"10","name":"Al Mintaqah ash Shamaliyah","cities":{}},"11":{"code":"11","name":"Al Mintaqah al Wusta","cities":{}},"12":{"code":"12","name":"Madinat","cities":{}},"13":{"code":"13","name":"Ar Rifa","cities":{}},"14":{"code":"14","name":"Madinat Hamad","cities":{}},"01":{"code":"01","name":"Al Hadd","cities":{}},"02":{"code":"02","name":"Al Manamah","cities":{"6961":{"id":6961,"name":"Manama"}}},"03":{"code":"03","name":"Al Muharraq","cities":{}},"05":{"code":"05","name":"Jidd Hafs","cities":{}},"06":{"code":"06","name":"Sitrah","cities":{"6962":{"id":6962,"name":"Sitrah"}}},"08":{"code":"08","name":"Al Mintaqah al Gharbiyah","cities":{}},"09":{"code":"09","name":"Mintaqat Juzur Hawar","cities":{}}}}
+{
+  "code": "BH",
+  "name": "Bahrain",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Al Mintaqah ash Shamaliyah",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Al Mintaqah al Wusta",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Madinat",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Ar Rifa",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Madinat Hamad",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Al Hadd",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Al Manamah",
+      "cities": {
+        "6961": {
+          "id": 6961,
+          "name": "Manama"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Al Muharraq",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Jidd Hafs",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Sitrah",
+      "cities": {
+        "6962": {
+          "id": 6962,
+          "name": "Sitrah"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Al Mintaqah al Gharbiyah",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Mintaqat Juzur Hawar",
+      "cities": {}
+    }
+  }
+}

@@ -1,1 +1,184 @@
-{"code":"JO","name":"Jordan","states":{"10":{"code":"10","name":"Al Mafraq","cities":{"25496":{"id":25496,"name":"Sabha"}}},"12":{"code":"12","name":"At Tafilah","cities":{"25478":{"id":25478,"name":"Busayra"}}},"13":{"code":"13","name":"Az Zarqa","cities":{}},"14":{"code":"14","name":"Irbid","cities":{"25472":{"id":25472,"name":"Aydun"},"25473":{"id":25473,"name":"Balila"},"25475":{"id":25475,"name":"Bayt Idis"},"25476":{"id":25476,"name":"Bayt Yafa"},"25477":{"id":25477,"name":"Burma"},"25479":{"id":25479,"name":"Dayr Yusuf"},"25480":{"id":25480,"name":"Hawwarah"},"25481":{"id":25481,"name":"Irbid"},"25483":{"id":25483,"name":"Judayta"},"25484":{"id":25484,"name":"Kafr Abil"},"25485":{"id":25485,"name":"Kafr Asad"},"25486":{"id":25486,"name":"Kafr Rakib"},"25487":{"id":25487,"name":"Kafr Sawm"},"25488":{"id":25488,"name":"Kafr Yuba"},"25489":{"id":25489,"name":"Kitim"},"25490":{"id":25490,"name":"Kuraymah"},"25492":{"id":25492,"name":"Malka"},"25493":{"id":25493,"name":"Qafqafa"},"25495":{"id":25495,"name":"Raymun"},"25498":{"id":25498,"name":"Sakib"},"25499":{"id":25499,"name":"Sal"},"25500":{"id":25500,"name":"Samma"},"25502":{"id":25502,"name":"Suf"},"25503":{"id":25503,"name":"Tibnah"},"25505":{"id":25505,"name":"Umm Qays"},"25507":{"id":25507,"name":"Waqqas"}}},"16":{"code":"16","name":"Amman","cities":{}},"02":{"code":"02","name":"Al Balqa'","cities":{"25497":{"id":25497,"name":"Safut"},"25508":{"id":25508,"name":"Yarqa"}}},"07":{"code":"07","name":"Ma","cities":{"25474":{"id":25474,"name":"Bayir"},"25506":{"id":25506,"name":"Wadi Musa"}}},"09":{"code":"09","name":"Al Karak","cities":{"25501":{"id":25501,"name":"Sirfa"}}}}}
+{
+  "code": "JO",
+  "name": "Jordan",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Al Mafraq",
+      "cities": {
+        "25496": {
+          "id": 25496,
+          "name": "Sabha"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "At Tafilah",
+      "cities": {
+        "25478": {
+          "id": 25478,
+          "name": "Busayra"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Az Zarqa",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Irbid",
+      "cities": {
+        "25472": {
+          "id": 25472,
+          "name": "Aydun"
+        },
+        "25473": {
+          "id": 25473,
+          "name": "Balila"
+        },
+        "25475": {
+          "id": 25475,
+          "name": "Bayt Idis"
+        },
+        "25476": {
+          "id": 25476,
+          "name": "Bayt Yafa"
+        },
+        "25477": {
+          "id": 25477,
+          "name": "Burma"
+        },
+        "25479": {
+          "id": 25479,
+          "name": "Dayr Yusuf"
+        },
+        "25480": {
+          "id": 25480,
+          "name": "Hawwarah"
+        },
+        "25481": {
+          "id": 25481,
+          "name": "Irbid"
+        },
+        "25483": {
+          "id": 25483,
+          "name": "Judayta"
+        },
+        "25484": {
+          "id": 25484,
+          "name": "Kafr Abil"
+        },
+        "25485": {
+          "id": 25485,
+          "name": "Kafr Asad"
+        },
+        "25486": {
+          "id": 25486,
+          "name": "Kafr Rakib"
+        },
+        "25487": {
+          "id": 25487,
+          "name": "Kafr Sawm"
+        },
+        "25488": {
+          "id": 25488,
+          "name": "Kafr Yuba"
+        },
+        "25489": {
+          "id": 25489,
+          "name": "Kitim"
+        },
+        "25490": {
+          "id": 25490,
+          "name": "Kuraymah"
+        },
+        "25492": {
+          "id": 25492,
+          "name": "Malka"
+        },
+        "25493": {
+          "id": 25493,
+          "name": "Qafqafa"
+        },
+        "25495": {
+          "id": 25495,
+          "name": "Raymun"
+        },
+        "25498": {
+          "id": 25498,
+          "name": "Sakib"
+        },
+        "25499": {
+          "id": 25499,
+          "name": "Sal"
+        },
+        "25500": {
+          "id": 25500,
+          "name": "Samma"
+        },
+        "25502": {
+          "id": 25502,
+          "name": "Suf"
+        },
+        "25503": {
+          "id": 25503,
+          "name": "Tibnah"
+        },
+        "25505": {
+          "id": 25505,
+          "name": "Umm Qays"
+        },
+        "25507": {
+          "id": 25507,
+          "name": "Waqqas"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Amman",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Al Balqa'",
+      "cities": {
+        "25497": {
+          "id": 25497,
+          "name": "Safut"
+        },
+        "25508": {
+          "id": 25508,
+          "name": "Yarqa"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Ma",
+      "cities": {
+        "25474": {
+          "id": 25474,
+          "name": "Bayir"
+        },
+        "25506": {
+          "id": 25506,
+          "name": "Wadi Musa"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Al Karak",
+      "cities": {
+        "25501": {
+          "id": 25501,
+          "name": "Sirfa"
+        }
+      }
+    }
+  }
+}

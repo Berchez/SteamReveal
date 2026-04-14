@@ -1,1 +1,40 @@
-{"code":"TO","name":"Tonga","states":{"01":{"code":"01","name":"Ha","cities":{"44756":{"id":44756,"name":"Pangai"}}},"02":{"code":"02","name":"Tongatapu","cities":{"44757":{"id":44757,"name":"Vaini"}}},"03":{"code":"03","name":"Vava","cities":{"44754":{"id":44754,"name":"Hihifo"},"44755":{"id":44755,"name":"Neiafu"}}}}}
+{
+  "code": "TO",
+  "name": "Tonga",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Ha",
+      "cities": {
+        "44756": {
+          "id": 44756,
+          "name": "Pangai"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Tongatapu",
+      "cities": {
+        "44757": {
+          "id": 44757,
+          "name": "Vaini"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Vava",
+      "cities": {
+        "44754": {
+          "id": 44754,
+          "name": "Hihifo"
+        },
+        "44755": {
+          "id": 44755,
+          "name": "Neiafu"
+        }
+      }
+    }
+  }
+}

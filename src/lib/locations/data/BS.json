@@ -1,1 +1,190 @@
-{"code":"BS","name":"Bahamas","states":{"10":{"code":"10","name":"Exuma","cities":{}},"13":{"code":"13","name":"Inagua","cities":{"9142":{"id":9142,"name":"Matthew Town"}}},"15":{"code":"15","name":"Long Island","cities":{"9135":{"id":9135,"name":"Clarence Town"}}},"16":{"code":"16","name":"Mayaguana","cities":{"9145":{"id":9145,"name":"Pirates Well"}}},"18":{"code":"18","name":"Ragged Island","cities":{}},"22":{"code":"22","name":"Harbour Island","cities":{"9138":{"id":9138,"name":"Dunmore Town"}}},"23":{"code":"23","name":"New Providence","cities":{"9143":{"id":9143,"name":"Nassau"}}},"24":{"code":"24","name":"Acklins and Crooked Islands","cities":{"9137":{"id":9137,"name":"Colonel Hill"},"9147":{"id":9147,"name":"Snug Corner"}}},"25":{"code":"25","name":"Freeport","cities":{"9139":{"id":9139,"name":"Freeport"}}},"26":{"code":"26","name":"Fresh Creek","cities":{"9134":{"id":9134,"name":"Andros Town"}}},"27":{"code":"27","name":"Governor's Harbour","cities":{}},"28":{"code":"28","name":"Green Turtle Cay","cities":{"9148":{"id":9148,"name":"Sweeting Cay"}}},"29":{"code":"29","name":"High Rock","cities":{"9140":{"id":9140,"name":"High Rock"}}},"30":{"code":"30","name":"Kemps Bay","cities":{}},"31":{"code":"31","name":"Marsh Harbour","cities":{"9141":{"id":9141,"name":"Marsh Harbour"}}},"32":{"code":"32","name":"Nichollstown and Berry Islands","cities":{"9144":{"id":9144,"name":"Nicholls Town"}}},"33":{"code":"33","name":"Rock Sound","cities":{"9146":{"id":9146,"name":"Rock Sound"}}},"34":{"code":"34","name":"Sandy Point","cities":{}},"35":{"code":"35","name":"San Salvador and Rum Cay","cities":{"9136":{"id":9136,"name":"Cockburn Town"}}},"05":{"code":"05","name":"Bimini","cities":{"9133":{"id":9133,"name":"Alice Town"}}},"06":{"code":"06","name":"Cat Island","cities":{}}}}
+{
+  "code": "BS",
+  "name": "Bahamas",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Exuma",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Inagua",
+      "cities": {
+        "9142": {
+          "id": 9142,
+          "name": "Matthew Town"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Long Island",
+      "cities": {
+        "9135": {
+          "id": 9135,
+          "name": "Clarence Town"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Mayaguana",
+      "cities": {
+        "9145": {
+          "id": 9145,
+          "name": "Pirates Well"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Ragged Island",
+      "cities": {}
+    },
+    "22": {
+      "code": "22",
+      "name": "Harbour Island",
+      "cities": {
+        "9138": {
+          "id": 9138,
+          "name": "Dunmore Town"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "New Providence",
+      "cities": {
+        "9143": {
+          "id": 9143,
+          "name": "Nassau"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Acklins and Crooked Islands",
+      "cities": {
+        "9137": {
+          "id": 9137,
+          "name": "Colonel Hill"
+        },
+        "9147": {
+          "id": 9147,
+          "name": "Snug Corner"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Freeport",
+      "cities": {
+        "9139": {
+          "id": 9139,
+          "name": "Freeport"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Fresh Creek",
+      "cities": {
+        "9134": {
+          "id": 9134,
+          "name": "Andros Town"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Governor's Harbour",
+      "cities": {}
+    },
+    "28": {
+      "code": "28",
+      "name": "Green Turtle Cay",
+      "cities": {
+        "9148": {
+          "id": 9148,
+          "name": "Sweeting Cay"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "High Rock",
+      "cities": {
+        "9140": {
+          "id": 9140,
+          "name": "High Rock"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Kemps Bay",
+      "cities": {}
+    },
+    "31": {
+      "code": "31",
+      "name": "Marsh Harbour",
+      "cities": {
+        "9141": {
+          "id": 9141,
+          "name": "Marsh Harbour"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Nichollstown and Berry Islands",
+      "cities": {
+        "9144": {
+          "id": 9144,
+          "name": "Nicholls Town"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "Rock Sound",
+      "cities": {
+        "9146": {
+          "id": 9146,
+          "name": "Rock Sound"
+        }
+      }
+    },
+    "34": {
+      "code": "34",
+      "name": "Sandy Point",
+      "cities": {}
+    },
+    "35": {
+      "code": "35",
+      "name": "San Salvador and Rum Cay",
+      "cities": {
+        "9136": {
+          "id": 9136,
+          "name": "Cockburn Town"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Bimini",
+      "cities": {
+        "9133": {
+          "id": 9133,
+          "name": "Alice Town"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Cat Island",
+      "cities": {}
+    }
+  }
+}

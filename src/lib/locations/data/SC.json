@@ -1,1 +1,126 @@
-{"code":"SC","name":"Seychelles","states":{"10":{"code":"10","name":"Bel Ombre","cities":{}},"11":{"code":"11","name":"Cascade","cities":{}},"12":{"code":"12","name":"Glacis","cities":{}},"13":{"code":"13","name":"Grand' Anse","cities":{}},"14":{"code":"14","name":"Grand' Anse","cities":{}},"15":{"code":"15","name":"La Digue","cities":{}},"16":{"code":"16","name":"La Riviere Anglaise","cities":{}},"17":{"code":"17","name":"Mont Buxton","cities":{}},"18":{"code":"18","name":"Mont Fleuri","cities":{}},"19":{"code":"19","name":"Plaisance","cities":{}},"20":{"code":"20","name":"Pointe La Rue","cities":{}},"21":{"code":"21","name":"Port Glaud","cities":{}},"22":{"code":"22","name":"Saint Louis","cities":{}},"23":{"code":"23","name":"Takamaka","cities":{}},"01":{"code":"01","name":"Anse aux Pins","cities":{}},"02":{"code":"02","name":"Anse Boileau","cities":{}},"03":{"code":"03","name":"Anse Etoile","cities":{}},"04":{"code":"04","name":"Anse Louis","cities":{}},"05":{"code":"05","name":"Anse Royale","cities":{}},"06":{"code":"06","name":"Baie Lazare","cities":{}},"07":{"code":"07","name":"Baie Sainte Anne","cities":{}},"08":{"code":"08","name":"Beau Vallon","cities":{"43625":{"id":43625,"name":"Victoria"}}},"09":{"code":"09","name":"Bel Air","cities":{}}}}
+{
+  "code": "SC",
+  "name": "Seychelles",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Bel Ombre",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Cascade",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Glacis",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Grand' Anse",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Grand' Anse",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "La Digue",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "La Riviere Anglaise",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Mont Buxton",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Mont Fleuri",
+      "cities": {}
+    },
+    "19": {
+      "code": "19",
+      "name": "Plaisance",
+      "cities": {}
+    },
+    "20": {
+      "code": "20",
+      "name": "Pointe La Rue",
+      "cities": {}
+    },
+    "21": {
+      "code": "21",
+      "name": "Port Glaud",
+      "cities": {}
+    },
+    "22": {
+      "code": "22",
+      "name": "Saint Louis",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Takamaka",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Anse aux Pins",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Anse Boileau",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Anse Etoile",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Anse Louis",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Anse Royale",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Baie Lazare",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Baie Sainte Anne",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Beau Vallon",
+      "cities": {
+        "43625": {
+          "id": 43625,
+          "name": "Victoria"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Bel Air",
+      "cities": {}
+    }
+  }
+}

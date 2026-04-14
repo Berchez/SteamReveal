@@ -1,1 +1,345 @@
-{"code":"NI","name":"Nicaragua","states":{"10":{"code":"10","name":"Managua","cities":{"29856":{"id":29856,"name":"La Trinidad"},"29858":{"id":29858,"name":"Managua"},"29862":{"id":29862,"name":"Mateare"},"29884":{"id":29884,"name":"San Rafael Del Sur"},"29894":{"id":29894,"name":"Tipitapa"}}},"11":{"code":"11","name":"Masaya","cities":{"29852":{"id":29852,"name":"La Concepcion"},"29859":{"id":29859,"name":"Masatepe"},"29860":{"id":29860,"name":"Masaya"},"29866":{"id":29866,"name":"Nandasmo"},"29867":{"id":29867,"name":"Nindiri"},"29868":{"id":29868,"name":"Niquinohomo"},"29893":{"id":29893,"name":"Ticuantepe"}}},"12":{"code":"12","name":"Matagalpa","cities":{"29836":{"id":29836,"name":"Ciudad Dario"},"29861":{"id":29861,"name":"Matagalpa"},"29863":{"id":29863,"name":"Matiguas"},"29874":{"id":29874,"name":"Rio Blanco"},"29888":{"id":29888,"name":"Sebaco"}}},"13":{"code":"13","name":"Nueva Segovia","cities":{"29848":{"id":29848,"name":"Jalapa"},"29870":{"id":29870,"name":"Ocotal"},"29873":{"id":29873,"name":"Quilali"},"29898":{"id":29898,"name":"Wiwili"}}},"14":{"code":"14","name":"Rio San Juan","cities":{"29877":{"id":29877,"name":"San Carlos"},"29883":{"id":29883,"name":"San Miguelito"}}},"15":{"code":"15","name":"Rivas","cities":{"29828":{"id":29828,"name":"Belen"},"29843":{"id":29843,"name":"El Jicaro"},"29875":{"id":29875,"name":"Rivas"},"29879":{"id":29879,"name":"San Jorge"},"29880":{"id":29880,"name":"San Juan Del Sur"}}},"16":{"code":"16","name":"Zelaya","cities":{}},"01":{"code":"01","name":"Boaco","cities":{"29830":{"id":29830,"name":"Boaco"},"29833":{"id":29833,"name":"Camoapa"},"29878":{"id":29878,"name":"San Isidro"},"29881":{"id":29881,"name":"San Lorenzo"}}},"02":{"code":"02","name":"Carazo","cities":{"29840":{"id":29840,"name":"Diriamba"},"29842":{"id":29842,"name":"Dolores"},"29850":{"id":29850,"name":"Jinotepe"},"29882":{"id":29882,"name":"San Marcos"},"29885":{"id":29885,"name":"Santa Teresa"}}},"03":{"code":"03","name":"Chinandega","cities":{"29834":{"id":29834,"name":"Chichigalpa"},"29835":{"id":29835,"name":"Chinandega"},"29838":{"id":29838,"name":"Corinto"},"29845":{"id":29845,"name":"El Viejo"},"29872":{"id":29872,"name":"Puerto Morazan"},"29890":{"id":29890,"name":"Somotillo"}}},"04":{"code":"04","name":"Chontales","cities":{"29827":{"id":29827,"name":"Acoyapa"},"29851":{"id":29851,"name":"Juigalpa"},"29886":{"id":29886,"name":"Santo Domingo"},"29887":{"id":29887,"name":"Santo Tomas"},"29895":{"id":29895,"name":"Villa Sandino"}}},"05":{"code":"05","name":"Esteli","cities":{"29837":{"id":29837,"name":"Condega"},"29846":{"id":29846,"name":"Esteli"}}},"06":{"code":"06","name":"Granada","cities":{"29841":{"id":29841,"name":"Diriomo"},"29847":{"id":29847,"name":"Granada"},"29865":{"id":29865,"name":"Nandaime"}}},"07":{"code":"07","name":"Jinotega","cities":{"29849":{"id":29849,"name":"Jinotega"}}},"08":{"code":"08","name":"Leon","cities":{"29844":{"id":29844,"name":"El Sauce"},"29854":{"id":29854,"name":"La Paz Centro"},"29855":{"id":29855,"name":"Larreynaga"},"29857":{"id":29857,"name":"Leon"},"29864":{"id":29864,"name":"Nagarote"},"29892":{"id":29892,"name":"Telica"}}},"09":{"code":"09","name":"Madriz","cities":{"29891":{"id":29891,"name":"Somoto"}}}}}
+{
+  "code": "NI",
+  "name": "Nicaragua",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Managua",
+      "cities": {
+        "29856": {
+          "id": 29856,
+          "name": "La Trinidad"
+        },
+        "29858": {
+          "id": 29858,
+          "name": "Managua"
+        },
+        "29862": {
+          "id": 29862,
+          "name": "Mateare"
+        },
+        "29884": {
+          "id": 29884,
+          "name": "San Rafael Del Sur"
+        },
+        "29894": {
+          "id": 29894,
+          "name": "Tipitapa"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Masaya",
+      "cities": {
+        "29852": {
+          "id": 29852,
+          "name": "La Concepcion"
+        },
+        "29859": {
+          "id": 29859,
+          "name": "Masatepe"
+        },
+        "29860": {
+          "id": 29860,
+          "name": "Masaya"
+        },
+        "29866": {
+          "id": 29866,
+          "name": "Nandasmo"
+        },
+        "29867": {
+          "id": 29867,
+          "name": "Nindiri"
+        },
+        "29868": {
+          "id": 29868,
+          "name": "Niquinohomo"
+        },
+        "29893": {
+          "id": 29893,
+          "name": "Ticuantepe"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Matagalpa",
+      "cities": {
+        "29836": {
+          "id": 29836,
+          "name": "Ciudad Dario"
+        },
+        "29861": {
+          "id": 29861,
+          "name": "Matagalpa"
+        },
+        "29863": {
+          "id": 29863,
+          "name": "Matiguas"
+        },
+        "29874": {
+          "id": 29874,
+          "name": "Rio Blanco"
+        },
+        "29888": {
+          "id": 29888,
+          "name": "Sebaco"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Nueva Segovia",
+      "cities": {
+        "29848": {
+          "id": 29848,
+          "name": "Jalapa"
+        },
+        "29870": {
+          "id": 29870,
+          "name": "Ocotal"
+        },
+        "29873": {
+          "id": 29873,
+          "name": "Quilali"
+        },
+        "29898": {
+          "id": 29898,
+          "name": "Wiwili"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Rio San Juan",
+      "cities": {
+        "29877": {
+          "id": 29877,
+          "name": "San Carlos"
+        },
+        "29883": {
+          "id": 29883,
+          "name": "San Miguelito"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Rivas",
+      "cities": {
+        "29828": {
+          "id": 29828,
+          "name": "Belen"
+        },
+        "29843": {
+          "id": 29843,
+          "name": "El Jicaro"
+        },
+        "29875": {
+          "id": 29875,
+          "name": "Rivas"
+        },
+        "29879": {
+          "id": 29879,
+          "name": "San Jorge"
+        },
+        "29880": {
+          "id": 29880,
+          "name": "San Juan Del Sur"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Zelaya",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Boaco",
+      "cities": {
+        "29830": {
+          "id": 29830,
+          "name": "Boaco"
+        },
+        "29833": {
+          "id": 29833,
+          "name": "Camoapa"
+        },
+        "29878": {
+          "id": 29878,
+          "name": "San Isidro"
+        },
+        "29881": {
+          "id": 29881,
+          "name": "San Lorenzo"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Carazo",
+      "cities": {
+        "29840": {
+          "id": 29840,
+          "name": "Diriamba"
+        },
+        "29842": {
+          "id": 29842,
+          "name": "Dolores"
+        },
+        "29850": {
+          "id": 29850,
+          "name": "Jinotepe"
+        },
+        "29882": {
+          "id": 29882,
+          "name": "San Marcos"
+        },
+        "29885": {
+          "id": 29885,
+          "name": "Santa Teresa"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Chinandega",
+      "cities": {
+        "29834": {
+          "id": 29834,
+          "name": "Chichigalpa"
+        },
+        "29835": {
+          "id": 29835,
+          "name": "Chinandega"
+        },
+        "29838": {
+          "id": 29838,
+          "name": "Corinto"
+        },
+        "29845": {
+          "id": 29845,
+          "name": "El Viejo"
+        },
+        "29872": {
+          "id": 29872,
+          "name": "Puerto Morazan"
+        },
+        "29890": {
+          "id": 29890,
+          "name": "Somotillo"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Chontales",
+      "cities": {
+        "29827": {
+          "id": 29827,
+          "name": "Acoyapa"
+        },
+        "29851": {
+          "id": 29851,
+          "name": "Juigalpa"
+        },
+        "29886": {
+          "id": 29886,
+          "name": "Santo Domingo"
+        },
+        "29887": {
+          "id": 29887,
+          "name": "Santo Tomas"
+        },
+        "29895": {
+          "id": 29895,
+          "name": "Villa Sandino"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Esteli",
+      "cities": {
+        "29837": {
+          "id": 29837,
+          "name": "Condega"
+        },
+        "29846": {
+          "id": 29846,
+          "name": "Esteli"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Granada",
+      "cities": {
+        "29841": {
+          "id": 29841,
+          "name": "Diriomo"
+        },
+        "29847": {
+          "id": 29847,
+          "name": "Granada"
+        },
+        "29865": {
+          "id": 29865,
+          "name": "Nandaime"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Jinotega",
+      "cities": {
+        "29849": {
+          "id": 29849,
+          "name": "Jinotega"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Leon",
+      "cities": {
+        "29844": {
+          "id": 29844,
+          "name": "El Sauce"
+        },
+        "29854": {
+          "id": 29854,
+          "name": "La Paz Centro"
+        },
+        "29855": {
+          "id": 29855,
+          "name": "Larreynaga"
+        },
+        "29857": {
+          "id": 29857,
+          "name": "Leon"
+        },
+        "29864": {
+          "id": 29864,
+          "name": "Nagarote"
+        },
+        "29892": {
+          "id": 29892,
+          "name": "Telica"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Madriz",
+      "cities": {
+        "29891": {
+          "id": 29891,
+          "name": "Somoto"
+        }
+      }
+    }
+  }
+}

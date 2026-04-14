@@ -1,1 +1,172 @@
-{"code":"JM","name":"Jamaica","states":{"10":{"code":"10","name":"Saint Catherine","cities":{"25470":{"id":25470,"name":"Portmore"},"25471":{"id":25471,"name":"Spanish Town"}}},"11":{"code":"11","name":"Saint Elizabeth","cities":{"25454":{"id":25454,"name":"Black River"},"25455":{"id":25455,"name":"Bull Savanna"}}},"12":{"code":"12","name":"Saint James","cities":{"25452":{"id":25452,"name":"Anchovy"},"25456":{"id":25456,"name":"Cambridge"},"25463":{"id":25463,"name":"Maroon Town"},"25465":{"id":25465,"name":"Montego Bay"}}},"13":{"code":"13","name":"Saint Mary","cities":{"25469":{"id":25469,"name":"Port Maria"}}},"14":{"code":"14","name":"Saint Thomas","cities":{"25466":{"id":25466,"name":"Morant Bay"}}},"15":{"code":"15","name":"Trelawny","cities":{"25451":{"id":25451,"name":"Albert Town"},"25458":{"id":25458,"name":"Falmouth"}}},"16":{"code":"16","name":"Westmoreland","cities":{}},"17":{"code":"17","name":"Kingston","cities":{}},"01":{"code":"01","name":"Clarendon","cities":{"25464":{"id":25464,"name":"May Pen"}}},"02":{"code":"02","name":"Hanover","cities":{"25461":{"id":25461,"name":"Lucea"}}},"04":{"code":"04","name":"Manchester","cities":{"25462":{"id":25462,"name":"Mandeville"}}},"07":{"code":"07","name":"Portland","cities":{"25468":{"id":25468,"name":"Port Antonio"}}},"08":{"code":"08","name":"Saint Andrew","cities":{"25459":{"id":25459,"name":"Half Way Tree"},"25460":{"id":25460,"name":"Kingston"}}},"09":{"code":"09","name":"Saint Ann","cities":{"25453":{"id":25453,"name":"Bamboo"},"25457":{"id":25457,"name":"Discovery Bay"},"25467":{"id":25467,"name":"Ocho Rios"}}}}}
+{
+  "code": "JM",
+  "name": "Jamaica",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Saint Catherine",
+      "cities": {
+        "25470": {
+          "id": 25470,
+          "name": "Portmore"
+        },
+        "25471": {
+          "id": 25471,
+          "name": "Spanish Town"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Saint Elizabeth",
+      "cities": {
+        "25454": {
+          "id": 25454,
+          "name": "Black River"
+        },
+        "25455": {
+          "id": 25455,
+          "name": "Bull Savanna"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Saint James",
+      "cities": {
+        "25452": {
+          "id": 25452,
+          "name": "Anchovy"
+        },
+        "25456": {
+          "id": 25456,
+          "name": "Cambridge"
+        },
+        "25463": {
+          "id": 25463,
+          "name": "Maroon Town"
+        },
+        "25465": {
+          "id": 25465,
+          "name": "Montego Bay"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Saint Mary",
+      "cities": {
+        "25469": {
+          "id": 25469,
+          "name": "Port Maria"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Saint Thomas",
+      "cities": {
+        "25466": {
+          "id": 25466,
+          "name": "Morant Bay"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Trelawny",
+      "cities": {
+        "25451": {
+          "id": 25451,
+          "name": "Albert Town"
+        },
+        "25458": {
+          "id": 25458,
+          "name": "Falmouth"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Westmoreland",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Kingston",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Clarendon",
+      "cities": {
+        "25464": {
+          "id": 25464,
+          "name": "May Pen"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Hanover",
+      "cities": {
+        "25461": {
+          "id": 25461,
+          "name": "Lucea"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Manchester",
+      "cities": {
+        "25462": {
+          "id": 25462,
+          "name": "Mandeville"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Portland",
+      "cities": {
+        "25468": {
+          "id": 25468,
+          "name": "Port Antonio"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Saint Andrew",
+      "cities": {
+        "25459": {
+          "id": 25459,
+          "name": "Half Way Tree"
+        },
+        "25460": {
+          "id": 25460,
+          "name": "Kingston"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Saint Ann",
+      "cities": {
+        "25453": {
+          "id": 25453,
+          "name": "Bamboo"
+        },
+        "25457": {
+          "id": 25457,
+          "name": "Discovery Bay"
+        },
+        "25467": {
+          "id": 25467,
+          "name": "Ocho Rios"
+        }
+      }
+    }
+  }
+}

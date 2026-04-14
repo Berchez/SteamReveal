@@ -1,1 +1,293 @@
-{"code":"MA","name":"Morocco","states":{"10":{"code":"10","name":"El Kelaa des Srarhna","cities":{}},"11":{"code":"11","name":"Er Rachidia","cities":{}},"12":{"code":"12","name":"Essaouira","cities":{}},"13":{"code":"13","name":"Fes","cities":{}},"14":{"code":"14","name":"Figuig","cities":{"27199":{"id":27199,"name":"Fez"}}},"15":{"code":"15","name":"Kenitra","cities":{"27200":{"id":27200,"name":"Kenitra"}}},"16":{"code":"16","name":"Khemisset","cities":{}},"17":{"code":"17","name":"Khenifra","cities":{"27203":{"id":27203,"name":"Mrirt"}}},"18":{"code":"18","name":"Khouribga","cities":{}},"19":{"code":"19","name":"Marrakech","cities":{"27201":{"id":27201,"name":"Marrakesh"}}},"20":{"code":"20","name":"Meknes","cities":{}},"21":{"code":"21","name":"Nador","cities":{"27204":{"id":27204,"name":"Nador"}}},"22":{"code":"22","name":"Ouarzazate","cities":{}},"23":{"code":"23","name":"Oujda","cities":{}},"24":{"code":"24","name":"Rabat-Sale","cities":{"27205":{"id":27205,"name":"Rabat"}}},"25":{"code":"25","name":"Safi","cities":{"27195":{"id":27195,"name":"Asfi"}}},"26":{"code":"26","name":"Settat","cities":{}},"27":{"code":"27","name":"Tanger","cities":{"27196":{"id":27196,"name":"Asilah"},"27207":{"id":27207,"name":"Tangier"}}},"29":{"code":"29","name":"Tata","cities":{}},"30":{"code":"30","name":"Taza","cities":{}},"32":{"code":"32","name":"Tiznit","cities":{"27211":{"id":27211,"name":"Tiznit"}}},"33":{"code":"33","name":"Guelmim","cities":{}},"34":{"code":"34","name":"Ifrane","cities":{}},"35":{"code":"35","name":"Laayoune","cities":{}},"36":{"code":"36","name":"Tan-Tan","cities":{}},"37":{"code":"37","name":"Taounate","cities":{"27209":{"id":27209,"name":"Tawnat"}}},"38":{"code":"38","name":"Sidi Kacem","cities":{"27206":{"id":27206,"name":"Sidi Qasim"},"27212":{"id":27212,"name":"Wazzan"}}},"39":{"code":"39","name":"Taroudannt","cities":{"27208":{"id":27208,"name":"Tarudant"}}},"40":{"code":"40","name":"Tetouan","cities":{"27202":{"id":27202,"name":"Martil"},"27210":{"id":27210,"name":"Tetouan"}}},"41":{"code":"41","name":"Larache","cities":{}},"01":{"code":"01","name":"Agadir","cities":{"27194":{"id":27194,"name":"Agadir"}}},"02":{"code":"02","name":"Al Hoceima","cities":{}},"03":{"code":"03","name":"Azilal","cities":{}},"04":{"code":"04","name":"Ben Slimane","cities":{}},"05":{"code":"05","name":"Beni Mellal","cities":{}},"06":{"code":"06","name":"Boulemane","cities":{}},"07":{"code":"07","name":"Casablanca","cities":{"27198":{"id":27198,"name":"Casablanca"}}},"08":{"code":"08","name":"Chaouen","cities":{}},"09":{"code":"09","name":"El Jadida","cities":{"27197":{"id":27197,"name":"Azimur"}}}}}
+{
+  "code": "MA",
+  "name": "Morocco",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "El Kelaa des Srarhna",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Er Rachidia",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Essaouira",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Fes",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Figuig",
+      "cities": {
+        "27199": {
+          "id": 27199,
+          "name": "Fez"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Kenitra",
+      "cities": {
+        "27200": {
+          "id": 27200,
+          "name": "Kenitra"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Khemisset",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Khenifra",
+      "cities": {
+        "27203": {
+          "id": 27203,
+          "name": "Mrirt"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Khouribga",
+      "cities": {}
+    },
+    "19": {
+      "code": "19",
+      "name": "Marrakech",
+      "cities": {
+        "27201": {
+          "id": 27201,
+          "name": "Marrakesh"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Meknes",
+      "cities": {}
+    },
+    "21": {
+      "code": "21",
+      "name": "Nador",
+      "cities": {
+        "27204": {
+          "id": 27204,
+          "name": "Nador"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Ouarzazate",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Oujda",
+      "cities": {}
+    },
+    "24": {
+      "code": "24",
+      "name": "Rabat-Sale",
+      "cities": {
+        "27205": {
+          "id": 27205,
+          "name": "Rabat"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Safi",
+      "cities": {
+        "27195": {
+          "id": 27195,
+          "name": "Asfi"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Settat",
+      "cities": {}
+    },
+    "27": {
+      "code": "27",
+      "name": "Tanger",
+      "cities": {
+        "27196": {
+          "id": 27196,
+          "name": "Asilah"
+        },
+        "27207": {
+          "id": 27207,
+          "name": "Tangier"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Tata",
+      "cities": {}
+    },
+    "30": {
+      "code": "30",
+      "name": "Taza",
+      "cities": {}
+    },
+    "32": {
+      "code": "32",
+      "name": "Tiznit",
+      "cities": {
+        "27211": {
+          "id": 27211,
+          "name": "Tiznit"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "Guelmim",
+      "cities": {}
+    },
+    "34": {
+      "code": "34",
+      "name": "Ifrane",
+      "cities": {}
+    },
+    "35": {
+      "code": "35",
+      "name": "Laayoune",
+      "cities": {}
+    },
+    "36": {
+      "code": "36",
+      "name": "Tan-Tan",
+      "cities": {}
+    },
+    "37": {
+      "code": "37",
+      "name": "Taounate",
+      "cities": {
+        "27209": {
+          "id": 27209,
+          "name": "Tawnat"
+        }
+      }
+    },
+    "38": {
+      "code": "38",
+      "name": "Sidi Kacem",
+      "cities": {
+        "27206": {
+          "id": 27206,
+          "name": "Sidi Qasim"
+        },
+        "27212": {
+          "id": 27212,
+          "name": "Wazzan"
+        }
+      }
+    },
+    "39": {
+      "code": "39",
+      "name": "Taroudannt",
+      "cities": {
+        "27208": {
+          "id": 27208,
+          "name": "Tarudant"
+        }
+      }
+    },
+    "40": {
+      "code": "40",
+      "name": "Tetouan",
+      "cities": {
+        "27202": {
+          "id": 27202,
+          "name": "Martil"
+        },
+        "27210": {
+          "id": 27210,
+          "name": "Tetouan"
+        }
+      }
+    },
+    "41": {
+      "code": "41",
+      "name": "Larache",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Agadir",
+      "cities": {
+        "27194": {
+          "id": 27194,
+          "name": "Agadir"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Al Hoceima",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Azilal",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Ben Slimane",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Beni Mellal",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Boulemane",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Casablanca",
+      "cities": {
+        "27198": {
+          "id": 27198,
+          "name": "Casablanca"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Chaouen",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "El Jadida",
+      "cities": {
+        "27197": {
+          "id": 27197,
+          "name": "Azimur"
+        }
+      }
+    }
+  }
+}

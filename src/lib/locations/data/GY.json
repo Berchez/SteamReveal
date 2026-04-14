@@ -1,1 +1,112 @@
-{"code":"GY","name":"Guyana","states":{"10":{"code":"10","name":"Barima-Waini","cities":{"19025":{"id":19025,"name":"Mabaruma"}}},"11":{"code":"11","name":"Cuyuni-Mazaruni","cities":{"19019":{"id":19019,"name":"Bartica"}}},"12":{"code":"12","name":"Demerara-Mahaica","cities":{"19021":{"id":19021,"name":"Georgetown"}}},"13":{"code":"13","name":"East Berbice-Corentyne","cities":{"19027":{"id":19027,"name":"New Amsterdam"},"19029":{"id":19029,"name":"Skeldon"}}},"14":{"code":"14","name":"Essequibo Islands-West Demerara","cities":{"19030":{"id":19030,"name":"Vreed En Hoop"}}},"15":{"code":"15","name":"Mahaica-Berbice","cities":{"19020":{"id":19020,"name":"Fort Wellington"},"19026":{"id":19026,"name":"Mahaicony"},"19028":{"id":19028,"name":"Rosignol"}}},"16":{"code":"16","name":"Pomeroon-Supenaam","cities":{}},"17":{"code":"17","name":"Potaro-Siparuni","cities":{}},"18":{"code":"18","name":"Upper Demerara-Berbice","cities":{"19022":{"id":19022,"name":"Ituni"},"19024":{"id":19024,"name":"Linden"}}},"19":{"code":"19","name":"Upper Takutu-Upper Essequibo","cities":{"19023":{"id":19023,"name":"Lethem"}}}}}
+{
+  "code": "GY",
+  "name": "Guyana",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Barima-Waini",
+      "cities": {
+        "19025": {
+          "id": 19025,
+          "name": "Mabaruma"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Cuyuni-Mazaruni",
+      "cities": {
+        "19019": {
+          "id": 19019,
+          "name": "Bartica"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Demerara-Mahaica",
+      "cities": {
+        "19021": {
+          "id": 19021,
+          "name": "Georgetown"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "East Berbice-Corentyne",
+      "cities": {
+        "19027": {
+          "id": 19027,
+          "name": "New Amsterdam"
+        },
+        "19029": {
+          "id": 19029,
+          "name": "Skeldon"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Essequibo Islands-West Demerara",
+      "cities": {
+        "19030": {
+          "id": 19030,
+          "name": "Vreed En Hoop"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Mahaica-Berbice",
+      "cities": {
+        "19020": {
+          "id": 19020,
+          "name": "Fort Wellington"
+        },
+        "19026": {
+          "id": 19026,
+          "name": "Mahaicony"
+        },
+        "19028": {
+          "id": 19028,
+          "name": "Rosignol"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Pomeroon-Supenaam",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Potaro-Siparuni",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Upper Demerara-Berbice",
+      "cities": {
+        "19022": {
+          "id": 19022,
+          "name": "Ituni"
+        },
+        "19024": {
+          "id": 19024,
+          "name": "Linden"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Upper Takutu-Upper Essequibo",
+      "cities": {
+        "19023": {
+          "id": 19023,
+          "name": "Lethem"
+        }
+      }
+    }
+  }
+}

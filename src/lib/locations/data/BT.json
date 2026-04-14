@@ -1,1 +1,184 @@
-{"code":"BT","name":"Bhutan","states":{"10":{"code":"10","name":"Ha","cities":{"9153":{"id":9153,"name":"Ha"}}},"11":{"code":"11","name":"Lhuntshi","cities":{"9155":{"id":9155,"name":"Lhuntshi"}}},"12":{"code":"12","name":"Mongar","cities":{"9156":{"id":9156,"name":"Mongar"}}},"13":{"code":"13","name":"Paro","cities":{"9157":{"id":9157,"name":"Paro"}}},"14":{"code":"14","name":"Pemagatsel","cities":{"9158":{"id":9158,"name":"Pemagatsel"}}},"15":{"code":"15","name":"Punakha","cities":{"9151":{"id":9151,"name":"Gasa"},"9160":{"id":9160,"name":"Punakha"}}},"16":{"code":"16","name":"Samchi","cities":{}},"17":{"code":"17","name":"Samdrup","cities":{"9161":{"id":9161,"name":"Samdrup Jongkhar"}}},"18":{"code":"18","name":"Shemgang","cities":{"9162":{"id":9162,"name":"Shemgang"}}},"19":{"code":"19","name":"Tashigang","cities":{"9164":{"id":9164,"name":"Tashigang"}}},"20":{"code":"20","name":"Thimphu","cities":{}},"21":{"code":"21","name":"Tongsa","cities":{"9165":{"id":9165,"name":"Tongsa"}}},"22":{"code":"22","name":"Wangdi Phodrang","cities":{"9166":{"id":9166,"name":"Wangdiphodrang"}}},"05":{"code":"05","name":"Bumthang","cities":{"9154":{"id":9154,"name":"Jakar"}}},"06":{"code":"06","name":"Chhukha","cities":{"9149":{"id":9149,"name":"Chhukha"},"9159":{"id":9159,"name":"Phuntsholing"}}},"07":{"code":"07","name":"Chirang","cities":{"9150":{"id":9150,"name":"Damphu"}}},"08":{"code":"08","name":"Daga","cities":{"9163":{"id":9163,"name":"Taga Dzong"}}},"09":{"code":"09","name":"Geylegphug","cities":{"9152":{"id":9152,"name":"Geylegphug"}}}}}
+{
+  "code": "BT",
+  "name": "Bhutan",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Ha",
+      "cities": {
+        "9153": {
+          "id": 9153,
+          "name": "Ha"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Lhuntshi",
+      "cities": {
+        "9155": {
+          "id": 9155,
+          "name": "Lhuntshi"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Mongar",
+      "cities": {
+        "9156": {
+          "id": 9156,
+          "name": "Mongar"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Paro",
+      "cities": {
+        "9157": {
+          "id": 9157,
+          "name": "Paro"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Pemagatsel",
+      "cities": {
+        "9158": {
+          "id": 9158,
+          "name": "Pemagatsel"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Punakha",
+      "cities": {
+        "9151": {
+          "id": 9151,
+          "name": "Gasa"
+        },
+        "9160": {
+          "id": 9160,
+          "name": "Punakha"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Samchi",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Samdrup",
+      "cities": {
+        "9161": {
+          "id": 9161,
+          "name": "Samdrup Jongkhar"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Shemgang",
+      "cities": {
+        "9162": {
+          "id": 9162,
+          "name": "Shemgang"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Tashigang",
+      "cities": {
+        "9164": {
+          "id": 9164,
+          "name": "Tashigang"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Thimphu",
+      "cities": {}
+    },
+    "21": {
+      "code": "21",
+      "name": "Tongsa",
+      "cities": {
+        "9165": {
+          "id": 9165,
+          "name": "Tongsa"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Wangdi Phodrang",
+      "cities": {
+        "9166": {
+          "id": 9166,
+          "name": "Wangdiphodrang"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Bumthang",
+      "cities": {
+        "9154": {
+          "id": 9154,
+          "name": "Jakar"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Chhukha",
+      "cities": {
+        "9149": {
+          "id": 9149,
+          "name": "Chhukha"
+        },
+        "9159": {
+          "id": 9159,
+          "name": "Phuntsholing"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Chirang",
+      "cities": {
+        "9150": {
+          "id": 9150,
+          "name": "Damphu"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Daga",
+      "cities": {
+        "9163": {
+          "id": 9163,
+          "name": "Taga Dzong"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Geylegphug",
+      "cities": {
+        "9152": {
+          "id": 9152,
+          "name": "Geylegphug"
+        }
+      }
+    }
+  }
+}

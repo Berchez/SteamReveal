@@ -1,1 +1,21 @@
-{"code":"KI","name":"Kiribati","states":{"01":{"code":"01","name":"Gilbert Islands","cities":{}},"02":{"code":"02","name":"Line Islands","cities":{}},"03":{"code":"03","name":"Phoenix Islands","cities":{}}}}
+{
+  "code": "KI",
+  "name": "Kiribati",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Gilbert Islands",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Line Islands",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Phoenix Islands",
+      "cities": {}
+    }
+  }
+}

@@ -1,1 +1,117 @@
-{"code":"DM","name":"Dominica","states":{"10":{"code":"10","name":"Saint Paul","cities":{"14264":{"id":14264,"name":"Mahaut"},"14267":{"id":14267,"name":"Pont Casse"}}},"11":{"code":"11","name":"Saint Peter","cities":{"14262":{"id":14262,"name":"Coulihaut"}}},"02":{"code":"02","name":"Saint Andrew","cities":{"14265":{"id":14265,"name":"Marigot"},"14270":{"id":14270,"name":"Wesley"}}},"03":{"code":"03","name":"Saint David","cities":{"14258":{"id":14258,"name":"Atkinson"},"14261":{"id":14261,"name":"Castle Bruce"}}},"04":{"code":"04","name":"Saint George","cities":{"14269":{"id":14269,"name":"Roseau"}}},"05":{"code":"05","name":"Saint John","cities":{"14268":{"id":14268,"name":"Portsmouth"}}},"06":{"code":"06","name":"Saint Joseph","cities":{"14259":{"id":14259,"name":"Barroui"}}},"07":{"code":"07","name":"Saint Luke","cities":{"14266":{"id":14266,"name":"Pointe Michel"}}},"08":{"code":"08","name":"Saint Mark","cities":{}},"09":{"code":"09","name":"Saint Patrick","cities":{"14260":{"id":14260,"name":"Berekua"},"14263":{"id":14263,"name":"La Plaine"}}}}}
+{
+  "code": "DM",
+  "name": "Dominica",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Saint Paul",
+      "cities": {
+        "14264": {
+          "id": 14264,
+          "name": "Mahaut"
+        },
+        "14267": {
+          "id": 14267,
+          "name": "Pont Casse"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Saint Peter",
+      "cities": {
+        "14262": {
+          "id": 14262,
+          "name": "Coulihaut"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Saint Andrew",
+      "cities": {
+        "14265": {
+          "id": 14265,
+          "name": "Marigot"
+        },
+        "14270": {
+          "id": 14270,
+          "name": "Wesley"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Saint David",
+      "cities": {
+        "14258": {
+          "id": 14258,
+          "name": "Atkinson"
+        },
+        "14261": {
+          "id": 14261,
+          "name": "Castle Bruce"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Saint George",
+      "cities": {
+        "14269": {
+          "id": 14269,
+          "name": "Roseau"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Saint John",
+      "cities": {
+        "14268": {
+          "id": 14268,
+          "name": "Portsmouth"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Saint Joseph",
+      "cities": {
+        "14259": {
+          "id": 14259,
+          "name": "Barroui"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Saint Luke",
+      "cities": {
+        "14266": {
+          "id": 14266,
+          "name": "Pointe Michel"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Saint Mark",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Saint Patrick",
+      "cities": {
+        "14260": {
+          "id": 14260,
+          "name": "Berekua"
+        },
+        "14263": {
+          "id": 14263,
+          "name": "La Plaine"
+        }
+      }
+    }
+  }
+}

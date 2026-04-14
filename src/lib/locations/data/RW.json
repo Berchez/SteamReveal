@@ -1,1 +1,118 @@
-{"code":"RW","name":"Rwanda","states":{"10":{"code":"10","name":"Ruhengeri","cities":{"43600":{"id":43600,"name":"Ruhengeri"}}},"01":{"code":"01","name":"Butare","cities":{"43589":{"id":43589,"name":"Butare"},"43598":{"id":43598,"name":"Nyanza"},"43599":{"id":43599,"name":"Nyanza"}}},"02":{"code":"02","name":"Byumba","cities":{"43590":{"id":43590,"name":"Byumba"}}},"03":{"code":"03","name":"Cyangugu","cities":{"43591":{"id":43591,"name":"Cyangugu"}}},"04":{"code":"04","name":"Gikongoro","cities":{"43592":{"id":43592,"name":"Gikongoro"}}},"05":{"code":"05","name":"Gisenyi","cities":{"43593":{"id":43593,"name":"Gisenyi"}}},"06":{"code":"06","name":"Gitarama","cities":{"43594":{"id":43594,"name":"Gitarama"}}},"07":{"code":"07","name":"Kibungo","cities":{"43595":{"id":43595,"name":"Kibungo"},"43601":{"id":43601,"name":"Rwamagana"}}},"08":{"code":"08","name":"Kibuye","cities":{"43596":{"id":43596,"name":"Kibuye"}}},"09":{"code":"09","name":"Kigali","cities":{"43597":{"id":43597,"name":"Kigali"}}}}}
+{
+  "code": "RW",
+  "name": "Rwanda",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Ruhengeri",
+      "cities": {
+        "43600": {
+          "id": 43600,
+          "name": "Ruhengeri"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Butare",
+      "cities": {
+        "43589": {
+          "id": 43589,
+          "name": "Butare"
+        },
+        "43598": {
+          "id": 43598,
+          "name": "Nyanza"
+        },
+        "43599": {
+          "id": 43599,
+          "name": "Nyanza"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Byumba",
+      "cities": {
+        "43590": {
+          "id": 43590,
+          "name": "Byumba"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Cyangugu",
+      "cities": {
+        "43591": {
+          "id": 43591,
+          "name": "Cyangugu"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Gikongoro",
+      "cities": {
+        "43592": {
+          "id": 43592,
+          "name": "Gikongoro"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Gisenyi",
+      "cities": {
+        "43593": {
+          "id": 43593,
+          "name": "Gisenyi"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Gitarama",
+      "cities": {
+        "43594": {
+          "id": 43594,
+          "name": "Gitarama"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Kibungo",
+      "cities": {
+        "43595": {
+          "id": 43595,
+          "name": "Kibungo"
+        },
+        "43601": {
+          "id": 43601,
+          "name": "Rwamagana"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Kibuye",
+      "cities": {
+        "43596": {
+          "id": 43596,
+          "name": "Kibuye"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Kigali",
+      "cities": {
+        "43597": {
+          "id": 43597,
+          "name": "Kigali"
+        }
+      }
+    }
+  }
+}

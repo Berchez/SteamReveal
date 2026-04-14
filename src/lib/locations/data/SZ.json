@@ -1,1 +1,107 @@
-{"code":"SZ","name":"Swaziland","states":{"01":{"code":"01","name":"Hhohho","cities":{"44291":{"id":44291,"name":"Bulembu"},"44297":{"id":44297,"name":"Lobamba"},"44298":{"id":44298,"name":"Malkerns"},"44300":{"id":44300,"name":"Mbabane"},"44302":{"id":44302,"name":"Mhlume"}}},"02":{"code":"02","name":"Lubombo","cities":{"44290":{"id":44290,"name":"Big Bend"},"44304":{"id":44304,"name":"Nsoko"},"44306":{"id":44306,"name":"Siteki"}}},"03":{"code":"03","name":"Manzini","cities":{"44289":{"id":44289,"name":"Bhunya"},"44295":{"id":44295,"name":"Kwaluseni"},"44299":{"id":44299,"name":"Manzini"},"44301":{"id":44301,"name":"Mhlambanyatsi"},"44305":{"id":44305,"name":"Sidvokodvo"}}},"04":{"code":"04","name":"Shiselweni","cities":{"44292":{"id":44292,"name":"Hlatikulu"},"44293":{"id":44293,"name":"Hluti"},"44294":{"id":44294,"name":"Kubuta"},"44296":{"id":44296,"name":"Lavumisa"},"44303":{"id":44303,"name":"Nhlangano"}}},"05":{"code":"05","name":"Praslin","cities":{}}}}
+{
+  "code": "SZ",
+  "name": "Swaziland",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Hhohho",
+      "cities": {
+        "44291": {
+          "id": 44291,
+          "name": "Bulembu"
+        },
+        "44297": {
+          "id": 44297,
+          "name": "Lobamba"
+        },
+        "44298": {
+          "id": 44298,
+          "name": "Malkerns"
+        },
+        "44300": {
+          "id": 44300,
+          "name": "Mbabane"
+        },
+        "44302": {
+          "id": 44302,
+          "name": "Mhlume"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Lubombo",
+      "cities": {
+        "44290": {
+          "id": 44290,
+          "name": "Big Bend"
+        },
+        "44304": {
+          "id": 44304,
+          "name": "Nsoko"
+        },
+        "44306": {
+          "id": 44306,
+          "name": "Siteki"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Manzini",
+      "cities": {
+        "44289": {
+          "id": 44289,
+          "name": "Bhunya"
+        },
+        "44295": {
+          "id": 44295,
+          "name": "Kwaluseni"
+        },
+        "44299": {
+          "id": 44299,
+          "name": "Manzini"
+        },
+        "44301": {
+          "id": 44301,
+          "name": "Mhlambanyatsi"
+        },
+        "44305": {
+          "id": 44305,
+          "name": "Sidvokodvo"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Shiselweni",
+      "cities": {
+        "44292": {
+          "id": 44292,
+          "name": "Hlatikulu"
+        },
+        "44293": {
+          "id": 44293,
+          "name": "Hluti"
+        },
+        "44294": {
+          "id": 44294,
+          "name": "Kubuta"
+        },
+        "44296": {
+          "id": 44296,
+          "name": "Lavumisa"
+        },
+        "44303": {
+          "id": 44303,
+          "name": "Nhlangano"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Praslin",
+      "cities": {}
+    }
+  }
+}

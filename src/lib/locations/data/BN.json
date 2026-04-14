@@ -1,1 +1,66 @@
-{"code":"BN","name":"Brunei Darussalam","states":{"10":{"code":"10","name":"Temburong","cities":{}},"11":{"code":"11","name":"Collines","cities":{}},"12":{"code":"12","name":"Kouffo","cities":{}},"13":{"code":"13","name":"Donga","cities":{}},"14":{"code":"14","name":"Littoral","cities":{}},"15":{"code":"15","name":"Tutong","cities":{}},"16":{"code":"16","name":"Oueme","cities":{}},"17":{"code":"17","name":"Plateau","cities":{}},"18":{"code":"18","name":"Zou","cities":{}},"07":{"code":"07","name":"Alibori","cities":{}},"08":{"code":"08","name":"Belait","cities":{}},"09":{"code":"09","name":"Brunei and Muara","cities":{}}}}
+{
+  "code": "BN",
+  "name": "Brunei Darussalam",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Temburong",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Collines",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Kouffo",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Donga",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Littoral",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "Tutong",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "Oueme",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Plateau",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Zou",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Alibori",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Belait",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Brunei and Muara",
+      "cities": {}
+    }
+  }
+}

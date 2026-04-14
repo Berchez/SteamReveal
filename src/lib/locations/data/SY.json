@@ -1,1 +1,153 @@
-{"code":"SY","name":"Syrian Arab Republic","states":{"10":{"code":"10","name":"Hamah","cities":{"44282":{"id":44282,"name":"Masyaf"},"44286":{"id":44286,"name":"Salamiyah"}}},"11":{"code":"11","name":"Hims","cities":{}},"12":{"code":"12","name":"Idlib","cities":{"44278":{"id":44278,"name":"Idlib"}}},"13":{"code":"13","name":"Dimashq","cities":{"44275":{"id":44275,"name":"Damascus"},"44276":{"id":44276,"name":"Darayya"},"44280":{"id":44280,"name":"Jaramana"}}},"14":{"code":"14","name":"Tartus","cities":{"44274":{"id":44274,"name":"Baniyas"},"44285":{"id":44285,"name":"Safita"},"44287":{"id":44287,"name":"Tartus"}}},"01":{"code":"01","name":"Al Hasakah","cities":{}},"02":{"code":"02","name":"Al Ladhiqiyah","cities":{"44279":{"id":44279,"name":"Jablah"}}},"03":{"code":"03","name":"Al Qunaytirah","cities":{}},"04":{"code":"04","name":"Ar Raqqah","cities":{}},"05":{"code":"05","name":"As Suwayda'","cities":{}},"06":{"code":"06","name":"Dar","cities":{"44283":{"id":44283,"name":"Nawa"}}},"07":{"code":"07","name":"Dayr az Zawr","cities":{"44272":{"id":44272,"name":"Abu Kamal"}}},"08":{"code":"08","name":"Rif Dimashq","cities":{"44277":{"id":44277,"name":"Duma"},"44284":{"id":44284,"name":"Qatana"},"44288":{"id":44288,"name":"Yabrud"}}},"09":{"code":"09","name":"Halab","cities":{"44273":{"id":44273,"name":"Aleppo"},"44281":{"id":44281,"name":"Manbij"}}}}}
+{
+  "code": "SY",
+  "name": "Syrian Arab Republic",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Hamah",
+      "cities": {
+        "44282": {
+          "id": 44282,
+          "name": "Masyaf"
+        },
+        "44286": {
+          "id": 44286,
+          "name": "Salamiyah"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Hims",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Idlib",
+      "cities": {
+        "44278": {
+          "id": 44278,
+          "name": "Idlib"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Dimashq",
+      "cities": {
+        "44275": {
+          "id": 44275,
+          "name": "Damascus"
+        },
+        "44276": {
+          "id": 44276,
+          "name": "Darayya"
+        },
+        "44280": {
+          "id": 44280,
+          "name": "Jaramana"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Tartus",
+      "cities": {
+        "44274": {
+          "id": 44274,
+          "name": "Baniyas"
+        },
+        "44285": {
+          "id": 44285,
+          "name": "Safita"
+        },
+        "44287": {
+          "id": 44287,
+          "name": "Tartus"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Al Hasakah",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Al Ladhiqiyah",
+      "cities": {
+        "44279": {
+          "id": 44279,
+          "name": "Jablah"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Al Qunaytirah",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Ar Raqqah",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "As Suwayda'",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Dar",
+      "cities": {
+        "44283": {
+          "id": 44283,
+          "name": "Nawa"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Dayr az Zawr",
+      "cities": {
+        "44272": {
+          "id": 44272,
+          "name": "Abu Kamal"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Rif Dimashq",
+      "cities": {
+        "44277": {
+          "id": 44277,
+          "name": "Duma"
+        },
+        "44284": {
+          "id": 44284,
+          "name": "Qatana"
+        },
+        "44288": {
+          "id": 44288,
+          "name": "Yabrud"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Halab",
+      "cities": {
+        "44273": {
+          "id": 44273,
+          "name": "Aleppo"
+        },
+        "44281": {
+          "id": 44281,
+          "name": "Manbij"
+        }
+      }
+    }
+  }
+}

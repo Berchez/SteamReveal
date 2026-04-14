@@ -1,1 +1,312 @@
-{"code":"UZ","name":"Uzbekistan","states":{"10":{"code":"10","name":"Samarqand","cities":{"46297":{"id":46297,"name":"Aktash"},"46336":{"id":46336,"name":"Nurobod"},"46346":{"id":46346,"name":"Samarkand"},"46353":{"id":46353,"name":"Urgut"}}},"11":{"code":"11","name":"Sirdaryo","cities":{}},"12":{"code":"12","name":"Surkhondaryo","cities":{"46305":{"id":46305,"name":"Boysun"},"46308":{"id":46308,"name":"Denau"},"46350":{"id":46350,"name":"Termiz"}}},"13":{"code":"13","name":"Toshkent","cities":{"46303":{"id":46303,"name":"Bektemir"},"46349":{"id":46349,"name":"Tashkent"}}},"14":{"code":"14","name":"Toshkent","cities":{"46298":{"id":46298,"name":"Almazar"},"46300":{"id":46300,"name":"Angren"},"46302":{"id":46302,"name":"Bekobod"},"46307":{"id":46307,"name":"Buka"},"46312":{"id":46312,"name":"Gazalkent"},"46318":{"id":46318,"name":"Iskandar"},"46322":{"id":46322,"name":"Kibray"},"46327":{"id":46327,"name":"Krasnogorskiy"},"46338":{"id":46338,"name":"Ohangaron"},"46340":{"id":46340,"name":"Parkent"},"46343":{"id":46343,"name":"Pskent"},"46345":{"id":46345,"name":"Salar"},"46347":{"id":46347,"name":"Soldatskiy"},"46352":{"id":46352,"name":"Tuytepa"},"46354":{"id":46354,"name":"Urtaaul"}}},"01":{"code":"01","name":"Andijon","cities":{"46299":{"id":46299,"name":"Andijon"},"46301":{"id":46301,"name":"Asaka"},"46306":{"id":46306,"name":"Boz"},"46341":{"id":46341,"name":"Paytug"}}},"02":{"code":"02","name":"Bukhoro","cities":{"46313":{"id":46313,"name":"Gazli"},"46324":{"id":46324,"name":"Kogon"},"46339":{"id":46339,"name":"Olot"},"46344":{"id":46344,"name":"Romitan"}}},"03":{"code":"03","name":"Farghona","cities":{"46316":{"id":46316,"name":"Hamza"},"46328":{"id":46328,"name":"Kuva"},"46329":{"id":46329,"name":"Kuybyshevo"},"46348":{"id":46348,"name":"Stantsiya Gorchakovo"},"46355":{"id":46355,"name":"Yaypan"}}},"04":{"code":"04","name":"Jizzakh","cities":{}},"05":{"code":"05","name":"Khorazm","cities":{"46309":{"id":46309,"name":"Druzhba"},"46315":{"id":46315,"name":"Gurlan"},"46317":{"id":46317,"name":"Hazorasp"}}},"06":{"code":"06","name":"Namangan","cities":{"46326":{"id":46326,"name":"Kosonsoy"},"46333":{"id":46333,"name":"Namangan"},"46342":{"id":46342,"name":"Pop"}}},"07":{"code":"07","name":"Nawoiy","cities":{"46320":{"id":46320,"name":"Karmana"},"46334":{"id":46334,"name":"Navoi"},"46337":{"id":46337,"name":"Nurota"}}},"08":{"code":"08","name":"Qashqadaryo","cities":{"46323":{"id":46323,"name":"Kitob"},"46325":{"id":46325,"name":"Koson"},"46331":{"id":46331,"name":"Maymanak"},"46332":{"id":46332,"name":"Muborak"}}},"09":{"code":"09","name":"Qoraqalpoghiston","cities":{"46304":{"id":46304,"name":"Beruni"},"46319":{"id":46319,"name":"Karauzyak"},"46321":{"id":46321,"name":"Kegayli"},"46330":{"id":46330,"name":"Mangit"},"46335":{"id":46335,"name":"Nukus"},"46351":{"id":46351,"name":"Turtkul"}}}}}
+{
+  "code": "UZ",
+  "name": "Uzbekistan",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Samarqand",
+      "cities": {
+        "46297": {
+          "id": 46297,
+          "name": "Aktash"
+        },
+        "46336": {
+          "id": 46336,
+          "name": "Nurobod"
+        },
+        "46346": {
+          "id": 46346,
+          "name": "Samarkand"
+        },
+        "46353": {
+          "id": 46353,
+          "name": "Urgut"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Sirdaryo",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Surkhondaryo",
+      "cities": {
+        "46305": {
+          "id": 46305,
+          "name": "Boysun"
+        },
+        "46308": {
+          "id": 46308,
+          "name": "Denau"
+        },
+        "46350": {
+          "id": 46350,
+          "name": "Termiz"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Toshkent",
+      "cities": {
+        "46303": {
+          "id": 46303,
+          "name": "Bektemir"
+        },
+        "46349": {
+          "id": 46349,
+          "name": "Tashkent"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Toshkent",
+      "cities": {
+        "46298": {
+          "id": 46298,
+          "name": "Almazar"
+        },
+        "46300": {
+          "id": 46300,
+          "name": "Angren"
+        },
+        "46302": {
+          "id": 46302,
+          "name": "Bekobod"
+        },
+        "46307": {
+          "id": 46307,
+          "name": "Buka"
+        },
+        "46312": {
+          "id": 46312,
+          "name": "Gazalkent"
+        },
+        "46318": {
+          "id": 46318,
+          "name": "Iskandar"
+        },
+        "46322": {
+          "id": 46322,
+          "name": "Kibray"
+        },
+        "46327": {
+          "id": 46327,
+          "name": "Krasnogorskiy"
+        },
+        "46338": {
+          "id": 46338,
+          "name": "Ohangaron"
+        },
+        "46340": {
+          "id": 46340,
+          "name": "Parkent"
+        },
+        "46343": {
+          "id": 46343,
+          "name": "Pskent"
+        },
+        "46345": {
+          "id": 46345,
+          "name": "Salar"
+        },
+        "46347": {
+          "id": 46347,
+          "name": "Soldatskiy"
+        },
+        "46352": {
+          "id": 46352,
+          "name": "Tuytepa"
+        },
+        "46354": {
+          "id": 46354,
+          "name": "Urtaaul"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Andijon",
+      "cities": {
+        "46299": {
+          "id": 46299,
+          "name": "Andijon"
+        },
+        "46301": {
+          "id": 46301,
+          "name": "Asaka"
+        },
+        "46306": {
+          "id": 46306,
+          "name": "Boz"
+        },
+        "46341": {
+          "id": 46341,
+          "name": "Paytug"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Bukhoro",
+      "cities": {
+        "46313": {
+          "id": 46313,
+          "name": "Gazli"
+        },
+        "46324": {
+          "id": 46324,
+          "name": "Kogon"
+        },
+        "46339": {
+          "id": 46339,
+          "name": "Olot"
+        },
+        "46344": {
+          "id": 46344,
+          "name": "Romitan"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Farghona",
+      "cities": {
+        "46316": {
+          "id": 46316,
+          "name": "Hamza"
+        },
+        "46328": {
+          "id": 46328,
+          "name": "Kuva"
+        },
+        "46329": {
+          "id": 46329,
+          "name": "Kuybyshevo"
+        },
+        "46348": {
+          "id": 46348,
+          "name": "Stantsiya Gorchakovo"
+        },
+        "46355": {
+          "id": 46355,
+          "name": "Yaypan"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Jizzakh",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Khorazm",
+      "cities": {
+        "46309": {
+          "id": 46309,
+          "name": "Druzhba"
+        },
+        "46315": {
+          "id": 46315,
+          "name": "Gurlan"
+        },
+        "46317": {
+          "id": 46317,
+          "name": "Hazorasp"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Namangan",
+      "cities": {
+        "46326": {
+          "id": 46326,
+          "name": "Kosonsoy"
+        },
+        "46333": {
+          "id": 46333,
+          "name": "Namangan"
+        },
+        "46342": {
+          "id": 46342,
+          "name": "Pop"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Nawoiy",
+      "cities": {
+        "46320": {
+          "id": 46320,
+          "name": "Karmana"
+        },
+        "46334": {
+          "id": 46334,
+          "name": "Navoi"
+        },
+        "46337": {
+          "id": 46337,
+          "name": "Nurota"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Qashqadaryo",
+      "cities": {
+        "46323": {
+          "id": 46323,
+          "name": "Kitob"
+        },
+        "46325": {
+          "id": 46325,
+          "name": "Koson"
+        },
+        "46331": {
+          "id": 46331,
+          "name": "Maymanak"
+        },
+        "46332": {
+          "id": 46332,
+          "name": "Muborak"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Qoraqalpoghiston",
+      "cities": {
+        "46304": {
+          "id": 46304,
+          "name": "Beruni"
+        },
+        "46319": {
+          "id": 46319,
+          "name": "Karauzyak"
+        },
+        "46321": {
+          "id": 46321,
+          "name": "Kegayli"
+        },
+        "46330": {
+          "id": 46330,
+          "name": "Mangit"
+        },
+        "46335": {
+          "id": 46335,
+          "name": "Nukus"
+        },
+        "46351": {
+          "id": 46351,
+          "name": "Turtkul"
+        }
+      }
+    }
+  }
+}

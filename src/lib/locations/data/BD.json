@@ -1,1 +1,326 @@
-{"code":"BD","name":"Bangladesh","states":{"12":{"code":"12","name":"Mymensingh","cities":{}},"13":{"code":"13","name":"Noakhali","cities":{}},"15":{"code":"15","name":"Patuakhali","cities":{}},"22":{"code":"22","name":"Bagerhat","cities":{}},"23":{"code":"23","name":"Bhola","cities":{}},"24":{"code":"24","name":"Bogra","cities":{}},"25":{"code":"25","name":"Barguna","cities":{}},"26":{"code":"26","name":"Brahmanbaria","cities":{}},"27":{"code":"27","name":"Chandpur","cities":{}},"28":{"code":"28","name":"Chapai Nawabganj","cities":{}},"29":{"code":"29","name":"Chattagram","cities":{}},"30":{"code":"30","name":"Chuadanga","cities":{}},"31":{"code":"31","name":"Cox's Bazar","cities":{}},"32":{"code":"32","name":"Dhaka","cities":{}},"33":{"code":"33","name":"Dinajpur","cities":{}},"34":{"code":"34","name":"Faridpur","cities":{}},"35":{"code":"35","name":"Feni","cities":{}},"36":{"code":"36","name":"Gaibandha","cities":{}},"37":{"code":"37","name":"Gazipur","cities":{}},"38":{"code":"38","name":"Gopalganj","cities":{}},"39":{"code":"39","name":"Habiganj","cities":{}},"40":{"code":"40","name":"Jaipurhat","cities":{}},"41":{"code":"41","name":"Jamalpur","cities":{}},"42":{"code":"42","name":"Jessore","cities":{}},"43":{"code":"43","name":"Jhalakati","cities":{}},"44":{"code":"44","name":"Jhenaidah","cities":{}},"45":{"code":"45","name":"Khagrachari","cities":{}},"46":{"code":"46","name":"Khulna","cities":{}},"47":{"code":"47","name":"Kishorganj","cities":{}},"48":{"code":"48","name":"Kurigram","cities":{}},"49":{"code":"49","name":"Kushtia","cities":{}},"50":{"code":"50","name":"Laksmipur","cities":{}},"51":{"code":"51","name":"Lalmonirhat","cities":{}},"52":{"code":"52","name":"Madaripur","cities":{}},"53":{"code":"53","name":"Magura","cities":{}},"54":{"code":"54","name":"Manikganj","cities":{}},"55":{"code":"55","name":"Meherpur","cities":{}},"56":{"code":"56","name":"Moulavibazar","cities":{}},"57":{"code":"57","name":"Munshiganj","cities":{}},"58":{"code":"58","name":"Naogaon","cities":{}},"59":{"code":"59","name":"Narail","cities":{}},"60":{"code":"60","name":"Narayanganj","cities":{}},"61":{"code":"61","name":"Narsingdi","cities":{}},"62":{"code":"62","name":"Nator","cities":{}},"63":{"code":"63","name":"Netrakona","cities":{}},"64":{"code":"64","name":"Nilphamari","cities":{}},"65":{"code":"65","name":"Pabna","cities":{}},"66":{"code":"66","name":"Panchagar","cities":{}},"67":{"code":"67","name":"Parbattya Chattagram","cities":{}},"68":{"code":"68","name":"Pirojpur","cities":{}},"69":{"code":"69","name":"Rajbari","cities":{}},"70":{"code":"70","name":"Rajshahi","cities":{}},"71":{"code":"71","name":"Rangpur","cities":{}},"72":{"code":"72","name":"Satkhira","cities":{}},"73":{"code":"73","name":"Shariyatpur","cities":{}},"74":{"code":"74","name":"Sherpur","cities":{}},"75":{"code":"75","name":"Sirajganj","cities":{}},"76":{"code":"76","name":"Sunamganj","cities":{}},"77":{"code":"77","name":"Sylhet","cities":{}},"78":{"code":"78","name":"Tangail","cities":{}},"79":{"code":"79","name":"Thakurgaon","cities":{}},"01":{"code":"01","name":"Barisal","cities":{}},"04":{"code":"04","name":"Bandarban","cities":{}},"05":{"code":"05","name":"Comilla","cities":{}}}}
+{
+  "code": "BD",
+  "name": "Bangladesh",
+  "states": {
+    "12": {
+      "code": "12",
+      "name": "Mymensingh",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Noakhali",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "Patuakhali",
+      "cities": {}
+    },
+    "22": {
+      "code": "22",
+      "name": "Bagerhat",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Bhola",
+      "cities": {}
+    },
+    "24": {
+      "code": "24",
+      "name": "Bogra",
+      "cities": {}
+    },
+    "25": {
+      "code": "25",
+      "name": "Barguna",
+      "cities": {}
+    },
+    "26": {
+      "code": "26",
+      "name": "Brahmanbaria",
+      "cities": {}
+    },
+    "27": {
+      "code": "27",
+      "name": "Chandpur",
+      "cities": {}
+    },
+    "28": {
+      "code": "28",
+      "name": "Chapai Nawabganj",
+      "cities": {}
+    },
+    "29": {
+      "code": "29",
+      "name": "Chattagram",
+      "cities": {}
+    },
+    "30": {
+      "code": "30",
+      "name": "Chuadanga",
+      "cities": {}
+    },
+    "31": {
+      "code": "31",
+      "name": "Cox's Bazar",
+      "cities": {}
+    },
+    "32": {
+      "code": "32",
+      "name": "Dhaka",
+      "cities": {}
+    },
+    "33": {
+      "code": "33",
+      "name": "Dinajpur",
+      "cities": {}
+    },
+    "34": {
+      "code": "34",
+      "name": "Faridpur",
+      "cities": {}
+    },
+    "35": {
+      "code": "35",
+      "name": "Feni",
+      "cities": {}
+    },
+    "36": {
+      "code": "36",
+      "name": "Gaibandha",
+      "cities": {}
+    },
+    "37": {
+      "code": "37",
+      "name": "Gazipur",
+      "cities": {}
+    },
+    "38": {
+      "code": "38",
+      "name": "Gopalganj",
+      "cities": {}
+    },
+    "39": {
+      "code": "39",
+      "name": "Habiganj",
+      "cities": {}
+    },
+    "40": {
+      "code": "40",
+      "name": "Jaipurhat",
+      "cities": {}
+    },
+    "41": {
+      "code": "41",
+      "name": "Jamalpur",
+      "cities": {}
+    },
+    "42": {
+      "code": "42",
+      "name": "Jessore",
+      "cities": {}
+    },
+    "43": {
+      "code": "43",
+      "name": "Jhalakati",
+      "cities": {}
+    },
+    "44": {
+      "code": "44",
+      "name": "Jhenaidah",
+      "cities": {}
+    },
+    "45": {
+      "code": "45",
+      "name": "Khagrachari",
+      "cities": {}
+    },
+    "46": {
+      "code": "46",
+      "name": "Khulna",
+      "cities": {}
+    },
+    "47": {
+      "code": "47",
+      "name": "Kishorganj",
+      "cities": {}
+    },
+    "48": {
+      "code": "48",
+      "name": "Kurigram",
+      "cities": {}
+    },
+    "49": {
+      "code": "49",
+      "name": "Kushtia",
+      "cities": {}
+    },
+    "50": {
+      "code": "50",
+      "name": "Laksmipur",
+      "cities": {}
+    },
+    "51": {
+      "code": "51",
+      "name": "Lalmonirhat",
+      "cities": {}
+    },
+    "52": {
+      "code": "52",
+      "name": "Madaripur",
+      "cities": {}
+    },
+    "53": {
+      "code": "53",
+      "name": "Magura",
+      "cities": {}
+    },
+    "54": {
+      "code": "54",
+      "name": "Manikganj",
+      "cities": {}
+    },
+    "55": {
+      "code": "55",
+      "name": "Meherpur",
+      "cities": {}
+    },
+    "56": {
+      "code": "56",
+      "name": "Moulavibazar",
+      "cities": {}
+    },
+    "57": {
+      "code": "57",
+      "name": "Munshiganj",
+      "cities": {}
+    },
+    "58": {
+      "code": "58",
+      "name": "Naogaon",
+      "cities": {}
+    },
+    "59": {
+      "code": "59",
+      "name": "Narail",
+      "cities": {}
+    },
+    "60": {
+      "code": "60",
+      "name": "Narayanganj",
+      "cities": {}
+    },
+    "61": {
+      "code": "61",
+      "name": "Narsingdi",
+      "cities": {}
+    },
+    "62": {
+      "code": "62",
+      "name": "Nator",
+      "cities": {}
+    },
+    "63": {
+      "code": "63",
+      "name": "Netrakona",
+      "cities": {}
+    },
+    "64": {
+      "code": "64",
+      "name": "Nilphamari",
+      "cities": {}
+    },
+    "65": {
+      "code": "65",
+      "name": "Pabna",
+      "cities": {}
+    },
+    "66": {
+      "code": "66",
+      "name": "Panchagar",
+      "cities": {}
+    },
+    "67": {
+      "code": "67",
+      "name": "Parbattya Chattagram",
+      "cities": {}
+    },
+    "68": {
+      "code": "68",
+      "name": "Pirojpur",
+      "cities": {}
+    },
+    "69": {
+      "code": "69",
+      "name": "Rajbari",
+      "cities": {}
+    },
+    "70": {
+      "code": "70",
+      "name": "Rajshahi",
+      "cities": {}
+    },
+    "71": {
+      "code": "71",
+      "name": "Rangpur",
+      "cities": {}
+    },
+    "72": {
+      "code": "72",
+      "name": "Satkhira",
+      "cities": {}
+    },
+    "73": {
+      "code": "73",
+      "name": "Shariyatpur",
+      "cities": {}
+    },
+    "74": {
+      "code": "74",
+      "name": "Sherpur",
+      "cities": {}
+    },
+    "75": {
+      "code": "75",
+      "name": "Sirajganj",
+      "cities": {}
+    },
+    "76": {
+      "code": "76",
+      "name": "Sunamganj",
+      "cities": {}
+    },
+    "77": {
+      "code": "77",
+      "name": "Sylhet",
+      "cities": {}
+    },
+    "78": {
+      "code": "78",
+      "name": "Tangail",
+      "cities": {}
+    },
+    "79": {
+      "code": "79",
+      "name": "Thakurgaon",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Barisal",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Bandarban",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Comilla",
+      "cities": {}
+    }
+  }
+}

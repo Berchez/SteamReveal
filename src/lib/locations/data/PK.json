@@ -1,1 +1,1437 @@
-{"code":"PK","name":"Pakistan","states":{"01":{"code":"01","name":"Federally Administered Tribal Ar","cities":{"35371":{"id":35371,"name":"Alizai"},"35579":{"id":35579,"name":"Miram Shah"},"35663":{"id":35663,"name":"Shinpokh"},"35702":{"id":35702,"name":"Wana"}}},"02":{"code":"02","name":"Balochistan","cities":{"35384":{"id":35384,"name":"Barkhan"},"35388":{"id":35388,"name":"Bela"},"35390":{"id":35390,"name":"Bhag"},"35405":{"id":35405,"name":"Chaman"},"35420":{"id":35420,"name":"Dalbandin"},"35429":{"id":35429,"name":"Dera Bugti"},"35432":{"id":35432,"name":"Dhadar"},"35442":{"id":35442,"name":"Duki"},"35465":{"id":35465,"name":"Gwadar"},"35467":{"id":35467,"name":"Hala"},"35470":{"id":35470,"name":"Harnai"},"35497":{"id":35497,"name":"Jiwani"},"35506":{"id":35506,"name":"Kalat"},"35518":{"id":35518,"name":"Karak"},"35531":{"id":35531,"name":"Kharan"},"35537":{"id":35537,"name":"Khuzdar"},"35539":{"id":35539,"name":"Kohlu"},"35559":{"id":35559,"name":"Loralai"},"35560":{"id":35560,"name":"Mach"},"35570":{"id":35570,"name":"Mastung"},"35574":{"id":35574,"name":"Mehrabpur"},"35605":{"id":35605,"name":"Nushki"},"35607":{"id":35607,"name":"Ormara"},"35612":{"id":35612,"name":"Pasni"},"35621":{"id":35621,"name":"Pishin"},"35624":{"id":35624,"name":"Quetta"},"35666":{"id":35666,"name":"Sibi"},"35671":{"id":35671,"name":"Sohbatpur"},"35675":{"id":35675,"name":"Surab"},"35693":{"id":35693,"name":"Turbat"},"35697":{"id":35697,"name":"Usta Muhammad"},"35698":{"id":35698,"name":"Uthal"},"35710":{"id":35710,"name":"Zhob"},"35711":{"id":35711,"name":"Ziarat"}}},"03":{"code":"03","name":"North-West Frontier","cities":{"35369":{"id":35369,"name":"Akora"},"35372":{"id":35372,"name":"Amangarh"},"35383":{"id":35383,"name":"Bannu"},"35386":{"id":35386,"name":"Bat Khela"},"35407":{"id":35407,"name":"Charsadda"},"35409":{"id":35409,"name":"Cherat"},"35413":{"id":35413,"name":"Chitral"},"35431":{"id":35431,"name":"Dera Ismail Khan"},"35439":{"id":35439,"name":"Dir"},"35440":{"id":35440,"name":"Doaba"},"35468":{"id":35468,"name":"Hangu"},"35469":{"id":35469,"name":"Haripur"},"35475":{"id":35475,"name":"Havelian"},"35525":{"id":35525,"name":"Khalabat"},"35538":{"id":35538,"name":"Kohat"},"35546":{"id":35546,"name":"Kulachi"},"35550":{"id":35550,"name":"Lachi"},"35553":{"id":35553,"name":"Lakki Marwat"},"35568":{"id":35568,"name":"Mansehra"},"35569":{"id":35569,"name":"Mardan"},"35578":{"id":35578,"name":"Mingaora"},"35604":{"id":35604,"name":"Nowshera"},"35608":{"id":35608,"name":"Pabbi"},"35609":{"id":35609,"name":"Paharpur"},"35615":{"id":35615,"name":"Peshawar"},"35636":{"id":35636,"name":"Risalpur"},"35650":{"id":35650,"name":"Sarai Naurang"},"35656":{"id":35656,"name":"Shabqadar"},"35676":{"id":35676,"name":"Swabi"},"35684":{"id":35684,"name":"Tangi"},"35686":{"id":35686,"name":"Tank"},"35692":{"id":35692,"name":"Topi"},"35699":{"id":35699,"name":"Utmanzai"},"35709":{"id":35709,"name":"Zaida"}}},"04":{"code":"04","name":"Punjab","cities":{"35367":{"id":35367,"name":"Ahmadpur East"},"35368":{"id":35368,"name":"Ahmadpur Sial"},"35370":{"id":35370,"name":"Alipur"},"35373":{"id":35373,"name":"Arifwala"},"35374":{"id":35374,"name":"Attock"},"35376":{"id":35376,"name":"Baddomalhi"},"35378":{"id":35378,"name":"Baffa"},"35380":{"id":35380,"name":"Bahawalnagar"},"35381":{"id":35381,"name":"Bahawalpur"},"35385":{"id":35385,"name":"Basirpur"},"35387":{"id":35387,"name":"Begowala"},"35391":{"id":35391,"name":"Bhakkar"},"35392":{"id":35392,"name":"Bhalwal"},"35394":{"id":35394,"name":"Bhawana"},"35395":{"id":35395,"name":"Bhera"},"35397":{"id":35397,"name":"Bhopalwala"},"35400":{"id":35400,"name":"Burewala"},"35401":{"id":35401,"name":"Chak Azam Sahu"},"35403":{"id":35403,"name":"Chak Jhumra"},"35404":{"id":35404,"name":"Chakwal"},"35408":{"id":35408,"name":"Chawinda"},"35410":{"id":35410,"name":"Chichawatni"},"35411":{"id":35411,"name":"Chiniot"},"35412":{"id":35412,"name":"Chishtian Mandi"},"35414":{"id":35414,"name":"Choa Saidan Shah"},"35416":{"id":35416,"name":"Chuhar Kana"},"35417":{"id":35417,"name":"Chunian"},"35419":{"id":35419,"name":"Dajal"},"35422":{"id":35422,"name":"Darya Khan"},"35424":{"id":35424,"name":"Daska"},"35425":{"id":35425,"name":"Daud Khel"},"35427":{"id":35427,"name":"Daultala"},"35430":{"id":35430,"name":"Dera Ghazi Khan"},"35434":{"id":35434,"name":"Dijkot"},"35436":{"id":35436,"name":"Dinga"},"35437":{"id":35437,"name":"Dipalpur"},"35443":{"id":35443,"name":"Dullewala"},"35444":{"id":35444,"name":"Dunga Bunga"},"35445":{"id":35445,"name":"Dunyapur"},"35446":{"id":35446,"name":"Eminabad"},"35447":{"id":35447,"name":"Faisalabad"},"35448":{"id":35448,"name":"Faqirwali"},"35449":{"id":35449,"name":"Faruka"},"35450":{"id":35450,"name":"Fatehpur"},"35451":{"id":35451,"name":"Fazalpur"},"35452":{"id":35452,"name":"Fort Abbas"},"35456":{"id":35456,"name":"Garh Maharaja"},"35461":{"id":35461,"name":"Gojra"},"35462":{"id":35462,"name":"Gujar Khan"},"35463":{"id":35463,"name":"Gujranwala"},"35464":{"id":35464,"name":"Gujrat"},"35466":{"id":35466,"name":"Hafizabad"},"35471":{"id":35471,"name":"Harnoli"},"35472":{"id":35472,"name":"Harunabad"},"35473":{"id":35473,"name":"Hasan Abdal"},"35474":{"id":35474,"name":"Hasilpur"},"35476":{"id":35476,"name":"Haveli"},"35477":{"id":35477,"name":"Hazro"},"35481":{"id":35481,"name":"Isa Khel"},"35484":{"id":35484,"name":"Jalalpur Jattan"},"35485":{"id":35485,"name":"Jalalpur Pirwala"},"35486":{"id":35486,"name":"Jampur"},"35488":{"id":35488,"name":"Jandiala Sherkhan"},"35489":{"id":35489,"name":"Jand"},"35490":{"id":35490,"name":"Jaranwala"},"35492":{"id":35492,"name":"Jatoi"},"35493":{"id":35493,"name":"Jauharabad"},"35494":{"id":35494,"name":"Jhawarian"},"35495":{"id":35495,"name":"Jhelum"},"35499":{"id":35499,"name":"Kabirwala"},"35501":{"id":35501,"name":"Kahna Nau"},"35502":{"id":35502,"name":"Kahror Pakka"},"35503":{"id":35503,"name":"Kahuta"},"35504":{"id":35504,"name":"Kalabagh"},"35505":{"id":35505,"name":"Kalaswala"},"35507":{"id":35507,"name":"Kaleke"},"35508":{"id":35508,"name":"Kalur Kot"},"35509":{"id":35509,"name":"Kamalia"},"35511":{"id":35511,"name":"Kamir"},"35512":{"id":35512,"name":"Kamoke"},"35513":{"id":35513,"name":"Kamra"},"35516":{"id":35516,"name":"Kanganpur"},"35520":{"id":35520,"name":"Kasur"},"35526":{"id":35526,"name":"Khanewal"},"35527":{"id":35527,"name":"Khangah Dogran"},"35528":{"id":35528,"name":"Khangarh"},"35529":{"id":35529,"name":"Khanpur"},"35532":{"id":35532,"name":"Kharian"},"35533":{"id":35533,"name":"Khewra"},"35535":{"id":35535,"name":"Khurianwala"},"35536":{"id":35536,"name":"Khushab"},"35540":{"id":35540,"name":"Kot Addu"},"35542":{"id":35542,"name":"Kotli Loharan"},"35543":{"id":35543,"name":"Kot Radha Kishan"},"35545":{"id":35545,"name":"Kot Samaba"},"35547":{"id":35547,"name":"Kundian"},"35548":{"id":35548,"name":"Kunjah"},"35551":{"id":35551,"name":"Lahore"},"35554":{"id":35554,"name":"Lalian"},"35556":{"id":35556,"name":"Liaqatabad"},"35557":{"id":35557,"name":"Liliani"},"35558":{"id":35558,"name":"Lodhran"},"35562":{"id":35562,"name":"Mailsi"},"35563":{"id":35563,"name":"Malakwal"},"35564":{"id":35564,"name":"Mamu Kanjan"},"35565":{"id":35565,"name":"Mandi Bahauddin"},"35566":{"id":35566,"name":"Mangla"},"35567":{"id":35567,"name":"Mankera"},"35575":{"id":35575,"name":"Mian Channun"},"35576":{"id":35576,"name":"Mianwali"},"35577":{"id":35577,"name":"Minchinabad"},"35586":{"id":35586,"name":"Mitha Tiwana"},"35589":{"id":35589,"name":"Multan"},"35590":{"id":35590,"name":"Muridke"},"35591":{"id":35591,"name":"Murree"},"35592":{"id":35592,"name":"Mustafabad"},"35594":{"id":35594,"name":"Muzaffargarh"},"35596":{"id":35596,"name":"Nankana Sahib"},"35597":{"id":35597,"name":"Narang"},"35598":{"id":35598,"name":"Narowal"},"35606":{"id":35606,"name":"Okara"},"35610":{"id":35610,"name":"Pakpattan"},"35613":{"id":35613,"name":"Pasrur"},"35614":{"id":35614,"name":"Pattoki"},"35616":{"id":35616,"name":"Phalia"},"35618":{"id":35618,"name":"Pind Dadan Khan"},"35619":{"id":35619,"name":"Pindi Bhattian"},"35620":{"id":35620,"name":"Pindi Gheb"},"35623":{"id":35623,"name":"Qadirpur Ran"},"35625":{"id":35625,"name":"Rabwah"},"35627":{"id":35627,"name":"Raiwind"},"35628":{"id":35628,"name":"Raja Jang"},"35629":{"id":35629,"name":"Rajanpur"},"35632":{"id":35632,"name":"Rasulnagar"},"35634":{"id":35634,"name":"Rawalpindi"},"35635":{"id":35635,"name":"Renala Khurd"},"35638":{"id":35638,"name":"Rojhan"},"35640":{"id":35640,"name":"Sadiqabad"},"35641":{"id":35641,"name":"Sahiwal"},"35644":{"id":35644,"name":"Samasatta"},"35645":{"id":35645,"name":"Sambrial"},"35647":{"id":35647,"name":"Sanjwal"},"35649":{"id":35649,"name":"Sarai Alamgir"},"35651":{"id":35651,"name":"Sarai Sidhu"},"35652":{"id":35652,"name":"Sargodha"},"35660":{"id":35660,"name":"Sharqpur"},"35661":{"id":35661,"name":"Shekhupura"},"35664":{"id":35664,"name":"Shujaabad"},"35665":{"id":35665,"name":"Sialkot"},"35667":{"id":35667,"name":"Sillanwali"},"35670":{"id":35670,"name":"Sodhra"},"35673":{"id":35673,"name":"Sukheke"},"35677":{"id":35677,"name":"Talagang"},"35679":{"id":35679,"name":"Tandlianwala"},"35687":{"id":35687,"name":"Taunsa"},"35691":{"id":35691,"name":"Toba Tek Singh"},"35695":{"id":35695,"name":"Uch"},"35700":{"id":35700,"name":"Vihari"},"35701":{"id":35701,"name":"Wah"},"35704":{"id":35704,"name":"Warburton"},"35705":{"id":35705,"name":"Wazirabad"},"35706":{"id":35706,"name":"Yazman"},"35707":{"id":35707,"name":"Zafarwal"},"35708":{"id":35708,"name":"Zahir Pir"}}},"05":{"code":"05","name":"Sindh","cities":{"35366":{"id":35366,"name":"Adilpur"},"35375":{"id":35375,"name":"Badah"},"35377":{"id":35377,"name":"Badin"},"35379":{"id":35379,"name":"Bagarji"},"35382":{"id":35382,"name":"Bandhi"},"35389":{"id":35389,"name":"Berani"},"35393":{"id":35393,"name":"Bhan"},"35396":{"id":35396,"name":"Bhit Shah"},"35398":{"id":35398,"name":"Bozdar"},"35399":{"id":35399,"name":"Bulri"},"35402":{"id":35402,"name":"Chak"},"35406":{"id":35406,"name":"Chambar"},"35415":{"id":35415,"name":"Chor"},"35418":{"id":35418,"name":"Dadu"},"35421":{"id":35421,"name":"Daro"},"35423":{"id":35423,"name":"Darya Khan Mari"},"35426":{"id":35426,"name":"Daulatpur"},"35428":{"id":35428,"name":"Daur"},"35433":{"id":35433,"name":"Digri"},"35435":{"id":35435,"name":"Dina"},"35438":{"id":35438,"name":"Diplo"},"35441":{"id":35441,"name":"Dokri"},"35453":{"id":35453,"name":"Gambat"},"35454":{"id":35454,"name":"Garhi Khairo"},"35455":{"id":35455,"name":"Garhi Yasin"},"35457":{"id":35457,"name":"Gharo"},"35458":{"id":35458,"name":"Ghauspur"},"35459":{"id":35459,"name":"Ghotki"},"35478":{"id":35478,"name":"Hingorja"},"35480":{"id":35480,"name":"Hyderabad"},"35482":{"id":35482,"name":"Islamkot"},"35483":{"id":35483,"name":"Jacobabad"},"35487":{"id":35487,"name":"Jam Sahib"},"35491":{"id":35491,"name":"Jati"},"35496":{"id":35496,"name":"Jhol"},"35498":{"id":35498,"name":"Johi"},"35500":{"id":35500,"name":"Kadhan"},"35510":{"id":35510,"name":"Kambar"},"35514":{"id":35514,"name":"Kandiari"},"35515":{"id":35515,"name":"Kandiaro"},"35517":{"id":35517,"name":"Karachi"},"35519":{"id":35519,"name":"Kashmor"},"35521":{"id":35521,"name":"Keti Bandar"},"35522":{"id":35522,"name":"Khadro"},"35523":{"id":35523,"name":"Khairpur"},"35524":{"id":35524,"name":"Khairpur Nathan Shah"},"35530":{"id":35530,"name":"Khanpur"},"35534":{"id":35534,"name":"Khipro"},"35541":{"id":35541,"name":"Kot Diji"},"35544":{"id":35544,"name":"Kotri"},"35549":{"id":35549,"name":"Kunri"},"35552":{"id":35552,"name":"Lakhi"},"35555":{"id":35555,"name":"Larkana"},"35561":{"id":35561,"name":"Madeji"},"35571":{"id":35571,"name":"Matiari"},"35572":{"id":35572,"name":"Matli"},"35573":{"id":35573,"name":"Mehar"},"35580":{"id":35580,"name":"Miro Khan"},"35581":{"id":35581,"name":"Mirpur Bathoro"},"35582":{"id":35582,"name":"Mirpur Khas"},"35583":{"id":35583,"name":"Mirpur Mathelo"},"35584":{"id":35584,"name":"Mirpur Sakro"},"35585":{"id":35585,"name":"Mirwah"},"35587":{"id":35587,"name":"Mithi"},"35588":{"id":35588,"name":"Moro"},"35595":{"id":35595,"name":"Nabisar"},"35599":{"id":35599,"name":"Nasirabad"},"35600":{"id":35600,"name":"Naudero"},"35601":{"id":35601,"name":"Naukot"},"35602":{"id":35602,"name":"Naushahro Firoz"},"35603":{"id":35603,"name":"Nawabshah"},"35611":{"id":35611,"name":"Pano Aqil"},"35617":{"id":35617,"name":"Phulji"},"35622":{"id":35622,"name":"Pithoro"},"35626":{"id":35626,"name":"Radhan"},"35630":{"id":35630,"name":"Rajo Khanani"},"35631":{"id":35631,"name":"Ranipur"},"35633":{"id":35633,"name":"Ratodero"},"35637":{"id":35637,"name":"Rohri"},"35639":{"id":35639,"name":"Rustam"},"35642":{"id":35642,"name":"Sakrand"},"35643":{"id":35643,"name":"Samaro"},"35646":{"id":35646,"name":"Sanghar"},"35648":{"id":35648,"name":"Sann"},"35653":{"id":35653,"name":"Sarhari"},"35654":{"id":35654,"name":"Sehwan"},"35655":{"id":35655,"name":"Setharja"},"35657":{"id":35657,"name":"Shahdadkot"},"35658":{"id":35658,"name":"Shahdadpur"},"35659":{"id":35659,"name":"Shahpur Chakar"},"35662":{"id":35662,"name":"Shikarpur"},"35668":{"id":35668,"name":"Sinjhoro"},"35669":{"id":35669,"name":"Sita Road"},"35672":{"id":35672,"name":"Sujawal"},"35674":{"id":35674,"name":"Sukkur"},"35678":{"id":35678,"name":"Talhar"},"35680":{"id":35680,"name":"Tando Adam"},"35681":{"id":35681,"name":"Tando Ghulam Ali"},"35682":{"id":35682,"name":"Tando Jam"},"35683":{"id":35683,"name":"Tando Muhammad Khan"},"35685":{"id":35685,"name":"Tangwani"},"35688":{"id":35688,"name":"Thano Bula Khan"},"35689":{"id":35689,"name":"Thatta"},"35690":{"id":35690,"name":"Thul"},"35694":{"id":35694,"name":"Ubauro"},"35696":{"id":35696,"name":"Umarkot"},"35703":{"id":35703,"name":"Warah"}}},"06":{"code":"06","name":"Azad Kashmir","cities":{"35593":{"id":35593,"name":"Muzaffarabad"}}},"07":{"code":"07","name":"Northern Areas","cities":{"35460":{"id":35460,"name":"Gilgit"},"35479":{"id":35479,"name":"Hunza"}}},"08":{"code":"08","name":"Islamabad","cities":{}}}}
+{
+  "code": "PK",
+  "name": "Pakistan",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Federally Administered Tribal Ar",
+      "cities": {
+        "35371": {
+          "id": 35371,
+          "name": "Alizai"
+        },
+        "35579": {
+          "id": 35579,
+          "name": "Miram Shah"
+        },
+        "35663": {
+          "id": 35663,
+          "name": "Shinpokh"
+        },
+        "35702": {
+          "id": 35702,
+          "name": "Wana"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Balochistan",
+      "cities": {
+        "35384": {
+          "id": 35384,
+          "name": "Barkhan"
+        },
+        "35388": {
+          "id": 35388,
+          "name": "Bela"
+        },
+        "35390": {
+          "id": 35390,
+          "name": "Bhag"
+        },
+        "35405": {
+          "id": 35405,
+          "name": "Chaman"
+        },
+        "35420": {
+          "id": 35420,
+          "name": "Dalbandin"
+        },
+        "35429": {
+          "id": 35429,
+          "name": "Dera Bugti"
+        },
+        "35432": {
+          "id": 35432,
+          "name": "Dhadar"
+        },
+        "35442": {
+          "id": 35442,
+          "name": "Duki"
+        },
+        "35465": {
+          "id": 35465,
+          "name": "Gwadar"
+        },
+        "35467": {
+          "id": 35467,
+          "name": "Hala"
+        },
+        "35470": {
+          "id": 35470,
+          "name": "Harnai"
+        },
+        "35497": {
+          "id": 35497,
+          "name": "Jiwani"
+        },
+        "35506": {
+          "id": 35506,
+          "name": "Kalat"
+        },
+        "35518": {
+          "id": 35518,
+          "name": "Karak"
+        },
+        "35531": {
+          "id": 35531,
+          "name": "Kharan"
+        },
+        "35537": {
+          "id": 35537,
+          "name": "Khuzdar"
+        },
+        "35539": {
+          "id": 35539,
+          "name": "Kohlu"
+        },
+        "35559": {
+          "id": 35559,
+          "name": "Loralai"
+        },
+        "35560": {
+          "id": 35560,
+          "name": "Mach"
+        },
+        "35570": {
+          "id": 35570,
+          "name": "Mastung"
+        },
+        "35574": {
+          "id": 35574,
+          "name": "Mehrabpur"
+        },
+        "35605": {
+          "id": 35605,
+          "name": "Nushki"
+        },
+        "35607": {
+          "id": 35607,
+          "name": "Ormara"
+        },
+        "35612": {
+          "id": 35612,
+          "name": "Pasni"
+        },
+        "35621": {
+          "id": 35621,
+          "name": "Pishin"
+        },
+        "35624": {
+          "id": 35624,
+          "name": "Quetta"
+        },
+        "35666": {
+          "id": 35666,
+          "name": "Sibi"
+        },
+        "35671": {
+          "id": 35671,
+          "name": "Sohbatpur"
+        },
+        "35675": {
+          "id": 35675,
+          "name": "Surab"
+        },
+        "35693": {
+          "id": 35693,
+          "name": "Turbat"
+        },
+        "35697": {
+          "id": 35697,
+          "name": "Usta Muhammad"
+        },
+        "35698": {
+          "id": 35698,
+          "name": "Uthal"
+        },
+        "35710": {
+          "id": 35710,
+          "name": "Zhob"
+        },
+        "35711": {
+          "id": 35711,
+          "name": "Ziarat"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "North-West Frontier",
+      "cities": {
+        "35369": {
+          "id": 35369,
+          "name": "Akora"
+        },
+        "35372": {
+          "id": 35372,
+          "name": "Amangarh"
+        },
+        "35383": {
+          "id": 35383,
+          "name": "Bannu"
+        },
+        "35386": {
+          "id": 35386,
+          "name": "Bat Khela"
+        },
+        "35407": {
+          "id": 35407,
+          "name": "Charsadda"
+        },
+        "35409": {
+          "id": 35409,
+          "name": "Cherat"
+        },
+        "35413": {
+          "id": 35413,
+          "name": "Chitral"
+        },
+        "35431": {
+          "id": 35431,
+          "name": "Dera Ismail Khan"
+        },
+        "35439": {
+          "id": 35439,
+          "name": "Dir"
+        },
+        "35440": {
+          "id": 35440,
+          "name": "Doaba"
+        },
+        "35468": {
+          "id": 35468,
+          "name": "Hangu"
+        },
+        "35469": {
+          "id": 35469,
+          "name": "Haripur"
+        },
+        "35475": {
+          "id": 35475,
+          "name": "Havelian"
+        },
+        "35525": {
+          "id": 35525,
+          "name": "Khalabat"
+        },
+        "35538": {
+          "id": 35538,
+          "name": "Kohat"
+        },
+        "35546": {
+          "id": 35546,
+          "name": "Kulachi"
+        },
+        "35550": {
+          "id": 35550,
+          "name": "Lachi"
+        },
+        "35553": {
+          "id": 35553,
+          "name": "Lakki Marwat"
+        },
+        "35568": {
+          "id": 35568,
+          "name": "Mansehra"
+        },
+        "35569": {
+          "id": 35569,
+          "name": "Mardan"
+        },
+        "35578": {
+          "id": 35578,
+          "name": "Mingaora"
+        },
+        "35604": {
+          "id": 35604,
+          "name": "Nowshera"
+        },
+        "35608": {
+          "id": 35608,
+          "name": "Pabbi"
+        },
+        "35609": {
+          "id": 35609,
+          "name": "Paharpur"
+        },
+        "35615": {
+          "id": 35615,
+          "name": "Peshawar"
+        },
+        "35636": {
+          "id": 35636,
+          "name": "Risalpur"
+        },
+        "35650": {
+          "id": 35650,
+          "name": "Sarai Naurang"
+        },
+        "35656": {
+          "id": 35656,
+          "name": "Shabqadar"
+        },
+        "35676": {
+          "id": 35676,
+          "name": "Swabi"
+        },
+        "35684": {
+          "id": 35684,
+          "name": "Tangi"
+        },
+        "35686": {
+          "id": 35686,
+          "name": "Tank"
+        },
+        "35692": {
+          "id": 35692,
+          "name": "Topi"
+        },
+        "35699": {
+          "id": 35699,
+          "name": "Utmanzai"
+        },
+        "35709": {
+          "id": 35709,
+          "name": "Zaida"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Punjab",
+      "cities": {
+        "35367": {
+          "id": 35367,
+          "name": "Ahmadpur East"
+        },
+        "35368": {
+          "id": 35368,
+          "name": "Ahmadpur Sial"
+        },
+        "35370": {
+          "id": 35370,
+          "name": "Alipur"
+        },
+        "35373": {
+          "id": 35373,
+          "name": "Arifwala"
+        },
+        "35374": {
+          "id": 35374,
+          "name": "Attock"
+        },
+        "35376": {
+          "id": 35376,
+          "name": "Baddomalhi"
+        },
+        "35378": {
+          "id": 35378,
+          "name": "Baffa"
+        },
+        "35380": {
+          "id": 35380,
+          "name": "Bahawalnagar"
+        },
+        "35381": {
+          "id": 35381,
+          "name": "Bahawalpur"
+        },
+        "35385": {
+          "id": 35385,
+          "name": "Basirpur"
+        },
+        "35387": {
+          "id": 35387,
+          "name": "Begowala"
+        },
+        "35391": {
+          "id": 35391,
+          "name": "Bhakkar"
+        },
+        "35392": {
+          "id": 35392,
+          "name": "Bhalwal"
+        },
+        "35394": {
+          "id": 35394,
+          "name": "Bhawana"
+        },
+        "35395": {
+          "id": 35395,
+          "name": "Bhera"
+        },
+        "35397": {
+          "id": 35397,
+          "name": "Bhopalwala"
+        },
+        "35400": {
+          "id": 35400,
+          "name": "Burewala"
+        },
+        "35401": {
+          "id": 35401,
+          "name": "Chak Azam Sahu"
+        },
+        "35403": {
+          "id": 35403,
+          "name": "Chak Jhumra"
+        },
+        "35404": {
+          "id": 35404,
+          "name": "Chakwal"
+        },
+        "35408": {
+          "id": 35408,
+          "name": "Chawinda"
+        },
+        "35410": {
+          "id": 35410,
+          "name": "Chichawatni"
+        },
+        "35411": {
+          "id": 35411,
+          "name": "Chiniot"
+        },
+        "35412": {
+          "id": 35412,
+          "name": "Chishtian Mandi"
+        },
+        "35414": {
+          "id": 35414,
+          "name": "Choa Saidan Shah"
+        },
+        "35416": {
+          "id": 35416,
+          "name": "Chuhar Kana"
+        },
+        "35417": {
+          "id": 35417,
+          "name": "Chunian"
+        },
+        "35419": {
+          "id": 35419,
+          "name": "Dajal"
+        },
+        "35422": {
+          "id": 35422,
+          "name": "Darya Khan"
+        },
+        "35424": {
+          "id": 35424,
+          "name": "Daska"
+        },
+        "35425": {
+          "id": 35425,
+          "name": "Daud Khel"
+        },
+        "35427": {
+          "id": 35427,
+          "name": "Daultala"
+        },
+        "35430": {
+          "id": 35430,
+          "name": "Dera Ghazi Khan"
+        },
+        "35434": {
+          "id": 35434,
+          "name": "Dijkot"
+        },
+        "35436": {
+          "id": 35436,
+          "name": "Dinga"
+        },
+        "35437": {
+          "id": 35437,
+          "name": "Dipalpur"
+        },
+        "35443": {
+          "id": 35443,
+          "name": "Dullewala"
+        },
+        "35444": {
+          "id": 35444,
+          "name": "Dunga Bunga"
+        },
+        "35445": {
+          "id": 35445,
+          "name": "Dunyapur"
+        },
+        "35446": {
+          "id": 35446,
+          "name": "Eminabad"
+        },
+        "35447": {
+          "id": 35447,
+          "name": "Faisalabad"
+        },
+        "35448": {
+          "id": 35448,
+          "name": "Faqirwali"
+        },
+        "35449": {
+          "id": 35449,
+          "name": "Faruka"
+        },
+        "35450": {
+          "id": 35450,
+          "name": "Fatehpur"
+        },
+        "35451": {
+          "id": 35451,
+          "name": "Fazalpur"
+        },
+        "35452": {
+          "id": 35452,
+          "name": "Fort Abbas"
+        },
+        "35456": {
+          "id": 35456,
+          "name": "Garh Maharaja"
+        },
+        "35461": {
+          "id": 35461,
+          "name": "Gojra"
+        },
+        "35462": {
+          "id": 35462,
+          "name": "Gujar Khan"
+        },
+        "35463": {
+          "id": 35463,
+          "name": "Gujranwala"
+        },
+        "35464": {
+          "id": 35464,
+          "name": "Gujrat"
+        },
+        "35466": {
+          "id": 35466,
+          "name": "Hafizabad"
+        },
+        "35471": {
+          "id": 35471,
+          "name": "Harnoli"
+        },
+        "35472": {
+          "id": 35472,
+          "name": "Harunabad"
+        },
+        "35473": {
+          "id": 35473,
+          "name": "Hasan Abdal"
+        },
+        "35474": {
+          "id": 35474,
+          "name": "Hasilpur"
+        },
+        "35476": {
+          "id": 35476,
+          "name": "Haveli"
+        },
+        "35477": {
+          "id": 35477,
+          "name": "Hazro"
+        },
+        "35481": {
+          "id": 35481,
+          "name": "Isa Khel"
+        },
+        "35484": {
+          "id": 35484,
+          "name": "Jalalpur Jattan"
+        },
+        "35485": {
+          "id": 35485,
+          "name": "Jalalpur Pirwala"
+        },
+        "35486": {
+          "id": 35486,
+          "name": "Jampur"
+        },
+        "35488": {
+          "id": 35488,
+          "name": "Jandiala Sherkhan"
+        },
+        "35489": {
+          "id": 35489,
+          "name": "Jand"
+        },
+        "35490": {
+          "id": 35490,
+          "name": "Jaranwala"
+        },
+        "35492": {
+          "id": 35492,
+          "name": "Jatoi"
+        },
+        "35493": {
+          "id": 35493,
+          "name": "Jauharabad"
+        },
+        "35494": {
+          "id": 35494,
+          "name": "Jhawarian"
+        },
+        "35495": {
+          "id": 35495,
+          "name": "Jhelum"
+        },
+        "35499": {
+          "id": 35499,
+          "name": "Kabirwala"
+        },
+        "35501": {
+          "id": 35501,
+          "name": "Kahna Nau"
+        },
+        "35502": {
+          "id": 35502,
+          "name": "Kahror Pakka"
+        },
+        "35503": {
+          "id": 35503,
+          "name": "Kahuta"
+        },
+        "35504": {
+          "id": 35504,
+          "name": "Kalabagh"
+        },
+        "35505": {
+          "id": 35505,
+          "name": "Kalaswala"
+        },
+        "35507": {
+          "id": 35507,
+          "name": "Kaleke"
+        },
+        "35508": {
+          "id": 35508,
+          "name": "Kalur Kot"
+        },
+        "35509": {
+          "id": 35509,
+          "name": "Kamalia"
+        },
+        "35511": {
+          "id": 35511,
+          "name": "Kamir"
+        },
+        "35512": {
+          "id": 35512,
+          "name": "Kamoke"
+        },
+        "35513": {
+          "id": 35513,
+          "name": "Kamra"
+        },
+        "35516": {
+          "id": 35516,
+          "name": "Kanganpur"
+        },
+        "35520": {
+          "id": 35520,
+          "name": "Kasur"
+        },
+        "35526": {
+          "id": 35526,
+          "name": "Khanewal"
+        },
+        "35527": {
+          "id": 35527,
+          "name": "Khangah Dogran"
+        },
+        "35528": {
+          "id": 35528,
+          "name": "Khangarh"
+        },
+        "35529": {
+          "id": 35529,
+          "name": "Khanpur"
+        },
+        "35532": {
+          "id": 35532,
+          "name": "Kharian"
+        },
+        "35533": {
+          "id": 35533,
+          "name": "Khewra"
+        },
+        "35535": {
+          "id": 35535,
+          "name": "Khurianwala"
+        },
+        "35536": {
+          "id": 35536,
+          "name": "Khushab"
+        },
+        "35540": {
+          "id": 35540,
+          "name": "Kot Addu"
+        },
+        "35542": {
+          "id": 35542,
+          "name": "Kotli Loharan"
+        },
+        "35543": {
+          "id": 35543,
+          "name": "Kot Radha Kishan"
+        },
+        "35545": {
+          "id": 35545,
+          "name": "Kot Samaba"
+        },
+        "35547": {
+          "id": 35547,
+          "name": "Kundian"
+        },
+        "35548": {
+          "id": 35548,
+          "name": "Kunjah"
+        },
+        "35551": {
+          "id": 35551,
+          "name": "Lahore"
+        },
+        "35554": {
+          "id": 35554,
+          "name": "Lalian"
+        },
+        "35556": {
+          "id": 35556,
+          "name": "Liaqatabad"
+        },
+        "35557": {
+          "id": 35557,
+          "name": "Liliani"
+        },
+        "35558": {
+          "id": 35558,
+          "name": "Lodhran"
+        },
+        "35562": {
+          "id": 35562,
+          "name": "Mailsi"
+        },
+        "35563": {
+          "id": 35563,
+          "name": "Malakwal"
+        },
+        "35564": {
+          "id": 35564,
+          "name": "Mamu Kanjan"
+        },
+        "35565": {
+          "id": 35565,
+          "name": "Mandi Bahauddin"
+        },
+        "35566": {
+          "id": 35566,
+          "name": "Mangla"
+        },
+        "35567": {
+          "id": 35567,
+          "name": "Mankera"
+        },
+        "35575": {
+          "id": 35575,
+          "name": "Mian Channun"
+        },
+        "35576": {
+          "id": 35576,
+          "name": "Mianwali"
+        },
+        "35577": {
+          "id": 35577,
+          "name": "Minchinabad"
+        },
+        "35586": {
+          "id": 35586,
+          "name": "Mitha Tiwana"
+        },
+        "35589": {
+          "id": 35589,
+          "name": "Multan"
+        },
+        "35590": {
+          "id": 35590,
+          "name": "Muridke"
+        },
+        "35591": {
+          "id": 35591,
+          "name": "Murree"
+        },
+        "35592": {
+          "id": 35592,
+          "name": "Mustafabad"
+        },
+        "35594": {
+          "id": 35594,
+          "name": "Muzaffargarh"
+        },
+        "35596": {
+          "id": 35596,
+          "name": "Nankana Sahib"
+        },
+        "35597": {
+          "id": 35597,
+          "name": "Narang"
+        },
+        "35598": {
+          "id": 35598,
+          "name": "Narowal"
+        },
+        "35606": {
+          "id": 35606,
+          "name": "Okara"
+        },
+        "35610": {
+          "id": 35610,
+          "name": "Pakpattan"
+        },
+        "35613": {
+          "id": 35613,
+          "name": "Pasrur"
+        },
+        "35614": {
+          "id": 35614,
+          "name": "Pattoki"
+        },
+        "35616": {
+          "id": 35616,
+          "name": "Phalia"
+        },
+        "35618": {
+          "id": 35618,
+          "name": "Pind Dadan Khan"
+        },
+        "35619": {
+          "id": 35619,
+          "name": "Pindi Bhattian"
+        },
+        "35620": {
+          "id": 35620,
+          "name": "Pindi Gheb"
+        },
+        "35623": {
+          "id": 35623,
+          "name": "Qadirpur Ran"
+        },
+        "35625": {
+          "id": 35625,
+          "name": "Rabwah"
+        },
+        "35627": {
+          "id": 35627,
+          "name": "Raiwind"
+        },
+        "35628": {
+          "id": 35628,
+          "name": "Raja Jang"
+        },
+        "35629": {
+          "id": 35629,
+          "name": "Rajanpur"
+        },
+        "35632": {
+          "id": 35632,
+          "name": "Rasulnagar"
+        },
+        "35634": {
+          "id": 35634,
+          "name": "Rawalpindi"
+        },
+        "35635": {
+          "id": 35635,
+          "name": "Renala Khurd"
+        },
+        "35638": {
+          "id": 35638,
+          "name": "Rojhan"
+        },
+        "35640": {
+          "id": 35640,
+          "name": "Sadiqabad"
+        },
+        "35641": {
+          "id": 35641,
+          "name": "Sahiwal"
+        },
+        "35644": {
+          "id": 35644,
+          "name": "Samasatta"
+        },
+        "35645": {
+          "id": 35645,
+          "name": "Sambrial"
+        },
+        "35647": {
+          "id": 35647,
+          "name": "Sanjwal"
+        },
+        "35649": {
+          "id": 35649,
+          "name": "Sarai Alamgir"
+        },
+        "35651": {
+          "id": 35651,
+          "name": "Sarai Sidhu"
+        },
+        "35652": {
+          "id": 35652,
+          "name": "Sargodha"
+        },
+        "35660": {
+          "id": 35660,
+          "name": "Sharqpur"
+        },
+        "35661": {
+          "id": 35661,
+          "name": "Shekhupura"
+        },
+        "35664": {
+          "id": 35664,
+          "name": "Shujaabad"
+        },
+        "35665": {
+          "id": 35665,
+          "name": "Sialkot"
+        },
+        "35667": {
+          "id": 35667,
+          "name": "Sillanwali"
+        },
+        "35670": {
+          "id": 35670,
+          "name": "Sodhra"
+        },
+        "35673": {
+          "id": 35673,
+          "name": "Sukheke"
+        },
+        "35677": {
+          "id": 35677,
+          "name": "Talagang"
+        },
+        "35679": {
+          "id": 35679,
+          "name": "Tandlianwala"
+        },
+        "35687": {
+          "id": 35687,
+          "name": "Taunsa"
+        },
+        "35691": {
+          "id": 35691,
+          "name": "Toba Tek Singh"
+        },
+        "35695": {
+          "id": 35695,
+          "name": "Uch"
+        },
+        "35700": {
+          "id": 35700,
+          "name": "Vihari"
+        },
+        "35701": {
+          "id": 35701,
+          "name": "Wah"
+        },
+        "35704": {
+          "id": 35704,
+          "name": "Warburton"
+        },
+        "35705": {
+          "id": 35705,
+          "name": "Wazirabad"
+        },
+        "35706": {
+          "id": 35706,
+          "name": "Yazman"
+        },
+        "35707": {
+          "id": 35707,
+          "name": "Zafarwal"
+        },
+        "35708": {
+          "id": 35708,
+          "name": "Zahir Pir"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Sindh",
+      "cities": {
+        "35366": {
+          "id": 35366,
+          "name": "Adilpur"
+        },
+        "35375": {
+          "id": 35375,
+          "name": "Badah"
+        },
+        "35377": {
+          "id": 35377,
+          "name": "Badin"
+        },
+        "35379": {
+          "id": 35379,
+          "name": "Bagarji"
+        },
+        "35382": {
+          "id": 35382,
+          "name": "Bandhi"
+        },
+        "35389": {
+          "id": 35389,
+          "name": "Berani"
+        },
+        "35393": {
+          "id": 35393,
+          "name": "Bhan"
+        },
+        "35396": {
+          "id": 35396,
+          "name": "Bhit Shah"
+        },
+        "35398": {
+          "id": 35398,
+          "name": "Bozdar"
+        },
+        "35399": {
+          "id": 35399,
+          "name": "Bulri"
+        },
+        "35402": {
+          "id": 35402,
+          "name": "Chak"
+        },
+        "35406": {
+          "id": 35406,
+          "name": "Chambar"
+        },
+        "35415": {
+          "id": 35415,
+          "name": "Chor"
+        },
+        "35418": {
+          "id": 35418,
+          "name": "Dadu"
+        },
+        "35421": {
+          "id": 35421,
+          "name": "Daro"
+        },
+        "35423": {
+          "id": 35423,
+          "name": "Darya Khan Mari"
+        },
+        "35426": {
+          "id": 35426,
+          "name": "Daulatpur"
+        },
+        "35428": {
+          "id": 35428,
+          "name": "Daur"
+        },
+        "35433": {
+          "id": 35433,
+          "name": "Digri"
+        },
+        "35435": {
+          "id": 35435,
+          "name": "Dina"
+        },
+        "35438": {
+          "id": 35438,
+          "name": "Diplo"
+        },
+        "35441": {
+          "id": 35441,
+          "name": "Dokri"
+        },
+        "35453": {
+          "id": 35453,
+          "name": "Gambat"
+        },
+        "35454": {
+          "id": 35454,
+          "name": "Garhi Khairo"
+        },
+        "35455": {
+          "id": 35455,
+          "name": "Garhi Yasin"
+        },
+        "35457": {
+          "id": 35457,
+          "name": "Gharo"
+        },
+        "35458": {
+          "id": 35458,
+          "name": "Ghauspur"
+        },
+        "35459": {
+          "id": 35459,
+          "name": "Ghotki"
+        },
+        "35478": {
+          "id": 35478,
+          "name": "Hingorja"
+        },
+        "35480": {
+          "id": 35480,
+          "name": "Hyderabad"
+        },
+        "35482": {
+          "id": 35482,
+          "name": "Islamkot"
+        },
+        "35483": {
+          "id": 35483,
+          "name": "Jacobabad"
+        },
+        "35487": {
+          "id": 35487,
+          "name": "Jam Sahib"
+        },
+        "35491": {
+          "id": 35491,
+          "name": "Jati"
+        },
+        "35496": {
+          "id": 35496,
+          "name": "Jhol"
+        },
+        "35498": {
+          "id": 35498,
+          "name": "Johi"
+        },
+        "35500": {
+          "id": 35500,
+          "name": "Kadhan"
+        },
+        "35510": {
+          "id": 35510,
+          "name": "Kambar"
+        },
+        "35514": {
+          "id": 35514,
+          "name": "Kandiari"
+        },
+        "35515": {
+          "id": 35515,
+          "name": "Kandiaro"
+        },
+        "35517": {
+          "id": 35517,
+          "name": "Karachi"
+        },
+        "35519": {
+          "id": 35519,
+          "name": "Kashmor"
+        },
+        "35521": {
+          "id": 35521,
+          "name": "Keti Bandar"
+        },
+        "35522": {
+          "id": 35522,
+          "name": "Khadro"
+        },
+        "35523": {
+          "id": 35523,
+          "name": "Khairpur"
+        },
+        "35524": {
+          "id": 35524,
+          "name": "Khairpur Nathan Shah"
+        },
+        "35530": {
+          "id": 35530,
+          "name": "Khanpur"
+        },
+        "35534": {
+          "id": 35534,
+          "name": "Khipro"
+        },
+        "35541": {
+          "id": 35541,
+          "name": "Kot Diji"
+        },
+        "35544": {
+          "id": 35544,
+          "name": "Kotri"
+        },
+        "35549": {
+          "id": 35549,
+          "name": "Kunri"
+        },
+        "35552": {
+          "id": 35552,
+          "name": "Lakhi"
+        },
+        "35555": {
+          "id": 35555,
+          "name": "Larkana"
+        },
+        "35561": {
+          "id": 35561,
+          "name": "Madeji"
+        },
+        "35571": {
+          "id": 35571,
+          "name": "Matiari"
+        },
+        "35572": {
+          "id": 35572,
+          "name": "Matli"
+        },
+        "35573": {
+          "id": 35573,
+          "name": "Mehar"
+        },
+        "35580": {
+          "id": 35580,
+          "name": "Miro Khan"
+        },
+        "35581": {
+          "id": 35581,
+          "name": "Mirpur Bathoro"
+        },
+        "35582": {
+          "id": 35582,
+          "name": "Mirpur Khas"
+        },
+        "35583": {
+          "id": 35583,
+          "name": "Mirpur Mathelo"
+        },
+        "35584": {
+          "id": 35584,
+          "name": "Mirpur Sakro"
+        },
+        "35585": {
+          "id": 35585,
+          "name": "Mirwah"
+        },
+        "35587": {
+          "id": 35587,
+          "name": "Mithi"
+        },
+        "35588": {
+          "id": 35588,
+          "name": "Moro"
+        },
+        "35595": {
+          "id": 35595,
+          "name": "Nabisar"
+        },
+        "35599": {
+          "id": 35599,
+          "name": "Nasirabad"
+        },
+        "35600": {
+          "id": 35600,
+          "name": "Naudero"
+        },
+        "35601": {
+          "id": 35601,
+          "name": "Naukot"
+        },
+        "35602": {
+          "id": 35602,
+          "name": "Naushahro Firoz"
+        },
+        "35603": {
+          "id": 35603,
+          "name": "Nawabshah"
+        },
+        "35611": {
+          "id": 35611,
+          "name": "Pano Aqil"
+        },
+        "35617": {
+          "id": 35617,
+          "name": "Phulji"
+        },
+        "35622": {
+          "id": 35622,
+          "name": "Pithoro"
+        },
+        "35626": {
+          "id": 35626,
+          "name": "Radhan"
+        },
+        "35630": {
+          "id": 35630,
+          "name": "Rajo Khanani"
+        },
+        "35631": {
+          "id": 35631,
+          "name": "Ranipur"
+        },
+        "35633": {
+          "id": 35633,
+          "name": "Ratodero"
+        },
+        "35637": {
+          "id": 35637,
+          "name": "Rohri"
+        },
+        "35639": {
+          "id": 35639,
+          "name": "Rustam"
+        },
+        "35642": {
+          "id": 35642,
+          "name": "Sakrand"
+        },
+        "35643": {
+          "id": 35643,
+          "name": "Samaro"
+        },
+        "35646": {
+          "id": 35646,
+          "name": "Sanghar"
+        },
+        "35648": {
+          "id": 35648,
+          "name": "Sann"
+        },
+        "35653": {
+          "id": 35653,
+          "name": "Sarhari"
+        },
+        "35654": {
+          "id": 35654,
+          "name": "Sehwan"
+        },
+        "35655": {
+          "id": 35655,
+          "name": "Setharja"
+        },
+        "35657": {
+          "id": 35657,
+          "name": "Shahdadkot"
+        },
+        "35658": {
+          "id": 35658,
+          "name": "Shahdadpur"
+        },
+        "35659": {
+          "id": 35659,
+          "name": "Shahpur Chakar"
+        },
+        "35662": {
+          "id": 35662,
+          "name": "Shikarpur"
+        },
+        "35668": {
+          "id": 35668,
+          "name": "Sinjhoro"
+        },
+        "35669": {
+          "id": 35669,
+          "name": "Sita Road"
+        },
+        "35672": {
+          "id": 35672,
+          "name": "Sujawal"
+        },
+        "35674": {
+          "id": 35674,
+          "name": "Sukkur"
+        },
+        "35678": {
+          "id": 35678,
+          "name": "Talhar"
+        },
+        "35680": {
+          "id": 35680,
+          "name": "Tando Adam"
+        },
+        "35681": {
+          "id": 35681,
+          "name": "Tando Ghulam Ali"
+        },
+        "35682": {
+          "id": 35682,
+          "name": "Tando Jam"
+        },
+        "35683": {
+          "id": 35683,
+          "name": "Tando Muhammad Khan"
+        },
+        "35685": {
+          "id": 35685,
+          "name": "Tangwani"
+        },
+        "35688": {
+          "id": 35688,
+          "name": "Thano Bula Khan"
+        },
+        "35689": {
+          "id": 35689,
+          "name": "Thatta"
+        },
+        "35690": {
+          "id": 35690,
+          "name": "Thul"
+        },
+        "35694": {
+          "id": 35694,
+          "name": "Ubauro"
+        },
+        "35696": {
+          "id": 35696,
+          "name": "Umarkot"
+        },
+        "35703": {
+          "id": 35703,
+          "name": "Warah"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Azad Kashmir",
+      "cities": {
+        "35593": {
+          "id": 35593,
+          "name": "Muzaffarabad"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Northern Areas",
+      "cities": {
+        "35460": {
+          "id": 35460,
+          "name": "Gilgit"
+        },
+        "35479": {
+          "id": 35479,
+          "name": "Hunza"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Islamabad",
+      "cities": {}
+    }
+  }
+}

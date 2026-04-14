@@ -1,1 +1,2085 @@
-{"code":"BE","name":"Belgium","states":{"10":{"code":"10","name":"Brabant Wallon","cities":{}},"11":{"code":"11","name":"Brussels Hoofdstedelijk Gewest","cities":{"6293":{"id":6293,"name":"Brussels"}}},"12":{"code":"12","name":"Vlaams-Brabant","cities":{"6480":{"id":6480,"name":"Leuven"}}},"01":{"code":"01","name":"Antwerpen","cities":{"6214":{"id":6214,"name":"Aartselaar"},"6225":{"id":6225,"name":"Antwerp"},"6228":{"id":6228,"name":"Arendonk"},"6241":{"id":6241,"name":"Baarle-hertog"},"6243":{"id":6243,"name":"Balen"},"6250":{"id":6250,"name":"Beerse"},"6256":{"id":6256,"name":"Berlaar"},"6273":{"id":6273,"name":"Boechout"},"6274":{"id":6274,"name":"Bonheiden"},"6275":{"id":6275,"name":"Boom"},"6278":{"id":6278,"name":"Bornem"},"6279":{"id":6279,"name":"Borsbeek"},"6286":{"id":6286,"name":"Brasschaat"},"6287":{"id":6287,"name":"Brecht"},"6328":{"id":6328,"name":"Dessel"},"6340":{"id":6340,"name":"Duffel"},"6342":{"id":6342,"name":"Edegem"},"6351":{"id":6351,"name":"Essen"},"6371":{"id":6371,"name":"Geel"},"6388":{"id":6388,"name":"Grobbendonk"},"6403":{"id":6403,"name":"Heist-op-den-berg"},"6404":{"id":6404,"name":"Hemiksem"},"6407":{"id":6407,"name":"Herentals"},"6409":{"id":6409,"name":"Herenthout"},"6413":{"id":6413,"name":"Herselt"},"6422":{"id":6422,"name":"Hoogstraten"},"6427":{"id":6427,"name":"Hove"},"6429":{"id":6429,"name":"Hulshout"},"6442":{"id":6442,"name":"Kalmthout"},"6444":{"id":6444,"name":"Kapellen"},"6447":{"id":6447,"name":"Kasterlee"},"6454":{"id":6454,"name":"Kontich"},"6486":{"id":6486,"name":"Lille"},"6490":{"id":6490,"name":"Lint"},"6510":{"id":6510,"name":"Mechelen"},"6511":{"id":6511,"name":"Meerhout"},"6519":{"id":6519,"name":"Merksplas"},"6527":{"id":6527,"name":"Mol"},"6533":{"id":6533,"name":"Mortsel"},"6543":{"id":6543,"name":"Niel"},"6546":{"id":6546,"name":"Nijlen"},"6550":{"id":6550,"name":"Olen"},"6563":{"id":6563,"name":"Oud-turnhout"},"6581":{"id":6581,"name":"Putte"},"6582":{"id":6582,"name":"Puurs"},"6586":{"id":6586,"name":"Ranst"},"6587":{"id":6587,"name":"Ravels"},"6590":{"id":6590,"name":"Retie"},"6592":{"id":6592,"name":"Rijkevorsel"},"6601":{"id":6601,"name":"Rumst"},"6607":{"id":6607,"name":"Schelle"},"6608":{"id":6608,"name":"Schilde"},"6609":{"id":6609,"name":"Schoten"},"6613":{"id":6613,"name":"Sint-amands"},"6616":{"id":6616,"name":"Sint-katelijne-waver"},"6629":{"id":6629,"name":"Stabroek"},"6653":{"id":6653,"name":"Turnhout"},"6664":{"id":6664,"name":"Vorselaar"},"6665":{"id":6665,"name":"Vosselaar"},"6683":{"id":6683,"name":"Westerlo"},"6689":{"id":6689,"name":"Wijnegem"},"6690":{"id":6690,"name":"Willebroek"},"6692":{"id":6692,"name":"Wommelgem"},"6693":{"id":6693,"name":"Wuustwezel"},"6695":{"id":6695,"name":"Zandhoven"},"6702":{"id":6702,"name":"Zoersel"},"6712":{"id":6712,"name":"Zwijndrecht"}}},"02":{"code":"02","name":"Brabant","cities":{"6213":{"id":6213,"name":"Aarschot"},"6231":{"id":6231,"name":"Asse"},"6248":{"id":6248,"name":"Beauvechain"},"6251":{"id":6251,"name":"Beersel"},"6252":{"id":6252,"name":"Begijnendijk"},"6253":{"id":6253,"name":"Bekkevoort"},"6260":{"id":6260,"name":"Bertem"},"6263":{"id":6263,"name":"Bever"},"6266":{"id":6266,"name":"Bierbeek"},"6276":{"id":6276,"name":"Boortmeerbeek"},"6282":{"id":6282,"name":"Boutersem"},"6283":{"id":6283,"name":"Braine-le-chateau"},"6302":{"id":6302,"name":"Chastre"},"6305":{"id":6305,"name":"Chaumont-gistoux"},"6314":{"id":6314,"name":"Court-saint-etienne"},"6331":{"id":6331,"name":"Diest"},"6333":{"id":6333,"name":"Dilbeek"},"6339":{"id":6339,"name":"Drogenbos"},"6368":{"id":6368,"name":"Galmaarden"},"6373":{"id":6373,"name":"Geetbets"},"6375":{"id":6375,"name":"Genappe"},"6383":{"id":6383,"name":"Glabbeek"},"6384":{"id":6384,"name":"Gooik"},"6386":{"id":6386,"name":"Grez-doiceau"},"6387":{"id":6387,"name":"Grimbergen"},"6389":{"id":6389,"name":"Haacht"},"6393":{"id":6393,"name":"Halle"},"6408":{"id":6408,"name":"Herent"},"6411":{"id":6411,"name":"Herne"},"6417":{"id":6417,"name":"Hoegaarden"},"6418":{"id":6418,"name":"Hoeilaart"},"6420":{"id":6420,"name":"Holsbeek"},"6428":{"id":6428,"name":"Huldenberg"},"6433":{"id":6433,"name":"Incourt"},"6435":{"id":6435,"name":"Ittre"},"6439":{"id":6439,"name":"Jodoigne"},"6443":{"id":6443,"name":"Kampenhout"},"6445":{"id":6445,"name":"Kapelle-op-den-bos"},"6448":{"id":6448,"name":"Keerbergen"},"6456":{"id":6456,"name":"Kortenaken"},"6457":{"id":6457,"name":"Kortenberg"},"6460":{"id":6460,"name":"Kraainem"},"6466":{"id":6466,"name":"La Hulpe"},"6469":{"id":6469,"name":"Landen"},"6476":{"id":6476,"name":"Lennik"},"6483":{"id":6483,"name":"Liedekerke"},"6489":{"id":6489,"name":"Linkebeek"},"6495":{"id":6495,"name":"Londerzeel"},"6498":{"id":6498,"name":"Lubbeek"},"6502":{"id":6502,"name":"Machelen"},"6512":{"id":6512,"name":"Meise"},"6517":{"id":6517,"name":"Merchtem"},"6530":{"id":6530,"name":"Mont-saint-guibert"},"6548":{"id":6548,"name":"Nivelles"},"6557":{"id":6557,"name":"Opwijk"},"6562":{"id":6562,"name":"Oud-heverlee"},"6566":{"id":6566,"name":"Overijse"},"6571":{"id":6571,"name":"Pepingen"},"6574":{"id":6574,"name":"Perwez"},"6593":{"id":6593,"name":"Rixensart"},"6597":{"id":6597,"name":"Rotselaar"},"6614":{"id":6614,"name":"Sint-genesius-rode"},"6621":{"id":6621,"name":"Sint-pieters-leeuw"},"6632":{"id":6632,"name":"Steenokkerzeel"},"6638":{"id":6638,"name":"Ternat"},"6639":{"id":6639,"name":"Tervuren"},"6644":{"id":6644,"name":"Tienen"},"6650":{"id":6650,"name":"Tremelo"},"6652":{"id":6652,"name":"Tubize"},"6659":{"id":6659,"name":"Villers-la-ville"},"6661":{"id":6661,"name":"Vilvoorde"},"6671":{"id":6671,"name":"Walhain"},"6676":{"id":6676,"name":"Waterloo"},"6677":{"id":6677,"name":"Wavre"},"6681":{"id":6681,"name":"Wemmel"},"6686":{"id":6686,"name":"Wezembeek-oppem"},"6696":{"id":6696,"name":"Zaventem"},"6700":{"id":6700,"name":"Zemst"},"6707":{"id":6707,"name":"Zoutleeuw"}}},"03":{"code":"03","name":"Hainaut","cities":{"6220":{"id":6220,"name":"Anderlues"},"6224":{"id":6224,"name":"Antoing"},"6234":{"id":6234,"name":"Ath"},"6246":{"id":6246,"name":"Beaumont"},"6254":{"id":6254,"name":"Beloeil"},"6259":{"id":6259,"name":"Bernissart"},"6269":{"id":6269,"name":"Binche"},"6281":{"id":6281,"name":"Boussu"},"6284":{"id":6284,"name":"Braine-le-comte"},"6290":{"id":6290,"name":"Brugelette"},"6292":{"id":6292,"name":"Brunehaut"},"6298":{"id":6298,"name":"Celles"},"6300":{"id":6300,"name":"Chapelle-lez-herlaimont"},"6301":{"id":6301,"name":"Charleroi"},"6303":{"id":6303,"name":"Chatelet"},"6306":{"id":6306,"name":"Chievres"},"6307":{"id":6307,"name":"Chimay"},"6311":{"id":6311,"name":"Colfontaine"},"6313":{"id":6313,"name":"Courcelles"},"6338":{"id":6338,"name":"Dour"},"6345":{"id":6345,"name":"Ellezelles"},"6346":{"id":6346,"name":"Enghien"},"6349":{"id":6349,"name":"Erquelinnes"},"6352":{"id":6352,"name":"Estaimpuis"},"6357":{"id":6357,"name":"Farciennes"},"6362":{"id":6362,"name":"Fleurus"},"6363":{"id":6363,"name":"Flobecq"},"6367":{"id":6367,"name":"Frameries"},"6379":{"id":6379,"name":"Gerpinnes"},"6405":{"id":6405,"name":"Hensies"},"6441":{"id":6441,"name":"Jurbise"},"6467":{"id":6467,"name":"La Louviere"},"6477":{"id":6477,"name":"Lens"},"6479":{"id":6479,"name":"Lessines"},"6491":{"id":6491,"name":"Lobbes"},"6505":{"id":6505,"name":"Manage"},"6516":{"id":6516,"name":"Merbes-le-chateau"},"6528":{"id":6528,"name":"Momignies"},"6529":{"id":6529,"name":"Mons"},"6532":{"id":6532,"name":"Morlanwelz"},"6569":{"id":6569,"name":"Pecq"},"6573":{"id":6573,"name":"Peruwelz"},"6578":{"id":6578,"name":"Pont-a-celles"},"6583":{"id":6583,"name":"Quaregnon"},"6584":{"id":6584,"name":"Quievrain"},"6600":{"id":6600,"name":"Rumes"},"6603":{"id":6603,"name":"Saint-ghislain"},"6610":{"id":6610,"name":"Seneffe"},"6612":{"id":6612,"name":"Silly"},"6623":{"id":6623,"name":"Soignies"},"6642":{"id":6642,"name":"Thuin"},"6649":{"id":6649,"name":"Tournai"}}},"04":{"code":"04","name":"Liege","cities":{"6217":{"id":6217,"name":"Amay"},"6218":{"id":6218,"name":"Amel"},"6222":{"id":6222,"name":"Ans"},"6223":{"id":6223,"name":"Anthisnes"},"6237":{"id":6237,"name":"Aubel"},"6239":{"id":6239,"name":"Awans"},"6240":{"id":6240,"name":"Aywaille"},"6242":{"id":6242,"name":"Baelen"},"6244":{"id":6244,"name":"Bassenge"},"6258":{"id":6258,"name":"Berloz"},"6265":{"id":6265,"name":"Beyne-heusay"},"6271":{"id":6271,"name":"Blegny"},"6285":{"id":6285,"name":"Braives"},"6295":{"id":6295,"name":"Bullingen"},"6296":{"id":6296,"name":"Burdinne"},"6297":{"id":6297,"name":"Butgenbach"},"6304":{"id":6304,"name":"Chaudfontaine"},"6310":{"id":6310,"name":"Clavier"},"6312":{"id":6312,"name":"Comblain-au-pont"},"6316":{"id":6316,"name":"Crisnee"},"6317":{"id":6317,"name":"Dalhem"},"6335":{"id":6335,"name":"Dison"},"6337":{"id":6337,"name":"Donceel"},"6347":{"id":6347,"name":"Engis"},"6350":{"id":6350,"name":"Esneux"},"6354":{"id":6354,"name":"Eupen"},"6356":{"id":6356,"name":"Faimes"},"6359":{"id":6359,"name":"Ferrieres"},"6360":{"id":6360,"name":"Fexhe-le-haut-clocher"},"6361":{"id":6361,"name":"Fleron"},"6372":{"id":6372,"name":"Geer"},"6395":{"id":6395,"name":"Hamoir"},"6397":{"id":6397,"name":"Hannut"},"6412":{"id":6412,"name":"Heron"},"6414":{"id":6414,"name":"Herstal"},"6415":{"id":6415,"name":"Herve"},"6430":{"id":6430,"name":"Huy"},"6438":{"id":6438,"name":"Jalhay"},"6440":{"id":6440,"name":"Juprelle"},"6484":{"id":6484,"name":"Liege"},"6485":{"id":6485,"name":"Lierneux"},"6487":{"id":6487,"name":"Limbourg"},"6488":{"id":6488,"name":"Lincent"},"6496":{"id":6496,"name":"Lontzen"},"6504":{"id":6504,"name":"Malmedy"},"6508":{"id":6508,"name":"Marchin"},"6525":{"id":6525,"name":"Modave"},"6537":{"id":6537,"name":"Nandrin"},"6551":{"id":6551,"name":"Olne"},"6558":{"id":6558,"name":"Oreye"},"6564":{"id":6564,"name":"Ouffet"},"6565":{"id":6565,"name":"Oupeye"},"6572":{"id":6572,"name":"Pepinster"},"6577":{"id":6577,"name":"Plombieres"},"6585":{"id":6585,"name":"Raeren"},"6588":{"id":6588,"name":"Remicourt"},"6606":{"id":6606,"name":"Saint-nicolas"},"6611":{"id":6611,"name":"Seraing"},"6626":{"id":6626,"name":"Soumagne"},"6627":{"id":6627,"name":"Spa"},"6628":{"id":6628,"name":"Sprimont"},"6631":{"id":6631,"name":"Stavelot"},"6634":{"id":6634,"name":"Stoumont"},"6641":{"id":6641,"name":"Theux"},"6645":{"id":6645,"name":"Tinlot"},"6651":{"id":6651,"name":"Trooz"},"6655":{"id":6655,"name":"Verlaine"},"6656":{"id":6656,"name":"Verviers"},"6660":{"id":6660,"name":"Villers-le-bouillet"},"6663":{"id":6663,"name":"Vise"},"6669":{"id":6669,"name":"Waimes"},"6672":{"id":6672,"name":"Wanze"},"6674":{"id":6674,"name":"Waremme"},"6675":{"id":6675,"name":"Wasseiges"},"6678":{"id":6678,"name":"Welkenraedt"}}},"05":{"code":"05","name":"Limburg","cities":{"6215":{"id":6215,"name":"Alken"},"6230":{"id":6230,"name":"As"},"6255":{"id":6255,"name":"Beringen"},"6268":{"id":6268,"name":"Bilzen"},"6272":{"id":6272,"name":"Bocholt"},"6277":{"id":6277,"name":"Borgloon"},"6289":{"id":6289,"name":"Bree"},"6330":{"id":6330,"name":"Diepenbeek"},"6376":{"id":6376,"name":"Genk"},"6381":{"id":6381,"name":"Gingelom"},"6392":{"id":6392,"name":"Halen"},"6399":{"id":6399,"name":"Hasselt"},"6402":{"id":6402,"name":"Heers"},"6410":{"id":6410,"name":"Herk-de-stad"},"6419":{"id":6419,"name":"Hoeselt"},"6449":{"id":6449,"name":"Kinrooi"},"6458":{"id":6458,"name":"Kortessem"},"6468":{"id":6468,"name":"Lanaken"},"6478":{"id":6478,"name":"Leopoldsburg"},"6494":{"id":6494,"name":"Lommel"},"6499":{"id":6499,"name":"Lummen"},"6500":{"id":6500,"name":"Maaseik"},"6501":{"id":6501,"name":"Maasmechelen"},"6540":{"id":6540,"name":"Neerpelt"},"6544":{"id":6544,"name":"Nieuwerkerken"},"6556":{"id":6556,"name":"Opglabbeek"},"6567":{"id":6567,"name":"Overpelt"},"6570":{"id":6570,"name":"Peer"},"6591":{"id":6591,"name":"Riemst"},"6622":{"id":6622,"name":"Sint-truiden"},"6640":{"id":6640,"name":"Tessenderlo"},"6647":{"id":6647,"name":"Tongeren"},"6679":{"id":6679,"name":"Wellen"},"6704":{"id":6704,"name":"Zonhoven"},"6710":{"id":6710,"name":"Zutendaal"}}},"06":{"code":"06","name":"Luxembourg","cities":{"6229":{"id":6229,"name":"Arlon"},"6235":{"id":6235,"name":"Attert"},"6236":{"id":6236,"name":"Aubange"},"6245":{"id":6245,"name":"Bastogne"},"6261":{"id":6261,"name":"Bertogne"},"6262":{"id":6262,"name":"Bertrix"},"6280":{"id":6280,"name":"Bouillon"},"6308":{"id":6308,"name":"Chiny"},"6319":{"id":6319,"name":"Daverdisse"},"6341":{"id":6341,"name":"Durbuy"},"6348":{"id":6348,"name":"Erezee"},"6353":{"id":6353,"name":"Etalle"},"6358":{"id":6358,"name":"Fauvillers"},"6366":{"id":6366,"name":"Florenville"},"6385":{"id":6385,"name":"Gouvy"},"6391":{"id":6391,"name":"Habay"},"6406":{"id":6406,"name":"Herbeumont"},"6423":{"id":6423,"name":"Hotton"},"6424":{"id":6424,"name":"Houffalize"},"6470":{"id":6470,"name":"La Roche-en-ardenne"},"6474":{"id":6474,"name":"Leglise"},"6481":{"id":6481,"name":"Libin"},"6506":{"id":6506,"name":"Manhay"},"6507":{"id":6507,"name":"Marche-en-famenne"},"6509":{"id":6509,"name":"Martelange"},"6513":{"id":6513,"name":"Meix-devant-virton"},"6521":{"id":6521,"name":"Messancy"},"6535":{"id":6535,"name":"Musson"},"6538":{"id":6538,"name":"Nassogne"},"6541":{"id":6541,"name":"Neufchateau"},"6568":{"id":6568,"name":"Paliseul"},"6589":{"id":6589,"name":"Rendeux"},"6598":{"id":6598,"name":"Rouvroy"},"6602":{"id":6602,"name":"Sainte-ode"},"6604":{"id":6604,"name":"Saint-hubert"},"6605":{"id":6605,"name":"Saint-leger"},"6635":{"id":6635,"name":"Tellin"},"6637":{"id":6637,"name":"Tenneville"},"6646":{"id":6646,"name":"Tintigny"},"6654":{"id":6654,"name":"Vaux-sur-sure"},"6658":{"id":6658,"name":"Vielsalm"},"6662":{"id":6662,"name":"Virton"},"6680":{"id":6680,"name":"Wellin"}}},"07":{"code":"07","name":"Namur","cities":{"6219":{"id":6219,"name":"Andenne"},"6221":{"id":6221,"name":"Anhee"},"6233":{"id":6233,"name":"Assesse"},"6247":{"id":6247,"name":"Beauraing"},"6267":{"id":6267,"name":"Bievre"},"6299":{"id":6299,"name":"Cerfontaine"},"6309":{"id":6309,"name":"Ciney"},"6315":{"id":6315,"name":"Couvin"},"6334":{"id":6334,"name":"Dinant"},"6336":{"id":6336,"name":"Doische"},"6344":{"id":6344,"name":"Eghezee"},"6364":{"id":6364,"name":"Floreffe"},"6365":{"id":6365,"name":"Florennes"},"6370":{"id":6370,"name":"Gedinne"},"6374":{"id":6374,"name":"Gembloux"},"6380":{"id":6380,"name":"Gesves"},"6396":{"id":6396,"name":"Hamois"},"6400":{"id":6400,"name":"Hastiere"},"6401":{"id":6401,"name":"Havelange"},"6426":{"id":6426,"name":"Houyet"},"6465":{"id":6465,"name":"La Bruyere"},"6522":{"id":6522,"name":"Mettet"},"6536":{"id":6536,"name":"Namur"},"6549":{"id":6549,"name":"Ohey"},"6552":{"id":6552,"name":"Onhaye"},"6575":{"id":6575,"name":"Philippeville"},"6580":{"id":6580,"name":"Profondeville"},"6594":{"id":6594,"name":"Rochefort"},"6624":{"id":6624,"name":"Sombreffe"},"6625":{"id":6625,"name":"Somme-leuze"},"6670":{"id":6670,"name":"Walcourt"},"6694":{"id":6694,"name":"Yvoir"}}},"08":{"code":"08","name":"Oost-Vlaanderen","cities":{"6211":{"id":6211,"name":"Aalst"},"6212":{"id":6212,"name":"Aalter"},"6232":{"id":6232,"name":"Assenede"},"6257":{"id":6257,"name":"Berlare"},"6264":{"id":6264,"name":"Beveren"},"6294":{"id":6294,"name":"Buggenhout"},"6322":{"id":6322,"name":"Deinze"},"6323":{"id":6323,"name":"Denderleeuw"},"6324":{"id":6324,"name":"Dendermonde"},"6327":{"id":6327,"name":"De Pinte"},"6329":{"id":6329,"name":"Destelbergen"},"6343":{"id":6343,"name":"Eeklo"},"6355":{"id":6355,"name":"Evergem"},"6369":{"id":6369,"name":"Gavere"},"6377":{"id":6377,"name":"Gent"},"6378":{"id":6378,"name":"Geraardsbergen"},"6390":{"id":6390,"name":"Haaltert"},"6394":{"id":6394,"name":"Hamme"},"6416":{"id":6416,"name":"Herzele"},"6446":{"id":6446,"name":"Kaprijke"},"6450":{"id":6450,"name":"Knesselare"},"6461":{"id":6461,"name":"Kruibeke"},"6462":{"id":6462,"name":"Kruishoutem"},"6464":{"id":6464,"name":"Laarne"},"6471":{"id":6471,"name":"Lebbeke"},"6473":{"id":6473,"name":"Lede"},"6492":{"id":6492,"name":"Lochristi"},"6493":{"id":6493,"name":"Lokeren"},"6497":{"id":6497,"name":"Lovendegem"},"6503":{"id":6503,"name":"Maldegem"},"6514":{"id":6514,"name":"Melle"},"6518":{"id":6518,"name":"Merelbeke"},"6526":{"id":6526,"name":"Moerbeke"},"6539":{"id":6539,"name":"Nazareth"},"6542":{"id":6542,"name":"Nevele"},"6547":{"id":6547,"name":"Ninove"},"6553":{"id":6553,"name":"Oosterzele"},"6560":{"id":6560,"name":"Oudenaarde"},"6596":{"id":6596,"name":"Ronse"},"6615":{"id":6615,"name":"Sint-gillis-waas"},"6617":{"id":6617,"name":"Sint-laureins"},"6618":{"id":6618,"name":"Sint-lievens-houtem"},"6619":{"id":6619,"name":"Sint-martens-latem"},"6620":{"id":6620,"name":"Sint-niklaas"},"6633":{"id":6633,"name":"Stekene"},"6636":{"id":6636,"name":"Temse"},"6666":{"id":6666,"name":"Waarschoot"},"6667":{"id":6667,"name":"Waasmunster"},"6668":{"id":6668,"name":"Wachtebeke"},"6684":{"id":6684,"name":"Wetteren"},"6687":{"id":6687,"name":"Wichelen"},"6698":{"id":6698,"name":"Zele"},"6699":{"id":6699,"name":"Zelzate"},"6701":{"id":6701,"name":"Zingem"},"6703":{"id":6703,"name":"Zomergem"},"6706":{"id":6706,"name":"Zottegem"},"6709":{"id":6709,"name":"Zulte"}}},"09":{"code":"09","name":"West-Vlaanderen","cities":{"6216":{"id":6216,"name":"Alveringem"},"6226":{"id":6226,"name":"Anzegem"},"6227":{"id":6227,"name":"Ardooie"},"6238":{"id":6238,"name":"Avelgem"},"6249":{"id":6249,"name":"Beernem"},"6270":{"id":6270,"name":"Blankenberge"},"6288":{"id":6288,"name":"Bredene"},"6291":{"id":6291,"name":"Brugge"},"6318":{"id":6318,"name":"Damme"},"6320":{"id":6320,"name":"Deerlijk"},"6321":{"id":6321,"name":"De Haan"},"6325":{"id":6325,"name":"Dentergem"},"6326":{"id":6326,"name":"De Panne"},"6332":{"id":6332,"name":"Diksmuide"},"6382":{"id":6382,"name":"Gistel"},"6398":{"id":6398,"name":"Harelbeke"},"6421":{"id":6421,"name":"Hooglede"},"6425":{"id":6425,"name":"Houthulst"},"6431":{"id":6431,"name":"Ichtegem"},"6432":{"id":6432,"name":"Ieper"},"6434":{"id":6434,"name":"Ingelmunster"},"6436":{"id":6436,"name":"Izegem"},"6437":{"id":6437,"name":"Jabbeke"},"6451":{"id":6451,"name":"Knokke-heist"},"6452":{"id":6452,"name":"Koekelare"},"6453":{"id":6453,"name":"Koksijde"},"6455":{"id":6455,"name":"Kortemark"},"6459":{"id":6459,"name":"Kortrijk"},"6463":{"id":6463,"name":"Kuurne"},"6472":{"id":6472,"name":"Ledegem"},"6475":{"id":6475,"name":"Lendelede"},"6482":{"id":6482,"name":"Lichtervelde"},"6515":{"id":6515,"name":"Menen"},"6520":{"id":6520,"name":"Mesen"},"6523":{"id":6523,"name":"Meulebeke"},"6524":{"id":6524,"name":"Middelkerke"},"6531":{"id":6531,"name":"Moorslede"},"6534":{"id":6534,"name":"Mouscron"},"6545":{"id":6545,"name":"Nieuwpoort"},"6554":{"id":6554,"name":"Oostkamp"},"6555":{"id":6555,"name":"Oostrozebeke"},"6559":{"id":6559,"name":"Ostend"},"6561":{"id":6561,"name":"Oudenburg"},"6576":{"id":6576,"name":"Pittem"},"6579":{"id":6579,"name":"Poperinge"},"6595":{"id":6595,"name":"Roeselare"},"6599":{"id":6599,"name":"Ruiselede"},"6630":{"id":6630,"name":"Staden"},"6643":{"id":6643,"name":"Tielt"},"6648":{"id":6648,"name":"Torhout"},"6657":{"id":6657,"name":"Veurne"},"6673":{"id":6673,"name":"Waregem"},"6682":{"id":6682,"name":"Wervik"},"6685":{"id":6685,"name":"Wevelgem"},"6688":{"id":6688,"name":"Wielsbeke"},"6691":{"id":6691,"name":"Wingene"},"6697":{"id":6697,"name":"Zedelgem"},"6705":{"id":6705,"name":"Zonnebeke"},"6708":{"id":6708,"name":"Zuienkerke"},"6711":{"id":6711,"name":"Zwevegem"}}}}}
+{
+  "code": "BE",
+  "name": "Belgium",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Brabant Wallon",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Brussels Hoofdstedelijk Gewest",
+      "cities": {
+        "6293": {
+          "id": 6293,
+          "name": "Brussels"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Vlaams-Brabant",
+      "cities": {
+        "6480": {
+          "id": 6480,
+          "name": "Leuven"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Antwerpen",
+      "cities": {
+        "6214": {
+          "id": 6214,
+          "name": "Aartselaar"
+        },
+        "6225": {
+          "id": 6225,
+          "name": "Antwerp"
+        },
+        "6228": {
+          "id": 6228,
+          "name": "Arendonk"
+        },
+        "6241": {
+          "id": 6241,
+          "name": "Baarle-hertog"
+        },
+        "6243": {
+          "id": 6243,
+          "name": "Balen"
+        },
+        "6250": {
+          "id": 6250,
+          "name": "Beerse"
+        },
+        "6256": {
+          "id": 6256,
+          "name": "Berlaar"
+        },
+        "6273": {
+          "id": 6273,
+          "name": "Boechout"
+        },
+        "6274": {
+          "id": 6274,
+          "name": "Bonheiden"
+        },
+        "6275": {
+          "id": 6275,
+          "name": "Boom"
+        },
+        "6278": {
+          "id": 6278,
+          "name": "Bornem"
+        },
+        "6279": {
+          "id": 6279,
+          "name": "Borsbeek"
+        },
+        "6286": {
+          "id": 6286,
+          "name": "Brasschaat"
+        },
+        "6287": {
+          "id": 6287,
+          "name": "Brecht"
+        },
+        "6328": {
+          "id": 6328,
+          "name": "Dessel"
+        },
+        "6340": {
+          "id": 6340,
+          "name": "Duffel"
+        },
+        "6342": {
+          "id": 6342,
+          "name": "Edegem"
+        },
+        "6351": {
+          "id": 6351,
+          "name": "Essen"
+        },
+        "6371": {
+          "id": 6371,
+          "name": "Geel"
+        },
+        "6388": {
+          "id": 6388,
+          "name": "Grobbendonk"
+        },
+        "6403": {
+          "id": 6403,
+          "name": "Heist-op-den-berg"
+        },
+        "6404": {
+          "id": 6404,
+          "name": "Hemiksem"
+        },
+        "6407": {
+          "id": 6407,
+          "name": "Herentals"
+        },
+        "6409": {
+          "id": 6409,
+          "name": "Herenthout"
+        },
+        "6413": {
+          "id": 6413,
+          "name": "Herselt"
+        },
+        "6422": {
+          "id": 6422,
+          "name": "Hoogstraten"
+        },
+        "6427": {
+          "id": 6427,
+          "name": "Hove"
+        },
+        "6429": {
+          "id": 6429,
+          "name": "Hulshout"
+        },
+        "6442": {
+          "id": 6442,
+          "name": "Kalmthout"
+        },
+        "6444": {
+          "id": 6444,
+          "name": "Kapellen"
+        },
+        "6447": {
+          "id": 6447,
+          "name": "Kasterlee"
+        },
+        "6454": {
+          "id": 6454,
+          "name": "Kontich"
+        },
+        "6486": {
+          "id": 6486,
+          "name": "Lille"
+        },
+        "6490": {
+          "id": 6490,
+          "name": "Lint"
+        },
+        "6510": {
+          "id": 6510,
+          "name": "Mechelen"
+        },
+        "6511": {
+          "id": 6511,
+          "name": "Meerhout"
+        },
+        "6519": {
+          "id": 6519,
+          "name": "Merksplas"
+        },
+        "6527": {
+          "id": 6527,
+          "name": "Mol"
+        },
+        "6533": {
+          "id": 6533,
+          "name": "Mortsel"
+        },
+        "6543": {
+          "id": 6543,
+          "name": "Niel"
+        },
+        "6546": {
+          "id": 6546,
+          "name": "Nijlen"
+        },
+        "6550": {
+          "id": 6550,
+          "name": "Olen"
+        },
+        "6563": {
+          "id": 6563,
+          "name": "Oud-turnhout"
+        },
+        "6581": {
+          "id": 6581,
+          "name": "Putte"
+        },
+        "6582": {
+          "id": 6582,
+          "name": "Puurs"
+        },
+        "6586": {
+          "id": 6586,
+          "name": "Ranst"
+        },
+        "6587": {
+          "id": 6587,
+          "name": "Ravels"
+        },
+        "6590": {
+          "id": 6590,
+          "name": "Retie"
+        },
+        "6592": {
+          "id": 6592,
+          "name": "Rijkevorsel"
+        },
+        "6601": {
+          "id": 6601,
+          "name": "Rumst"
+        },
+        "6607": {
+          "id": 6607,
+          "name": "Schelle"
+        },
+        "6608": {
+          "id": 6608,
+          "name": "Schilde"
+        },
+        "6609": {
+          "id": 6609,
+          "name": "Schoten"
+        },
+        "6613": {
+          "id": 6613,
+          "name": "Sint-amands"
+        },
+        "6616": {
+          "id": 6616,
+          "name": "Sint-katelijne-waver"
+        },
+        "6629": {
+          "id": 6629,
+          "name": "Stabroek"
+        },
+        "6653": {
+          "id": 6653,
+          "name": "Turnhout"
+        },
+        "6664": {
+          "id": 6664,
+          "name": "Vorselaar"
+        },
+        "6665": {
+          "id": 6665,
+          "name": "Vosselaar"
+        },
+        "6683": {
+          "id": 6683,
+          "name": "Westerlo"
+        },
+        "6689": {
+          "id": 6689,
+          "name": "Wijnegem"
+        },
+        "6690": {
+          "id": 6690,
+          "name": "Willebroek"
+        },
+        "6692": {
+          "id": 6692,
+          "name": "Wommelgem"
+        },
+        "6693": {
+          "id": 6693,
+          "name": "Wuustwezel"
+        },
+        "6695": {
+          "id": 6695,
+          "name": "Zandhoven"
+        },
+        "6702": {
+          "id": 6702,
+          "name": "Zoersel"
+        },
+        "6712": {
+          "id": 6712,
+          "name": "Zwijndrecht"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Brabant",
+      "cities": {
+        "6213": {
+          "id": 6213,
+          "name": "Aarschot"
+        },
+        "6231": {
+          "id": 6231,
+          "name": "Asse"
+        },
+        "6248": {
+          "id": 6248,
+          "name": "Beauvechain"
+        },
+        "6251": {
+          "id": 6251,
+          "name": "Beersel"
+        },
+        "6252": {
+          "id": 6252,
+          "name": "Begijnendijk"
+        },
+        "6253": {
+          "id": 6253,
+          "name": "Bekkevoort"
+        },
+        "6260": {
+          "id": 6260,
+          "name": "Bertem"
+        },
+        "6263": {
+          "id": 6263,
+          "name": "Bever"
+        },
+        "6266": {
+          "id": 6266,
+          "name": "Bierbeek"
+        },
+        "6276": {
+          "id": 6276,
+          "name": "Boortmeerbeek"
+        },
+        "6282": {
+          "id": 6282,
+          "name": "Boutersem"
+        },
+        "6283": {
+          "id": 6283,
+          "name": "Braine-le-chateau"
+        },
+        "6302": {
+          "id": 6302,
+          "name": "Chastre"
+        },
+        "6305": {
+          "id": 6305,
+          "name": "Chaumont-gistoux"
+        },
+        "6314": {
+          "id": 6314,
+          "name": "Court-saint-etienne"
+        },
+        "6331": {
+          "id": 6331,
+          "name": "Diest"
+        },
+        "6333": {
+          "id": 6333,
+          "name": "Dilbeek"
+        },
+        "6339": {
+          "id": 6339,
+          "name": "Drogenbos"
+        },
+        "6368": {
+          "id": 6368,
+          "name": "Galmaarden"
+        },
+        "6373": {
+          "id": 6373,
+          "name": "Geetbets"
+        },
+        "6375": {
+          "id": 6375,
+          "name": "Genappe"
+        },
+        "6383": {
+          "id": 6383,
+          "name": "Glabbeek"
+        },
+        "6384": {
+          "id": 6384,
+          "name": "Gooik"
+        },
+        "6386": {
+          "id": 6386,
+          "name": "Grez-doiceau"
+        },
+        "6387": {
+          "id": 6387,
+          "name": "Grimbergen"
+        },
+        "6389": {
+          "id": 6389,
+          "name": "Haacht"
+        },
+        "6393": {
+          "id": 6393,
+          "name": "Halle"
+        },
+        "6408": {
+          "id": 6408,
+          "name": "Herent"
+        },
+        "6411": {
+          "id": 6411,
+          "name": "Herne"
+        },
+        "6417": {
+          "id": 6417,
+          "name": "Hoegaarden"
+        },
+        "6418": {
+          "id": 6418,
+          "name": "Hoeilaart"
+        },
+        "6420": {
+          "id": 6420,
+          "name": "Holsbeek"
+        },
+        "6428": {
+          "id": 6428,
+          "name": "Huldenberg"
+        },
+        "6433": {
+          "id": 6433,
+          "name": "Incourt"
+        },
+        "6435": {
+          "id": 6435,
+          "name": "Ittre"
+        },
+        "6439": {
+          "id": 6439,
+          "name": "Jodoigne"
+        },
+        "6443": {
+          "id": 6443,
+          "name": "Kampenhout"
+        },
+        "6445": {
+          "id": 6445,
+          "name": "Kapelle-op-den-bos"
+        },
+        "6448": {
+          "id": 6448,
+          "name": "Keerbergen"
+        },
+        "6456": {
+          "id": 6456,
+          "name": "Kortenaken"
+        },
+        "6457": {
+          "id": 6457,
+          "name": "Kortenberg"
+        },
+        "6460": {
+          "id": 6460,
+          "name": "Kraainem"
+        },
+        "6466": {
+          "id": 6466,
+          "name": "La Hulpe"
+        },
+        "6469": {
+          "id": 6469,
+          "name": "Landen"
+        },
+        "6476": {
+          "id": 6476,
+          "name": "Lennik"
+        },
+        "6483": {
+          "id": 6483,
+          "name": "Liedekerke"
+        },
+        "6489": {
+          "id": 6489,
+          "name": "Linkebeek"
+        },
+        "6495": {
+          "id": 6495,
+          "name": "Londerzeel"
+        },
+        "6498": {
+          "id": 6498,
+          "name": "Lubbeek"
+        },
+        "6502": {
+          "id": 6502,
+          "name": "Machelen"
+        },
+        "6512": {
+          "id": 6512,
+          "name": "Meise"
+        },
+        "6517": {
+          "id": 6517,
+          "name": "Merchtem"
+        },
+        "6530": {
+          "id": 6530,
+          "name": "Mont-saint-guibert"
+        },
+        "6548": {
+          "id": 6548,
+          "name": "Nivelles"
+        },
+        "6557": {
+          "id": 6557,
+          "name": "Opwijk"
+        },
+        "6562": {
+          "id": 6562,
+          "name": "Oud-heverlee"
+        },
+        "6566": {
+          "id": 6566,
+          "name": "Overijse"
+        },
+        "6571": {
+          "id": 6571,
+          "name": "Pepingen"
+        },
+        "6574": {
+          "id": 6574,
+          "name": "Perwez"
+        },
+        "6593": {
+          "id": 6593,
+          "name": "Rixensart"
+        },
+        "6597": {
+          "id": 6597,
+          "name": "Rotselaar"
+        },
+        "6614": {
+          "id": 6614,
+          "name": "Sint-genesius-rode"
+        },
+        "6621": {
+          "id": 6621,
+          "name": "Sint-pieters-leeuw"
+        },
+        "6632": {
+          "id": 6632,
+          "name": "Steenokkerzeel"
+        },
+        "6638": {
+          "id": 6638,
+          "name": "Ternat"
+        },
+        "6639": {
+          "id": 6639,
+          "name": "Tervuren"
+        },
+        "6644": {
+          "id": 6644,
+          "name": "Tienen"
+        },
+        "6650": {
+          "id": 6650,
+          "name": "Tremelo"
+        },
+        "6652": {
+          "id": 6652,
+          "name": "Tubize"
+        },
+        "6659": {
+          "id": 6659,
+          "name": "Villers-la-ville"
+        },
+        "6661": {
+          "id": 6661,
+          "name": "Vilvoorde"
+        },
+        "6671": {
+          "id": 6671,
+          "name": "Walhain"
+        },
+        "6676": {
+          "id": 6676,
+          "name": "Waterloo"
+        },
+        "6677": {
+          "id": 6677,
+          "name": "Wavre"
+        },
+        "6681": {
+          "id": 6681,
+          "name": "Wemmel"
+        },
+        "6686": {
+          "id": 6686,
+          "name": "Wezembeek-oppem"
+        },
+        "6696": {
+          "id": 6696,
+          "name": "Zaventem"
+        },
+        "6700": {
+          "id": 6700,
+          "name": "Zemst"
+        },
+        "6707": {
+          "id": 6707,
+          "name": "Zoutleeuw"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Hainaut",
+      "cities": {
+        "6220": {
+          "id": 6220,
+          "name": "Anderlues"
+        },
+        "6224": {
+          "id": 6224,
+          "name": "Antoing"
+        },
+        "6234": {
+          "id": 6234,
+          "name": "Ath"
+        },
+        "6246": {
+          "id": 6246,
+          "name": "Beaumont"
+        },
+        "6254": {
+          "id": 6254,
+          "name": "Beloeil"
+        },
+        "6259": {
+          "id": 6259,
+          "name": "Bernissart"
+        },
+        "6269": {
+          "id": 6269,
+          "name": "Binche"
+        },
+        "6281": {
+          "id": 6281,
+          "name": "Boussu"
+        },
+        "6284": {
+          "id": 6284,
+          "name": "Braine-le-comte"
+        },
+        "6290": {
+          "id": 6290,
+          "name": "Brugelette"
+        },
+        "6292": {
+          "id": 6292,
+          "name": "Brunehaut"
+        },
+        "6298": {
+          "id": 6298,
+          "name": "Celles"
+        },
+        "6300": {
+          "id": 6300,
+          "name": "Chapelle-lez-herlaimont"
+        },
+        "6301": {
+          "id": 6301,
+          "name": "Charleroi"
+        },
+        "6303": {
+          "id": 6303,
+          "name": "Chatelet"
+        },
+        "6306": {
+          "id": 6306,
+          "name": "Chievres"
+        },
+        "6307": {
+          "id": 6307,
+          "name": "Chimay"
+        },
+        "6311": {
+          "id": 6311,
+          "name": "Colfontaine"
+        },
+        "6313": {
+          "id": 6313,
+          "name": "Courcelles"
+        },
+        "6338": {
+          "id": 6338,
+          "name": "Dour"
+        },
+        "6345": {
+          "id": 6345,
+          "name": "Ellezelles"
+        },
+        "6346": {
+          "id": 6346,
+          "name": "Enghien"
+        },
+        "6349": {
+          "id": 6349,
+          "name": "Erquelinnes"
+        },
+        "6352": {
+          "id": 6352,
+          "name": "Estaimpuis"
+        },
+        "6357": {
+          "id": 6357,
+          "name": "Farciennes"
+        },
+        "6362": {
+          "id": 6362,
+          "name": "Fleurus"
+        },
+        "6363": {
+          "id": 6363,
+          "name": "Flobecq"
+        },
+        "6367": {
+          "id": 6367,
+          "name": "Frameries"
+        },
+        "6379": {
+          "id": 6379,
+          "name": "Gerpinnes"
+        },
+        "6405": {
+          "id": 6405,
+          "name": "Hensies"
+        },
+        "6441": {
+          "id": 6441,
+          "name": "Jurbise"
+        },
+        "6467": {
+          "id": 6467,
+          "name": "La Louviere"
+        },
+        "6477": {
+          "id": 6477,
+          "name": "Lens"
+        },
+        "6479": {
+          "id": 6479,
+          "name": "Lessines"
+        },
+        "6491": {
+          "id": 6491,
+          "name": "Lobbes"
+        },
+        "6505": {
+          "id": 6505,
+          "name": "Manage"
+        },
+        "6516": {
+          "id": 6516,
+          "name": "Merbes-le-chateau"
+        },
+        "6528": {
+          "id": 6528,
+          "name": "Momignies"
+        },
+        "6529": {
+          "id": 6529,
+          "name": "Mons"
+        },
+        "6532": {
+          "id": 6532,
+          "name": "Morlanwelz"
+        },
+        "6569": {
+          "id": 6569,
+          "name": "Pecq"
+        },
+        "6573": {
+          "id": 6573,
+          "name": "Peruwelz"
+        },
+        "6578": {
+          "id": 6578,
+          "name": "Pont-a-celles"
+        },
+        "6583": {
+          "id": 6583,
+          "name": "Quaregnon"
+        },
+        "6584": {
+          "id": 6584,
+          "name": "Quievrain"
+        },
+        "6600": {
+          "id": 6600,
+          "name": "Rumes"
+        },
+        "6603": {
+          "id": 6603,
+          "name": "Saint-ghislain"
+        },
+        "6610": {
+          "id": 6610,
+          "name": "Seneffe"
+        },
+        "6612": {
+          "id": 6612,
+          "name": "Silly"
+        },
+        "6623": {
+          "id": 6623,
+          "name": "Soignies"
+        },
+        "6642": {
+          "id": 6642,
+          "name": "Thuin"
+        },
+        "6649": {
+          "id": 6649,
+          "name": "Tournai"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Liege",
+      "cities": {
+        "6217": {
+          "id": 6217,
+          "name": "Amay"
+        },
+        "6218": {
+          "id": 6218,
+          "name": "Amel"
+        },
+        "6222": {
+          "id": 6222,
+          "name": "Ans"
+        },
+        "6223": {
+          "id": 6223,
+          "name": "Anthisnes"
+        },
+        "6237": {
+          "id": 6237,
+          "name": "Aubel"
+        },
+        "6239": {
+          "id": 6239,
+          "name": "Awans"
+        },
+        "6240": {
+          "id": 6240,
+          "name": "Aywaille"
+        },
+        "6242": {
+          "id": 6242,
+          "name": "Baelen"
+        },
+        "6244": {
+          "id": 6244,
+          "name": "Bassenge"
+        },
+        "6258": {
+          "id": 6258,
+          "name": "Berloz"
+        },
+        "6265": {
+          "id": 6265,
+          "name": "Beyne-heusay"
+        },
+        "6271": {
+          "id": 6271,
+          "name": "Blegny"
+        },
+        "6285": {
+          "id": 6285,
+          "name": "Braives"
+        },
+        "6295": {
+          "id": 6295,
+          "name": "Bullingen"
+        },
+        "6296": {
+          "id": 6296,
+          "name": "Burdinne"
+        },
+        "6297": {
+          "id": 6297,
+          "name": "Butgenbach"
+        },
+        "6304": {
+          "id": 6304,
+          "name": "Chaudfontaine"
+        },
+        "6310": {
+          "id": 6310,
+          "name": "Clavier"
+        },
+        "6312": {
+          "id": 6312,
+          "name": "Comblain-au-pont"
+        },
+        "6316": {
+          "id": 6316,
+          "name": "Crisnee"
+        },
+        "6317": {
+          "id": 6317,
+          "name": "Dalhem"
+        },
+        "6335": {
+          "id": 6335,
+          "name": "Dison"
+        },
+        "6337": {
+          "id": 6337,
+          "name": "Donceel"
+        },
+        "6347": {
+          "id": 6347,
+          "name": "Engis"
+        },
+        "6350": {
+          "id": 6350,
+          "name": "Esneux"
+        },
+        "6354": {
+          "id": 6354,
+          "name": "Eupen"
+        },
+        "6356": {
+          "id": 6356,
+          "name": "Faimes"
+        },
+        "6359": {
+          "id": 6359,
+          "name": "Ferrieres"
+        },
+        "6360": {
+          "id": 6360,
+          "name": "Fexhe-le-haut-clocher"
+        },
+        "6361": {
+          "id": 6361,
+          "name": "Fleron"
+        },
+        "6372": {
+          "id": 6372,
+          "name": "Geer"
+        },
+        "6395": {
+          "id": 6395,
+          "name": "Hamoir"
+        },
+        "6397": {
+          "id": 6397,
+          "name": "Hannut"
+        },
+        "6412": {
+          "id": 6412,
+          "name": "Heron"
+        },
+        "6414": {
+          "id": 6414,
+          "name": "Herstal"
+        },
+        "6415": {
+          "id": 6415,
+          "name": "Herve"
+        },
+        "6430": {
+          "id": 6430,
+          "name": "Huy"
+        },
+        "6438": {
+          "id": 6438,
+          "name": "Jalhay"
+        },
+        "6440": {
+          "id": 6440,
+          "name": "Juprelle"
+        },
+        "6484": {
+          "id": 6484,
+          "name": "Liege"
+        },
+        "6485": {
+          "id": 6485,
+          "name": "Lierneux"
+        },
+        "6487": {
+          "id": 6487,
+          "name": "Limbourg"
+        },
+        "6488": {
+          "id": 6488,
+          "name": "Lincent"
+        },
+        "6496": {
+          "id": 6496,
+          "name": "Lontzen"
+        },
+        "6504": {
+          "id": 6504,
+          "name": "Malmedy"
+        },
+        "6508": {
+          "id": 6508,
+          "name": "Marchin"
+        },
+        "6525": {
+          "id": 6525,
+          "name": "Modave"
+        },
+        "6537": {
+          "id": 6537,
+          "name": "Nandrin"
+        },
+        "6551": {
+          "id": 6551,
+          "name": "Olne"
+        },
+        "6558": {
+          "id": 6558,
+          "name": "Oreye"
+        },
+        "6564": {
+          "id": 6564,
+          "name": "Ouffet"
+        },
+        "6565": {
+          "id": 6565,
+          "name": "Oupeye"
+        },
+        "6572": {
+          "id": 6572,
+          "name": "Pepinster"
+        },
+        "6577": {
+          "id": 6577,
+          "name": "Plombieres"
+        },
+        "6585": {
+          "id": 6585,
+          "name": "Raeren"
+        },
+        "6588": {
+          "id": 6588,
+          "name": "Remicourt"
+        },
+        "6606": {
+          "id": 6606,
+          "name": "Saint-nicolas"
+        },
+        "6611": {
+          "id": 6611,
+          "name": "Seraing"
+        },
+        "6626": {
+          "id": 6626,
+          "name": "Soumagne"
+        },
+        "6627": {
+          "id": 6627,
+          "name": "Spa"
+        },
+        "6628": {
+          "id": 6628,
+          "name": "Sprimont"
+        },
+        "6631": {
+          "id": 6631,
+          "name": "Stavelot"
+        },
+        "6634": {
+          "id": 6634,
+          "name": "Stoumont"
+        },
+        "6641": {
+          "id": 6641,
+          "name": "Theux"
+        },
+        "6645": {
+          "id": 6645,
+          "name": "Tinlot"
+        },
+        "6651": {
+          "id": 6651,
+          "name": "Trooz"
+        },
+        "6655": {
+          "id": 6655,
+          "name": "Verlaine"
+        },
+        "6656": {
+          "id": 6656,
+          "name": "Verviers"
+        },
+        "6660": {
+          "id": 6660,
+          "name": "Villers-le-bouillet"
+        },
+        "6663": {
+          "id": 6663,
+          "name": "Vise"
+        },
+        "6669": {
+          "id": 6669,
+          "name": "Waimes"
+        },
+        "6672": {
+          "id": 6672,
+          "name": "Wanze"
+        },
+        "6674": {
+          "id": 6674,
+          "name": "Waremme"
+        },
+        "6675": {
+          "id": 6675,
+          "name": "Wasseiges"
+        },
+        "6678": {
+          "id": 6678,
+          "name": "Welkenraedt"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Limburg",
+      "cities": {
+        "6215": {
+          "id": 6215,
+          "name": "Alken"
+        },
+        "6230": {
+          "id": 6230,
+          "name": "As"
+        },
+        "6255": {
+          "id": 6255,
+          "name": "Beringen"
+        },
+        "6268": {
+          "id": 6268,
+          "name": "Bilzen"
+        },
+        "6272": {
+          "id": 6272,
+          "name": "Bocholt"
+        },
+        "6277": {
+          "id": 6277,
+          "name": "Borgloon"
+        },
+        "6289": {
+          "id": 6289,
+          "name": "Bree"
+        },
+        "6330": {
+          "id": 6330,
+          "name": "Diepenbeek"
+        },
+        "6376": {
+          "id": 6376,
+          "name": "Genk"
+        },
+        "6381": {
+          "id": 6381,
+          "name": "Gingelom"
+        },
+        "6392": {
+          "id": 6392,
+          "name": "Halen"
+        },
+        "6399": {
+          "id": 6399,
+          "name": "Hasselt"
+        },
+        "6402": {
+          "id": 6402,
+          "name": "Heers"
+        },
+        "6410": {
+          "id": 6410,
+          "name": "Herk-de-stad"
+        },
+        "6419": {
+          "id": 6419,
+          "name": "Hoeselt"
+        },
+        "6449": {
+          "id": 6449,
+          "name": "Kinrooi"
+        },
+        "6458": {
+          "id": 6458,
+          "name": "Kortessem"
+        },
+        "6468": {
+          "id": 6468,
+          "name": "Lanaken"
+        },
+        "6478": {
+          "id": 6478,
+          "name": "Leopoldsburg"
+        },
+        "6494": {
+          "id": 6494,
+          "name": "Lommel"
+        },
+        "6499": {
+          "id": 6499,
+          "name": "Lummen"
+        },
+        "6500": {
+          "id": 6500,
+          "name": "Maaseik"
+        },
+        "6501": {
+          "id": 6501,
+          "name": "Maasmechelen"
+        },
+        "6540": {
+          "id": 6540,
+          "name": "Neerpelt"
+        },
+        "6544": {
+          "id": 6544,
+          "name": "Nieuwerkerken"
+        },
+        "6556": {
+          "id": 6556,
+          "name": "Opglabbeek"
+        },
+        "6567": {
+          "id": 6567,
+          "name": "Overpelt"
+        },
+        "6570": {
+          "id": 6570,
+          "name": "Peer"
+        },
+        "6591": {
+          "id": 6591,
+          "name": "Riemst"
+        },
+        "6622": {
+          "id": 6622,
+          "name": "Sint-truiden"
+        },
+        "6640": {
+          "id": 6640,
+          "name": "Tessenderlo"
+        },
+        "6647": {
+          "id": 6647,
+          "name": "Tongeren"
+        },
+        "6679": {
+          "id": 6679,
+          "name": "Wellen"
+        },
+        "6704": {
+          "id": 6704,
+          "name": "Zonhoven"
+        },
+        "6710": {
+          "id": 6710,
+          "name": "Zutendaal"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Luxembourg",
+      "cities": {
+        "6229": {
+          "id": 6229,
+          "name": "Arlon"
+        },
+        "6235": {
+          "id": 6235,
+          "name": "Attert"
+        },
+        "6236": {
+          "id": 6236,
+          "name": "Aubange"
+        },
+        "6245": {
+          "id": 6245,
+          "name": "Bastogne"
+        },
+        "6261": {
+          "id": 6261,
+          "name": "Bertogne"
+        },
+        "6262": {
+          "id": 6262,
+          "name": "Bertrix"
+        },
+        "6280": {
+          "id": 6280,
+          "name": "Bouillon"
+        },
+        "6308": {
+          "id": 6308,
+          "name": "Chiny"
+        },
+        "6319": {
+          "id": 6319,
+          "name": "Daverdisse"
+        },
+        "6341": {
+          "id": 6341,
+          "name": "Durbuy"
+        },
+        "6348": {
+          "id": 6348,
+          "name": "Erezee"
+        },
+        "6353": {
+          "id": 6353,
+          "name": "Etalle"
+        },
+        "6358": {
+          "id": 6358,
+          "name": "Fauvillers"
+        },
+        "6366": {
+          "id": 6366,
+          "name": "Florenville"
+        },
+        "6385": {
+          "id": 6385,
+          "name": "Gouvy"
+        },
+        "6391": {
+          "id": 6391,
+          "name": "Habay"
+        },
+        "6406": {
+          "id": 6406,
+          "name": "Herbeumont"
+        },
+        "6423": {
+          "id": 6423,
+          "name": "Hotton"
+        },
+        "6424": {
+          "id": 6424,
+          "name": "Houffalize"
+        },
+        "6470": {
+          "id": 6470,
+          "name": "La Roche-en-ardenne"
+        },
+        "6474": {
+          "id": 6474,
+          "name": "Leglise"
+        },
+        "6481": {
+          "id": 6481,
+          "name": "Libin"
+        },
+        "6506": {
+          "id": 6506,
+          "name": "Manhay"
+        },
+        "6507": {
+          "id": 6507,
+          "name": "Marche-en-famenne"
+        },
+        "6509": {
+          "id": 6509,
+          "name": "Martelange"
+        },
+        "6513": {
+          "id": 6513,
+          "name": "Meix-devant-virton"
+        },
+        "6521": {
+          "id": 6521,
+          "name": "Messancy"
+        },
+        "6535": {
+          "id": 6535,
+          "name": "Musson"
+        },
+        "6538": {
+          "id": 6538,
+          "name": "Nassogne"
+        },
+        "6541": {
+          "id": 6541,
+          "name": "Neufchateau"
+        },
+        "6568": {
+          "id": 6568,
+          "name": "Paliseul"
+        },
+        "6589": {
+          "id": 6589,
+          "name": "Rendeux"
+        },
+        "6598": {
+          "id": 6598,
+          "name": "Rouvroy"
+        },
+        "6602": {
+          "id": 6602,
+          "name": "Sainte-ode"
+        },
+        "6604": {
+          "id": 6604,
+          "name": "Saint-hubert"
+        },
+        "6605": {
+          "id": 6605,
+          "name": "Saint-leger"
+        },
+        "6635": {
+          "id": 6635,
+          "name": "Tellin"
+        },
+        "6637": {
+          "id": 6637,
+          "name": "Tenneville"
+        },
+        "6646": {
+          "id": 6646,
+          "name": "Tintigny"
+        },
+        "6654": {
+          "id": 6654,
+          "name": "Vaux-sur-sure"
+        },
+        "6658": {
+          "id": 6658,
+          "name": "Vielsalm"
+        },
+        "6662": {
+          "id": 6662,
+          "name": "Virton"
+        },
+        "6680": {
+          "id": 6680,
+          "name": "Wellin"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Namur",
+      "cities": {
+        "6219": {
+          "id": 6219,
+          "name": "Andenne"
+        },
+        "6221": {
+          "id": 6221,
+          "name": "Anhee"
+        },
+        "6233": {
+          "id": 6233,
+          "name": "Assesse"
+        },
+        "6247": {
+          "id": 6247,
+          "name": "Beauraing"
+        },
+        "6267": {
+          "id": 6267,
+          "name": "Bievre"
+        },
+        "6299": {
+          "id": 6299,
+          "name": "Cerfontaine"
+        },
+        "6309": {
+          "id": 6309,
+          "name": "Ciney"
+        },
+        "6315": {
+          "id": 6315,
+          "name": "Couvin"
+        },
+        "6334": {
+          "id": 6334,
+          "name": "Dinant"
+        },
+        "6336": {
+          "id": 6336,
+          "name": "Doische"
+        },
+        "6344": {
+          "id": 6344,
+          "name": "Eghezee"
+        },
+        "6364": {
+          "id": 6364,
+          "name": "Floreffe"
+        },
+        "6365": {
+          "id": 6365,
+          "name": "Florennes"
+        },
+        "6370": {
+          "id": 6370,
+          "name": "Gedinne"
+        },
+        "6374": {
+          "id": 6374,
+          "name": "Gembloux"
+        },
+        "6380": {
+          "id": 6380,
+          "name": "Gesves"
+        },
+        "6396": {
+          "id": 6396,
+          "name": "Hamois"
+        },
+        "6400": {
+          "id": 6400,
+          "name": "Hastiere"
+        },
+        "6401": {
+          "id": 6401,
+          "name": "Havelange"
+        },
+        "6426": {
+          "id": 6426,
+          "name": "Houyet"
+        },
+        "6465": {
+          "id": 6465,
+          "name": "La Bruyere"
+        },
+        "6522": {
+          "id": 6522,
+          "name": "Mettet"
+        },
+        "6536": {
+          "id": 6536,
+          "name": "Namur"
+        },
+        "6549": {
+          "id": 6549,
+          "name": "Ohey"
+        },
+        "6552": {
+          "id": 6552,
+          "name": "Onhaye"
+        },
+        "6575": {
+          "id": 6575,
+          "name": "Philippeville"
+        },
+        "6580": {
+          "id": 6580,
+          "name": "Profondeville"
+        },
+        "6594": {
+          "id": 6594,
+          "name": "Rochefort"
+        },
+        "6624": {
+          "id": 6624,
+          "name": "Sombreffe"
+        },
+        "6625": {
+          "id": 6625,
+          "name": "Somme-leuze"
+        },
+        "6670": {
+          "id": 6670,
+          "name": "Walcourt"
+        },
+        "6694": {
+          "id": 6694,
+          "name": "Yvoir"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Oost-Vlaanderen",
+      "cities": {
+        "6211": {
+          "id": 6211,
+          "name": "Aalst"
+        },
+        "6212": {
+          "id": 6212,
+          "name": "Aalter"
+        },
+        "6232": {
+          "id": 6232,
+          "name": "Assenede"
+        },
+        "6257": {
+          "id": 6257,
+          "name": "Berlare"
+        },
+        "6264": {
+          "id": 6264,
+          "name": "Beveren"
+        },
+        "6294": {
+          "id": 6294,
+          "name": "Buggenhout"
+        },
+        "6322": {
+          "id": 6322,
+          "name": "Deinze"
+        },
+        "6323": {
+          "id": 6323,
+          "name": "Denderleeuw"
+        },
+        "6324": {
+          "id": 6324,
+          "name": "Dendermonde"
+        },
+        "6327": {
+          "id": 6327,
+          "name": "De Pinte"
+        },
+        "6329": {
+          "id": 6329,
+          "name": "Destelbergen"
+        },
+        "6343": {
+          "id": 6343,
+          "name": "Eeklo"
+        },
+        "6355": {
+          "id": 6355,
+          "name": "Evergem"
+        },
+        "6369": {
+          "id": 6369,
+          "name": "Gavere"
+        },
+        "6377": {
+          "id": 6377,
+          "name": "Gent"
+        },
+        "6378": {
+          "id": 6378,
+          "name": "Geraardsbergen"
+        },
+        "6390": {
+          "id": 6390,
+          "name": "Haaltert"
+        },
+        "6394": {
+          "id": 6394,
+          "name": "Hamme"
+        },
+        "6416": {
+          "id": 6416,
+          "name": "Herzele"
+        },
+        "6446": {
+          "id": 6446,
+          "name": "Kaprijke"
+        },
+        "6450": {
+          "id": 6450,
+          "name": "Knesselare"
+        },
+        "6461": {
+          "id": 6461,
+          "name": "Kruibeke"
+        },
+        "6462": {
+          "id": 6462,
+          "name": "Kruishoutem"
+        },
+        "6464": {
+          "id": 6464,
+          "name": "Laarne"
+        },
+        "6471": {
+          "id": 6471,
+          "name": "Lebbeke"
+        },
+        "6473": {
+          "id": 6473,
+          "name": "Lede"
+        },
+        "6492": {
+          "id": 6492,
+          "name": "Lochristi"
+        },
+        "6493": {
+          "id": 6493,
+          "name": "Lokeren"
+        },
+        "6497": {
+          "id": 6497,
+          "name": "Lovendegem"
+        },
+        "6503": {
+          "id": 6503,
+          "name": "Maldegem"
+        },
+        "6514": {
+          "id": 6514,
+          "name": "Melle"
+        },
+        "6518": {
+          "id": 6518,
+          "name": "Merelbeke"
+        },
+        "6526": {
+          "id": 6526,
+          "name": "Moerbeke"
+        },
+        "6539": {
+          "id": 6539,
+          "name": "Nazareth"
+        },
+        "6542": {
+          "id": 6542,
+          "name": "Nevele"
+        },
+        "6547": {
+          "id": 6547,
+          "name": "Ninove"
+        },
+        "6553": {
+          "id": 6553,
+          "name": "Oosterzele"
+        },
+        "6560": {
+          "id": 6560,
+          "name": "Oudenaarde"
+        },
+        "6596": {
+          "id": 6596,
+          "name": "Ronse"
+        },
+        "6615": {
+          "id": 6615,
+          "name": "Sint-gillis-waas"
+        },
+        "6617": {
+          "id": 6617,
+          "name": "Sint-laureins"
+        },
+        "6618": {
+          "id": 6618,
+          "name": "Sint-lievens-houtem"
+        },
+        "6619": {
+          "id": 6619,
+          "name": "Sint-martens-latem"
+        },
+        "6620": {
+          "id": 6620,
+          "name": "Sint-niklaas"
+        },
+        "6633": {
+          "id": 6633,
+          "name": "Stekene"
+        },
+        "6636": {
+          "id": 6636,
+          "name": "Temse"
+        },
+        "6666": {
+          "id": 6666,
+          "name": "Waarschoot"
+        },
+        "6667": {
+          "id": 6667,
+          "name": "Waasmunster"
+        },
+        "6668": {
+          "id": 6668,
+          "name": "Wachtebeke"
+        },
+        "6684": {
+          "id": 6684,
+          "name": "Wetteren"
+        },
+        "6687": {
+          "id": 6687,
+          "name": "Wichelen"
+        },
+        "6698": {
+          "id": 6698,
+          "name": "Zele"
+        },
+        "6699": {
+          "id": 6699,
+          "name": "Zelzate"
+        },
+        "6701": {
+          "id": 6701,
+          "name": "Zingem"
+        },
+        "6703": {
+          "id": 6703,
+          "name": "Zomergem"
+        },
+        "6706": {
+          "id": 6706,
+          "name": "Zottegem"
+        },
+        "6709": {
+          "id": 6709,
+          "name": "Zulte"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "West-Vlaanderen",
+      "cities": {
+        "6216": {
+          "id": 6216,
+          "name": "Alveringem"
+        },
+        "6226": {
+          "id": 6226,
+          "name": "Anzegem"
+        },
+        "6227": {
+          "id": 6227,
+          "name": "Ardooie"
+        },
+        "6238": {
+          "id": 6238,
+          "name": "Avelgem"
+        },
+        "6249": {
+          "id": 6249,
+          "name": "Beernem"
+        },
+        "6270": {
+          "id": 6270,
+          "name": "Blankenberge"
+        },
+        "6288": {
+          "id": 6288,
+          "name": "Bredene"
+        },
+        "6291": {
+          "id": 6291,
+          "name": "Brugge"
+        },
+        "6318": {
+          "id": 6318,
+          "name": "Damme"
+        },
+        "6320": {
+          "id": 6320,
+          "name": "Deerlijk"
+        },
+        "6321": {
+          "id": 6321,
+          "name": "De Haan"
+        },
+        "6325": {
+          "id": 6325,
+          "name": "Dentergem"
+        },
+        "6326": {
+          "id": 6326,
+          "name": "De Panne"
+        },
+        "6332": {
+          "id": 6332,
+          "name": "Diksmuide"
+        },
+        "6382": {
+          "id": 6382,
+          "name": "Gistel"
+        },
+        "6398": {
+          "id": 6398,
+          "name": "Harelbeke"
+        },
+        "6421": {
+          "id": 6421,
+          "name": "Hooglede"
+        },
+        "6425": {
+          "id": 6425,
+          "name": "Houthulst"
+        },
+        "6431": {
+          "id": 6431,
+          "name": "Ichtegem"
+        },
+        "6432": {
+          "id": 6432,
+          "name": "Ieper"
+        },
+        "6434": {
+          "id": 6434,
+          "name": "Ingelmunster"
+        },
+        "6436": {
+          "id": 6436,
+          "name": "Izegem"
+        },
+        "6437": {
+          "id": 6437,
+          "name": "Jabbeke"
+        },
+        "6451": {
+          "id": 6451,
+          "name": "Knokke-heist"
+        },
+        "6452": {
+          "id": 6452,
+          "name": "Koekelare"
+        },
+        "6453": {
+          "id": 6453,
+          "name": "Koksijde"
+        },
+        "6455": {
+          "id": 6455,
+          "name": "Kortemark"
+        },
+        "6459": {
+          "id": 6459,
+          "name": "Kortrijk"
+        },
+        "6463": {
+          "id": 6463,
+          "name": "Kuurne"
+        },
+        "6472": {
+          "id": 6472,
+          "name": "Ledegem"
+        },
+        "6475": {
+          "id": 6475,
+          "name": "Lendelede"
+        },
+        "6482": {
+          "id": 6482,
+          "name": "Lichtervelde"
+        },
+        "6515": {
+          "id": 6515,
+          "name": "Menen"
+        },
+        "6520": {
+          "id": 6520,
+          "name": "Mesen"
+        },
+        "6523": {
+          "id": 6523,
+          "name": "Meulebeke"
+        },
+        "6524": {
+          "id": 6524,
+          "name": "Middelkerke"
+        },
+        "6531": {
+          "id": 6531,
+          "name": "Moorslede"
+        },
+        "6534": {
+          "id": 6534,
+          "name": "Mouscron"
+        },
+        "6545": {
+          "id": 6545,
+          "name": "Nieuwpoort"
+        },
+        "6554": {
+          "id": 6554,
+          "name": "Oostkamp"
+        },
+        "6555": {
+          "id": 6555,
+          "name": "Oostrozebeke"
+        },
+        "6559": {
+          "id": 6559,
+          "name": "Ostend"
+        },
+        "6561": {
+          "id": 6561,
+          "name": "Oudenburg"
+        },
+        "6576": {
+          "id": 6576,
+          "name": "Pittem"
+        },
+        "6579": {
+          "id": 6579,
+          "name": "Poperinge"
+        },
+        "6595": {
+          "id": 6595,
+          "name": "Roeselare"
+        },
+        "6599": {
+          "id": 6599,
+          "name": "Ruiselede"
+        },
+        "6630": {
+          "id": 6630,
+          "name": "Staden"
+        },
+        "6643": {
+          "id": 6643,
+          "name": "Tielt"
+        },
+        "6648": {
+          "id": 6648,
+          "name": "Torhout"
+        },
+        "6657": {
+          "id": 6657,
+          "name": "Veurne"
+        },
+        "6673": {
+          "id": 6673,
+          "name": "Waregem"
+        },
+        "6682": {
+          "id": 6682,
+          "name": "Wervik"
+        },
+        "6685": {
+          "id": 6685,
+          "name": "Wevelgem"
+        },
+        "6688": {
+          "id": 6688,
+          "name": "Wielsbeke"
+        },
+        "6691": {
+          "id": 6691,
+          "name": "Wingene"
+        },
+        "6697": {
+          "id": 6697,
+          "name": "Zedelgem"
+        },
+        "6705": {
+          "id": 6705,
+          "name": "Zonnebeke"
+        },
+        "6708": {
+          "id": 6708,
+          "name": "Zuienkerke"
+        },
+        "6711": {
+          "id": 6711,
+          "name": "Zwevegem"
+        }
+      }
+    }
+  }
+}

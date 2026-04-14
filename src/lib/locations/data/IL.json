@@ -1,1 +1,382 @@
-{"code":"IL","name":"Israel","states":{"01":{"code":"01","name":"HaDarom","cities":{"21013":{"id":21013,"name":"Ashdod"},"21014":{"id":21014,"name":"Ashdod"},"21015":{"id":21015,"name":"Ashqelon"},"21024":{"id":21024,"name":"Dimona"},"21025":{"id":21025,"name":"Elat"},"21052":{"id":21052,"name":"Mizpe Ramon"},"21059":{"id":21059,"name":"Netivot"},"21061":{"id":21061,"name":"Ofaqim"},"21066":{"id":21066,"name":"Qiryat Gat"},"21084":{"id":21084,"name":"Sederot"},"21096":{"id":21096,"name":"Yeroham"}}},"02":{"code":"02","name":"HaMerkaz","cities":{"21020":{"id":21020,"name":"Bet Dagan"},"21022":{"id":21022,"name":"Bet Yizhaq"},"21026":{"id":21026,"name":"Elyakhin"},"21027":{"id":21027,"name":"Even Yehuda"},"21030":{"id":21030,"name":"Ganne Tiqwa"},"21031":{"id":21031,"name":"Gan Yavne"},"21032":{"id":21032,"name":"Gedera"},"21034":{"id":21034,"name":"Hod Hasharon"},"21038":{"id":21038,"name":"Jaljulye"},"21044":{"id":21044,"name":"Kafar Qasem"},"21045":{"id":21045,"name":"Kefar Sava"},"21049":{"id":21049,"name":"Kefar Yona"},"21050":{"id":21050,"name":"Lod"},"21051":{"id":21051,"name":"Mazkeret Batya"},"21055":{"id":21055,"name":"Nehalim"},"21058":{"id":21058,"name":"Netanya"},"21060":{"id":21060,"name":"Nordiyya"},"21063":{"id":21063,"name":"Pardesiyya"},"21068":{"id":21068,"name":"Qiryat Ono"},"21069":{"id":21069,"name":"Qiryat Ono"},"21075":{"id":21075,"name":"Ramla"},"21083":{"id":21083,"name":"Savyon"},"21089":{"id":21089,"name":"Tayibe"},"21091":{"id":21091,"name":"Tel Mond"},"21095":{"id":21095,"name":"Yavne"}}},"03":{"code":"03","name":"HaZafon","cities":{"21018":{"id":21018,"name":"Beit Jann"},"21023":{"id":21023,"name":"Deir Hanna"},"21028":{"id":21028,"name":"Fassuta"},"21035":{"id":21035,"name":"Hurfeish"},"21037":{"id":21037,"name":"Iksal"},"21040":{"id":21040,"name":"Jish"},"21041":{"id":21041,"name":"Kabul"},"21042":{"id":21042,"name":"Kafar Kama"},"21043":{"id":21043,"name":"Kafar Manda"},"21047":{"id":21047,"name":"Kefar Tavor"},"21048":{"id":21048,"name":"Kefar Weradim"},"21053":{"id":21053,"name":"Nahariyya"},"21054":{"id":21054,"name":"Nahef"},"21056":{"id":21056,"name":"Nein"},"21070":{"id":21070,"name":"Qiryat Shemona"},"21074":{"id":21074,"name":"Ramat Yishay"},"21076":{"id":21076,"name":"Reine"},"21078":{"id":21078,"name":"Rosh Pinna"},"21079":{"id":21079,"name":"Rumat Heib"},"21080":{"id":21080,"name":"Sajur"},"21081":{"id":21081,"name":"Sakhnin"},"21082":{"id":21082,"name":"Sallama"},"21085":{"id":21085,"name":"Sheikh Dannun"},"21086":{"id":21086,"name":"Shelomi"},"21087":{"id":21087,"name":"Sulam"},"21088":{"id":21088,"name":"Tamra"},"21092":{"id":21092,"name":"Tiberias"},"21093":{"id":21093,"name":"Timrat"}}},"04":{"code":"04","name":"Hefa","cities":{"21029":{"id":21029,"name":"Fureidis"},"21033":{"id":21033,"name":"Haifa"},"21036":{"id":21036,"name":"Ibtin"},"21057":{"id":21057,"name":"Nesher"},"21064":{"id":21064,"name":"Qiryat Atta"},"21065":{"id":21065,"name":"Qiryat Bialik"},"21067":{"id":21067,"name":"Qiryat Motzkin"},"21071":{"id":21071,"name":"Qiryat Yam"},"21077":{"id":21077,"name":"Rekhasim"},"21094":{"id":21094,"name":"Tirat Karmel"}}},"05":{"code":"05","name":"Tel Aviv","cities":{"21016":{"id":21016,"name":"Azur"},"21017":{"id":21017,"name":"Bat Yam"},"21019":{"id":21019,"name":"Bene Beraq"},"21046":{"id":21046,"name":"Kefar Shemaryahu"},"21062":{"id":21062,"name":"Or Yehuda"},"21072":{"id":21072,"name":"Ramat Gan"},"21073":{"id":21073,"name":"Ramat Hasharon"},"21090":{"id":21090,"name":"Tel Aviv-yafo"}}},"06":{"code":"06","name":"Yerushalayim","cities":{"21012":{"id":21012,"name":"Abu Ghosh"},"21021":{"id":21021,"name":"Bet Shemesh"},"21039":{"id":21039,"name":"Jerusalem"}}}}}
+{
+  "code": "IL",
+  "name": "Israel",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "HaDarom",
+      "cities": {
+        "21013": {
+          "id": 21013,
+          "name": "Ashdod"
+        },
+        "21014": {
+          "id": 21014,
+          "name": "Ashdod"
+        },
+        "21015": {
+          "id": 21015,
+          "name": "Ashqelon"
+        },
+        "21024": {
+          "id": 21024,
+          "name": "Dimona"
+        },
+        "21025": {
+          "id": 21025,
+          "name": "Elat"
+        },
+        "21052": {
+          "id": 21052,
+          "name": "Mizpe Ramon"
+        },
+        "21059": {
+          "id": 21059,
+          "name": "Netivot"
+        },
+        "21061": {
+          "id": 21061,
+          "name": "Ofaqim"
+        },
+        "21066": {
+          "id": 21066,
+          "name": "Qiryat Gat"
+        },
+        "21084": {
+          "id": 21084,
+          "name": "Sederot"
+        },
+        "21096": {
+          "id": 21096,
+          "name": "Yeroham"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "HaMerkaz",
+      "cities": {
+        "21020": {
+          "id": 21020,
+          "name": "Bet Dagan"
+        },
+        "21022": {
+          "id": 21022,
+          "name": "Bet Yizhaq"
+        },
+        "21026": {
+          "id": 21026,
+          "name": "Elyakhin"
+        },
+        "21027": {
+          "id": 21027,
+          "name": "Even Yehuda"
+        },
+        "21030": {
+          "id": 21030,
+          "name": "Ganne Tiqwa"
+        },
+        "21031": {
+          "id": 21031,
+          "name": "Gan Yavne"
+        },
+        "21032": {
+          "id": 21032,
+          "name": "Gedera"
+        },
+        "21034": {
+          "id": 21034,
+          "name": "Hod Hasharon"
+        },
+        "21038": {
+          "id": 21038,
+          "name": "Jaljulye"
+        },
+        "21044": {
+          "id": 21044,
+          "name": "Kafar Qasem"
+        },
+        "21045": {
+          "id": 21045,
+          "name": "Kefar Sava"
+        },
+        "21049": {
+          "id": 21049,
+          "name": "Kefar Yona"
+        },
+        "21050": {
+          "id": 21050,
+          "name": "Lod"
+        },
+        "21051": {
+          "id": 21051,
+          "name": "Mazkeret Batya"
+        },
+        "21055": {
+          "id": 21055,
+          "name": "Nehalim"
+        },
+        "21058": {
+          "id": 21058,
+          "name": "Netanya"
+        },
+        "21060": {
+          "id": 21060,
+          "name": "Nordiyya"
+        },
+        "21063": {
+          "id": 21063,
+          "name": "Pardesiyya"
+        },
+        "21068": {
+          "id": 21068,
+          "name": "Qiryat Ono"
+        },
+        "21069": {
+          "id": 21069,
+          "name": "Qiryat Ono"
+        },
+        "21075": {
+          "id": 21075,
+          "name": "Ramla"
+        },
+        "21083": {
+          "id": 21083,
+          "name": "Savyon"
+        },
+        "21089": {
+          "id": 21089,
+          "name": "Tayibe"
+        },
+        "21091": {
+          "id": 21091,
+          "name": "Tel Mond"
+        },
+        "21095": {
+          "id": 21095,
+          "name": "Yavne"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "HaZafon",
+      "cities": {
+        "21018": {
+          "id": 21018,
+          "name": "Beit Jann"
+        },
+        "21023": {
+          "id": 21023,
+          "name": "Deir Hanna"
+        },
+        "21028": {
+          "id": 21028,
+          "name": "Fassuta"
+        },
+        "21035": {
+          "id": 21035,
+          "name": "Hurfeish"
+        },
+        "21037": {
+          "id": 21037,
+          "name": "Iksal"
+        },
+        "21040": {
+          "id": 21040,
+          "name": "Jish"
+        },
+        "21041": {
+          "id": 21041,
+          "name": "Kabul"
+        },
+        "21042": {
+          "id": 21042,
+          "name": "Kafar Kama"
+        },
+        "21043": {
+          "id": 21043,
+          "name": "Kafar Manda"
+        },
+        "21047": {
+          "id": 21047,
+          "name": "Kefar Tavor"
+        },
+        "21048": {
+          "id": 21048,
+          "name": "Kefar Weradim"
+        },
+        "21053": {
+          "id": 21053,
+          "name": "Nahariyya"
+        },
+        "21054": {
+          "id": 21054,
+          "name": "Nahef"
+        },
+        "21056": {
+          "id": 21056,
+          "name": "Nein"
+        },
+        "21070": {
+          "id": 21070,
+          "name": "Qiryat Shemona"
+        },
+        "21074": {
+          "id": 21074,
+          "name": "Ramat Yishay"
+        },
+        "21076": {
+          "id": 21076,
+          "name": "Reine"
+        },
+        "21078": {
+          "id": 21078,
+          "name": "Rosh Pinna"
+        },
+        "21079": {
+          "id": 21079,
+          "name": "Rumat Heib"
+        },
+        "21080": {
+          "id": 21080,
+          "name": "Sajur"
+        },
+        "21081": {
+          "id": 21081,
+          "name": "Sakhnin"
+        },
+        "21082": {
+          "id": 21082,
+          "name": "Sallama"
+        },
+        "21085": {
+          "id": 21085,
+          "name": "Sheikh Dannun"
+        },
+        "21086": {
+          "id": 21086,
+          "name": "Shelomi"
+        },
+        "21087": {
+          "id": 21087,
+          "name": "Sulam"
+        },
+        "21088": {
+          "id": 21088,
+          "name": "Tamra"
+        },
+        "21092": {
+          "id": 21092,
+          "name": "Tiberias"
+        },
+        "21093": {
+          "id": 21093,
+          "name": "Timrat"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Hefa",
+      "cities": {
+        "21029": {
+          "id": 21029,
+          "name": "Fureidis"
+        },
+        "21033": {
+          "id": 21033,
+          "name": "Haifa"
+        },
+        "21036": {
+          "id": 21036,
+          "name": "Ibtin"
+        },
+        "21057": {
+          "id": 21057,
+          "name": "Nesher"
+        },
+        "21064": {
+          "id": 21064,
+          "name": "Qiryat Atta"
+        },
+        "21065": {
+          "id": 21065,
+          "name": "Qiryat Bialik"
+        },
+        "21067": {
+          "id": 21067,
+          "name": "Qiryat Motzkin"
+        },
+        "21071": {
+          "id": 21071,
+          "name": "Qiryat Yam"
+        },
+        "21077": {
+          "id": 21077,
+          "name": "Rekhasim"
+        },
+        "21094": {
+          "id": 21094,
+          "name": "Tirat Karmel"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Tel Aviv",
+      "cities": {
+        "21016": {
+          "id": 21016,
+          "name": "Azur"
+        },
+        "21017": {
+          "id": 21017,
+          "name": "Bat Yam"
+        },
+        "21019": {
+          "id": 21019,
+          "name": "Bene Beraq"
+        },
+        "21046": {
+          "id": 21046,
+          "name": "Kefar Shemaryahu"
+        },
+        "21062": {
+          "id": 21062,
+          "name": "Or Yehuda"
+        },
+        "21072": {
+          "id": 21072,
+          "name": "Ramat Gan"
+        },
+        "21073": {
+          "id": 21073,
+          "name": "Ramat Hasharon"
+        },
+        "21090": {
+          "id": 21090,
+          "name": "Tel Aviv-yafo"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Yerushalayim",
+      "cities": {
+        "21012": {
+          "id": 21012,
+          "name": "Abu Ghosh"
+        },
+        "21021": {
+          "id": 21021,
+          "name": "Bet Shemesh"
+        },
+        "21039": {
+          "id": 21039,
+          "name": "Jerusalem"
+        }
+      }
+    }
+  }
+}

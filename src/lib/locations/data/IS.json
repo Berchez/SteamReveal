@@ -1,1 +1,370 @@
-{"code":"IS","name":"Iceland","states":{"10":{"code":"10","name":"Gullbringusysla","cities":{"24307":{"id":24307,"name":"Grindavik"},"24308":{"id":24308,"name":"Hafnir"},"24320":{"id":24320,"name":"Keflavik"},"24323":{"id":24323,"name":"Kopavogur"},"24329":{"id":24329,"name":"Reykjavik"},"24335":{"id":24335,"name":"Vogar"}}},"11":{"code":"11","name":"Hafnarfjordur","cities":{}},"12":{"code":"12","name":"Husavik","cities":{}},"13":{"code":"13","name":"Isafjordur","cities":{}},"14":{"code":"14","name":"Keflavik","cities":{}},"15":{"code":"15","name":"Kjosarsysla","cities":{}},"16":{"code":"16","name":"Kopavogur","cities":{}},"17":{"code":"17","name":"Myrasysla","cities":{"24301":{"id":24301,"name":"Borgarnes"}}},"18":{"code":"18","name":"Neskaupstadur","cities":{}},"19":{"code":"19","name":"Nordur-Isafjardarsysla","cities":{}},"20":{"code":"20","name":"Nordur-Mulasysla","cities":{}},"21":{"code":"21","name":"Nordur-Tingeyjarsysla","cities":{"24322":{"id":24322,"name":"Kopasker"},"24327":{"id":24327,"name":"Raufarhofn"}}},"22":{"code":"22","name":"Olafsfjordur","cities":{}},"23":{"code":"23","name":"Rangarvallasysla","cities":{"24309":{"id":24309,"name":"Hella"},"24319":{"id":24319,"name":"Hvolsvollur"},"24334":{"id":24334,"name":"Vestmannaeyjar"}}},"24":{"code":"24","name":"Reykjavik","cities":{}},"25":{"code":"25","name":"Saudarkrokur","cities":{}},"26":{"code":"26","name":"Seydisfjordur","cities":{}},"27":{"code":"27","name":"Siglufjordur","cities":{}},"28":{"code":"28","name":"Skagafjardarsysla","cities":{"24313":{"id":24313,"name":"Hofsos"},"24314":{"id":24314,"name":"Holar"}}},"29":{"code":"29","name":"Snafellsnes- og Hnappadalssysla","cities":{"24310":{"id":24310,"name":"Hellissandur"},"24326":{"id":24326,"name":"Olafsvik"},"24333":{"id":24333,"name":"Stykkisholmur"}}},"30":{"code":"30","name":"Strandasysla","cities":{"24315":{"id":24315,"name":"Holmavik"}}},"31":{"code":"31","name":"Sudur-Mulasysla","cities":{"24303":{"id":24303,"name":"Djupivogur"}}},"32":{"code":"32","name":"Sudur-Tingeyjarsysla","cities":{"24306":{"id":24306,"name":"Grenivik"},"24316":{"id":24316,"name":"Husavik"}}},"33":{"code":"33","name":"Vestmannaeyjar","cities":{}},"34":{"code":"34","name":"Vestur-Bardastrandarsysla","cities":{"24298":{"id":24298,"name":"Bildudalur"}}},"35":{"code":"35","name":"Vestur-Hunavatnssysla","cities":{"24317":{"id":24317,"name":"Hvammstangi"}}},"36":{"code":"36","name":"Vestur-Isafjardarsysla","cities":{"24300":{"id":24300,"name":"Bolungarvik"},"24305":{"id":24305,"name":"Flateyri"},"24311":{"id":24311,"name":"Hnifsdalur"}}},"37":{"code":"37","name":"Vestur-Skaftafellssysla","cities":{"24321":{"id":24321,"name":"Kirkjubaejarklaustur"}}},"01":{"code":"01","name":"Akranes","cities":{}},"02":{"code":"02","name":"Akureyri","cities":{}},"03":{"code":"03","name":"Arnessysla","cities":{"24304":{"id":24304,"name":"Eyrarbakki"},"24324":{"id":24324,"name":"Laugarvatn"},"24330":{"id":24330,"name":"Selfoss"},"24332":{"id":24332,"name":"Stokkseyri"}}},"04":{"code":"04","name":"Austur-Bardastrandarsysla","cities":{"24328":{"id":24328,"name":"Reykholar"}}},"05":{"code":"05","name":"Austur-Hunavatnssysla","cities":{"24299":{"id":24299,"name":"Blonduos"},"24331":{"id":24331,"name":"Skagastrond"}}},"06":{"code":"06","name":"Austur-Skaftafellssysla","cities":{"24312":{"id":24312,"name":"Hofn"}}},"07":{"code":"07","name":"Borgarfjardarsysla","cities":{"24296":{"id":24296,"name":"Akranes"},"24318":{"id":24318,"name":"Hvanneyri"}}},"08":{"code":"08","name":"Dalasysla","cities":{}},"09":{"code":"09","name":"Eyjafjardarsysla","cities":{"24297":{"id":24297,"name":"Akureyri"},"24302":{"id":24302,"name":"Dalvik"},"24325":{"id":24325,"name":"Litli-arskogssandur"}}}}}
+{
+  "code": "IS",
+  "name": "Iceland",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Gullbringusysla",
+      "cities": {
+        "24307": {
+          "id": 24307,
+          "name": "Grindavik"
+        },
+        "24308": {
+          "id": 24308,
+          "name": "Hafnir"
+        },
+        "24320": {
+          "id": 24320,
+          "name": "Keflavik"
+        },
+        "24323": {
+          "id": 24323,
+          "name": "Kopavogur"
+        },
+        "24329": {
+          "id": 24329,
+          "name": "Reykjavik"
+        },
+        "24335": {
+          "id": 24335,
+          "name": "Vogar"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Hafnarfjordur",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Husavik",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Isafjordur",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Keflavik",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "Kjosarsysla",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "Kopavogur",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Myrasysla",
+      "cities": {
+        "24301": {
+          "id": 24301,
+          "name": "Borgarnes"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Neskaupstadur",
+      "cities": {}
+    },
+    "19": {
+      "code": "19",
+      "name": "Nordur-Isafjardarsysla",
+      "cities": {}
+    },
+    "20": {
+      "code": "20",
+      "name": "Nordur-Mulasysla",
+      "cities": {}
+    },
+    "21": {
+      "code": "21",
+      "name": "Nordur-Tingeyjarsysla",
+      "cities": {
+        "24322": {
+          "id": 24322,
+          "name": "Kopasker"
+        },
+        "24327": {
+          "id": 24327,
+          "name": "Raufarhofn"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Olafsfjordur",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Rangarvallasysla",
+      "cities": {
+        "24309": {
+          "id": 24309,
+          "name": "Hella"
+        },
+        "24319": {
+          "id": 24319,
+          "name": "Hvolsvollur"
+        },
+        "24334": {
+          "id": 24334,
+          "name": "Vestmannaeyjar"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Reykjavik",
+      "cities": {}
+    },
+    "25": {
+      "code": "25",
+      "name": "Saudarkrokur",
+      "cities": {}
+    },
+    "26": {
+      "code": "26",
+      "name": "Seydisfjordur",
+      "cities": {}
+    },
+    "27": {
+      "code": "27",
+      "name": "Siglufjordur",
+      "cities": {}
+    },
+    "28": {
+      "code": "28",
+      "name": "Skagafjardarsysla",
+      "cities": {
+        "24313": {
+          "id": 24313,
+          "name": "Hofsos"
+        },
+        "24314": {
+          "id": 24314,
+          "name": "Holar"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Snafellsnes- og Hnappadalssysla",
+      "cities": {
+        "24310": {
+          "id": 24310,
+          "name": "Hellissandur"
+        },
+        "24326": {
+          "id": 24326,
+          "name": "Olafsvik"
+        },
+        "24333": {
+          "id": 24333,
+          "name": "Stykkisholmur"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Strandasysla",
+      "cities": {
+        "24315": {
+          "id": 24315,
+          "name": "Holmavik"
+        }
+      }
+    },
+    "31": {
+      "code": "31",
+      "name": "Sudur-Mulasysla",
+      "cities": {
+        "24303": {
+          "id": 24303,
+          "name": "Djupivogur"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Sudur-Tingeyjarsysla",
+      "cities": {
+        "24306": {
+          "id": 24306,
+          "name": "Grenivik"
+        },
+        "24316": {
+          "id": 24316,
+          "name": "Husavik"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "Vestmannaeyjar",
+      "cities": {}
+    },
+    "34": {
+      "code": "34",
+      "name": "Vestur-Bardastrandarsysla",
+      "cities": {
+        "24298": {
+          "id": 24298,
+          "name": "Bildudalur"
+        }
+      }
+    },
+    "35": {
+      "code": "35",
+      "name": "Vestur-Hunavatnssysla",
+      "cities": {
+        "24317": {
+          "id": 24317,
+          "name": "Hvammstangi"
+        }
+      }
+    },
+    "36": {
+      "code": "36",
+      "name": "Vestur-Isafjardarsysla",
+      "cities": {
+        "24300": {
+          "id": 24300,
+          "name": "Bolungarvik"
+        },
+        "24305": {
+          "id": 24305,
+          "name": "Flateyri"
+        },
+        "24311": {
+          "id": 24311,
+          "name": "Hnifsdalur"
+        }
+      }
+    },
+    "37": {
+      "code": "37",
+      "name": "Vestur-Skaftafellssysla",
+      "cities": {
+        "24321": {
+          "id": 24321,
+          "name": "Kirkjubaejarklaustur"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Akranes",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Akureyri",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Arnessysla",
+      "cities": {
+        "24304": {
+          "id": 24304,
+          "name": "Eyrarbakki"
+        },
+        "24324": {
+          "id": 24324,
+          "name": "Laugarvatn"
+        },
+        "24330": {
+          "id": 24330,
+          "name": "Selfoss"
+        },
+        "24332": {
+          "id": 24332,
+          "name": "Stokkseyri"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Austur-Bardastrandarsysla",
+      "cities": {
+        "24328": {
+          "id": 24328,
+          "name": "Reykholar"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Austur-Hunavatnssysla",
+      "cities": {
+        "24299": {
+          "id": 24299,
+          "name": "Blonduos"
+        },
+        "24331": {
+          "id": 24331,
+          "name": "Skagastrond"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Austur-Skaftafellssysla",
+      "cities": {
+        "24312": {
+          "id": 24312,
+          "name": "Hofn"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Borgarfjardarsysla",
+      "cities": {
+        "24296": {
+          "id": 24296,
+          "name": "Akranes"
+        },
+        "24318": {
+          "id": 24318,
+          "name": "Hvanneyri"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Dalasysla",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Eyjafjardarsysla",
+      "cities": {
+        "24297": {
+          "id": 24297,
+          "name": "Akureyri"
+        },
+        "24302": {
+          "id": 24302,
+          "name": "Dalvik"
+        },
+        "24325": {
+          "id": 24325,
+          "name": "Litli-arskogssandur"
+        }
+      }
+    }
+  }
+}

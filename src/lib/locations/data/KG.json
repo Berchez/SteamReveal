@@ -1,1 +1,93 @@
-{"code":"KG","name":"Kyrgyzstan","states":{"01":{"code":"01","name":"Bishkek","cities":{"26345":{"id":26345,"name":"Kant"}}},"02":{"code":"02","name":"Chuy","cities":{"26347":{"id":26347,"name":"Kemin"},"26352":{"id":26352,"name":"Tokmak"}}},"03":{"code":"03","name":"Jalal-Abad","cities":{"26353":{"id":26353,"name":"Toktogul"}}},"04":{"code":"04","name":"Naryn","cities":{"26342":{"id":26342,"name":"At-bashi"}}},"06":{"code":"06","name":"Talas","cities":{"26351":{"id":26351,"name":"Talas"}}},"07":{"code":"07","name":"Ysyk-Kol","cities":{"26346":{"id":26346,"name":"Karakol"},"26348":{"id":26348,"name":"Kyzyl-suu"},"26354":{"id":26354,"name":"Tyup"}}},"08":{"code":"08","name":"Osh","cities":{}},"09":{"code":"09","name":"Batken","cities":{"26343":{"id":26343,"name":"Batken"}}}}}
+{
+  "code": "KG",
+  "name": "Kyrgyzstan",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Bishkek",
+      "cities": {
+        "26345": {
+          "id": 26345,
+          "name": "Kant"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Chuy",
+      "cities": {
+        "26347": {
+          "id": 26347,
+          "name": "Kemin"
+        },
+        "26352": {
+          "id": 26352,
+          "name": "Tokmak"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Jalal-Abad",
+      "cities": {
+        "26353": {
+          "id": 26353,
+          "name": "Toktogul"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Naryn",
+      "cities": {
+        "26342": {
+          "id": 26342,
+          "name": "At-bashi"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Talas",
+      "cities": {
+        "26351": {
+          "id": 26351,
+          "name": "Talas"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Ysyk-Kol",
+      "cities": {
+        "26346": {
+          "id": 26346,
+          "name": "Karakol"
+        },
+        "26348": {
+          "id": 26348,
+          "name": "Kyzyl-suu"
+        },
+        "26354": {
+          "id": 26354,
+          "name": "Tyup"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Osh",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Batken",
+      "cities": {
+        "26343": {
+          "id": 26343,
+          "name": "Batken"
+        }
+      }
+    }
+  }
+}

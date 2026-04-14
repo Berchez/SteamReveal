@@ -1,1 +1,342 @@
-{"code":"AL","name":"Albania","states":{"40":{"code":"40","name":"Berat","cities":{"5132":{"id":5132,"name":"Berat"},"5137":{"id":5137,"name":"Corovode"},"5160":{"id":5160,"name":"Kucove"},"5180":{"id":5180,"name":"Polican"}}},"41":{"code":"41","name":"Diber","cities":{"5134":{"id":5134,"name":"Bulqize"},"5135":{"id":5135,"name":"Burrel"},"5154":{"id":5154,"name":"Klos"},"5158":{"id":5158,"name":"Kraste"},"5178":{"id":5178,"name":"Peshkopi"},"5193":{"id":5193,"name":"Ulze"}}},"42":{"code":"42","name":"Durres","cities":{"5139":{"id":5139,"name":"Durres"},"5146":{"id":5146,"name":"Fushe-kruje"},"5159":{"id":5159,"name":"Kruje"},"5189":{"id":5189,"name":"Shijak"}}},"43":{"code":"43","name":"Elbasan","cities":{"5136":{"id":5136,"name":"Cerrik"},"5140":{"id":5140,"name":"Elbasan"},"5148":{"id":5148,"name":"Gramsh"},"5167":{"id":5167,"name":"Librazhd"},"5175":{"id":5175,"name":"Peqin"},"5177":{"id":5177,"name":"Perrenjas"}}},"44":{"code":"44","name":"Fier","cities":{"5131":{"id":5131,"name":"Ballsh"},"5142":{"id":5142,"name":"Fier"},"5168":{"id":5168,"name":"Lushnje"},"5174":{"id":5174,"name":"Patos"},"5182":{"id":5182,"name":"Roskovec"}}},"45":{"code":"45","name":"Gjirokaster","cities":{"5147":{"id":5147,"name":"Gjirokaster"},"5152":{"id":5152,"name":"Kelcyre"},"5166":{"id":5166,"name":"Libohove"},"5171":{"id":5171,"name":"Memaliaj"},"5176":{"id":5176,"name":"Permet"},"5191":{"id":5191,"name":"Tepelene"}}},"46":{"code":"46","name":"Korce","cities":{"5133":{"id":5133,"name":"Bilisht"},"5141":{"id":5141,"name":"Erseke"},"5157":{"id":5157,"name":"Korce"},"5164":{"id":5164,"name":"Leskovik"},"5169":{"id":5169,"name":"Maliq"},"5179":{"id":5179,"name":"Pogradec"}}},"47":{"code":"47","name":"Kukes","cities":{"5130":{"id":5130,"name":"Bajram Curri"},"5143":{"id":5143,"name":"Fierze"},"5144":{"id":5144,"name":"Fierze"},"5161":{"id":5161,"name":"Kukes"}}},"48":{"code":"48","name":"Lezhe","cities":{"5162":{"id":5162,"name":"Kurbnesh"},"5163":{"id":5163,"name":"Lac"},"5165":{"id":5165,"name":"Lezhe"},"5170":{"id":5170,"name":"Mamurras"},"5172":{"id":5172,"name":"Milot"},"5183":{"id":5183,"name":"Rreshen"},"5185":{"id":5185,"name":"Rubik"},"5188":{"id":5188,"name":"Shengjin"}}},"49":{"code":"49","name":"Shkoder","cities":{"5145":{"id":5145,"name":"Fushe-arrez"},"5156":{"id":5156,"name":"Koplik"},"5181":{"id":5181,"name":"Puke"},"5190":{"id":5190,"name":"Shkoder"}}},"50":{"code":"50","name":"Tirane","cities":{"5150":{"id":5150,"name":"Kamze"},"5151":{"id":5151,"name":"Kavaje"},"5153":{"id":5153,"name":"Kerrabe"},"5184":{"id":5184,"name":"Rrogozhine"},"5192":{"id":5192,"name":"Tirana"},"5195":{"id":5195,"name":"Vore"}}},"51":{"code":"51","name":"Vlore","cities":{"5138":{"id":5138,"name":"Delvine"},"5149":{"id":5149,"name":"Himare"},"5155":{"id":5155,"name":"Konispol"},"5173":{"id":5173,"name":"Orikum"},"5186":{"id":5186,"name":"Sarande"},"5187":{"id":5187,"name":"Selenice"},"5194":{"id":5194,"name":"Vlore"}}}}}
+{
+  "code": "AL",
+  "name": "Albania",
+  "states": {
+    "40": {
+      "code": "40",
+      "name": "Berat",
+      "cities": {
+        "5132": {
+          "id": 5132,
+          "name": "Berat"
+        },
+        "5137": {
+          "id": 5137,
+          "name": "Corovode"
+        },
+        "5160": {
+          "id": 5160,
+          "name": "Kucove"
+        },
+        "5180": {
+          "id": 5180,
+          "name": "Polican"
+        }
+      }
+    },
+    "41": {
+      "code": "41",
+      "name": "Diber",
+      "cities": {
+        "5134": {
+          "id": 5134,
+          "name": "Bulqize"
+        },
+        "5135": {
+          "id": 5135,
+          "name": "Burrel"
+        },
+        "5154": {
+          "id": 5154,
+          "name": "Klos"
+        },
+        "5158": {
+          "id": 5158,
+          "name": "Kraste"
+        },
+        "5178": {
+          "id": 5178,
+          "name": "Peshkopi"
+        },
+        "5193": {
+          "id": 5193,
+          "name": "Ulze"
+        }
+      }
+    },
+    "42": {
+      "code": "42",
+      "name": "Durres",
+      "cities": {
+        "5139": {
+          "id": 5139,
+          "name": "Durres"
+        },
+        "5146": {
+          "id": 5146,
+          "name": "Fushe-kruje"
+        },
+        "5159": {
+          "id": 5159,
+          "name": "Kruje"
+        },
+        "5189": {
+          "id": 5189,
+          "name": "Shijak"
+        }
+      }
+    },
+    "43": {
+      "code": "43",
+      "name": "Elbasan",
+      "cities": {
+        "5136": {
+          "id": 5136,
+          "name": "Cerrik"
+        },
+        "5140": {
+          "id": 5140,
+          "name": "Elbasan"
+        },
+        "5148": {
+          "id": 5148,
+          "name": "Gramsh"
+        },
+        "5167": {
+          "id": 5167,
+          "name": "Librazhd"
+        },
+        "5175": {
+          "id": 5175,
+          "name": "Peqin"
+        },
+        "5177": {
+          "id": 5177,
+          "name": "Perrenjas"
+        }
+      }
+    },
+    "44": {
+      "code": "44",
+      "name": "Fier",
+      "cities": {
+        "5131": {
+          "id": 5131,
+          "name": "Ballsh"
+        },
+        "5142": {
+          "id": 5142,
+          "name": "Fier"
+        },
+        "5168": {
+          "id": 5168,
+          "name": "Lushnje"
+        },
+        "5174": {
+          "id": 5174,
+          "name": "Patos"
+        },
+        "5182": {
+          "id": 5182,
+          "name": "Roskovec"
+        }
+      }
+    },
+    "45": {
+      "code": "45",
+      "name": "Gjirokaster",
+      "cities": {
+        "5147": {
+          "id": 5147,
+          "name": "Gjirokaster"
+        },
+        "5152": {
+          "id": 5152,
+          "name": "Kelcyre"
+        },
+        "5166": {
+          "id": 5166,
+          "name": "Libohove"
+        },
+        "5171": {
+          "id": 5171,
+          "name": "Memaliaj"
+        },
+        "5176": {
+          "id": 5176,
+          "name": "Permet"
+        },
+        "5191": {
+          "id": 5191,
+          "name": "Tepelene"
+        }
+      }
+    },
+    "46": {
+      "code": "46",
+      "name": "Korce",
+      "cities": {
+        "5133": {
+          "id": 5133,
+          "name": "Bilisht"
+        },
+        "5141": {
+          "id": 5141,
+          "name": "Erseke"
+        },
+        "5157": {
+          "id": 5157,
+          "name": "Korce"
+        },
+        "5164": {
+          "id": 5164,
+          "name": "Leskovik"
+        },
+        "5169": {
+          "id": 5169,
+          "name": "Maliq"
+        },
+        "5179": {
+          "id": 5179,
+          "name": "Pogradec"
+        }
+      }
+    },
+    "47": {
+      "code": "47",
+      "name": "Kukes",
+      "cities": {
+        "5130": {
+          "id": 5130,
+          "name": "Bajram Curri"
+        },
+        "5143": {
+          "id": 5143,
+          "name": "Fierze"
+        },
+        "5144": {
+          "id": 5144,
+          "name": "Fierze"
+        },
+        "5161": {
+          "id": 5161,
+          "name": "Kukes"
+        }
+      }
+    },
+    "48": {
+      "code": "48",
+      "name": "Lezhe",
+      "cities": {
+        "5162": {
+          "id": 5162,
+          "name": "Kurbnesh"
+        },
+        "5163": {
+          "id": 5163,
+          "name": "Lac"
+        },
+        "5165": {
+          "id": 5165,
+          "name": "Lezhe"
+        },
+        "5170": {
+          "id": 5170,
+          "name": "Mamurras"
+        },
+        "5172": {
+          "id": 5172,
+          "name": "Milot"
+        },
+        "5183": {
+          "id": 5183,
+          "name": "Rreshen"
+        },
+        "5185": {
+          "id": 5185,
+          "name": "Rubik"
+        },
+        "5188": {
+          "id": 5188,
+          "name": "Shengjin"
+        }
+      }
+    },
+    "49": {
+      "code": "49",
+      "name": "Shkoder",
+      "cities": {
+        "5145": {
+          "id": 5145,
+          "name": "Fushe-arrez"
+        },
+        "5156": {
+          "id": 5156,
+          "name": "Koplik"
+        },
+        "5181": {
+          "id": 5181,
+          "name": "Puke"
+        },
+        "5190": {
+          "id": 5190,
+          "name": "Shkoder"
+        }
+      }
+    },
+    "50": {
+      "code": "50",
+      "name": "Tirane",
+      "cities": {
+        "5150": {
+          "id": 5150,
+          "name": "Kamze"
+        },
+        "5151": {
+          "id": 5151,
+          "name": "Kavaje"
+        },
+        "5153": {
+          "id": 5153,
+          "name": "Kerrabe"
+        },
+        "5184": {
+          "id": 5184,
+          "name": "Rrogozhine"
+        },
+        "5192": {
+          "id": 5192,
+          "name": "Tirana"
+        },
+        "5195": {
+          "id": 5195,
+          "name": "Vore"
+        }
+      }
+    },
+    "51": {
+      "code": "51",
+      "name": "Vlore",
+      "cities": {
+        "5138": {
+          "id": 5138,
+          "name": "Delvine"
+        },
+        "5149": {
+          "id": 5149,
+          "name": "Himare"
+        },
+        "5155": {
+          "id": 5155,
+          "name": "Konispol"
+        },
+        "5173": {
+          "id": 5173,
+          "name": "Orikum"
+        },
+        "5186": {
+          "id": 5186,
+          "name": "Sarande"
+        },
+        "5187": {
+          "id": 5187,
+          "name": "Selenice"
+        },
+        "5194": {
+          "id": 5194,
+          "name": "Vlore"
+        }
+      }
+    }
+  }
+}

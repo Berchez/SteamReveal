@@ -1,1 +1,91 @@
-{"code":"MR","name":"Mauritania","states":{"10":{"code":"10","name":"Guidimaka","cities":{}},"11":{"code":"11","name":"Tiris Zemmour","cities":{}},"12":{"code":"12","name":"Inchiri","cities":{}},"01":{"code":"01","name":"Hodh Ech Chargui","cities":{}},"02":{"code":"02","name":"Hodh El Gharbi","cities":{}},"03":{"code":"03","name":"Assaba","cities":{}},"04":{"code":"04","name":"Gorgol","cities":{"27555":{"id":27555,"name":"Maghama"}}},"05":{"code":"05","name":"Brakna","cities":{"27554":{"id":27554,"name":"Bababe"}}},"06":{"code":"06","name":"Trarza","cities":{"27557":{"id":27557,"name":"Nouakchott"}}},"07":{"code":"07","name":"Adrar","cities":{"27553":{"id":27553,"name":"Atar"}}},"08":{"code":"08","name":"Dakhlet Nouadhibou","cities":{"27556":{"id":27556,"name":"Nouadhibou"}}},"09":{"code":"09","name":"Tagant","cities":{}}}}
+{
+  "code": "MR",
+  "name": "Mauritania",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Guidimaka",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Tiris Zemmour",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Inchiri",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Hodh Ech Chargui",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Hodh El Gharbi",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Assaba",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Gorgol",
+      "cities": {
+        "27555": {
+          "id": 27555,
+          "name": "Maghama"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Brakna",
+      "cities": {
+        "27554": {
+          "id": 27554,
+          "name": "Bababe"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Trarza",
+      "cities": {
+        "27557": {
+          "id": 27557,
+          "name": "Nouakchott"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Adrar",
+      "cities": {
+        "27553": {
+          "id": 27553,
+          "name": "Atar"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Dakhlet Nouadhibou",
+      "cities": {
+        "27556": {
+          "id": 27556,
+          "name": "Nouadhibou"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Tagant",
+      "cities": {}
+    }
+  }
+}

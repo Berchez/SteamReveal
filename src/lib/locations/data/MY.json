@@ -1,1 +1,632 @@
-{"code":"MY","name":"Malaysia","states":{"11":{"code":"11","name":"Sarawak","cities":{"29444":{"id":29444,"name":"Bintulu"},"29465":{"id":29465,"name":"Kapit"},"29489":{"id":29489,"name":"Kuching"},"29496":{"id":29496,"name":"Limbang"},"29503":{"id":29503,"name":"Miri"},"29537":{"id":29537,"name":"Sibu"},"29540":{"id":29540,"name":"Sri Aman"}}},"12":{"code":"12","name":"Selangor","cities":{"29433":{"id":29433,"name":"Banting"},"29434":{"id":29434,"name":"Batang Berjuntai"},"29435":{"id":29435,"name":"Batu Arang"},"29457":{"id":29457,"name":"Jenjarom"},"29471":{"id":29471,"name":"Klang"},"29484":{"id":29484,"name":"Kuala Selangor"},"29487":{"id":29487,"name":"Kuang"},"29515":{"id":29515,"name":"Pengkalan Kundang"},"29526":{"id":29526,"name":"Rawang"},"29536":{"id":29536,"name":"Shah Alam"},"29541":{"id":29541,"name":"Sungai Besar"},"29549":{"id":29549,"name":"Tanjong Karang"},"29550":{"id":29550,"name":"Tanjong Sepat"}}},"13":{"code":"13","name":"Terengganu","cities":{"29452":{"id":29452,"name":"Cukai"},"29459":{"id":29459,"name":"Jertih"},"29469":{"id":29469,"name":"Kerteh"},"29486":{"id":29486,"name":"Kuala Terengganu"},"29498":{"id":29498,"name":"Marang"},"29506":{"id":29506,"name":"Paka"}}},"14":{"code":"14","name":"Wilayah Persekutuan","cities":{"29481":{"id":29481,"name":"Kuala Lumpur"},"29519":{"id":29519,"name":"Petaling Jaya"}}},"15":{"code":"15","name":"Labuan","cities":{"29494":{"id":29494,"name":"Labuan"}}},"16":{"code":"16","name":"Sabah","cities":{"29438":{"id":29438,"name":"Beaufort"},"29453":{"id":29453,"name":"Donggongon"},"29467":{"id":29467,"name":"Keningau"},"29470":{"id":29470,"name":"Kinarut"},"29474":{"id":29474,"name":"Kota Belud"},"29475":{"id":29475,"name":"Kota Kinabalu"},"29490":{"id":29490,"name":"Kudat"},"29495":{"id":29495,"name":"Lahad Datu"},"29508":{"id":29508,"name":"Papar"},"29523":{"id":29523,"name":"Putatan"},"29524":{"id":29524,"name":"Ranau"},"29528":{"id":29528,"name":"Sandakan"},"29532":{"id":29532,"name":"Semporna"},"29553":{"id":29553,"name":"Tawau"}}},"01":{"code":"01","name":"Johor","cities":{"29431":{"id":29431,"name":"Bandar Maharani"},"29432":{"id":29432,"name":"Bandar Penggaram"},"29445":{"id":29445,"name":"Bukit Bakri"},"29449":{"id":29449,"name":"Buloh Kasap"},"29451":{"id":29451,"name":"Chaah"},"29461":{"id":29461,"name":"Johor Bahru"},"29466":{"id":29466,"name":"Kelapa Sawit"},"29472":{"id":29472,"name":"Kluang"},"29476":{"id":29476,"name":"Kota Tinggi"},"29491":{"id":29491,"name":"Kulai"},"29493":{"id":29493,"name":"Labis"},"29502":{"id":29502,"name":"Mersing"},"29510":{"id":29510,"name":"Parit Raja"},"29511":{"id":29511,"name":"Pasir Gudang"},"29513":{"id":29513,"name":"Pekan Nenas"},"29520":{"id":29520,"name":"Pontian Kecil"},"29529":{"id":29529,"name":"Segamat"},"29530":{"id":29530,"name":"Sekudai"},"29533":{"id":29533,"name":"Senai"},"29539":{"id":29539,"name":"Simpang Rengam"},"29548":{"id":29548,"name":"Tangkak"},"29557":{"id":29557,"name":"Ulu Tiram"}}},"02":{"code":"02","name":"Kedah","cities":{"29426":{"id":29426,"name":"Alor Setar"},"29439":{"id":29439,"name":"Bedong"},"29455":{"id":29455,"name":"Gurun"},"29460":{"id":29460,"name":"Jitra"},"29477":{"id":29477,"name":"Kuah"},"29479":{"id":29479,"name":"Kuala Kedah"},"29492":{"id":29492,"name":"Kulim"},"29543":{"id":29543,"name":"Sungai Petani"}}},"03":{"code":"03","name":"Kelantan","cities":{"29454":{"id":29454,"name":"Gua Musang"},"29473":{"id":29473,"name":"Kota Bahru"},"29512":{"id":29512,"name":"Pasir Mas"},"29517":{"id":29517,"name":"Peringat"},"29547":{"id":29547,"name":"Tanah Merah"},"29556":{"id":29556,"name":"Tumpat"}}},"04":{"code":"04","name":"Melaka","cities":{"29425":{"id":29425,"name":"Alor Gajah"},"29428":{"id":29428,"name":"Ayer Keroh"},"29429":{"id":29429,"name":"Ayer Molek"},"29436":{"id":29436,"name":"Batu Berendam"},"29440":{"id":29440,"name":"Bemban"},"29446":{"id":29446,"name":"Bukit Baru"},"29448":{"id":29448,"name":"Bukit Rambai"},"29485":{"id":29485,"name":"Kuala Sungai Baru"},"29499":{"id":29499,"name":"Masjid Tanah"},"29500":{"id":29500,"name":"Melaka"},"29522":{"id":29522,"name":"Pulau Sebang"},"29544":{"id":29544,"name":"Sungai Udang"},"29546":{"id":29546,"name":"Tampin"}}},"05":{"code":"05","name":"Negeri Sembilan","cities":{"29442":{"id":29442,"name":"Beranang"},"29483":{"id":29483,"name":"Kuala Pilah"},"29505":{"id":29505,"name":"Nilai"},"29521":{"id":29521,"name":"Port Dickson"},"29531":{"id":29531,"name":"Semenyih"},"29534":{"id":29534,"name":"Seremban"},"29542":{"id":29542,"name":"Sungai Pelek"}}},"06":{"code":"06","name":"Pahang","cities":{"29441":{"id":29441,"name":"Bentong"},"29458":{"id":29458,"name":"Jerantut"},"29480":{"id":29480,"name":"Kuala Lipis"},"29488":{"id":29488,"name":"Kuantan"},"29501":{"id":29501,"name":"Mentakab"},"29514":{"id":29514,"name":"Pekan"},"29525":{"id":29525,"name":"Raub"},"29535":{"id":29535,"name":"Serendah"},"29555":{"id":29555,"name":"Temerloh"},"29558":{"id":29558,"name":"Yong Peng"}}},"07":{"code":"07","name":"Perak","cities":{"29430":{"id":29430,"name":"Ayer Tawar"},"29437":{"id":29437,"name":"Batu Gajah"},"29443":{"id":29443,"name":"Bidor"},"29456":{"id":29456,"name":"Ipoh"},"29463":{"id":29463,"name":"Kampar"},"29478":{"id":29478,"name":"Kuala Kangsar"},"29497":{"id":29497,"name":"Lumut"},"29507":{"id":29507,"name":"Pantai Remis"},"29509":{"id":29509,"name":"Parit Buntar"},"29527":{"id":29527,"name":"Sabak"},"29538":{"id":29538,"name":"Simpang Empat"},"29545":{"id":29545,"name":"Taiping"},"29552":{"id":29552,"name":"Tapah"},"29554":{"id":29554,"name":"Teluk Intan"}}},"08":{"code":"08","name":"Perlis","cities":{"29464":{"id":29464,"name":"Kangar"},"29482":{"id":29482,"name":"Kuala Perlis"}}},"09":{"code":"09","name":"Pulau Pinang","cities":{"29427":{"id":29427,"name":"Ayer Itam"},"29447":{"id":29447,"name":"Bukit Mertajam"},"29450":{"id":29450,"name":"Butterworth"},"29462":{"id":29462,"name":"Juru"},"29468":{"id":29468,"name":"Kepala Batas"},"29504":{"id":29504,"name":"Nibong Tebal"},"29516":{"id":29516,"name":"Perai"},"29518":{"id":29518,"name":"Permatang Kuching"},"29551":{"id":29551,"name":"Tanjong Tokong"}}}}}
+{
+  "code": "MY",
+  "name": "Malaysia",
+  "states": {
+    "11": {
+      "code": "11",
+      "name": "Sarawak",
+      "cities": {
+        "29444": {
+          "id": 29444,
+          "name": "Bintulu"
+        },
+        "29465": {
+          "id": 29465,
+          "name": "Kapit"
+        },
+        "29489": {
+          "id": 29489,
+          "name": "Kuching"
+        },
+        "29496": {
+          "id": 29496,
+          "name": "Limbang"
+        },
+        "29503": {
+          "id": 29503,
+          "name": "Miri"
+        },
+        "29537": {
+          "id": 29537,
+          "name": "Sibu"
+        },
+        "29540": {
+          "id": 29540,
+          "name": "Sri Aman"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Selangor",
+      "cities": {
+        "29433": {
+          "id": 29433,
+          "name": "Banting"
+        },
+        "29434": {
+          "id": 29434,
+          "name": "Batang Berjuntai"
+        },
+        "29435": {
+          "id": 29435,
+          "name": "Batu Arang"
+        },
+        "29457": {
+          "id": 29457,
+          "name": "Jenjarom"
+        },
+        "29471": {
+          "id": 29471,
+          "name": "Klang"
+        },
+        "29484": {
+          "id": 29484,
+          "name": "Kuala Selangor"
+        },
+        "29487": {
+          "id": 29487,
+          "name": "Kuang"
+        },
+        "29515": {
+          "id": 29515,
+          "name": "Pengkalan Kundang"
+        },
+        "29526": {
+          "id": 29526,
+          "name": "Rawang"
+        },
+        "29536": {
+          "id": 29536,
+          "name": "Shah Alam"
+        },
+        "29541": {
+          "id": 29541,
+          "name": "Sungai Besar"
+        },
+        "29549": {
+          "id": 29549,
+          "name": "Tanjong Karang"
+        },
+        "29550": {
+          "id": 29550,
+          "name": "Tanjong Sepat"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Terengganu",
+      "cities": {
+        "29452": {
+          "id": 29452,
+          "name": "Cukai"
+        },
+        "29459": {
+          "id": 29459,
+          "name": "Jertih"
+        },
+        "29469": {
+          "id": 29469,
+          "name": "Kerteh"
+        },
+        "29486": {
+          "id": 29486,
+          "name": "Kuala Terengganu"
+        },
+        "29498": {
+          "id": 29498,
+          "name": "Marang"
+        },
+        "29506": {
+          "id": 29506,
+          "name": "Paka"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Wilayah Persekutuan",
+      "cities": {
+        "29481": {
+          "id": 29481,
+          "name": "Kuala Lumpur"
+        },
+        "29519": {
+          "id": 29519,
+          "name": "Petaling Jaya"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Labuan",
+      "cities": {
+        "29494": {
+          "id": 29494,
+          "name": "Labuan"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Sabah",
+      "cities": {
+        "29438": {
+          "id": 29438,
+          "name": "Beaufort"
+        },
+        "29453": {
+          "id": 29453,
+          "name": "Donggongon"
+        },
+        "29467": {
+          "id": 29467,
+          "name": "Keningau"
+        },
+        "29470": {
+          "id": 29470,
+          "name": "Kinarut"
+        },
+        "29474": {
+          "id": 29474,
+          "name": "Kota Belud"
+        },
+        "29475": {
+          "id": 29475,
+          "name": "Kota Kinabalu"
+        },
+        "29490": {
+          "id": 29490,
+          "name": "Kudat"
+        },
+        "29495": {
+          "id": 29495,
+          "name": "Lahad Datu"
+        },
+        "29508": {
+          "id": 29508,
+          "name": "Papar"
+        },
+        "29523": {
+          "id": 29523,
+          "name": "Putatan"
+        },
+        "29524": {
+          "id": 29524,
+          "name": "Ranau"
+        },
+        "29528": {
+          "id": 29528,
+          "name": "Sandakan"
+        },
+        "29532": {
+          "id": 29532,
+          "name": "Semporna"
+        },
+        "29553": {
+          "id": 29553,
+          "name": "Tawau"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Johor",
+      "cities": {
+        "29431": {
+          "id": 29431,
+          "name": "Bandar Maharani"
+        },
+        "29432": {
+          "id": 29432,
+          "name": "Bandar Penggaram"
+        },
+        "29445": {
+          "id": 29445,
+          "name": "Bukit Bakri"
+        },
+        "29449": {
+          "id": 29449,
+          "name": "Buloh Kasap"
+        },
+        "29451": {
+          "id": 29451,
+          "name": "Chaah"
+        },
+        "29461": {
+          "id": 29461,
+          "name": "Johor Bahru"
+        },
+        "29466": {
+          "id": 29466,
+          "name": "Kelapa Sawit"
+        },
+        "29472": {
+          "id": 29472,
+          "name": "Kluang"
+        },
+        "29476": {
+          "id": 29476,
+          "name": "Kota Tinggi"
+        },
+        "29491": {
+          "id": 29491,
+          "name": "Kulai"
+        },
+        "29493": {
+          "id": 29493,
+          "name": "Labis"
+        },
+        "29502": {
+          "id": 29502,
+          "name": "Mersing"
+        },
+        "29510": {
+          "id": 29510,
+          "name": "Parit Raja"
+        },
+        "29511": {
+          "id": 29511,
+          "name": "Pasir Gudang"
+        },
+        "29513": {
+          "id": 29513,
+          "name": "Pekan Nenas"
+        },
+        "29520": {
+          "id": 29520,
+          "name": "Pontian Kecil"
+        },
+        "29529": {
+          "id": 29529,
+          "name": "Segamat"
+        },
+        "29530": {
+          "id": 29530,
+          "name": "Sekudai"
+        },
+        "29533": {
+          "id": 29533,
+          "name": "Senai"
+        },
+        "29539": {
+          "id": 29539,
+          "name": "Simpang Rengam"
+        },
+        "29548": {
+          "id": 29548,
+          "name": "Tangkak"
+        },
+        "29557": {
+          "id": 29557,
+          "name": "Ulu Tiram"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Kedah",
+      "cities": {
+        "29426": {
+          "id": 29426,
+          "name": "Alor Setar"
+        },
+        "29439": {
+          "id": 29439,
+          "name": "Bedong"
+        },
+        "29455": {
+          "id": 29455,
+          "name": "Gurun"
+        },
+        "29460": {
+          "id": 29460,
+          "name": "Jitra"
+        },
+        "29477": {
+          "id": 29477,
+          "name": "Kuah"
+        },
+        "29479": {
+          "id": 29479,
+          "name": "Kuala Kedah"
+        },
+        "29492": {
+          "id": 29492,
+          "name": "Kulim"
+        },
+        "29543": {
+          "id": 29543,
+          "name": "Sungai Petani"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Kelantan",
+      "cities": {
+        "29454": {
+          "id": 29454,
+          "name": "Gua Musang"
+        },
+        "29473": {
+          "id": 29473,
+          "name": "Kota Bahru"
+        },
+        "29512": {
+          "id": 29512,
+          "name": "Pasir Mas"
+        },
+        "29517": {
+          "id": 29517,
+          "name": "Peringat"
+        },
+        "29547": {
+          "id": 29547,
+          "name": "Tanah Merah"
+        },
+        "29556": {
+          "id": 29556,
+          "name": "Tumpat"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Melaka",
+      "cities": {
+        "29425": {
+          "id": 29425,
+          "name": "Alor Gajah"
+        },
+        "29428": {
+          "id": 29428,
+          "name": "Ayer Keroh"
+        },
+        "29429": {
+          "id": 29429,
+          "name": "Ayer Molek"
+        },
+        "29436": {
+          "id": 29436,
+          "name": "Batu Berendam"
+        },
+        "29440": {
+          "id": 29440,
+          "name": "Bemban"
+        },
+        "29446": {
+          "id": 29446,
+          "name": "Bukit Baru"
+        },
+        "29448": {
+          "id": 29448,
+          "name": "Bukit Rambai"
+        },
+        "29485": {
+          "id": 29485,
+          "name": "Kuala Sungai Baru"
+        },
+        "29499": {
+          "id": 29499,
+          "name": "Masjid Tanah"
+        },
+        "29500": {
+          "id": 29500,
+          "name": "Melaka"
+        },
+        "29522": {
+          "id": 29522,
+          "name": "Pulau Sebang"
+        },
+        "29544": {
+          "id": 29544,
+          "name": "Sungai Udang"
+        },
+        "29546": {
+          "id": 29546,
+          "name": "Tampin"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Negeri Sembilan",
+      "cities": {
+        "29442": {
+          "id": 29442,
+          "name": "Beranang"
+        },
+        "29483": {
+          "id": 29483,
+          "name": "Kuala Pilah"
+        },
+        "29505": {
+          "id": 29505,
+          "name": "Nilai"
+        },
+        "29521": {
+          "id": 29521,
+          "name": "Port Dickson"
+        },
+        "29531": {
+          "id": 29531,
+          "name": "Semenyih"
+        },
+        "29534": {
+          "id": 29534,
+          "name": "Seremban"
+        },
+        "29542": {
+          "id": 29542,
+          "name": "Sungai Pelek"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Pahang",
+      "cities": {
+        "29441": {
+          "id": 29441,
+          "name": "Bentong"
+        },
+        "29458": {
+          "id": 29458,
+          "name": "Jerantut"
+        },
+        "29480": {
+          "id": 29480,
+          "name": "Kuala Lipis"
+        },
+        "29488": {
+          "id": 29488,
+          "name": "Kuantan"
+        },
+        "29501": {
+          "id": 29501,
+          "name": "Mentakab"
+        },
+        "29514": {
+          "id": 29514,
+          "name": "Pekan"
+        },
+        "29525": {
+          "id": 29525,
+          "name": "Raub"
+        },
+        "29535": {
+          "id": 29535,
+          "name": "Serendah"
+        },
+        "29555": {
+          "id": 29555,
+          "name": "Temerloh"
+        },
+        "29558": {
+          "id": 29558,
+          "name": "Yong Peng"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Perak",
+      "cities": {
+        "29430": {
+          "id": 29430,
+          "name": "Ayer Tawar"
+        },
+        "29437": {
+          "id": 29437,
+          "name": "Batu Gajah"
+        },
+        "29443": {
+          "id": 29443,
+          "name": "Bidor"
+        },
+        "29456": {
+          "id": 29456,
+          "name": "Ipoh"
+        },
+        "29463": {
+          "id": 29463,
+          "name": "Kampar"
+        },
+        "29478": {
+          "id": 29478,
+          "name": "Kuala Kangsar"
+        },
+        "29497": {
+          "id": 29497,
+          "name": "Lumut"
+        },
+        "29507": {
+          "id": 29507,
+          "name": "Pantai Remis"
+        },
+        "29509": {
+          "id": 29509,
+          "name": "Parit Buntar"
+        },
+        "29527": {
+          "id": 29527,
+          "name": "Sabak"
+        },
+        "29538": {
+          "id": 29538,
+          "name": "Simpang Empat"
+        },
+        "29545": {
+          "id": 29545,
+          "name": "Taiping"
+        },
+        "29552": {
+          "id": 29552,
+          "name": "Tapah"
+        },
+        "29554": {
+          "id": 29554,
+          "name": "Teluk Intan"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Perlis",
+      "cities": {
+        "29464": {
+          "id": 29464,
+          "name": "Kangar"
+        },
+        "29482": {
+          "id": 29482,
+          "name": "Kuala Perlis"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Pulau Pinang",
+      "cities": {
+        "29427": {
+          "id": 29427,
+          "name": "Ayer Itam"
+        },
+        "29447": {
+          "id": 29447,
+          "name": "Bukit Mertajam"
+        },
+        "29450": {
+          "id": 29450,
+          "name": "Butterworth"
+        },
+        "29462": {
+          "id": 29462,
+          "name": "Juru"
+        },
+        "29468": {
+          "id": 29468,
+          "name": "Kepala Batas"
+        },
+        "29504": {
+          "id": 29504,
+          "name": "Nibong Tebal"
+        },
+        "29516": {
+          "id": 29516,
+          "name": "Perai"
+        },
+        "29518": {
+          "id": 29518,
+          "name": "Permatang Kuching"
+        },
+        "29551": {
+          "id": 29551,
+          "name": "Tanjong Tokong"
+        }
+      }
+    }
+  }
+}

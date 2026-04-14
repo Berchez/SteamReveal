@@ -1,1 +1,44 @@
-{"code":"KM","name":"Comoros","states":{"01":{"code":"01","name":"Anjouan","cities":{"26381":{"id":26381,"name":"Domoni"},"26385":{"id":26385,"name":"Mutsamudu"}}},"02":{"code":"02","name":"Grande Comore","cities":{"26383":{"id":26383,"name":"Mitsamiouli"},"26384":{"id":26384,"name":"Moroni"}}},"03":{"code":"03","name":"Moheli","cities":{"26382":{"id":26382,"name":"Fomboni"}}}}}
+{
+  "code": "KM",
+  "name": "Comoros",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Anjouan",
+      "cities": {
+        "26381": {
+          "id": 26381,
+          "name": "Domoni"
+        },
+        "26385": {
+          "id": 26385,
+          "name": "Mutsamudu"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Grande Comore",
+      "cities": {
+        "26383": {
+          "id": 26383,
+          "name": "Mitsamiouli"
+        },
+        "26384": {
+          "id": 26384,
+          "name": "Moroni"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Moheli",
+      "cities": {
+        "26382": {
+          "id": 26382,
+          "name": "Fomboni"
+        }
+      }
+    }
+  }
+}

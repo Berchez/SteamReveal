@@ -1,1 +1,2932 @@
-{"code":"CA","name":"Canada","states":{"AB":{"code":"AB","name":"Alberta","cities":{"4179":{"id":4179,"name":"Airdrie"},"4200":{"id":4200,"name":"Athabasca"},"4208":{"id":4208,"name":"Banff"},"4210":{"id":4210,"name":"Barrhead"},"4212":{"id":4212,"name":"Bassano"},"4219":{"id":4219,"name":"Beaverlodge"},"4228":{"id":4228,"name":"Black Diamond"},"4229":{"id":4229,"name":"Blackfalds"},"4230":{"id":4230,"name":"Blairmore"},"4236":{"id":4236,"name":"Bon Accord"},"4239":{"id":4239,"name":"Bonnyville"},"4241":{"id":4241,"name":"Bow Island"},"4250":{"id":4250,"name":"Brooks"},"4259":{"id":4259,"name":"Calgary"},"4260":{"id":4260,"name":"Calmar"},"4264":{"id":4264,"name":"Camrose"},"4265":{"id":4265,"name":"Canmore"},"4275":{"id":4275,"name":"Cardston"},"4281":{"id":4281,"name":"Carstairs"},"4299":{"id":4299,"name":"Clairmont"},"4300":{"id":4300,"name":"Claresholm"},"4304":{"id":4304,"name":"Coaldale"},"4307":{"id":4307,"name":"Cochrane"},"4322":{"id":4322,"name":"Crossfield"},"4337":{"id":4337,"name":"Devon"},"4338":{"id":4338,"name":"Didsbury"},"4343":{"id":4343,"name":"Drayton Valley"},"4345":{"id":4345,"name":"Drumheller"},"4352":{"id":4352,"name":"Edmonton"},"4354":{"id":4354,"name":"Edson"},"4356":{"id":4356,"name":"Elk Point"},"4369":{"id":4369,"name":"Fairview"},"4401":{"id":4401,"name":"Grand Centre"},"4402":{"id":4402,"name":"Grande Prairie"},"4410":{"id":4410,"name":"Grimshaw"},"4419":{"id":4419,"name":"Hanna"},"4435":{"id":4435,"name":"High Level"},"4436":{"id":4436,"name":"High Prairie"},"4437":{"id":4437,"name":"High River"},"4438":{"id":4438,"name":"Hinton"},"4454":{"id":4454,"name":"Irricana"},"4455":{"id":4455,"name":"Jasper"},"4469":{"id":4469,"name":"Killam"},"4484":{"id":4484,"name":"Lacombe"},"4489":{"id":4489,"name":"Lamont"},"4499":{"id":4499,"name":"Leduc"},"4501":{"id":4501,"name":"Lethbridge"},"4525":{"id":4525,"name":"Magrath"},"4542":{"id":4542,"name":"Medicine Hat"},"4552":{"id":4552,"name":"Millet"},"4566":{"id":4566,"name":"Morinville"},"4574":{"id":4574,"name":"Nanton"},"4591":{"id":4591,"name":"Okotoks"},"4592":{"id":4592,"name":"Olds"},"4616":{"id":4616,"name":"Peace River"},"4620":{"id":4620,"name":"Penhold"},"4631":{"id":4631,"name":"Pincher Creek"},"4634":{"id":4634,"name":"Ponoka"},"4656":{"id":4656,"name":"Provost"},"4660":{"id":4660,"name":"Raymond"},"4661":{"id":4661,"name":"Red Deer"},"4670":{"id":4670,"name":"Rimbey"},"4678":{"id":4678,"name":"Rocky Mountain House"},"4724":{"id":4724,"name":"Saint Paul"},"4748":{"id":4748,"name":"Sexsmith"},"4760":{"id":4760,"name":"Slave Lake"},"4764":{"id":4764,"name":"Smoky Lake"},"4771":{"id":4771,"name":"Spirit River"},"4774":{"id":4774,"name":"Spruce Grove"},"4779":{"id":4779,"name":"Stettler"},"4783":{"id":4783,"name":"Stony Plain"},"4796":{"id":4796,"name":"Sylvan Lake"},"4797":{"id":4797,"name":"Taber"},"4808":{"id":4808,"name":"Three Hills"},"4814":{"id":4814,"name":"Tofield"},"4824":{"id":4824,"name":"Two Hills"},"4831":{"id":4831,"name":"Valleyview"},"4835":{"id":4835,"name":"Vegreville"},"4837":{"id":4837,"name":"Vermilion"},"4841":{"id":4841,"name":"Viking"},"4844":{"id":4844,"name":"Vulcan"},"4847":{"id":4847,"name":"Wainwright"},"4859":{"id":4859,"name":"Wembley"},"4860":{"id":4860,"name":"Westlock"},"4862":{"id":4862,"name":"Wetaskiwin"},"4866":{"id":4866,"name":"Whitecourt"}}},"BC":{"code":"BC","name":"British Columbia","cities":{"4176":{"id":4176,"name":"Abbotsford"},"4194":{"id":4194,"name":"Armstrong"},"4198":{"id":4198,"name":"Ashcroft"},"4254":{"id":4254,"name":"Burns Lake"},"4256":{"id":4256,"name":"Cache Creek"},"4262":{"id":4262,"name":"Campbell River"},"4283":{"id":4283,"name":"Castlegar"},"4291":{"id":4291,"name":"Chase"},"4293":{"id":4293,"name":"Chemainus"},"4297":{"id":4297,"name":"Chilliwack"},"4316":{"id":4316,"name":"Courtenay"},"4319":{"id":4319,"name":"Cranbrook"},"4321":{"id":4321,"name":"Creston"},"4324":{"id":4324,"name":"Cumberland"},"4330":{"id":4330,"name":"Dawson Creek"},"4348":{"id":4348,"name":"Duncan"},"4360":{"id":4360,"name":"Enderby"},"4374":{"id":4374,"name":"Fernie"},"4381":{"id":4381,"name":"Fort Nelson"},"4382":{"id":4382,"name":"Fort Saint James"},"4383":{"id":4383,"name":"Fort Saint John"},"4385":{"id":4385,"name":"Fruitvale"},"4392":{"id":4392,"name":"Gibsons"},"4397":{"id":4397,"name":"Golden"},"4405":{"id":4405,"name":"Grand Forks"},"4439":{"id":4439,"name":"Hope"},"4441":{"id":4441,"name":"Houston"},"4449":{"id":4449,"name":"Invermere"},"4457":{"id":4457,"name":"Kamloops"},"4462":{"id":4462,"name":"Kelowna"},"4471":{"id":4471,"name":"Kimberley"},"4477":{"id":4477,"name":"Kitimat"},"4485":{"id":4485,"name":"Ladysmith"},"4486":{"id":4486,"name":"Lake Cowichan"},"4503":{"id":4503,"name":"Lillooet"},"4518":{"id":4518,"name":"Lumby"},"4546":{"id":4546,"name":"Merritt"},"4571":{"id":4571,"name":"Nakusp"},"4572":{"id":4572,"name":"Nanaimo"},"4578":{"id":4578,"name":"Nelson"},"4593":{"id":4593,"name":"Oliver"},"4595":{"id":4595,"name":"One Hundred Mile House"},"4601":{"id":4601,"name":"Osoyoos"},"4613":{"id":4613,"name":"Parksville"},"4617":{"id":4617,"name":"Peachland"},"4618":{"id":4618,"name":"Pemberton"},"4621":{"id":4621,"name":"Penticton"},"4636":{"id":4636,"name":"Port Alberni"},"4640":{"id":4640,"name":"Port Hardy"},"4647":{"id":4647,"name":"Powell River"},"4652":{"id":4652,"name":"Prince George"},"4653":{"id":4653,"name":"Prince Rupert"},"4654":{"id":4654,"name":"Princeton"},"4658":{"id":4658,"name":"Quesnel"},"4665":{"id":4665,"name":"Revelstoke"},"4681":{"id":4681,"name":"Rossland"},"4737":{"id":4737,"name":"Salmon Arm"},"4738":{"id":4738,"name":"Salmo"},"4744":{"id":4744,"name":"Sechelt"},"4757":{"id":4757,"name":"Sicamous"},"4761":{"id":4761,"name":"Smithers"},"4765":{"id":4765,"name":"Sooke"},"4788":{"id":4788,"name":"Summerland"},"4802":{"id":4802,"name":"Terrace"},"4818":{"id":4818,"name":"Trail"},"4825":{"id":4825,"name":"Ucluelet"},"4832":{"id":4832,"name":"Vancouver"},"4833":{"id":4833,"name":"Vanderhoof"},"4838":{"id":4838,"name":"Vernon"},"4839":{"id":4839,"name":"Victoria"},"4868":{"id":4868,"name":"White Rock"},"4871":{"id":4871,"name":"Williams Lake"}}},"MB":{"code":"MB","name":"Manitoba","cities":{"4188":{"id":4188,"name":"Altona"},"4218":{"id":4218,"name":"Beausejour"},"4234":{"id":4234,"name":"Boissevain"},"4244":{"id":4244,"name":"Brandon"},"4272":{"id":4272,"name":"Carberry"},"4278":{"id":4278,"name":"Carman"},"4328":{"id":4328,"name":"Dauphin"},"4334":{"id":4334,"name":"Deloraine"},"4375":{"id":4375,"name":"Flin Flon"},"4393":{"id":4393,"name":"Gimli"},"4470":{"id":4470,"name":"Killarney"},"4480":{"id":4480,"name":"Lac Du Bonnet"},"4544":{"id":4544,"name":"Melita"},"4555":{"id":4555,"name":"Minnedosa"},"4565":{"id":4565,"name":"Morden"},"4568":{"id":4568,"name":"Morris"},"4577":{"id":4577,"name":"Neepawa"},"4630":{"id":4630,"name":"Pinawa"},"4672":{"id":4672,"name":"Rivers"},"4676":{"id":4676,"name":"Roblin"},"4745":{"id":4745,"name":"Selkirk"},"4767":{"id":4767,"name":"Souris"},"4776":{"id":4776,"name":"Steinbach"},"4781":{"id":4781,"name":"Stonewall"},"4782":{"id":4782,"name":"Stony Mountain"},"4792":{"id":4792,"name":"Swan River"},"4803":{"id":4803,"name":"The Pas"},"4806":{"id":4806,"name":"Thompson"},"4843":{"id":4843,"name":"Virden"},"4877":{"id":4877,"name":"Winkler"},"4878":{"id":4878,"name":"Winnipeg"}}},"NB":{"code":"NB","name":"New Brunswick","cities":{"4213":{"id":4213,"name":"Bathurst"},"4263":{"id":4263,"name":"Campbellton"},"4271":{"id":4271,"name":"Caraquet"},"4325":{"id":4325,"name":"Dalhousie"},"4353":{"id":4353,"name":"Edmundston"},"4384":{"id":4384,"name":"Fredericton"},"4404":{"id":4404,"name":"Grand Falls"},"4418":{"id":4418,"name":"Hampton"},"4461":{"id":4461,"name":"Kedgwick"},"4557":{"id":4557,"name":"Moncton"},"4599":{"id":4599,"name":"Oromocto"},"4632":{"id":4632,"name":"Plaster Rock"},"4682":{"id":4682,"name":"Sackville"},"4687":{"id":4687,"name":"Saint Andrews"},"4716":{"id":4716,"name":"Saint John"},"4718":{"id":4718,"name":"Saint Leonard"},"4727":{"id":4727,"name":"Saint Quentin"},"4732":{"id":4732,"name":"Saint Stephen"},"4736":{"id":4736,"name":"Salisbury"},"4752":{"id":4752,"name":"Shediac"},"4790":{"id":4790,"name":"Sussex"},"4880":{"id":4880,"name":"Woodstock"}}},"NL":{"code":"NL","name":"Newfoundland & Labrador","cities":{"4214":{"id":4214,"name":"Bay Roberts"},"4238":{"id":4238,"name":"Bonavista"},"4240":{"id":4240,"name":"Botwood"},"4253":{"id":4253,"name":"Burgeo"},"4273":{"id":4273,"name":"Carbonear"},"4284":{"id":4284,"name":"Catalina"},"4287":{"id":4287,"name":"Channel-port Aux Basques"},"4314":{"id":4314,"name":"Corner Brook"},"4332":{"id":4332,"name":"Deer Lake"},"4386":{"id":4386,"name":"Gambo"},"4388":{"id":4388,"name":"Gander"},"4399":{"id":4399,"name":"Grand Bank"},"4422":{"id":4422,"name":"Harbour Breton"},"4423":{"id":4423,"name":"Hare Bay"},"4502":{"id":4502,"name":"Lewisporte"},"4534":{"id":4534,"name":"Marystown"},"4689":{"id":4689,"name":"Saint Anthony"},"4772":{"id":4772,"name":"Springdale"},"4777":{"id":4777,"name":"Stephenville Crossing"},"4778":{"id":4778,"name":"Stephenville"},"4815":{"id":4815,"name":"Torbay"},"4845":{"id":4845,"name":"Wabana"}}},"NS":{"code":"NS","name":"Nova Scotia","cities":{"4189":{"id":4189,"name":"Amherst"},"4193":{"id":4193,"name":"Antigonish"},"4225":{"id":4225,"name":"Berwick"},"4246":{"id":4246,"name":"Bridgetown"},"4247":{"id":4247,"name":"Bridgewater"},"4295":{"id":4295,"name":"Chester"},"4339":{"id":4339,"name":"Digby"},"4394":{"id":4394,"name":"Glace Bay"},"4416":{"id":4416,"name":"Halifax"},"4421":{"id":4421,"name":"Hantsport"},"4450":{"id":4450,"name":"Inverness"},"4467":{"id":4467,"name":"Kentville"},"4509":{"id":4509,"name":"Liverpool"},"4513":{"id":4513,"name":"Louisbourg"},"4520":{"id":4520,"name":"Lunenburg"},"4548":{"id":4548,"name":"Middleton"},"4579":{"id":4579,"name":"New Glasgow"},"4581":{"id":4581,"name":"New Waterford"},"4606":{"id":4606,"name":"Oxford"},"4614":{"id":4614,"name":"Parrsboro"},"4627":{"id":4627,"name":"Pictou"},"4641":{"id":4641,"name":"Port Hawkesbury"},"4753":{"id":4753,"name":"Shelburne"},"4773":{"id":4773,"name":"Springhill"},"4794":{"id":4794,"name":"Sydney Mines"},"4795":{"id":4795,"name":"Sydney"},"4821":{"id":4821,"name":"Truro"},"4873":{"id":4873,"name":"Windsor"},"4879":{"id":4879,"name":"Wolfville"},"4885":{"id":4885,"name":"Yarmouth"}}},"NT":{"code":"NT","name":"Northwest Territories","cities":{"4180":{"id":4180,"name":"Aklavik"},"4431":{"id":4431,"name":"Hay River"},"4448":{"id":4448,"name":"Inuvik"},"4585":{"id":4585,"name":"Norman Wells"},"4822":{"id":4822,"name":"Tuktoyaktuk"},"4886":{"id":4886,"name":"Yellowknife"}}},"NU":{"code":"NU","name":"Nunavut","cities":{"4303":{"id":4303,"name":"Clyde River"},"4451":{"id":4451,"name":"Iqaluit"},"4609":{"id":4609,"name":"Pangnirtung"}}},"ON":{"code":"ON","name":"Ontario","cities":{"4177":{"id":4177,"name":"Acton"},"4183":{"id":4183,"name":"Alexandria"},"4184":{"id":4184,"name":"Alfred"},"4185":{"id":4185,"name":"Alliston"},"4187":{"id":4187,"name":"Almonte"},"4190":{"id":4190,"name":"Amherstburg"},"4195":{"id":4195,"name":"Arnprior"},"4196":{"id":4196,"name":"Arthur"},"4201":{"id":4201,"name":"Atikokan"},"4202":{"id":4202,"name":"Attawapiskat"},"4203":{"id":4203,"name":"Aylmer"},"4204":{"id":4204,"name":"Ayr"},"4211":{"id":4211,"name":"Barrie"},"4215":{"id":4215,"name":"Beamsville"},"4220":{"id":4220,"name":"Beaverton"},"4222":{"id":4222,"name":"Belleville"},"4231":{"id":4231,"name":"Blenheim"},"4232":{"id":4232,"name":"Blind River"},"4233":{"id":4233,"name":"Bobcaygeon"},"4235":{"id":4235,"name":"Bolton"},"4242":{"id":4242,"name":"Bracebridge"},"4243":{"id":4243,"name":"Bradford"},"4245":{"id":4245,"name":"Brantford"},"4248":{"id":4248,"name":"Brighton"},"4249":{"id":4249,"name":"Brockville"},"4257":{"id":4257,"name":"Caledon East"},"4258":{"id":4258,"name":"Caledonia"},"4261":{"id":4261,"name":"Campbellford"},"4266":{"id":4266,"name":"Cannington"},"4270":{"id":4270,"name":"Capreol"},"4274":{"id":4274,"name":"Cardinal"},"4276":{"id":4276,"name":"Carleton Place"},"4282":{"id":4282,"name":"Casselman"},"4289":{"id":4289,"name":"Chapleau"},"4292":{"id":4292,"name":"Chatham"},"4294":{"id":4294,"name":"Chesley"},"4296":{"id":4296,"name":"Chesterville"},"4302":{"id":4302,"name":"Clinton"},"4306":{"id":4306,"name":"Cobourg"},"4308":{"id":4308,"name":"Cochrane"},"4309":{"id":4309,"name":"Colborne"},"4310":{"id":4310,"name":"Colchester"},"4311":{"id":4311,"name":"Collingwood"},"4315":{"id":4315,"name":"Cornwall"},"4320":{"id":4320,"name":"Creemore"},"4323":{"id":4323,"name":"Crystal Beach"},"4331":{"id":4331,"name":"Deep River"},"4333":{"id":4333,"name":"Delhi"},"4336":{"id":4336,"name":"Deseronto"},"4344":{"id":4344,"name":"Dresden"},"4347":{"id":4347,"name":"Dryden"},"4349":{"id":4349,"name":"Dunnville"},"4350":{"id":4350,"name":"Durham"},"4355":{"id":4355,"name":"Eganville"},"4357":{"id":4357,"name":"Elliot Lake"},"4358":{"id":4358,"name":"Elmira"},"4359":{"id":4359,"name":"Elmvale"},"4361":{"id":4361,"name":"Englehart"},"4362":{"id":4362,"name":"Erin"},"4363":{"id":4363,"name":"Espanola"},"4364":{"id":4364,"name":"Essex"},"4368":{"id":4368,"name":"Exeter"},"4371":{"id":4371,"name":"Fenelon Falls"},"4372":{"id":4372,"name":"Fergus"},"4377":{"id":4377,"name":"Forest"},"4379":{"id":4379,"name":"Fort Erie"},"4380":{"id":4380,"name":"Fort Frances"},"4387":{"id":4387,"name":"Gananoque"},"4390":{"id":4390,"name":"Georgetown"},"4391":{"id":4391,"name":"Geraldton"},"4395":{"id":4395,"name":"Glencoe"},"4396":{"id":4396,"name":"Goderich"},"4400":{"id":4400,"name":"Grand Bend"},"4406":{"id":4406,"name":"Grand Valley"},"4408":{"id":4408,"name":"Gravenhurst"},"4411":{"id":4411,"name":"Guelph"},"4413":{"id":4413,"name":"Hagersville"},"4414":{"id":4414,"name":"Haileybury"},"4417":{"id":4417,"name":"Hamilton"},"4420":{"id":4420,"name":"Hanover"},"4424":{"id":4424,"name":"Harriston"},"4425":{"id":4425,"name":"Harrow"},"4426":{"id":4426,"name":"Hastings"},"4428":{"id":4428,"name":"Havelock"},"4430":{"id":4430,"name":"Hawkesbury"},"4432":{"id":4432,"name":"Hearst"},"4434":{"id":4434,"name":"Hensall"},"4440":{"id":4440,"name":"Hornepayne"},"4445":{"id":4445,"name":"Huntsville"},"4447":{"id":4447,"name":"Ingersoll"},"4452":{"id":4452,"name":"Iroquois Falls"},"4453":{"id":4453,"name":"Iroquois"},"4459":{"id":4459,"name":"Kanata"},"4460":{"id":4460,"name":"Kapuskasing"},"4464":{"id":4464,"name":"Kemptville"},"4465":{"id":4465,"name":"Kenora"},"4472":{"id":4472,"name":"Kincardine"},"4474":{"id":4474,"name":"Kingston"},"4475":{"id":4475,"name":"Kirkland Lake"},"4476":{"id":4476,"name":"Kitchener"},"4487":{"id":4487,"name":"Lakefield"},"4498":{"id":4498,"name":"Leamington"},"4504":{"id":4504,"name":"Lindsay"},"4506":{"id":4506,"name":"Listowel"},"4507":{"id":4507,"name":"Little Current"},"4508":{"id":4508,"name":"Lively"},"4511":{"id":4511,"name":"London"},"4512":{"id":4512,"name":"Longlac"},"4515":{"id":4515,"name":"Lucan"},"4517":{"id":4517,"name":"Lucknow"},"4523":{"id":4523,"name":"Madoc"},"4527":{"id":4527,"name":"Manitouwadge"},"4530":{"id":4530,"name":"Marathon"},"4532":{"id":4532,"name":"Markdale"},"4533":{"id":4533,"name":"Marmora"},"4538":{"id":4538,"name":"Mattawa"},"4541":{"id":4541,"name":"Meaford"},"4549":{"id":4549,"name":"Midland"},"4550":{"id":4550,"name":"Mildmay"},"4551":{"id":4551,"name":"Millbrook"},"4553":{"id":4553,"name":"Milton"},"4554":{"id":4554,"name":"Milverton"},"4556":{"id":4556,"name":"Mitchell"},"4562":{"id":4562,"name":"Moose Factory"},"4567":{"id":4567,"name":"Morrisburg"},"4569":{"id":4569,"name":"Mount Forest"},"4573":{"id":4573,"name":"Nanticoke"},"4575":{"id":4575,"name":"Napanee"},"4587":{"id":4587,"name":"North Bay"},"4588":{"id":4588,"name":"Norwich"},"4589":{"id":4589,"name":"Norwood"},"4594":{"id":4594,"name":"Omemee"},"4596":{"id":4596,"name":"Orangeville"},"4597":{"id":4597,"name":"Orillia"},"4600":{"id":4600,"name":"Oshawa"},"4602":{"id":4602,"name":"Ottawa"},"4604":{"id":4604,"name":"Owen Sound"},"4607":{"id":4607,"name":"Paisley"},"4608":{"id":4608,"name":"Palmerston"},"4611":{"id":4611,"name":"Paris"},"4612":{"id":4612,"name":"Parkhill"},"4615":{"id":4615,"name":"Parry Sound"},"4619":{"id":4619,"name":"Pembroke"},"4622":{"id":4622,"name":"Perth"},"4623":{"id":4623,"name":"Petawawa"},"4624":{"id":4624,"name":"Peterborough"},"4625":{"id":4625,"name":"Petrolia"},"4626":{"id":4626,"name":"Picton"},"4638":{"id":4638,"name":"Port Dover"},"4639":{"id":4639,"name":"Port Elgin"},"4642":{"id":4642,"name":"Port Hope"},"4644":{"id":4644,"name":"Port Perry"},"4645":{"id":4645,"name":"Port Stanley"},"4646":{"id":4646,"name":"Powassan"},"4649":{"id":4649,"name":"Prescott"},"4662":{"id":4662,"name":"Redwater"},"4664":{"id":4664,"name":"Renfrew"},"4666":{"id":4666,"name":"Richmond"},"4668":{"id":4668,"name":"Ridgetown"},"4677":{"id":4677,"name":"Rockland"},"4679":{"id":4679,"name":"Rodney"},"4720":{"id":4720,"name":"Saint Marys"},"4733":{"id":4733,"name":"Saint Thomas"},"4739":{"id":4739,"name":"Sarnia"},"4741":{"id":4741,"name":"Sault Sainte Marie"},"4743":{"id":4743,"name":"Seaforth"},"4754":{"id":4754,"name":"Shelburne"},"4758":{"id":4758,"name":"Simcoe"},"4759":{"id":4759,"name":"Sioux Lookout"},"4762":{"id":4762,"name":"Smiths Falls"},"4763":{"id":4763,"name":"Smithville"},"4769":{"id":4769,"name":"Southampton"},"4770":{"id":4770,"name":"South River"},"4775":{"id":4775,"name":"Stayner"},"4780":{"id":4780,"name":"Stirling"},"4784":{"id":4784,"name":"Stratford"},"4785":{"id":4785,"name":"Strathroy"},"4786":{"id":4786,"name":"Sturgeon Falls"},"4787":{"id":4787,"name":"Sudbury"},"4791":{"id":4791,"name":"Sutton"},"4798":{"id":4798,"name":"Tavistock"},"4799":{"id":4799,"name":"Teeswater"},"4801":{"id":4801,"name":"Terrace Bay"},"4804":{"id":4804,"name":"Thessalon"},"4807":{"id":4807,"name":"Thornbury"},"4809":{"id":4809,"name":"Thunder Bay"},"4811":{"id":4811,"name":"Tilbury"},"4812":{"id":4812,"name":"Tilsonburg"},"4813":{"id":4813,"name":"Timmins"},"4816":{"id":4816,"name":"Toronto"},"4817":{"id":4817,"name":"Tottenham"},"4823":{"id":4823,"name":"Tweed"},"4827":{"id":4827,"name":"Uxbridge"},"4834":{"id":4834,"name":"Vankleek Hill"},"4848":{"id":4848,"name":"Walkerton"},"4849":{"id":4849,"name":"Wallaceburg"},"4852":{"id":4852,"name":"Waterford"},"4853":{"id":4853,"name":"Waterloo"},"4855":{"id":4855,"name":"Watford"},"4857":{"id":4857,"name":"Wawa"},"4858":{"id":4858,"name":"Wellington"},"4861":{"id":4861,"name":"West Lorne"},"4864":{"id":4864,"name":"Wheatley"},"4865":{"id":4865,"name":"Whitchurch-stouffville"},"4869":{"id":4869,"name":"Wiarton"},"4872":{"id":4872,"name":"Winchester"},"4874":{"id":4874,"name":"Windsor"},"4876":{"id":4876,"name":"Wingham"},"4881":{"id":4881,"name":"Woodstock"},"4883":{"id":4883,"name":"Wyoming"}}},"PE":{"code":"PE","name":"Prince Edward Island","cities":{"4182":{"id":4182,"name":"Alberton"},"4290":{"id":4290,"name":"Charlottetown"},"4466":{"id":4466,"name":"Kensington"},"4558":{"id":4558,"name":"Montague"},"4768":{"id":4768,"name":"Souris"},"4789":{"id":4789,"name":"Summerside"}}},"QC":{"code":"QC","name":"Quebec","cities":{"4178":{"id":4178,"name":"Acton Vale"},"4181":{"id":4181,"name":"Albanel"},"4186":{"id":4186,"name":"Alma"},"4191":{"id":4191,"name":"Amos"},"4192":{"id":4192,"name":"Amqui"},"4197":{"id":4197,"name":"Asbestos"},"4205":{"id":4205,"name":"Bagotville"},"4206":{"id":4206,"name":"Baie-comeau"},"4207":{"id":4207,"name":"Baie-saint-paul"},"4209":{"id":4209,"name":"Barraute"},"4216":{"id":4216,"name":"Beauceville"},"4217":{"id":4217,"name":"Beaupre"},"4221":{"id":4221,"name":"Bedford"},"4223":{"id":4223,"name":"Beloeil"},"4224":{"id":4224,"name":"Berthierville"},"4226":{"id":4226,"name":"Betsiamites"},"4237":{"id":4237,"name":"Bonaventure"},"4251":{"id":4251,"name":"Brownsburg"},"4252":{"id":4252,"name":"Buckingham"},"4255":{"id":4255,"name":"Cabano"},"4268":{"id":4268,"name":"Cap-aux-meules"},"4269":{"id":4269,"name":"Cap-chat"},"4285":{"id":4285,"name":"Causapscal"},"4286":{"id":4286,"name":"Chandler"},"4288":{"id":4288,"name":"Chapais"},"4298":{"id":4298,"name":"Chute-aux-outardes"},"4301":{"id":4301,"name":"Clermont"},"4305":{"id":4305,"name":"Coaticook"},"4312":{"id":4312,"name":"Contrecoeur"},"4313":{"id":4313,"name":"Cookshire"},"4317":{"id":4317,"name":"Cowansville"},"4318":{"id":4318,"name":"Crabtree"},"4327":{"id":4327,"name":"Danville"},"4335":{"id":4335,"name":"Desbiens"},"4340":{"id":4340,"name":"Disraeli"},"4341":{"id":4341,"name":"Dolbeau"},"4342":{"id":4342,"name":"Donnacona"},"4346":{"id":4346,"name":"Drummondville"},"4351":{"id":4351,"name":"East Angus"},"4370":{"id":4370,"name":"Farnham"},"4373":{"id":4373,"name":"Ferme-neuve"},"4378":{"id":4378,"name":"Forestville"},"4389":{"id":4389,"name":"Gaspe"},"4398":{"id":4398,"name":"Granby"},"4403":{"id":4403,"name":"Grande-riviere"},"4427":{"id":4427,"name":"Hauterive"},"4429":{"id":4429,"name":"Havre-saint-pierre"},"4433":{"id":4433,"name":"Hebertville"},"4444":{"id":4444,"name":"Huntingdon"},"4456":{"id":4456,"name":"Joliette"},"4478":{"id":4478,"name":"Labelle"},"4479":{"id":4479,"name":"Lac-au-saumon"},"4481":{"id":4481,"name":"Lachute"},"4482":{"id":4482,"name":"Lac-megantic"},"4483":{"id":4483,"name":"Lacolle"},"4488":{"id":4488,"name":"La Malbaie"},"4494":{"id":4494,"name":"La Sarre"},"4495":{"id":4495,"name":"La Tuque"},"4496":{"id":4496,"name":"Laurentides"},"4497":{"id":4497,"name":"Lavaltrie"},"4500":{"id":4500,"name":"Les Escoumins"},"4505":{"id":4505,"name":"Liniere"},"4514":{"id":4514,"name":"Louiseville"},"4516":{"id":4516,"name":"Luceville"},"4521":{"id":4521,"name":"Macamic"},"4524":{"id":4524,"name":"Magog"},"4526":{"id":4526,"name":"Malartic"},"4528":{"id":4528,"name":"Maniwaki"},"4531":{"id":4531,"name":"Marieville"},"4535":{"id":4535,"name":"Maskinonge"},"4536":{"id":4536,"name":"Matagami"},"4537":{"id":4537,"name":"Matane"},"4547":{"id":4547,"name":"Metabetchouan"},"4559":{"id":4559,"name":"Mont-joli"},"4560":{"id":4560,"name":"Montmagny"},"4561":{"id":4561,"name":"Montreal"},"4570":{"id":4570,"name":"Murdochville"},"4576":{"id":4576,"name":"Napierville"},"4580":{"id":4580,"name":"New Richmond"},"4582":{"id":4582,"name":"Nicolet"},"4584":{"id":4584,"name":"Normandin"},"4590":{"id":4590,"name":"Notre-dame-du-lac"},"4598":{"id":4598,"name":"Ormstown"},"4610":{"id":4610,"name":"Papineauville"},"4628":{"id":4628,"name":"Pierreville"},"4633":{"id":4633,"name":"Plessisville"},"4635":{"id":4635,"name":"Pont-rouge"},"4637":{"id":4637,"name":"Port-cartier"},"4643":{"id":4643,"name":"Portneuf"},"4650":{"id":4650,"name":"Price"},"4655":{"id":4655,"name":"Princeville"},"4657":{"id":4657,"name":"Quebec"},"4659":{"id":4659,"name":"Rawdon"},"4667":{"id":4667,"name":"Richmond"},"4669":{"id":4669,"name":"Rigaud"},"4671":{"id":4671,"name":"Rimouski"},"4673":{"id":4673,"name":"Riviere-au-renard"},"4674":{"id":4674,"name":"Riviere-du-loup"},"4675":{"id":4675,"name":"Roberval"},"4683":{"id":4683,"name":"Saint-agapit"},"4684":{"id":4684,"name":"Saint-alexandre"},"4685":{"id":4685,"name":"Saint-ambroise"},"4686":{"id":4686,"name":"Saint-andre-avellin"},"4688":{"id":4688,"name":"Saint-anselme"},"4690":{"id":4690,"name":"Saint-augustin"},"4691":{"id":4691,"name":"Saint-cesaire"},"4692":{"id":4692,"name":"Saint-denis"},"4693":{"id":4693,"name":"Saint-donat-de-montcalm"},"4694":{"id":4694,"name":"Sainte-adele"},"4695":{"id":4695,"name":"Sainte-agathe-des-monts"},"4696":{"id":4696,"name":"Sainte-anne-des-monts"},"4697":{"id":4697,"name":"Sainte-claire"},"4698":{"id":4698,"name":"Sainte-julienne"},"4699":{"id":4699,"name":"Sainte-marie"},"4700":{"id":4700,"name":"Sainte-martine"},"4701":{"id":4701,"name":"Sainte-thecle"},"4702":{"id":4702,"name":"Saint-fabien"},"4703":{"id":4703,"name":"Saint-felicien"},"4704":{"id":4704,"name":"Saint-felix-de-valois"},"4705":{"id":4705,"name":"Saint-gabriel"},"4706":{"id":4706,"name":"Saint-gedeon"},"4707":{"id":4707,"name":"Saint-georges"},"4708":{"id":4708,"name":"Saint-germain-de-grantham"},"4709":{"id":4709,"name":"Saint-henri-de-levis"},"4710":{"id":4710,"name":"Saint-honore"},"4711":{"id":4711,"name":"Saint-hyacinthe"},"4712":{"id":4712,"name":"Saint-jacques"},"4713":{"id":4713,"name":"Saint-jean-de-dieu"},"4714":{"id":4714,"name":"Saint-jean-port-joli"},"4715":{"id":4715,"name":"Saint-jerome"},"4717":{"id":4717,"name":"Saint-jovite"},"4719":{"id":4719,"name":"Saint-marc-des-carrieres"},"4721":{"id":4721,"name":"Saint-michel-des-saints"},"4722":{"id":4722,"name":"Saint-pacome"},"4723":{"id":4723,"name":"Saint-pascal"},"4725":{"id":4725,"name":"Saint-pie"},"4726":{"id":4726,"name":"Saint-prosper"},"4728":{"id":4728,"name":"Saint-raphael"},"4729":{"id":4729,"name":"Saint-raymond"},"4730":{"id":4730,"name":"Saint-remi"},"4731":{"id":4731,"name":"Saint-sauveur-des-monts"},"4734":{"id":4734,"name":"Saint-tite"},"4735":{"id":4735,"name":"Salaberry-de-valleyfield"},"4742":{"id":4742,"name":"Sayabec"},"4746":{"id":4746,"name":"Senneterre"},"4747":{"id":4747,"name":"Sept-iles"},"4750":{"id":4750,"name":"Shawinigan"},"4751":{"id":4751,"name":"Shawville"},"4756":{"id":4756,"name":"Sherbrooke"},"4766":{"id":4766,"name":"Sorel"},"4800":{"id":4800,"name":"Temiscaming"},"4805":{"id":4805,"name":"Thetford Mines"},"4810":{"id":4810,"name":"Thurso"},"4819":{"id":4819,"name":"Trois-pistoles"},"4820":{"id":4820,"name":"Trois-rivieres"},"4828":{"id":4828,"name":"Valcourt"},"4829":{"id":4829,"name":"Val-david"},"4830":{"id":4830,"name":"Vallee-jonction"},"4836":{"id":4836,"name":"Vercheres"},"4840":{"id":4840,"name":"Victoriaville"},"4842":{"id":4842,"name":"Ville-marie"},"4851":{"id":4851,"name":"Warwick"},"4854":{"id":4854,"name":"Waterloo"},"4875":{"id":4875,"name":"Windsor"},"4884":{"id":4884,"name":"Yamachiche"}}},"SK":{"code":"SK","name":"Saskatchewan","cities":{"4199":{"id":4199,"name":"Assiniboia"},"4227":{"id":4227,"name":"Biggar"},"4267":{"id":4267,"name":"Canora"},"4277":{"id":4277,"name":"Carlyle"},"4279":{"id":4279,"name":"Carnduff"},"4280":{"id":4280,"name":"Caronport"},"4326":{"id":4326,"name":"Dalmeny"},"4329":{"id":4329,"name":"Davidson"},"4365":{"id":4365,"name":"Esterhazy"},"4366":{"id":4366,"name":"Estevan"},"4367":{"id":4367,"name":"Eston"},"4376":{"id":4376,"name":"Foam Lake"},"4407":{"id":4407,"name":"Gravelbourg"},"4409":{"id":4409,"name":"Grenfell"},"4412":{"id":4412,"name":"Gull Lake"},"4442":{"id":4442,"name":"Hudson Bay"},"4443":{"id":4443,"name":"Humboldt"},"4446":{"id":4446,"name":"Indian Head"},"4458":{"id":4458,"name":"Kamsack"},"4463":{"id":4463,"name":"Kelvington"},"4468":{"id":4468,"name":"Kerrobert"},"4473":{"id":4473,"name":"Kindersley"},"4490":{"id":4490,"name":"Langenburg"},"4491":{"id":4491,"name":"Langham"},"4492":{"id":4492,"name":"Lanigan"},"4493":{"id":4493,"name":"La Ronge"},"4510":{"id":4510,"name":"Lloydminster"},"4519":{"id":4519,"name":"Lumsden"},"4522":{"id":4522,"name":"Macklin"},"4529":{"id":4529,"name":"Maple Creek"},"4540":{"id":4540,"name":"Meadow Lake"},"4543":{"id":4543,"name":"Melfort"},"4545":{"id":4545,"name":"Melville"},"4563":{"id":4563,"name":"Moose Jaw"},"4564":{"id":4564,"name":"Moosomin"},"4583":{"id":4583,"name":"Nipawin"},"4586":{"id":4586,"name":"North Battleford"},"4603":{"id":4603,"name":"Outlook"},"4605":{"id":4605,"name":"Oxbow"},"4629":{"id":4629,"name":"Pilot Butte"},"4648":{"id":4648,"name":"Preeceville"},"4651":{"id":4651,"name":"Prince Albert"},"4663":{"id":4663,"name":"Regina"},"4680":{"id":4680,"name":"Rosetown"},"4740":{"id":4740,"name":"Saskatoon"},"4749":{"id":4749,"name":"Shaunavon"},"4755":{"id":4755,"name":"Shellbrook"},"4793":{"id":4793,"name":"Swift Current"},"4826":{"id":4826,"name":"Unity"},"4846":{"id":4846,"name":"Wadena"},"4850":{"id":4850,"name":"Warman"},"4856":{"id":4856,"name":"Watrous"},"4863":{"id":4863,"name":"Weyburn"},"4870":{"id":4870,"name":"Wilkie"},"4882":{"id":4882,"name":"Wynyard"},"4887":{"id":4887,"name":"Yorkton"}}},"YT":{"code":"YT","name":"Yukon Territory","cities":{"4415":{"id":4415,"name":"Haines Junction"},"4539":{"id":4539,"name":"Mayo"},"4867":{"id":4867,"name":"Whitehorse"}}}}}
+{
+  "code": "CA",
+  "name": "Canada",
+  "states": {
+    "AB": {
+      "code": "AB",
+      "name": "Alberta",
+      "cities": {
+        "4179": {
+          "id": 4179,
+          "name": "Airdrie"
+        },
+        "4200": {
+          "id": 4200,
+          "name": "Athabasca"
+        },
+        "4208": {
+          "id": 4208,
+          "name": "Banff"
+        },
+        "4210": {
+          "id": 4210,
+          "name": "Barrhead"
+        },
+        "4212": {
+          "id": 4212,
+          "name": "Bassano"
+        },
+        "4219": {
+          "id": 4219,
+          "name": "Beaverlodge"
+        },
+        "4228": {
+          "id": 4228,
+          "name": "Black Diamond"
+        },
+        "4229": {
+          "id": 4229,
+          "name": "Blackfalds"
+        },
+        "4230": {
+          "id": 4230,
+          "name": "Blairmore"
+        },
+        "4236": {
+          "id": 4236,
+          "name": "Bon Accord"
+        },
+        "4239": {
+          "id": 4239,
+          "name": "Bonnyville"
+        },
+        "4241": {
+          "id": 4241,
+          "name": "Bow Island"
+        },
+        "4250": {
+          "id": 4250,
+          "name": "Brooks"
+        },
+        "4259": {
+          "id": 4259,
+          "name": "Calgary"
+        },
+        "4260": {
+          "id": 4260,
+          "name": "Calmar"
+        },
+        "4264": {
+          "id": 4264,
+          "name": "Camrose"
+        },
+        "4265": {
+          "id": 4265,
+          "name": "Canmore"
+        },
+        "4275": {
+          "id": 4275,
+          "name": "Cardston"
+        },
+        "4281": {
+          "id": 4281,
+          "name": "Carstairs"
+        },
+        "4299": {
+          "id": 4299,
+          "name": "Clairmont"
+        },
+        "4300": {
+          "id": 4300,
+          "name": "Claresholm"
+        },
+        "4304": {
+          "id": 4304,
+          "name": "Coaldale"
+        },
+        "4307": {
+          "id": 4307,
+          "name": "Cochrane"
+        },
+        "4322": {
+          "id": 4322,
+          "name": "Crossfield"
+        },
+        "4337": {
+          "id": 4337,
+          "name": "Devon"
+        },
+        "4338": {
+          "id": 4338,
+          "name": "Didsbury"
+        },
+        "4343": {
+          "id": 4343,
+          "name": "Drayton Valley"
+        },
+        "4345": {
+          "id": 4345,
+          "name": "Drumheller"
+        },
+        "4352": {
+          "id": 4352,
+          "name": "Edmonton"
+        },
+        "4354": {
+          "id": 4354,
+          "name": "Edson"
+        },
+        "4356": {
+          "id": 4356,
+          "name": "Elk Point"
+        },
+        "4369": {
+          "id": 4369,
+          "name": "Fairview"
+        },
+        "4401": {
+          "id": 4401,
+          "name": "Grand Centre"
+        },
+        "4402": {
+          "id": 4402,
+          "name": "Grande Prairie"
+        },
+        "4410": {
+          "id": 4410,
+          "name": "Grimshaw"
+        },
+        "4419": {
+          "id": 4419,
+          "name": "Hanna"
+        },
+        "4435": {
+          "id": 4435,
+          "name": "High Level"
+        },
+        "4436": {
+          "id": 4436,
+          "name": "High Prairie"
+        },
+        "4437": {
+          "id": 4437,
+          "name": "High River"
+        },
+        "4438": {
+          "id": 4438,
+          "name": "Hinton"
+        },
+        "4454": {
+          "id": 4454,
+          "name": "Irricana"
+        },
+        "4455": {
+          "id": 4455,
+          "name": "Jasper"
+        },
+        "4469": {
+          "id": 4469,
+          "name": "Killam"
+        },
+        "4484": {
+          "id": 4484,
+          "name": "Lacombe"
+        },
+        "4489": {
+          "id": 4489,
+          "name": "Lamont"
+        },
+        "4499": {
+          "id": 4499,
+          "name": "Leduc"
+        },
+        "4501": {
+          "id": 4501,
+          "name": "Lethbridge"
+        },
+        "4525": {
+          "id": 4525,
+          "name": "Magrath"
+        },
+        "4542": {
+          "id": 4542,
+          "name": "Medicine Hat"
+        },
+        "4552": {
+          "id": 4552,
+          "name": "Millet"
+        },
+        "4566": {
+          "id": 4566,
+          "name": "Morinville"
+        },
+        "4574": {
+          "id": 4574,
+          "name": "Nanton"
+        },
+        "4591": {
+          "id": 4591,
+          "name": "Okotoks"
+        },
+        "4592": {
+          "id": 4592,
+          "name": "Olds"
+        },
+        "4616": {
+          "id": 4616,
+          "name": "Peace River"
+        },
+        "4620": {
+          "id": 4620,
+          "name": "Penhold"
+        },
+        "4631": {
+          "id": 4631,
+          "name": "Pincher Creek"
+        },
+        "4634": {
+          "id": 4634,
+          "name": "Ponoka"
+        },
+        "4656": {
+          "id": 4656,
+          "name": "Provost"
+        },
+        "4660": {
+          "id": 4660,
+          "name": "Raymond"
+        },
+        "4661": {
+          "id": 4661,
+          "name": "Red Deer"
+        },
+        "4670": {
+          "id": 4670,
+          "name": "Rimbey"
+        },
+        "4678": {
+          "id": 4678,
+          "name": "Rocky Mountain House"
+        },
+        "4724": {
+          "id": 4724,
+          "name": "Saint Paul"
+        },
+        "4748": {
+          "id": 4748,
+          "name": "Sexsmith"
+        },
+        "4760": {
+          "id": 4760,
+          "name": "Slave Lake"
+        },
+        "4764": {
+          "id": 4764,
+          "name": "Smoky Lake"
+        },
+        "4771": {
+          "id": 4771,
+          "name": "Spirit River"
+        },
+        "4774": {
+          "id": 4774,
+          "name": "Spruce Grove"
+        },
+        "4779": {
+          "id": 4779,
+          "name": "Stettler"
+        },
+        "4783": {
+          "id": 4783,
+          "name": "Stony Plain"
+        },
+        "4796": {
+          "id": 4796,
+          "name": "Sylvan Lake"
+        },
+        "4797": {
+          "id": 4797,
+          "name": "Taber"
+        },
+        "4808": {
+          "id": 4808,
+          "name": "Three Hills"
+        },
+        "4814": {
+          "id": 4814,
+          "name": "Tofield"
+        },
+        "4824": {
+          "id": 4824,
+          "name": "Two Hills"
+        },
+        "4831": {
+          "id": 4831,
+          "name": "Valleyview"
+        },
+        "4835": {
+          "id": 4835,
+          "name": "Vegreville"
+        },
+        "4837": {
+          "id": 4837,
+          "name": "Vermilion"
+        },
+        "4841": {
+          "id": 4841,
+          "name": "Viking"
+        },
+        "4844": {
+          "id": 4844,
+          "name": "Vulcan"
+        },
+        "4847": {
+          "id": 4847,
+          "name": "Wainwright"
+        },
+        "4859": {
+          "id": 4859,
+          "name": "Wembley"
+        },
+        "4860": {
+          "id": 4860,
+          "name": "Westlock"
+        },
+        "4862": {
+          "id": 4862,
+          "name": "Wetaskiwin"
+        },
+        "4866": {
+          "id": 4866,
+          "name": "Whitecourt"
+        }
+      }
+    },
+    "BC": {
+      "code": "BC",
+      "name": "British Columbia",
+      "cities": {
+        "4176": {
+          "id": 4176,
+          "name": "Abbotsford"
+        },
+        "4194": {
+          "id": 4194,
+          "name": "Armstrong"
+        },
+        "4198": {
+          "id": 4198,
+          "name": "Ashcroft"
+        },
+        "4254": {
+          "id": 4254,
+          "name": "Burns Lake"
+        },
+        "4256": {
+          "id": 4256,
+          "name": "Cache Creek"
+        },
+        "4262": {
+          "id": 4262,
+          "name": "Campbell River"
+        },
+        "4283": {
+          "id": 4283,
+          "name": "Castlegar"
+        },
+        "4291": {
+          "id": 4291,
+          "name": "Chase"
+        },
+        "4293": {
+          "id": 4293,
+          "name": "Chemainus"
+        },
+        "4297": {
+          "id": 4297,
+          "name": "Chilliwack"
+        },
+        "4316": {
+          "id": 4316,
+          "name": "Courtenay"
+        },
+        "4319": {
+          "id": 4319,
+          "name": "Cranbrook"
+        },
+        "4321": {
+          "id": 4321,
+          "name": "Creston"
+        },
+        "4324": {
+          "id": 4324,
+          "name": "Cumberland"
+        },
+        "4330": {
+          "id": 4330,
+          "name": "Dawson Creek"
+        },
+        "4348": {
+          "id": 4348,
+          "name": "Duncan"
+        },
+        "4360": {
+          "id": 4360,
+          "name": "Enderby"
+        },
+        "4374": {
+          "id": 4374,
+          "name": "Fernie"
+        },
+        "4381": {
+          "id": 4381,
+          "name": "Fort Nelson"
+        },
+        "4382": {
+          "id": 4382,
+          "name": "Fort Saint James"
+        },
+        "4383": {
+          "id": 4383,
+          "name": "Fort Saint John"
+        },
+        "4385": {
+          "id": 4385,
+          "name": "Fruitvale"
+        },
+        "4392": {
+          "id": 4392,
+          "name": "Gibsons"
+        },
+        "4397": {
+          "id": 4397,
+          "name": "Golden"
+        },
+        "4405": {
+          "id": 4405,
+          "name": "Grand Forks"
+        },
+        "4439": {
+          "id": 4439,
+          "name": "Hope"
+        },
+        "4441": {
+          "id": 4441,
+          "name": "Houston"
+        },
+        "4449": {
+          "id": 4449,
+          "name": "Invermere"
+        },
+        "4457": {
+          "id": 4457,
+          "name": "Kamloops"
+        },
+        "4462": {
+          "id": 4462,
+          "name": "Kelowna"
+        },
+        "4471": {
+          "id": 4471,
+          "name": "Kimberley"
+        },
+        "4477": {
+          "id": 4477,
+          "name": "Kitimat"
+        },
+        "4485": {
+          "id": 4485,
+          "name": "Ladysmith"
+        },
+        "4486": {
+          "id": 4486,
+          "name": "Lake Cowichan"
+        },
+        "4503": {
+          "id": 4503,
+          "name": "Lillooet"
+        },
+        "4518": {
+          "id": 4518,
+          "name": "Lumby"
+        },
+        "4546": {
+          "id": 4546,
+          "name": "Merritt"
+        },
+        "4571": {
+          "id": 4571,
+          "name": "Nakusp"
+        },
+        "4572": {
+          "id": 4572,
+          "name": "Nanaimo"
+        },
+        "4578": {
+          "id": 4578,
+          "name": "Nelson"
+        },
+        "4593": {
+          "id": 4593,
+          "name": "Oliver"
+        },
+        "4595": {
+          "id": 4595,
+          "name": "One Hundred Mile House"
+        },
+        "4601": {
+          "id": 4601,
+          "name": "Osoyoos"
+        },
+        "4613": {
+          "id": 4613,
+          "name": "Parksville"
+        },
+        "4617": {
+          "id": 4617,
+          "name": "Peachland"
+        },
+        "4618": {
+          "id": 4618,
+          "name": "Pemberton"
+        },
+        "4621": {
+          "id": 4621,
+          "name": "Penticton"
+        },
+        "4636": {
+          "id": 4636,
+          "name": "Port Alberni"
+        },
+        "4640": {
+          "id": 4640,
+          "name": "Port Hardy"
+        },
+        "4647": {
+          "id": 4647,
+          "name": "Powell River"
+        },
+        "4652": {
+          "id": 4652,
+          "name": "Prince George"
+        },
+        "4653": {
+          "id": 4653,
+          "name": "Prince Rupert"
+        },
+        "4654": {
+          "id": 4654,
+          "name": "Princeton"
+        },
+        "4658": {
+          "id": 4658,
+          "name": "Quesnel"
+        },
+        "4665": {
+          "id": 4665,
+          "name": "Revelstoke"
+        },
+        "4681": {
+          "id": 4681,
+          "name": "Rossland"
+        },
+        "4737": {
+          "id": 4737,
+          "name": "Salmon Arm"
+        },
+        "4738": {
+          "id": 4738,
+          "name": "Salmo"
+        },
+        "4744": {
+          "id": 4744,
+          "name": "Sechelt"
+        },
+        "4757": {
+          "id": 4757,
+          "name": "Sicamous"
+        },
+        "4761": {
+          "id": 4761,
+          "name": "Smithers"
+        },
+        "4765": {
+          "id": 4765,
+          "name": "Sooke"
+        },
+        "4788": {
+          "id": 4788,
+          "name": "Summerland"
+        },
+        "4802": {
+          "id": 4802,
+          "name": "Terrace"
+        },
+        "4818": {
+          "id": 4818,
+          "name": "Trail"
+        },
+        "4825": {
+          "id": 4825,
+          "name": "Ucluelet"
+        },
+        "4832": {
+          "id": 4832,
+          "name": "Vancouver"
+        },
+        "4833": {
+          "id": 4833,
+          "name": "Vanderhoof"
+        },
+        "4838": {
+          "id": 4838,
+          "name": "Vernon"
+        },
+        "4839": {
+          "id": 4839,
+          "name": "Victoria"
+        },
+        "4868": {
+          "id": 4868,
+          "name": "White Rock"
+        },
+        "4871": {
+          "id": 4871,
+          "name": "Williams Lake"
+        }
+      }
+    },
+    "MB": {
+      "code": "MB",
+      "name": "Manitoba",
+      "cities": {
+        "4188": {
+          "id": 4188,
+          "name": "Altona"
+        },
+        "4218": {
+          "id": 4218,
+          "name": "Beausejour"
+        },
+        "4234": {
+          "id": 4234,
+          "name": "Boissevain"
+        },
+        "4244": {
+          "id": 4244,
+          "name": "Brandon"
+        },
+        "4272": {
+          "id": 4272,
+          "name": "Carberry"
+        },
+        "4278": {
+          "id": 4278,
+          "name": "Carman"
+        },
+        "4328": {
+          "id": 4328,
+          "name": "Dauphin"
+        },
+        "4334": {
+          "id": 4334,
+          "name": "Deloraine"
+        },
+        "4375": {
+          "id": 4375,
+          "name": "Flin Flon"
+        },
+        "4393": {
+          "id": 4393,
+          "name": "Gimli"
+        },
+        "4470": {
+          "id": 4470,
+          "name": "Killarney"
+        },
+        "4480": {
+          "id": 4480,
+          "name": "Lac Du Bonnet"
+        },
+        "4544": {
+          "id": 4544,
+          "name": "Melita"
+        },
+        "4555": {
+          "id": 4555,
+          "name": "Minnedosa"
+        },
+        "4565": {
+          "id": 4565,
+          "name": "Morden"
+        },
+        "4568": {
+          "id": 4568,
+          "name": "Morris"
+        },
+        "4577": {
+          "id": 4577,
+          "name": "Neepawa"
+        },
+        "4630": {
+          "id": 4630,
+          "name": "Pinawa"
+        },
+        "4672": {
+          "id": 4672,
+          "name": "Rivers"
+        },
+        "4676": {
+          "id": 4676,
+          "name": "Roblin"
+        },
+        "4745": {
+          "id": 4745,
+          "name": "Selkirk"
+        },
+        "4767": {
+          "id": 4767,
+          "name": "Souris"
+        },
+        "4776": {
+          "id": 4776,
+          "name": "Steinbach"
+        },
+        "4781": {
+          "id": 4781,
+          "name": "Stonewall"
+        },
+        "4782": {
+          "id": 4782,
+          "name": "Stony Mountain"
+        },
+        "4792": {
+          "id": 4792,
+          "name": "Swan River"
+        },
+        "4803": {
+          "id": 4803,
+          "name": "The Pas"
+        },
+        "4806": {
+          "id": 4806,
+          "name": "Thompson"
+        },
+        "4843": {
+          "id": 4843,
+          "name": "Virden"
+        },
+        "4877": {
+          "id": 4877,
+          "name": "Winkler"
+        },
+        "4878": {
+          "id": 4878,
+          "name": "Winnipeg"
+        }
+      }
+    },
+    "NB": {
+      "code": "NB",
+      "name": "New Brunswick",
+      "cities": {
+        "4213": {
+          "id": 4213,
+          "name": "Bathurst"
+        },
+        "4263": {
+          "id": 4263,
+          "name": "Campbellton"
+        },
+        "4271": {
+          "id": 4271,
+          "name": "Caraquet"
+        },
+        "4325": {
+          "id": 4325,
+          "name": "Dalhousie"
+        },
+        "4353": {
+          "id": 4353,
+          "name": "Edmundston"
+        },
+        "4384": {
+          "id": 4384,
+          "name": "Fredericton"
+        },
+        "4404": {
+          "id": 4404,
+          "name": "Grand Falls"
+        },
+        "4418": {
+          "id": 4418,
+          "name": "Hampton"
+        },
+        "4461": {
+          "id": 4461,
+          "name": "Kedgwick"
+        },
+        "4557": {
+          "id": 4557,
+          "name": "Moncton"
+        },
+        "4599": {
+          "id": 4599,
+          "name": "Oromocto"
+        },
+        "4632": {
+          "id": 4632,
+          "name": "Plaster Rock"
+        },
+        "4682": {
+          "id": 4682,
+          "name": "Sackville"
+        },
+        "4687": {
+          "id": 4687,
+          "name": "Saint Andrews"
+        },
+        "4716": {
+          "id": 4716,
+          "name": "Saint John"
+        },
+        "4718": {
+          "id": 4718,
+          "name": "Saint Leonard"
+        },
+        "4727": {
+          "id": 4727,
+          "name": "Saint Quentin"
+        },
+        "4732": {
+          "id": 4732,
+          "name": "Saint Stephen"
+        },
+        "4736": {
+          "id": 4736,
+          "name": "Salisbury"
+        },
+        "4752": {
+          "id": 4752,
+          "name": "Shediac"
+        },
+        "4790": {
+          "id": 4790,
+          "name": "Sussex"
+        },
+        "4880": {
+          "id": 4880,
+          "name": "Woodstock"
+        }
+      }
+    },
+    "NL": {
+      "code": "NL",
+      "name": "Newfoundland & Labrador",
+      "cities": {
+        "4214": {
+          "id": 4214,
+          "name": "Bay Roberts"
+        },
+        "4238": {
+          "id": 4238,
+          "name": "Bonavista"
+        },
+        "4240": {
+          "id": 4240,
+          "name": "Botwood"
+        },
+        "4253": {
+          "id": 4253,
+          "name": "Burgeo"
+        },
+        "4273": {
+          "id": 4273,
+          "name": "Carbonear"
+        },
+        "4284": {
+          "id": 4284,
+          "name": "Catalina"
+        },
+        "4287": {
+          "id": 4287,
+          "name": "Channel-port Aux Basques"
+        },
+        "4314": {
+          "id": 4314,
+          "name": "Corner Brook"
+        },
+        "4332": {
+          "id": 4332,
+          "name": "Deer Lake"
+        },
+        "4386": {
+          "id": 4386,
+          "name": "Gambo"
+        },
+        "4388": {
+          "id": 4388,
+          "name": "Gander"
+        },
+        "4399": {
+          "id": 4399,
+          "name": "Grand Bank"
+        },
+        "4422": {
+          "id": 4422,
+          "name": "Harbour Breton"
+        },
+        "4423": {
+          "id": 4423,
+          "name": "Hare Bay"
+        },
+        "4502": {
+          "id": 4502,
+          "name": "Lewisporte"
+        },
+        "4534": {
+          "id": 4534,
+          "name": "Marystown"
+        },
+        "4689": {
+          "id": 4689,
+          "name": "Saint Anthony"
+        },
+        "4772": {
+          "id": 4772,
+          "name": "Springdale"
+        },
+        "4777": {
+          "id": 4777,
+          "name": "Stephenville Crossing"
+        },
+        "4778": {
+          "id": 4778,
+          "name": "Stephenville"
+        },
+        "4815": {
+          "id": 4815,
+          "name": "Torbay"
+        },
+        "4845": {
+          "id": 4845,
+          "name": "Wabana"
+        }
+      }
+    },
+    "NS": {
+      "code": "NS",
+      "name": "Nova Scotia",
+      "cities": {
+        "4189": {
+          "id": 4189,
+          "name": "Amherst"
+        },
+        "4193": {
+          "id": 4193,
+          "name": "Antigonish"
+        },
+        "4225": {
+          "id": 4225,
+          "name": "Berwick"
+        },
+        "4246": {
+          "id": 4246,
+          "name": "Bridgetown"
+        },
+        "4247": {
+          "id": 4247,
+          "name": "Bridgewater"
+        },
+        "4295": {
+          "id": 4295,
+          "name": "Chester"
+        },
+        "4339": {
+          "id": 4339,
+          "name": "Digby"
+        },
+        "4394": {
+          "id": 4394,
+          "name": "Glace Bay"
+        },
+        "4416": {
+          "id": 4416,
+          "name": "Halifax"
+        },
+        "4421": {
+          "id": 4421,
+          "name": "Hantsport"
+        },
+        "4450": {
+          "id": 4450,
+          "name": "Inverness"
+        },
+        "4467": {
+          "id": 4467,
+          "name": "Kentville"
+        },
+        "4509": {
+          "id": 4509,
+          "name": "Liverpool"
+        },
+        "4513": {
+          "id": 4513,
+          "name": "Louisbourg"
+        },
+        "4520": {
+          "id": 4520,
+          "name": "Lunenburg"
+        },
+        "4548": {
+          "id": 4548,
+          "name": "Middleton"
+        },
+        "4579": {
+          "id": 4579,
+          "name": "New Glasgow"
+        },
+        "4581": {
+          "id": 4581,
+          "name": "New Waterford"
+        },
+        "4606": {
+          "id": 4606,
+          "name": "Oxford"
+        },
+        "4614": {
+          "id": 4614,
+          "name": "Parrsboro"
+        },
+        "4627": {
+          "id": 4627,
+          "name": "Pictou"
+        },
+        "4641": {
+          "id": 4641,
+          "name": "Port Hawkesbury"
+        },
+        "4753": {
+          "id": 4753,
+          "name": "Shelburne"
+        },
+        "4773": {
+          "id": 4773,
+          "name": "Springhill"
+        },
+        "4794": {
+          "id": 4794,
+          "name": "Sydney Mines"
+        },
+        "4795": {
+          "id": 4795,
+          "name": "Sydney"
+        },
+        "4821": {
+          "id": 4821,
+          "name": "Truro"
+        },
+        "4873": {
+          "id": 4873,
+          "name": "Windsor"
+        },
+        "4879": {
+          "id": 4879,
+          "name": "Wolfville"
+        },
+        "4885": {
+          "id": 4885,
+          "name": "Yarmouth"
+        }
+      }
+    },
+    "NT": {
+      "code": "NT",
+      "name": "Northwest Territories",
+      "cities": {
+        "4180": {
+          "id": 4180,
+          "name": "Aklavik"
+        },
+        "4431": {
+          "id": 4431,
+          "name": "Hay River"
+        },
+        "4448": {
+          "id": 4448,
+          "name": "Inuvik"
+        },
+        "4585": {
+          "id": 4585,
+          "name": "Norman Wells"
+        },
+        "4822": {
+          "id": 4822,
+          "name": "Tuktoyaktuk"
+        },
+        "4886": {
+          "id": 4886,
+          "name": "Yellowknife"
+        }
+      }
+    },
+    "NU": {
+      "code": "NU",
+      "name": "Nunavut",
+      "cities": {
+        "4303": {
+          "id": 4303,
+          "name": "Clyde River"
+        },
+        "4451": {
+          "id": 4451,
+          "name": "Iqaluit"
+        },
+        "4609": {
+          "id": 4609,
+          "name": "Pangnirtung"
+        }
+      }
+    },
+    "ON": {
+      "code": "ON",
+      "name": "Ontario",
+      "cities": {
+        "4177": {
+          "id": 4177,
+          "name": "Acton"
+        },
+        "4183": {
+          "id": 4183,
+          "name": "Alexandria"
+        },
+        "4184": {
+          "id": 4184,
+          "name": "Alfred"
+        },
+        "4185": {
+          "id": 4185,
+          "name": "Alliston"
+        },
+        "4187": {
+          "id": 4187,
+          "name": "Almonte"
+        },
+        "4190": {
+          "id": 4190,
+          "name": "Amherstburg"
+        },
+        "4195": {
+          "id": 4195,
+          "name": "Arnprior"
+        },
+        "4196": {
+          "id": 4196,
+          "name": "Arthur"
+        },
+        "4201": {
+          "id": 4201,
+          "name": "Atikokan"
+        },
+        "4202": {
+          "id": 4202,
+          "name": "Attawapiskat"
+        },
+        "4203": {
+          "id": 4203,
+          "name": "Aylmer"
+        },
+        "4204": {
+          "id": 4204,
+          "name": "Ayr"
+        },
+        "4211": {
+          "id": 4211,
+          "name": "Barrie"
+        },
+        "4215": {
+          "id": 4215,
+          "name": "Beamsville"
+        },
+        "4220": {
+          "id": 4220,
+          "name": "Beaverton"
+        },
+        "4222": {
+          "id": 4222,
+          "name": "Belleville"
+        },
+        "4231": {
+          "id": 4231,
+          "name": "Blenheim"
+        },
+        "4232": {
+          "id": 4232,
+          "name": "Blind River"
+        },
+        "4233": {
+          "id": 4233,
+          "name": "Bobcaygeon"
+        },
+        "4235": {
+          "id": 4235,
+          "name": "Bolton"
+        },
+        "4242": {
+          "id": 4242,
+          "name": "Bracebridge"
+        },
+        "4243": {
+          "id": 4243,
+          "name": "Bradford"
+        },
+        "4245": {
+          "id": 4245,
+          "name": "Brantford"
+        },
+        "4248": {
+          "id": 4248,
+          "name": "Brighton"
+        },
+        "4249": {
+          "id": 4249,
+          "name": "Brockville"
+        },
+        "4257": {
+          "id": 4257,
+          "name": "Caledon East"
+        },
+        "4258": {
+          "id": 4258,
+          "name": "Caledonia"
+        },
+        "4261": {
+          "id": 4261,
+          "name": "Campbellford"
+        },
+        "4266": {
+          "id": 4266,
+          "name": "Cannington"
+        },
+        "4270": {
+          "id": 4270,
+          "name": "Capreol"
+        },
+        "4274": {
+          "id": 4274,
+          "name": "Cardinal"
+        },
+        "4276": {
+          "id": 4276,
+          "name": "Carleton Place"
+        },
+        "4282": {
+          "id": 4282,
+          "name": "Casselman"
+        },
+        "4289": {
+          "id": 4289,
+          "name": "Chapleau"
+        },
+        "4292": {
+          "id": 4292,
+          "name": "Chatham"
+        },
+        "4294": {
+          "id": 4294,
+          "name": "Chesley"
+        },
+        "4296": {
+          "id": 4296,
+          "name": "Chesterville"
+        },
+        "4302": {
+          "id": 4302,
+          "name": "Clinton"
+        },
+        "4306": {
+          "id": 4306,
+          "name": "Cobourg"
+        },
+        "4308": {
+          "id": 4308,
+          "name": "Cochrane"
+        },
+        "4309": {
+          "id": 4309,
+          "name": "Colborne"
+        },
+        "4310": {
+          "id": 4310,
+          "name": "Colchester"
+        },
+        "4311": {
+          "id": 4311,
+          "name": "Collingwood"
+        },
+        "4315": {
+          "id": 4315,
+          "name": "Cornwall"
+        },
+        "4320": {
+          "id": 4320,
+          "name": "Creemore"
+        },
+        "4323": {
+          "id": 4323,
+          "name": "Crystal Beach"
+        },
+        "4331": {
+          "id": 4331,
+          "name": "Deep River"
+        },
+        "4333": {
+          "id": 4333,
+          "name": "Delhi"
+        },
+        "4336": {
+          "id": 4336,
+          "name": "Deseronto"
+        },
+        "4344": {
+          "id": 4344,
+          "name": "Dresden"
+        },
+        "4347": {
+          "id": 4347,
+          "name": "Dryden"
+        },
+        "4349": {
+          "id": 4349,
+          "name": "Dunnville"
+        },
+        "4350": {
+          "id": 4350,
+          "name": "Durham"
+        },
+        "4355": {
+          "id": 4355,
+          "name": "Eganville"
+        },
+        "4357": {
+          "id": 4357,
+          "name": "Elliot Lake"
+        },
+        "4358": {
+          "id": 4358,
+          "name": "Elmira"
+        },
+        "4359": {
+          "id": 4359,
+          "name": "Elmvale"
+        },
+        "4361": {
+          "id": 4361,
+          "name": "Englehart"
+        },
+        "4362": {
+          "id": 4362,
+          "name": "Erin"
+        },
+        "4363": {
+          "id": 4363,
+          "name": "Espanola"
+        },
+        "4364": {
+          "id": 4364,
+          "name": "Essex"
+        },
+        "4368": {
+          "id": 4368,
+          "name": "Exeter"
+        },
+        "4371": {
+          "id": 4371,
+          "name": "Fenelon Falls"
+        },
+        "4372": {
+          "id": 4372,
+          "name": "Fergus"
+        },
+        "4377": {
+          "id": 4377,
+          "name": "Forest"
+        },
+        "4379": {
+          "id": 4379,
+          "name": "Fort Erie"
+        },
+        "4380": {
+          "id": 4380,
+          "name": "Fort Frances"
+        },
+        "4387": {
+          "id": 4387,
+          "name": "Gananoque"
+        },
+        "4390": {
+          "id": 4390,
+          "name": "Georgetown"
+        },
+        "4391": {
+          "id": 4391,
+          "name": "Geraldton"
+        },
+        "4395": {
+          "id": 4395,
+          "name": "Glencoe"
+        },
+        "4396": {
+          "id": 4396,
+          "name": "Goderich"
+        },
+        "4400": {
+          "id": 4400,
+          "name": "Grand Bend"
+        },
+        "4406": {
+          "id": 4406,
+          "name": "Grand Valley"
+        },
+        "4408": {
+          "id": 4408,
+          "name": "Gravenhurst"
+        },
+        "4411": {
+          "id": 4411,
+          "name": "Guelph"
+        },
+        "4413": {
+          "id": 4413,
+          "name": "Hagersville"
+        },
+        "4414": {
+          "id": 4414,
+          "name": "Haileybury"
+        },
+        "4417": {
+          "id": 4417,
+          "name": "Hamilton"
+        },
+        "4420": {
+          "id": 4420,
+          "name": "Hanover"
+        },
+        "4424": {
+          "id": 4424,
+          "name": "Harriston"
+        },
+        "4425": {
+          "id": 4425,
+          "name": "Harrow"
+        },
+        "4426": {
+          "id": 4426,
+          "name": "Hastings"
+        },
+        "4428": {
+          "id": 4428,
+          "name": "Havelock"
+        },
+        "4430": {
+          "id": 4430,
+          "name": "Hawkesbury"
+        },
+        "4432": {
+          "id": 4432,
+          "name": "Hearst"
+        },
+        "4434": {
+          "id": 4434,
+          "name": "Hensall"
+        },
+        "4440": {
+          "id": 4440,
+          "name": "Hornepayne"
+        },
+        "4445": {
+          "id": 4445,
+          "name": "Huntsville"
+        },
+        "4447": {
+          "id": 4447,
+          "name": "Ingersoll"
+        },
+        "4452": {
+          "id": 4452,
+          "name": "Iroquois Falls"
+        },
+        "4453": {
+          "id": 4453,
+          "name": "Iroquois"
+        },
+        "4459": {
+          "id": 4459,
+          "name": "Kanata"
+        },
+        "4460": {
+          "id": 4460,
+          "name": "Kapuskasing"
+        },
+        "4464": {
+          "id": 4464,
+          "name": "Kemptville"
+        },
+        "4465": {
+          "id": 4465,
+          "name": "Kenora"
+        },
+        "4472": {
+          "id": 4472,
+          "name": "Kincardine"
+        },
+        "4474": {
+          "id": 4474,
+          "name": "Kingston"
+        },
+        "4475": {
+          "id": 4475,
+          "name": "Kirkland Lake"
+        },
+        "4476": {
+          "id": 4476,
+          "name": "Kitchener"
+        },
+        "4487": {
+          "id": 4487,
+          "name": "Lakefield"
+        },
+        "4498": {
+          "id": 4498,
+          "name": "Leamington"
+        },
+        "4504": {
+          "id": 4504,
+          "name": "Lindsay"
+        },
+        "4506": {
+          "id": 4506,
+          "name": "Listowel"
+        },
+        "4507": {
+          "id": 4507,
+          "name": "Little Current"
+        },
+        "4508": {
+          "id": 4508,
+          "name": "Lively"
+        },
+        "4511": {
+          "id": 4511,
+          "name": "London"
+        },
+        "4512": {
+          "id": 4512,
+          "name": "Longlac"
+        },
+        "4515": {
+          "id": 4515,
+          "name": "Lucan"
+        },
+        "4517": {
+          "id": 4517,
+          "name": "Lucknow"
+        },
+        "4523": {
+          "id": 4523,
+          "name": "Madoc"
+        },
+        "4527": {
+          "id": 4527,
+          "name": "Manitouwadge"
+        },
+        "4530": {
+          "id": 4530,
+          "name": "Marathon"
+        },
+        "4532": {
+          "id": 4532,
+          "name": "Markdale"
+        },
+        "4533": {
+          "id": 4533,
+          "name": "Marmora"
+        },
+        "4538": {
+          "id": 4538,
+          "name": "Mattawa"
+        },
+        "4541": {
+          "id": 4541,
+          "name": "Meaford"
+        },
+        "4549": {
+          "id": 4549,
+          "name": "Midland"
+        },
+        "4550": {
+          "id": 4550,
+          "name": "Mildmay"
+        },
+        "4551": {
+          "id": 4551,
+          "name": "Millbrook"
+        },
+        "4553": {
+          "id": 4553,
+          "name": "Milton"
+        },
+        "4554": {
+          "id": 4554,
+          "name": "Milverton"
+        },
+        "4556": {
+          "id": 4556,
+          "name": "Mitchell"
+        },
+        "4562": {
+          "id": 4562,
+          "name": "Moose Factory"
+        },
+        "4567": {
+          "id": 4567,
+          "name": "Morrisburg"
+        },
+        "4569": {
+          "id": 4569,
+          "name": "Mount Forest"
+        },
+        "4573": {
+          "id": 4573,
+          "name": "Nanticoke"
+        },
+        "4575": {
+          "id": 4575,
+          "name": "Napanee"
+        },
+        "4587": {
+          "id": 4587,
+          "name": "North Bay"
+        },
+        "4588": {
+          "id": 4588,
+          "name": "Norwich"
+        },
+        "4589": {
+          "id": 4589,
+          "name": "Norwood"
+        },
+        "4594": {
+          "id": 4594,
+          "name": "Omemee"
+        },
+        "4596": {
+          "id": 4596,
+          "name": "Orangeville"
+        },
+        "4597": {
+          "id": 4597,
+          "name": "Orillia"
+        },
+        "4600": {
+          "id": 4600,
+          "name": "Oshawa"
+        },
+        "4602": {
+          "id": 4602,
+          "name": "Ottawa"
+        },
+        "4604": {
+          "id": 4604,
+          "name": "Owen Sound"
+        },
+        "4607": {
+          "id": 4607,
+          "name": "Paisley"
+        },
+        "4608": {
+          "id": 4608,
+          "name": "Palmerston"
+        },
+        "4611": {
+          "id": 4611,
+          "name": "Paris"
+        },
+        "4612": {
+          "id": 4612,
+          "name": "Parkhill"
+        },
+        "4615": {
+          "id": 4615,
+          "name": "Parry Sound"
+        },
+        "4619": {
+          "id": 4619,
+          "name": "Pembroke"
+        },
+        "4622": {
+          "id": 4622,
+          "name": "Perth"
+        },
+        "4623": {
+          "id": 4623,
+          "name": "Petawawa"
+        },
+        "4624": {
+          "id": 4624,
+          "name": "Peterborough"
+        },
+        "4625": {
+          "id": 4625,
+          "name": "Petrolia"
+        },
+        "4626": {
+          "id": 4626,
+          "name": "Picton"
+        },
+        "4638": {
+          "id": 4638,
+          "name": "Port Dover"
+        },
+        "4639": {
+          "id": 4639,
+          "name": "Port Elgin"
+        },
+        "4642": {
+          "id": 4642,
+          "name": "Port Hope"
+        },
+        "4644": {
+          "id": 4644,
+          "name": "Port Perry"
+        },
+        "4645": {
+          "id": 4645,
+          "name": "Port Stanley"
+        },
+        "4646": {
+          "id": 4646,
+          "name": "Powassan"
+        },
+        "4649": {
+          "id": 4649,
+          "name": "Prescott"
+        },
+        "4662": {
+          "id": 4662,
+          "name": "Redwater"
+        },
+        "4664": {
+          "id": 4664,
+          "name": "Renfrew"
+        },
+        "4666": {
+          "id": 4666,
+          "name": "Richmond"
+        },
+        "4668": {
+          "id": 4668,
+          "name": "Ridgetown"
+        },
+        "4677": {
+          "id": 4677,
+          "name": "Rockland"
+        },
+        "4679": {
+          "id": 4679,
+          "name": "Rodney"
+        },
+        "4720": {
+          "id": 4720,
+          "name": "Saint Marys"
+        },
+        "4733": {
+          "id": 4733,
+          "name": "Saint Thomas"
+        },
+        "4739": {
+          "id": 4739,
+          "name": "Sarnia"
+        },
+        "4741": {
+          "id": 4741,
+          "name": "Sault Sainte Marie"
+        },
+        "4743": {
+          "id": 4743,
+          "name": "Seaforth"
+        },
+        "4754": {
+          "id": 4754,
+          "name": "Shelburne"
+        },
+        "4758": {
+          "id": 4758,
+          "name": "Simcoe"
+        },
+        "4759": {
+          "id": 4759,
+          "name": "Sioux Lookout"
+        },
+        "4762": {
+          "id": 4762,
+          "name": "Smiths Falls"
+        },
+        "4763": {
+          "id": 4763,
+          "name": "Smithville"
+        },
+        "4769": {
+          "id": 4769,
+          "name": "Southampton"
+        },
+        "4770": {
+          "id": 4770,
+          "name": "South River"
+        },
+        "4775": {
+          "id": 4775,
+          "name": "Stayner"
+        },
+        "4780": {
+          "id": 4780,
+          "name": "Stirling"
+        },
+        "4784": {
+          "id": 4784,
+          "name": "Stratford"
+        },
+        "4785": {
+          "id": 4785,
+          "name": "Strathroy"
+        },
+        "4786": {
+          "id": 4786,
+          "name": "Sturgeon Falls"
+        },
+        "4787": {
+          "id": 4787,
+          "name": "Sudbury"
+        },
+        "4791": {
+          "id": 4791,
+          "name": "Sutton"
+        },
+        "4798": {
+          "id": 4798,
+          "name": "Tavistock"
+        },
+        "4799": {
+          "id": 4799,
+          "name": "Teeswater"
+        },
+        "4801": {
+          "id": 4801,
+          "name": "Terrace Bay"
+        },
+        "4804": {
+          "id": 4804,
+          "name": "Thessalon"
+        },
+        "4807": {
+          "id": 4807,
+          "name": "Thornbury"
+        },
+        "4809": {
+          "id": 4809,
+          "name": "Thunder Bay"
+        },
+        "4811": {
+          "id": 4811,
+          "name": "Tilbury"
+        },
+        "4812": {
+          "id": 4812,
+          "name": "Tilsonburg"
+        },
+        "4813": {
+          "id": 4813,
+          "name": "Timmins"
+        },
+        "4816": {
+          "id": 4816,
+          "name": "Toronto"
+        },
+        "4817": {
+          "id": 4817,
+          "name": "Tottenham"
+        },
+        "4823": {
+          "id": 4823,
+          "name": "Tweed"
+        },
+        "4827": {
+          "id": 4827,
+          "name": "Uxbridge"
+        },
+        "4834": {
+          "id": 4834,
+          "name": "Vankleek Hill"
+        },
+        "4848": {
+          "id": 4848,
+          "name": "Walkerton"
+        },
+        "4849": {
+          "id": 4849,
+          "name": "Wallaceburg"
+        },
+        "4852": {
+          "id": 4852,
+          "name": "Waterford"
+        },
+        "4853": {
+          "id": 4853,
+          "name": "Waterloo"
+        },
+        "4855": {
+          "id": 4855,
+          "name": "Watford"
+        },
+        "4857": {
+          "id": 4857,
+          "name": "Wawa"
+        },
+        "4858": {
+          "id": 4858,
+          "name": "Wellington"
+        },
+        "4861": {
+          "id": 4861,
+          "name": "West Lorne"
+        },
+        "4864": {
+          "id": 4864,
+          "name": "Wheatley"
+        },
+        "4865": {
+          "id": 4865,
+          "name": "Whitchurch-stouffville"
+        },
+        "4869": {
+          "id": 4869,
+          "name": "Wiarton"
+        },
+        "4872": {
+          "id": 4872,
+          "name": "Winchester"
+        },
+        "4874": {
+          "id": 4874,
+          "name": "Windsor"
+        },
+        "4876": {
+          "id": 4876,
+          "name": "Wingham"
+        },
+        "4881": {
+          "id": 4881,
+          "name": "Woodstock"
+        },
+        "4883": {
+          "id": 4883,
+          "name": "Wyoming"
+        }
+      }
+    },
+    "PE": {
+      "code": "PE",
+      "name": "Prince Edward Island",
+      "cities": {
+        "4182": {
+          "id": 4182,
+          "name": "Alberton"
+        },
+        "4290": {
+          "id": 4290,
+          "name": "Charlottetown"
+        },
+        "4466": {
+          "id": 4466,
+          "name": "Kensington"
+        },
+        "4558": {
+          "id": 4558,
+          "name": "Montague"
+        },
+        "4768": {
+          "id": 4768,
+          "name": "Souris"
+        },
+        "4789": {
+          "id": 4789,
+          "name": "Summerside"
+        }
+      }
+    },
+    "QC": {
+      "code": "QC",
+      "name": "Quebec",
+      "cities": {
+        "4178": {
+          "id": 4178,
+          "name": "Acton Vale"
+        },
+        "4181": {
+          "id": 4181,
+          "name": "Albanel"
+        },
+        "4186": {
+          "id": 4186,
+          "name": "Alma"
+        },
+        "4191": {
+          "id": 4191,
+          "name": "Amos"
+        },
+        "4192": {
+          "id": 4192,
+          "name": "Amqui"
+        },
+        "4197": {
+          "id": 4197,
+          "name": "Asbestos"
+        },
+        "4205": {
+          "id": 4205,
+          "name": "Bagotville"
+        },
+        "4206": {
+          "id": 4206,
+          "name": "Baie-comeau"
+        },
+        "4207": {
+          "id": 4207,
+          "name": "Baie-saint-paul"
+        },
+        "4209": {
+          "id": 4209,
+          "name": "Barraute"
+        },
+        "4216": {
+          "id": 4216,
+          "name": "Beauceville"
+        },
+        "4217": {
+          "id": 4217,
+          "name": "Beaupre"
+        },
+        "4221": {
+          "id": 4221,
+          "name": "Bedford"
+        },
+        "4223": {
+          "id": 4223,
+          "name": "Beloeil"
+        },
+        "4224": {
+          "id": 4224,
+          "name": "Berthierville"
+        },
+        "4226": {
+          "id": 4226,
+          "name": "Betsiamites"
+        },
+        "4237": {
+          "id": 4237,
+          "name": "Bonaventure"
+        },
+        "4251": {
+          "id": 4251,
+          "name": "Brownsburg"
+        },
+        "4252": {
+          "id": 4252,
+          "name": "Buckingham"
+        },
+        "4255": {
+          "id": 4255,
+          "name": "Cabano"
+        },
+        "4268": {
+          "id": 4268,
+          "name": "Cap-aux-meules"
+        },
+        "4269": {
+          "id": 4269,
+          "name": "Cap-chat"
+        },
+        "4285": {
+          "id": 4285,
+          "name": "Causapscal"
+        },
+        "4286": {
+          "id": 4286,
+          "name": "Chandler"
+        },
+        "4288": {
+          "id": 4288,
+          "name": "Chapais"
+        },
+        "4298": {
+          "id": 4298,
+          "name": "Chute-aux-outardes"
+        },
+        "4301": {
+          "id": 4301,
+          "name": "Clermont"
+        },
+        "4305": {
+          "id": 4305,
+          "name": "Coaticook"
+        },
+        "4312": {
+          "id": 4312,
+          "name": "Contrecoeur"
+        },
+        "4313": {
+          "id": 4313,
+          "name": "Cookshire"
+        },
+        "4317": {
+          "id": 4317,
+          "name": "Cowansville"
+        },
+        "4318": {
+          "id": 4318,
+          "name": "Crabtree"
+        },
+        "4327": {
+          "id": 4327,
+          "name": "Danville"
+        },
+        "4335": {
+          "id": 4335,
+          "name": "Desbiens"
+        },
+        "4340": {
+          "id": 4340,
+          "name": "Disraeli"
+        },
+        "4341": {
+          "id": 4341,
+          "name": "Dolbeau"
+        },
+        "4342": {
+          "id": 4342,
+          "name": "Donnacona"
+        },
+        "4346": {
+          "id": 4346,
+          "name": "Drummondville"
+        },
+        "4351": {
+          "id": 4351,
+          "name": "East Angus"
+        },
+        "4370": {
+          "id": 4370,
+          "name": "Farnham"
+        },
+        "4373": {
+          "id": 4373,
+          "name": "Ferme-neuve"
+        },
+        "4378": {
+          "id": 4378,
+          "name": "Forestville"
+        },
+        "4389": {
+          "id": 4389,
+          "name": "Gaspe"
+        },
+        "4398": {
+          "id": 4398,
+          "name": "Granby"
+        },
+        "4403": {
+          "id": 4403,
+          "name": "Grande-riviere"
+        },
+        "4427": {
+          "id": 4427,
+          "name": "Hauterive"
+        },
+        "4429": {
+          "id": 4429,
+          "name": "Havre-saint-pierre"
+        },
+        "4433": {
+          "id": 4433,
+          "name": "Hebertville"
+        },
+        "4444": {
+          "id": 4444,
+          "name": "Huntingdon"
+        },
+        "4456": {
+          "id": 4456,
+          "name": "Joliette"
+        },
+        "4478": {
+          "id": 4478,
+          "name": "Labelle"
+        },
+        "4479": {
+          "id": 4479,
+          "name": "Lac-au-saumon"
+        },
+        "4481": {
+          "id": 4481,
+          "name": "Lachute"
+        },
+        "4482": {
+          "id": 4482,
+          "name": "Lac-megantic"
+        },
+        "4483": {
+          "id": 4483,
+          "name": "Lacolle"
+        },
+        "4488": {
+          "id": 4488,
+          "name": "La Malbaie"
+        },
+        "4494": {
+          "id": 4494,
+          "name": "La Sarre"
+        },
+        "4495": {
+          "id": 4495,
+          "name": "La Tuque"
+        },
+        "4496": {
+          "id": 4496,
+          "name": "Laurentides"
+        },
+        "4497": {
+          "id": 4497,
+          "name": "Lavaltrie"
+        },
+        "4500": {
+          "id": 4500,
+          "name": "Les Escoumins"
+        },
+        "4505": {
+          "id": 4505,
+          "name": "Liniere"
+        },
+        "4514": {
+          "id": 4514,
+          "name": "Louiseville"
+        },
+        "4516": {
+          "id": 4516,
+          "name": "Luceville"
+        },
+        "4521": {
+          "id": 4521,
+          "name": "Macamic"
+        },
+        "4524": {
+          "id": 4524,
+          "name": "Magog"
+        },
+        "4526": {
+          "id": 4526,
+          "name": "Malartic"
+        },
+        "4528": {
+          "id": 4528,
+          "name": "Maniwaki"
+        },
+        "4531": {
+          "id": 4531,
+          "name": "Marieville"
+        },
+        "4535": {
+          "id": 4535,
+          "name": "Maskinonge"
+        },
+        "4536": {
+          "id": 4536,
+          "name": "Matagami"
+        },
+        "4537": {
+          "id": 4537,
+          "name": "Matane"
+        },
+        "4547": {
+          "id": 4547,
+          "name": "Metabetchouan"
+        },
+        "4559": {
+          "id": 4559,
+          "name": "Mont-joli"
+        },
+        "4560": {
+          "id": 4560,
+          "name": "Montmagny"
+        },
+        "4561": {
+          "id": 4561,
+          "name": "Montreal"
+        },
+        "4570": {
+          "id": 4570,
+          "name": "Murdochville"
+        },
+        "4576": {
+          "id": 4576,
+          "name": "Napierville"
+        },
+        "4580": {
+          "id": 4580,
+          "name": "New Richmond"
+        },
+        "4582": {
+          "id": 4582,
+          "name": "Nicolet"
+        },
+        "4584": {
+          "id": 4584,
+          "name": "Normandin"
+        },
+        "4590": {
+          "id": 4590,
+          "name": "Notre-dame-du-lac"
+        },
+        "4598": {
+          "id": 4598,
+          "name": "Ormstown"
+        },
+        "4610": {
+          "id": 4610,
+          "name": "Papineauville"
+        },
+        "4628": {
+          "id": 4628,
+          "name": "Pierreville"
+        },
+        "4633": {
+          "id": 4633,
+          "name": "Plessisville"
+        },
+        "4635": {
+          "id": 4635,
+          "name": "Pont-rouge"
+        },
+        "4637": {
+          "id": 4637,
+          "name": "Port-cartier"
+        },
+        "4643": {
+          "id": 4643,
+          "name": "Portneuf"
+        },
+        "4650": {
+          "id": 4650,
+          "name": "Price"
+        },
+        "4655": {
+          "id": 4655,
+          "name": "Princeville"
+        },
+        "4657": {
+          "id": 4657,
+          "name": "Quebec"
+        },
+        "4659": {
+          "id": 4659,
+          "name": "Rawdon"
+        },
+        "4667": {
+          "id": 4667,
+          "name": "Richmond"
+        },
+        "4669": {
+          "id": 4669,
+          "name": "Rigaud"
+        },
+        "4671": {
+          "id": 4671,
+          "name": "Rimouski"
+        },
+        "4673": {
+          "id": 4673,
+          "name": "Riviere-au-renard"
+        },
+        "4674": {
+          "id": 4674,
+          "name": "Riviere-du-loup"
+        },
+        "4675": {
+          "id": 4675,
+          "name": "Roberval"
+        },
+        "4683": {
+          "id": 4683,
+          "name": "Saint-agapit"
+        },
+        "4684": {
+          "id": 4684,
+          "name": "Saint-alexandre"
+        },
+        "4685": {
+          "id": 4685,
+          "name": "Saint-ambroise"
+        },
+        "4686": {
+          "id": 4686,
+          "name": "Saint-andre-avellin"
+        },
+        "4688": {
+          "id": 4688,
+          "name": "Saint-anselme"
+        },
+        "4690": {
+          "id": 4690,
+          "name": "Saint-augustin"
+        },
+        "4691": {
+          "id": 4691,
+          "name": "Saint-cesaire"
+        },
+        "4692": {
+          "id": 4692,
+          "name": "Saint-denis"
+        },
+        "4693": {
+          "id": 4693,
+          "name": "Saint-donat-de-montcalm"
+        },
+        "4694": {
+          "id": 4694,
+          "name": "Sainte-adele"
+        },
+        "4695": {
+          "id": 4695,
+          "name": "Sainte-agathe-des-monts"
+        },
+        "4696": {
+          "id": 4696,
+          "name": "Sainte-anne-des-monts"
+        },
+        "4697": {
+          "id": 4697,
+          "name": "Sainte-claire"
+        },
+        "4698": {
+          "id": 4698,
+          "name": "Sainte-julienne"
+        },
+        "4699": {
+          "id": 4699,
+          "name": "Sainte-marie"
+        },
+        "4700": {
+          "id": 4700,
+          "name": "Sainte-martine"
+        },
+        "4701": {
+          "id": 4701,
+          "name": "Sainte-thecle"
+        },
+        "4702": {
+          "id": 4702,
+          "name": "Saint-fabien"
+        },
+        "4703": {
+          "id": 4703,
+          "name": "Saint-felicien"
+        },
+        "4704": {
+          "id": 4704,
+          "name": "Saint-felix-de-valois"
+        },
+        "4705": {
+          "id": 4705,
+          "name": "Saint-gabriel"
+        },
+        "4706": {
+          "id": 4706,
+          "name": "Saint-gedeon"
+        },
+        "4707": {
+          "id": 4707,
+          "name": "Saint-georges"
+        },
+        "4708": {
+          "id": 4708,
+          "name": "Saint-germain-de-grantham"
+        },
+        "4709": {
+          "id": 4709,
+          "name": "Saint-henri-de-levis"
+        },
+        "4710": {
+          "id": 4710,
+          "name": "Saint-honore"
+        },
+        "4711": {
+          "id": 4711,
+          "name": "Saint-hyacinthe"
+        },
+        "4712": {
+          "id": 4712,
+          "name": "Saint-jacques"
+        },
+        "4713": {
+          "id": 4713,
+          "name": "Saint-jean-de-dieu"
+        },
+        "4714": {
+          "id": 4714,
+          "name": "Saint-jean-port-joli"
+        },
+        "4715": {
+          "id": 4715,
+          "name": "Saint-jerome"
+        },
+        "4717": {
+          "id": 4717,
+          "name": "Saint-jovite"
+        },
+        "4719": {
+          "id": 4719,
+          "name": "Saint-marc-des-carrieres"
+        },
+        "4721": {
+          "id": 4721,
+          "name": "Saint-michel-des-saints"
+        },
+        "4722": {
+          "id": 4722,
+          "name": "Saint-pacome"
+        },
+        "4723": {
+          "id": 4723,
+          "name": "Saint-pascal"
+        },
+        "4725": {
+          "id": 4725,
+          "name": "Saint-pie"
+        },
+        "4726": {
+          "id": 4726,
+          "name": "Saint-prosper"
+        },
+        "4728": {
+          "id": 4728,
+          "name": "Saint-raphael"
+        },
+        "4729": {
+          "id": 4729,
+          "name": "Saint-raymond"
+        },
+        "4730": {
+          "id": 4730,
+          "name": "Saint-remi"
+        },
+        "4731": {
+          "id": 4731,
+          "name": "Saint-sauveur-des-monts"
+        },
+        "4734": {
+          "id": 4734,
+          "name": "Saint-tite"
+        },
+        "4735": {
+          "id": 4735,
+          "name": "Salaberry-de-valleyfield"
+        },
+        "4742": {
+          "id": 4742,
+          "name": "Sayabec"
+        },
+        "4746": {
+          "id": 4746,
+          "name": "Senneterre"
+        },
+        "4747": {
+          "id": 4747,
+          "name": "Sept-iles"
+        },
+        "4750": {
+          "id": 4750,
+          "name": "Shawinigan"
+        },
+        "4751": {
+          "id": 4751,
+          "name": "Shawville"
+        },
+        "4756": {
+          "id": 4756,
+          "name": "Sherbrooke"
+        },
+        "4766": {
+          "id": 4766,
+          "name": "Sorel"
+        },
+        "4800": {
+          "id": 4800,
+          "name": "Temiscaming"
+        },
+        "4805": {
+          "id": 4805,
+          "name": "Thetford Mines"
+        },
+        "4810": {
+          "id": 4810,
+          "name": "Thurso"
+        },
+        "4819": {
+          "id": 4819,
+          "name": "Trois-pistoles"
+        },
+        "4820": {
+          "id": 4820,
+          "name": "Trois-rivieres"
+        },
+        "4828": {
+          "id": 4828,
+          "name": "Valcourt"
+        },
+        "4829": {
+          "id": 4829,
+          "name": "Val-david"
+        },
+        "4830": {
+          "id": 4830,
+          "name": "Vallee-jonction"
+        },
+        "4836": {
+          "id": 4836,
+          "name": "Vercheres"
+        },
+        "4840": {
+          "id": 4840,
+          "name": "Victoriaville"
+        },
+        "4842": {
+          "id": 4842,
+          "name": "Ville-marie"
+        },
+        "4851": {
+          "id": 4851,
+          "name": "Warwick"
+        },
+        "4854": {
+          "id": 4854,
+          "name": "Waterloo"
+        },
+        "4875": {
+          "id": 4875,
+          "name": "Windsor"
+        },
+        "4884": {
+          "id": 4884,
+          "name": "Yamachiche"
+        }
+      }
+    },
+    "SK": {
+      "code": "SK",
+      "name": "Saskatchewan",
+      "cities": {
+        "4199": {
+          "id": 4199,
+          "name": "Assiniboia"
+        },
+        "4227": {
+          "id": 4227,
+          "name": "Biggar"
+        },
+        "4267": {
+          "id": 4267,
+          "name": "Canora"
+        },
+        "4277": {
+          "id": 4277,
+          "name": "Carlyle"
+        },
+        "4279": {
+          "id": 4279,
+          "name": "Carnduff"
+        },
+        "4280": {
+          "id": 4280,
+          "name": "Caronport"
+        },
+        "4326": {
+          "id": 4326,
+          "name": "Dalmeny"
+        },
+        "4329": {
+          "id": 4329,
+          "name": "Davidson"
+        },
+        "4365": {
+          "id": 4365,
+          "name": "Esterhazy"
+        },
+        "4366": {
+          "id": 4366,
+          "name": "Estevan"
+        },
+        "4367": {
+          "id": 4367,
+          "name": "Eston"
+        },
+        "4376": {
+          "id": 4376,
+          "name": "Foam Lake"
+        },
+        "4407": {
+          "id": 4407,
+          "name": "Gravelbourg"
+        },
+        "4409": {
+          "id": 4409,
+          "name": "Grenfell"
+        },
+        "4412": {
+          "id": 4412,
+          "name": "Gull Lake"
+        },
+        "4442": {
+          "id": 4442,
+          "name": "Hudson Bay"
+        },
+        "4443": {
+          "id": 4443,
+          "name": "Humboldt"
+        },
+        "4446": {
+          "id": 4446,
+          "name": "Indian Head"
+        },
+        "4458": {
+          "id": 4458,
+          "name": "Kamsack"
+        },
+        "4463": {
+          "id": 4463,
+          "name": "Kelvington"
+        },
+        "4468": {
+          "id": 4468,
+          "name": "Kerrobert"
+        },
+        "4473": {
+          "id": 4473,
+          "name": "Kindersley"
+        },
+        "4490": {
+          "id": 4490,
+          "name": "Langenburg"
+        },
+        "4491": {
+          "id": 4491,
+          "name": "Langham"
+        },
+        "4492": {
+          "id": 4492,
+          "name": "Lanigan"
+        },
+        "4493": {
+          "id": 4493,
+          "name": "La Ronge"
+        },
+        "4510": {
+          "id": 4510,
+          "name": "Lloydminster"
+        },
+        "4519": {
+          "id": 4519,
+          "name": "Lumsden"
+        },
+        "4522": {
+          "id": 4522,
+          "name": "Macklin"
+        },
+        "4529": {
+          "id": 4529,
+          "name": "Maple Creek"
+        },
+        "4540": {
+          "id": 4540,
+          "name": "Meadow Lake"
+        },
+        "4543": {
+          "id": 4543,
+          "name": "Melfort"
+        },
+        "4545": {
+          "id": 4545,
+          "name": "Melville"
+        },
+        "4563": {
+          "id": 4563,
+          "name": "Moose Jaw"
+        },
+        "4564": {
+          "id": 4564,
+          "name": "Moosomin"
+        },
+        "4583": {
+          "id": 4583,
+          "name": "Nipawin"
+        },
+        "4586": {
+          "id": 4586,
+          "name": "North Battleford"
+        },
+        "4603": {
+          "id": 4603,
+          "name": "Outlook"
+        },
+        "4605": {
+          "id": 4605,
+          "name": "Oxbow"
+        },
+        "4629": {
+          "id": 4629,
+          "name": "Pilot Butte"
+        },
+        "4648": {
+          "id": 4648,
+          "name": "Preeceville"
+        },
+        "4651": {
+          "id": 4651,
+          "name": "Prince Albert"
+        },
+        "4663": {
+          "id": 4663,
+          "name": "Regina"
+        },
+        "4680": {
+          "id": 4680,
+          "name": "Rosetown"
+        },
+        "4740": {
+          "id": 4740,
+          "name": "Saskatoon"
+        },
+        "4749": {
+          "id": 4749,
+          "name": "Shaunavon"
+        },
+        "4755": {
+          "id": 4755,
+          "name": "Shellbrook"
+        },
+        "4793": {
+          "id": 4793,
+          "name": "Swift Current"
+        },
+        "4826": {
+          "id": 4826,
+          "name": "Unity"
+        },
+        "4846": {
+          "id": 4846,
+          "name": "Wadena"
+        },
+        "4850": {
+          "id": 4850,
+          "name": "Warman"
+        },
+        "4856": {
+          "id": 4856,
+          "name": "Watrous"
+        },
+        "4863": {
+          "id": 4863,
+          "name": "Weyburn"
+        },
+        "4870": {
+          "id": 4870,
+          "name": "Wilkie"
+        },
+        "4882": {
+          "id": 4882,
+          "name": "Wynyard"
+        },
+        "4887": {
+          "id": 4887,
+          "name": "Yorkton"
+        }
+      }
+    },
+    "YT": {
+      "code": "YT",
+      "name": "Yukon Territory",
+      "cities": {
+        "4415": {
+          "id": 4415,
+          "name": "Haines Junction"
+        },
+        "4539": {
+          "id": 4539,
+          "name": "Mayo"
+        },
+        "4867": {
+          "id": 4867,
+          "name": "Whitehorse"
+        }
+      }
+    }
+  }
+}

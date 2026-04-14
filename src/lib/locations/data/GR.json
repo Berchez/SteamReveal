@@ -1,1 +1,4648 @@
-{"code":"GR","name":"Greece","states":{"10":{"code":"10","name":"Grevena","cities":{"17789":{"id":17789,"name":"Deskati"},"17885":{"id":17885,"name":"Grevena"},"18492":{"id":18492,"name":"Samarina"}}},"11":{"code":"11","name":"Kozani","cities":{"17622":{"id":17622,"name":"Aiani"},"17634":{"id":17634,"name":"Akrini"},"17660":{"id":17660,"name":"Anarrakhi"},"17662":{"id":17662,"name":"Anatolikon"},"17676":{"id":17676,"name":"Ano Komi"},"17695":{"id":17695,"name":"Ardassa"},"17812":{"id":17812,"name":"Emborion"},"17821":{"id":17821,"name":"Eratira"},"17846":{"id":17846,"name":"Filotas"},"17860":{"id":17860,"name":"Galatini"},"18060":{"id":18060,"name":"Klitos"},"18061":{"id":18061,"name":"Koila"},"18073":{"id":18073,"name":"Komnina"},"18098":{"id":18098,"name":"Kozani"},"18114":{"id":18114,"name":"Krokos"},"18472":{"id":18472,"name":"Ptolemais"},"18503":{"id":18503,"name":"Servia"},"18506":{"id":18506,"name":"Siatista"},"18635":{"id":18635,"name":"Velventos"}}},"12":{"code":"12","name":"Imathia","cities":{"17637":{"id":17637,"name":"Alexandria"},"17671":{"id":17671,"name":"Angelokhorion"},"17746":{"id":17746,"name":"Ayia Marina"},"17785":{"id":17785,"name":"Ayios Yeoryios"},"17791":{"id":17791,"name":"Diavatos"},"18022":{"id":18022,"name":"Khariessa"},"18078":{"id":18078,"name":"Kopanos"},"18079":{"id":18079,"name":"Korifi"},"18093":{"id":18093,"name":"Kouloura"},"18103":{"id":18103,"name":"Kria Vrisi"},"18132":{"id":18132,"name":"Lianoveryion"},"18159":{"id":18159,"name":"Loutros"},"18171":{"id":18171,"name":"Makrokhorion"},"18183":{"id":18183,"name":"Marina"},"18198":{"id":18198,"name":"Meliki"},"18244":{"id":18244,"name":"Monospita"},"18256":{"id":18256,"name":"Naousa"},"18323":{"id":18323,"name":"Nision"},"18384":{"id":18384,"name":"Patris"},"18428":{"id":18428,"name":"Platanos"},"18433":{"id":18433,"name":"Plati"},"18442":{"id":18442,"name":"Poliplatanos"},"18483":{"id":18483,"name":"Rizomata"},"18600":{"id":18600,"name":"Trikala"},"18638":{"id":18638,"name":"Veroia"},"18639":{"id":18639,"name":"Veryina"}}},"13":{"code":"13","name":"Thessaloniki","cities":{"17611":{"id":17611,"name":"Adendron"},"17613":{"id":17613,"name":"Afitos"},"17663":{"id":17663,"name":"Anatolikon"},"17672":{"id":17672,"name":"Angelokhorion"},"17696":{"id":17696,"name":"Arethousa"},"17722":{"id":17722,"name":"Askos"},"17727":{"id":17727,"name":"Asprovalta"},"17728":{"id":17728,"name":"Assiros"},"17733":{"id":17733,"name":"Asvestokhorion"},"17751":{"id":17751,"name":"Ayia Paraskevi"},"17757":{"id":17757,"name":"Ayia Trias"},"17764":{"id":17764,"name":"Ayios Athanasios"},"17782":{"id":17782,"name":"Ayios Vasilios"},"17790":{"id":17790,"name":"Diavata"},"17816":{"id":17816,"name":"Epanomi"},"17843":{"id":17843,"name":"Filiron"},"17851":{"id":17851,"name":"Floyita"},"17861":{"id":17861,"name":"Galatista"},"17896":{"id":17896,"name":"Iraklion"},"17909":{"id":17909,"name":"Kalamaria"},"17915":{"id":17915,"name":"Kalamoton"},"17929":{"id":17929,"name":"Kallithea"},"17936":{"id":17936,"name":"Kalokhorion"},"17957":{"id":17957,"name":"Kardia"},"17994":{"id":17994,"name":"Kato Skholarion"},"18000":{"id":18000,"name":"Kavallarion"},"18015":{"id":18015,"name":"Khalastra"},"18021":{"id":18021,"name":"Khaniotis"},"18035":{"id":18035,"name":"Khortiatis"},"18045":{"id":18045,"name":"Kimina"},"18071":{"id":18071,"name":"Kolkhikon"},"18091":{"id":18091,"name":"Koufalia"},"18106":{"id":18106,"name":"Krionerion"},"18111":{"id":18111,"name":"Krithia"},"18118":{"id":18118,"name":"Lakkoma"},"18126":{"id":18126,"name":"Layina"},"18144":{"id":18144,"name":"Liti"},"18152":{"id":18152,"name":"Loudias"},"18202":{"id":18202,"name":"Melissokhorion"},"18206":{"id":18206,"name":"Menemeni"},"18210":{"id":18210,"name":"Mesimerion"},"18224":{"id":18224,"name":"Mikron Monastirion"},"18262":{"id":18262,"name":"Nea Apollonia"},"18266":{"id":18266,"name":"Nea Fokaia"},"18269":{"id":18269,"name":"Nea Kallikratia"},"18272":{"id":18272,"name":"Nea Kerasia"},"18274":{"id":18274,"name":"Nea Magnisia"},"18276":{"id":18276,"name":"Nea Malgara"},"18278":{"id":18278,"name":"Nea Mesimvria"},"18279":{"id":18279,"name":"Nea Mikhaniona"},"18284":{"id":18284,"name":"Nea Playia"},"18290":{"id":18290,"name":"Nea Triglia"},"18295":{"id":18295,"name":"Neoi Epivatai"},"18308":{"id":18308,"name":"Neon Rision"},"18330":{"id":18330,"name":"Oraiokastron"},"18365":{"id":18365,"name":"Panorama"},"18390":{"id":18390,"name":"Pentalofos"},"18394":{"id":18394,"name":"Peraia"},"18401":{"id":18401,"name":"Peristera"},"18416":{"id":18416,"name":"Pilaia"},"18435":{"id":18435,"name":"Playiarion"},"18439":{"id":18439,"name":"Polikhni"},"18441":{"id":18441,"name":"Polikhronon"},"18460":{"id":18460,"name":"Profitis"},"18461":{"id":18461,"name":"Prokhoma"},"18508":{"id":18508,"name":"Sikeai"},"18516":{"id":18516,"name":"Sindos"},"18539":{"id":18539,"name":"Sokhos"},"18543":{"id":18543,"name":"Souroti"},"18545":{"id":18545,"name":"Sozopolis"},"18575":{"id":18575,"name":"Thermi"},"18579":{"id":18579,"name":"Thessaloniki"},"18598":{"id":18598,"name":"Triandria"},"18603":{"id":18603,"name":"Trilofon"},"18625":{"id":18625,"name":"Vasilika"},"18628":{"id":18628,"name":"Vathilakkos"},"18670":{"id":18670,"name":"Yefira"},"18674":{"id":18674,"name":"Yerakarou"}}},"14":{"code":"14","name":"Kavala","cities":{"17657":{"id":17657,"name":"Amisiana"},"17740":{"id":17740,"name":"Avaton"},"17755":{"id":17755,"name":"Ayiasma"},"17765":{"id":17765,"name":"Ayios Athanasios"},"17820":{"id":17820,"name":"Eratinon"},"17912":{"id":17912,"name":"Kalambakion"},"17930":{"id":17930,"name":"Kallithea"},"17999":{"id":17999,"name":"Kavala"},"18008":{"id":18008,"name":"Keramoti"},"18036":{"id":18036,"name":"Khrisokastron"},"18038":{"id":18038,"name":"Khrisokhorion"},"18050":{"id":18050,"name":"Kipia"},"18055":{"id":18055,"name":"Kiria"},"18066":{"id":18066,"name":"Kokkinokhoma"},"18083":{"id":18083,"name":"Kormista"},"18139":{"id":18139,"name":"Limenaria"},"18252":{"id":18252,"name":"Moustheni"},"18268":{"id":18268,"name":"Nea Iraklitsa"},"18270":{"id":18270,"name":"Nea Karia"},"18271":{"id":18271,"name":"Nea Karvali"},"18282":{"id":18282,"name":"Nea Peramos"},"18321":{"id":18321,"name":"Nikisiani"},"18350":{"id":18350,"name":"Palaiokhorion"},"18406":{"id":18406,"name":"Perni"},"18414":{"id":18414,"name":"Pigai"},"18451":{"id":18451,"name":"Potamia"},"18455":{"id":18455,"name":"Prinos"},"18465":{"id":18465,"name":"Proti"},"18572":{"id":18572,"name":"Thasos"},"18574":{"id":18574,"name":"Theologos"},"18673":{"id":18673,"name":"Yeoryiani"},"18690":{"id":18690,"name":"Zigos"}}},"15":{"code":"15","name":"Khalkidhiki","cities":{"17713":{"id":17713,"name":"Arnaia"},"17770":{"id":17770,"name":"Ayios Mamas"},"17772":{"id":17772,"name":"Ayios Nikolaos"},"17890":{"id":17890,"name":"Ierissos"},"17921":{"id":17921,"name":"Kalivai Poliyirou"},"17960":{"id":17960,"name":"Kariai"},"18190":{"id":18190,"name":"Megali Panayia"},"18214":{"id":18214,"name":"Metamorfosis"},"18310":{"id":18310,"name":"Neos Marmaras"},"18328":{"id":18328,"name":"Olinthos"},"18335":{"id":18335,"name":"Ormilia"},"18338":{"id":18338,"name":"Ouranopolis"},"18348":{"id":18348,"name":"Palaiokhora"},"18351":{"id":18351,"name":"Palaiokhorion"},"18444":{"id":18444,"name":"Poliyiros"},"18448":{"id":18448,"name":"Portaria"},"18497":{"id":18497,"name":"Sarti"},"18509":{"id":18509,"name":"Sikea"},"18564":{"id":18564,"name":"Stratonion"},"18568":{"id":18568,"name":"Taxiarkhis"}}},"16":{"code":"16","name":"Pieria","cities":{"17627":{"id":17627,"name":"Aiyinion"},"17645":{"id":17645,"name":"Alonia"},"17793":{"id":17793,"name":"Dion"},"17931":{"id":17931,"name":"Kallithea"},"17965":{"id":17965,"name":"Karitsa"},"17981":{"id":17981,"name":"Katerini"},"17992":{"id":17992,"name":"Kato Milea"},"18058":{"id":18058,"name":"Kitros"},"18070":{"id":18070,"name":"Kolindros"},"18076":{"id":18076,"name":"Kontariotissa"},"18080":{"id":18080,"name":"Korinos"},"18145":{"id":18145,"name":"Litokhoron"},"18150":{"id":18150,"name":"Lofos"},"18170":{"id":18170,"name":"Makriyialos"},"18217":{"id":18217,"name":"Methoni"},"18227":{"id":18227,"name":"Milea"},"18264":{"id":18264,"name":"Nea Efesos"},"18372":{"id":18372,"name":"Paralia"},"18400":{"id":18400,"name":"Peristasis"},"18478":{"id":18478,"name":"Ritini"},"18505":{"id":18505,"name":"Sevasti"},"18522":{"id":18522,"name":"Skala Fourkas"},"18533":{"id":18533,"name":"Skotina"},"18567":{"id":18567,"name":"Svoronos"},"18661":{"id":18661,"name":"Vrontou"}}},"17":{"code":"17","name":"Ioannina","cities":{"17661":{"id":17661,"name":"Anatoli"},"17794":{"id":17794,"name":"Doliana"},"17806":{"id":17806,"name":"Eleousa"},"17832":{"id":17832,"name":"Exokhi"},"17892":{"id":17892,"name":"Ioannina"},"17998":{"id":17998,"name":"Katsikas"},"18005":{"id":18005,"name":"Kefalovrison"},"18075":{"id":18075,"name":"Konitsa"},"18095":{"id":18095,"name":"Koutselion"},"18219":{"id":18219,"name":"Metsovon"},"18296":{"id":18296,"name":"Neokaisaria"},"18303":{"id":18303,"name":"Neokhoropoulon"},"18385":{"id":18385,"name":"Pedini"},"18396":{"id":18396,"name":"Perama"},"18453":{"id":18453,"name":"Pramanta"},"18488":{"id":18488,"name":"Rodotopion"},"18692":{"id":18692,"name":"Zitsa"}}},"18":{"code":"18","name":"Thesprotia","cities":{"17839":{"id":17839,"name":"Filiates"},"17880":{"id":17880,"name":"Graikokhorion"},"17891":{"id":17891,"name":"Igoumenitsa"},"18376":{"id":18376,"name":"Paramithia"},"18377":{"id":18377,"name":"Parapotamos"},"18399":{"id":18399,"name":"Perdika"},"18431":{"id":18431,"name":"Plataria"},"18521":{"id":18521,"name":"Sivota"}}},"19":{"code":"19","name":"Preveza","cities":{"17842":{"id":17842,"name":"Filippias"},"17948":{"id":17948,"name":"Kanalion"},"17950":{"id":17950,"name":"Kanallakion"},"18154":{"id":18154,"name":"Louros"},"18312":{"id":18312,"name":"Neos Oropos"},"18368":{"id":18368,"name":"Pappadatai"},"18379":{"id":18379,"name":"Parga"},"18454":{"id":18454,"name":"Preveza"},"18578":{"id":18578,"name":"Thesprotikon"}}},"20":{"code":"20","name":"Arta","cities":{"17669":{"id":17669,"name":"Aneza"},"17717":{"id":17717,"name":"Arta"},"17807":{"id":17807,"name":"Eleousa"},"17884":{"id":17884,"name":"Grammenitsa"},"17913":{"id":17913,"name":"Kalamia"},"17944":{"id":17944,"name":"Kambi"},"18072":{"id":18072,"name":"Kombotion"},"18088":{"id":18088,"name":"Kostakioi"},"18203":{"id":18203,"name":"Melissourgoi"},"18299":{"id":18299,"name":"Neokhorion"},"18407":{"id":18407,"name":"Peta"},"18573":{"id":18573,"name":"Theodoriana"}}},"21":{"code":"21","name":"Larisa","cities":{"17653":{"id":17653,"name":"Ambelon"},"17711":{"id":17711,"name":"Armenion"},"17719":{"id":17719,"name":"Aryiropoulion"},"17744":{"id":17744,"name":"Ayia"},"17802":{"id":17802,"name":"Elasson"},"17833":{"id":17833,"name":"Falanna"},"17836":{"id":17836,"name":"Farsala"},"17873":{"id":17873,"name":"Gonnoi"},"18016":{"id":18016,"name":"Khalki"},"18099":{"id":18099,"name":"Kranea Elassonos"},"18124":{"id":18124,"name":"Larisa"},"18146":{"id":18146,"name":"Livaderon"},"18147":{"id":18147,"name":"Livadi"},"18166":{"id":18166,"name":"Makrikhorion"},"18205":{"id":18205,"name":"Melivoia"},"18319":{"id":18319,"name":"Nikaia"},"18422":{"id":18422,"name":"Piryetos"},"18432":{"id":18432,"name":"Platikambos"},"18474":{"id":18474,"name":"Rapsani"},"18512":{"id":18512,"name":"Sikourion"},"18557":{"id":18557,"name":"Stefanovikion"},"18571":{"id":18571,"name":"Terpsithea"},"18591":{"id":18591,"name":"Tirnavos"},"18606":{"id":18606,"name":"Tsaritsani"},"18615":{"id":18615,"name":"Vamvakou"},"18637":{"id":18637,"name":"Verdikoussa"},"18680":{"id":18680,"name":"Yiannouli"}}},"22":{"code":"22","name":"Trikala","cities":{"17804":{"id":17804,"name":"Elati"},"17838":{"id":17838,"name":"Fiki"},"17872":{"id":17872,"name":"Gomfoi"},"17886":{"id":17886,"name":"Grizanon"},"17911":{"id":17911,"name":"Kalambaka"},"17977":{"id":17977,"name":"Kastrakion"},"18006":{"id":18006,"name":"Kefalovrison"},"18105":{"id":18105,"name":"Krini"},"18188":{"id":18188,"name":"Megala Kalivia"},"18193":{"id":18193,"name":"Megalokhorion"},"18355":{"id":18355,"name":"Palaiomonastiron"},"18358":{"id":18358,"name":"Palaiopirgos"},"18412":{"id":18412,"name":"Petroton"},"18418":{"id":18418,"name":"Pili"},"18425":{"id":18425,"name":"Piyi"},"18480":{"id":18480,"name":"Rizarion"},"18482":{"id":18482,"name":"Rizoma"},"18563":{"id":18563,"name":"Stournaraiika"},"18601":{"id":18601,"name":"Trikala"},"18626":{"id":18626,"name":"Vasiliki"},"18649":{"id":18649,"name":"Vlakhoyiannion"},"18687":{"id":18687,"name":"Zarkos"}}},"23":{"code":"23","name":"Kardhitsa","cities":{"17616":{"id":17616,"name":"Agnanteron"},"17631":{"id":17631,"name":"Akhinos"},"17665":{"id":17665,"name":"Anavra"},"17718":{"id":17718,"name":"Artesianon"},"17758":{"id":17758,"name":"Ayia Trias"},"17901":{"id":17901,"name":"Itea"},"17927":{"id":17927,"name":"Kallifonion"},"17934":{"id":17934,"name":"Kallithiron"},"17958":{"id":17958,"name":"Karditsa"},"17959":{"id":17959,"name":"Karditsomagoula"},"17971":{"id":17971,"name":"Karpokhorion"},"18160":{"id":18160,"name":"Magoula"},"18164":{"id":18164,"name":"Makrakomi"},"18167":{"id":18167,"name":"Makrikhorion"},"18238":{"id":18238,"name":"Mitropoli"},"18245":{"id":18245,"name":"Morfovounion"},"18253":{"id":18253,"name":"Mouzakion"},"18300":{"id":18300,"name":"Neokhorion"},"18306":{"id":18306,"name":"Neon Monastirion"},"18360":{"id":18360,"name":"Palamas"},"18456":{"id":18456,"name":"Proastion"},"18457":{"id":18457,"name":"Prodromos"},"18475":{"id":18475,"name":"Rentina"}}},"24":{"code":"24","name":"Magnisia","cities":{"17620":{"id":17620,"name":"Agria"},"17643":{"id":17643,"name":"Alli Meria"},"17644":{"id":17644,"name":"Almiros"},"17678":{"id":17678,"name":"Ano Lekhonia"},"17698":{"id":17698,"name":"Argalasti"},"17871":{"id":17871,"name":"Glossa"},"17916":{"id":17916,"name":"Kala Nera"},"17947":{"id":17947,"name":"Kanalia"},"17990":{"id":17990,"name":"Kato Lekhonia"},"18168":{"id":18168,"name":"Makrinitsa"},"18226":{"id":18226,"name":"Mileai"},"18261":{"id":18261,"name":"Nea Ankhialos"},"18382":{"id":18382,"name":"Patitirion"},"18387":{"id":18387,"name":"Pelasyia"},"18449":{"id":18449,"name":"Portaria"},"18471":{"id":18471,"name":"Pteleos"},"18484":{"id":18484,"name":"Rizomilos"},"18529":{"id":18529,"name":"Skiathos"},"18531":{"id":18531,"name":"Skopelos"},"18544":{"id":18544,"name":"Sourpi"},"18602":{"id":18602,"name":"Trikerion"},"18633":{"id":18633,"name":"Velestinon"},"18652":{"id":18652,"name":"Volos"},"18683":{"id":18683,"name":"Zagora"}}},"25":{"code":"25","name":"Kerkira","cities":{"17614":{"id":17614,"name":"Afra"},"17636":{"id":17636,"name":"Alepou"},"17677":{"id":17677,"name":"Ano Korakiana"},"17771":{"id":17771,"name":"Ayios Matthaios"},"17824":{"id":17824,"name":"Erikoussa"},"17867":{"id":17867,"name":"Gastouri"},"17879":{"id":17879,"name":"Gouvia"},"17894":{"id":17894,"name":"Ipsos"},"17949":{"id":17949,"name":"Kanalion"},"17967":{"id":17967,"name":"Karousades"},"17972":{"id":17972,"name":"Kassiopi"},"17989":{"id":17989,"name":"Kato Korakiana"},"18003":{"id":18003,"name":"Kavos"},"18012":{"id":18012,"name":"Kerkira"},"18048":{"id":18048,"name":"Kinopiastai"},"18065":{"id":18065,"name":"Kokkinion"},"18077":{"id":18077,"name":"Kontokalion"},"18133":{"id":18133,"name":"Liapades"},"18337":{"id":18337,"name":"Othonoi"},"18404":{"id":18404,"name":"Perivolion"},"18452":{"id":18452,"name":"Potamos"},"18515":{"id":18515,"name":"Sinarades"},"18644":{"id":18644,"name":"Viros"}}},"26":{"code":"26","name":"Levkas","cities":{"17962":{"id":17962,"name":"Karia"}}},"27":{"code":"27","name":"Kefallinia","cities":{"17701":{"id":17701,"name":"Argostolion"},"17903":{"id":17903,"name":"Ithaki"},"17974":{"id":17974,"name":"Kastella"},"18149":{"id":18149,"name":"Lixourion"},"18165":{"id":18165,"name":"Makrikapa"},"18443":{"id":18443,"name":"Politika"},"18446":{"id":18446,"name":"Poros"},"18468":{"id":18468,"name":"Psakhna"},"18493":{"id":18493,"name":"Sami"},"18611":{"id":18611,"name":"Valsamata"}}},"28":{"code":"28","name":"Zakinthos","cities":{"17652":{"id":17652,"name":"Ambelokipoi"},"17855":{"id":17855,"name":"Gaitanion"},"17907":{"id":17907,"name":"Kalamakion"},"17980":{"id":17980,"name":"Katastarion"},"18143":{"id":18143,"name":"Lithakia"},"18254":{"id":18254,"name":"Mouzakion"},"18426":{"id":18426,"name":"Planos"},"18616":{"id":18616,"name":"Vanaton"},"18685":{"id":18685,"name":"Zakinthos"}}},"29":{"code":"29","name":"Fthiotis","cities":{"17685":{"id":17685,"name":"Anthili"},"17734":{"id":17734,"name":"Atalanti"},"17779":{"id":17779,"name":"Ayios Serafim"},"17795":{"id":17795,"name":"Domokos"},"17904":{"id":17904,"name":"Kainouryion"},"17945":{"id":17945,"name":"Kamena Vourla"},"18089":{"id":18089,"name":"Kostalexis"},"18120":{"id":18120,"name":"Lamia"},"18148":{"id":18148,"name":"Livanatai"},"18155":{"id":18155,"name":"Loutra Ipatis"},"18191":{"id":18191,"name":"Megali Vrisi"},"18242":{"id":18242,"name":"Molos"},"18248":{"id":18248,"name":"Moskhokhorion"},"18329":{"id":18329,"name":"Omvriaki"},"18560":{"id":18560,"name":"Stilis"},"18596":{"id":18596,"name":"Tragana"},"18689":{"id":18689,"name":"Zelion"}}},"30":{"code":"30","name":"Evritania","cities":{"17618":{"id":17618,"name":"Agrafa"},"17817":{"id":17817,"name":"Epiniana"},"17969":{"id":17969,"name":"Karpenision"},"18549":{"id":18549,"name":"Sperkhias"}}},"31":{"code":"31","name":"Aitolia kai Akarnania","cities":{"17621":{"id":17621,"name":"Agrinion"},"17625":{"id":17625,"name":"Aitolikon"},"17655":{"id":17655,"name":"Amfilokhia"},"17670":{"id":17670,"name":"Angelokastron"},"17730":{"id":17730,"name":"Astakos"},"17773":{"id":17773,"name":"Ayios Nikolaos"},"17783":{"id":17783,"name":"Ayios Vasilios"},"17848":{"id":17848,"name":"Fitiai"},"17857":{"id":17857,"name":"Galatas"},"17868":{"id":17868,"name":"Gavalou"},"17877":{"id":17877,"name":"Gouria"},"17883":{"id":17883,"name":"Grammatikou"},"17905":{"id":17905,"name":"Kainouryion"},"17923":{"id":17923,"name":"Kalivia"},"17951":{"id":17951,"name":"Kandila"},"17978":{"id":17978,"name":"Kastrakion"},"17987":{"id":17987,"name":"Katokhi"},"17997":{"id":17997,"name":"Katouna"},"18104":{"id":18104,"name":"Krikellos"},"18131":{"id":18131,"name":"Lepenou"},"18189":{"id":18189,"name":"Megali Khora"},"18207":{"id":18207,"name":"Menidion"},"18211":{"id":18211,"name":"Mesolongion"},"18234":{"id":18234,"name":"Mitikas"},"18243":{"id":18243,"name":"Monastirakion"},"18301":{"id":18301,"name":"Neokhorion"},"18354":{"id":18354,"name":"Palaiomanina"},"18359":{"id":18359,"name":"Palairos"},"18361":{"id":18361,"name":"Paliambela"},"18364":{"id":18364,"name":"Panaitolion"},"18378":{"id":18378,"name":"Paravola"},"18434":{"id":18434,"name":"Playia"},"18496":{"id":18496,"name":"Sardinia"},"18552":{"id":18552,"name":"Spolaita"},"18555":{"id":18555,"name":"Stamna"},"18556":{"id":18556,"name":"Stanos"},"18565":{"id":18565,"name":"Stratos"},"18576":{"id":18576,"name":"Thermon"},"18582":{"id":18582,"name":"Thirion"},"18599":{"id":18599,"name":"Trifos"},"18653":{"id":18653,"name":"Vonitsa"}}},"32":{"code":"32","name":"Fokis","cities":{"17656":{"id":17656,"name":"Amfissa"},"17902":{"id":17902,"name":"Itea"},"18134":{"id":18134,"name":"Lidorikion"}}},"33":{"code":"33","name":"Voiotia","cities":{"17632":{"id":17632,"name":"Akraifnion"},"17640":{"id":17640,"name":"Aliartos"},"17654":{"id":17654,"name":"Amfiklia"},"17692":{"id":17692,"name":"Arakhova"},"17710":{"id":17710,"name":"Arma"},"17723":{"id":17723,"name":"Asopia"},"17752":{"id":17752,"name":"Ayia Paraskevi"},"17759":{"id":17759,"name":"Ayia Trias"},"17786":{"id":17786,"name":"Ayios Yeoryios"},"17796":{"id":17796,"name":"Domvraina"},"17803":{"id":17803,"name":"Elatia"},"17805":{"id":17805,"name":"Eleon"},"17825":{"id":17825,"name":"Erithrai"},"17831":{"id":17831,"name":"Exarkhos"},"17953":{"id":17953,"name":"Kaparellion"},"17979":{"id":17979,"name":"Kastron"},"17996":{"id":17996,"name":"Kato Tithorea"},"18054":{"id":18054,"name":"Kiriakion"},"18056":{"id":18056,"name":"Kirra"},"18067":{"id":18067,"name":"Kokkinon"},"18123":{"id":18123,"name":"Larimna"},"18172":{"id":18172,"name":"Malesina"},"18187":{"id":18187,"name":"Martinon"},"18333":{"id":18333,"name":"Orkhomenos"},"18427":{"id":18427,"name":"Plataiai"},"18562":{"id":18562,"name":"Stirion"},"18577":{"id":18577,"name":"Thespiai"},"18583":{"id":18583,"name":"Thivai"},"18592":{"id":18592,"name":"Tithorea"},"18632":{"id":18632,"name":"Vayia"},"18641":{"id":18641,"name":"Vilia"}}},"34":{"code":"34","name":"Evvoia","cities":{"17615":{"id":17615,"name":"Afration"},"17647":{"id":17647,"name":"Amarinthos"},"17743":{"id":17743,"name":"Ayia Anna"},"17766":{"id":17766,"name":"Ayios Ioannis"},"17774":{"id":17774,"name":"Ayios Nikolaos"},"17823":{"id":17823,"name":"Eretria"},"17835":{"id":17835,"name":"Faros"},"17844":{"id":17844,"name":"Filla"},"17900":{"id":17900,"name":"Istiaia"},"17964":{"id":17964,"name":"Karistos"},"18017":{"id":18017,"name":"Khalkis"},"18018":{"id":18018,"name":"Khalkoutsion"},"18044":{"id":18044,"name":"Kimi"},"18142":{"id":18142,"name":"Limni"},"18153":{"id":18153,"name":"Loukisia"},"18161":{"id":18161,"name":"Magoula"},"18179":{"id":18179,"name":"Mantoudion"},"18185":{"id":18185,"name":"Marmarion"},"18235":{"id":18235,"name":"Mitikas"},"18263":{"id":18263,"name":"Nea Artaki"},"18288":{"id":18288,"name":"Nea Stira"},"18314":{"id":18314,"name":"Neos Pirgos"},"18325":{"id":18325,"name":"Oinofita"},"18331":{"id":18331,"name":"Oreoi"},"18340":{"id":18340,"name":"Oxilithos"},"18373":{"id":18373,"name":"Paralia"},"18462":{"id":18462,"name":"Prokopion"},"18489":{"id":18489,"name":"Roviai"},"18524":{"id":18524,"name":"Skala Oropou"},"18527":{"id":18527,"name":"Skhimatarion"},"18530":{"id":18530,"name":"Skiros"},"18627":{"id":18627,"name":"Vasilikon"},"18629":{"id":18629,"name":"Vathi"},"18681":{"id":18681,"name":"Yimnon"}}},"35":{"code":"35","name":"Attiki","cities":{"17623":{"id":17623,"name":"Aiantion"},"17624":{"id":17624,"name":"Aigaleo"},"17626":{"id":17626,"name":"Aiyina"},"17630":{"id":17630,"name":"Akharnai"},"17642":{"id":17642,"name":"Aliverion"},"17648":{"id":17648,"name":"Amarousion"},"17649":{"id":17649,"name":"Ambelakia"},"17664":{"id":17664,"name":"Anavissos"},"17674":{"id":17674,"name":"Anoixis"},"17679":{"id":17679,"name":"Ano Liosia"},"17725":{"id":17725,"name":"Aspropirgos"},"17735":{"id":17735,"name":"Athens"},"17747":{"id":17747,"name":"Ayia Marina"},"17753":{"id":17753,"name":"Ayia Paraskevi"},"17760":{"id":17760,"name":"Ayia Varvara"},"17762":{"id":17762,"name":"Ayioi Apostoloi"},"17769":{"id":17769,"name":"Ayios Loukas"},"17780":{"id":17780,"name":"Ayios Stefanos"},"17781":{"id":17781,"name":"Ayios Thomas"},"17800":{"id":17800,"name":"Ekali"},"17808":{"id":17808,"name":"Eleusis"},"17809":{"id":17809,"name":"Ellinikon"},"17841":{"id":17841,"name":"Fili"},"17858":{"id":17858,"name":"Galatas"},"17862":{"id":17862,"name":"Galatsion"},"17882":{"id":17882,"name":"Grammatikon"},"17897":{"id":17897,"name":"Iraklion"},"17906":{"id":17906,"name":"Kaisariani"},"17908":{"id":17908,"name":"Kalamakion"},"17914":{"id":17914,"name":"Kalamos"},"17924":{"id":17924,"name":"Kalivia Thorikou"},"17932":{"id":17932,"name":"Kallithea"},"17942":{"id":17942,"name":"Kamateron"},"17952":{"id":17952,"name":"Kapandrition"},"17995":{"id":17995,"name":"Kato Soulion"},"18009":{"id":18009,"name":"Keratea"},"18010":{"id":18010,"name":"Keratsinion"},"18013":{"id":18013,"name":"Khalandrion"},"18029":{"id":18029,"name":"Kholargos"},"18041":{"id":18041,"name":"Kifisia"},"18047":{"id":18047,"name":"Kineta"},"18052":{"id":18052,"name":"Kipseli"},"18086":{"id":18086,"name":"Koropion"},"18097":{"id":18097,"name":"Kouvaras"},"18107":{"id":18107,"name":"Krionerion"},"18138":{"id":18138,"name":"Likovrisi"},"18162":{"id":18162,"name":"Magoula"},"18175":{"id":18175,"name":"Mandra"},"18181":{"id":18181,"name":"Marathon"},"18184":{"id":18184,"name":"Markopoulon"},"18196":{"id":18196,"name":"Megara"},"18199":{"id":18199,"name":"Melissia"},"18216":{"id":18216,"name":"Methana"},"18228":{"id":18228,"name":"Milesion"},"18247":{"id":18247,"name":"Moskhaton"},"18265":{"id":18265,"name":"Nea Erithraia"},"18267":{"id":18267,"name":"Nea Ionia"},"18275":{"id":18275,"name":"Nea Makri"},"18280":{"id":18280,"name":"Nea Palatia"},"18283":{"id":18283,"name":"Nea Peramos"},"18287":{"id":18287,"name":"Nea Smirni"},"18320":{"id":18320,"name":"Nikaia"},"18326":{"id":18326,"name":"Oinoi"},"18343":{"id":18343,"name":"Paiania"},"18345":{"id":18345,"name":"Palaia Fokaia"},"18357":{"id":18357,"name":"Palaion Faliron"},"18362":{"id":18362,"name":"Pallini"},"18367":{"id":18367,"name":"Papagos"},"18397":{"id":18397,"name":"Perama"},"18402":{"id":18402,"name":"Peristerion"},"18415":{"id":18415,"name":"Pikermion"},"18447":{"id":18447,"name":"Poros"},"18470":{"id":18470,"name":"Psikhikon"},"18473":{"id":18473,"name":"Rafina"},"18491":{"id":18491,"name":"Salamis"},"18501":{"id":18501,"name":"Selinia"},"18535":{"id":18535,"name":"Skourta"},"18546":{"id":18546,"name":"Sparta"},"18548":{"id":18548,"name":"Spata"},"18551":{"id":18551,"name":"Spetsai"},"18554":{"id":18554,"name":"Stamata"},"18619":{"id":18619,"name":"Vari"},"18621":{"id":18621,"name":"Varnavas"},"18630":{"id":18630,"name":"Vathi"},"18643":{"id":18643,"name":"Viron"},"18654":{"id":18654,"name":"Voula"},"18655":{"id":18655,"name":"Vouliagmeni"},"18686":{"id":18686,"name":"Zarakes"}}},"36":{"code":"36","name":"Argolis","cities":{"17673":{"id":17673,"name":"Anifion"},"17691":{"id":17691,"name":"Arakhnaion"},"17699":{"id":17699,"name":"Argos"},"17702":{"id":17702,"name":"Aria"},"17721":{"id":17721,"name":"Asini"},"17826":{"id":17826,"name":"Ermioni"},"18059":{"id":18059,"name":"Kiverion"},"18062":{"id":18062,"name":"Koilas"},"18100":{"id":18100,"name":"Kranidion"},"18135":{"id":18135,"name":"Ligourion"},"18141":{"id":18141,"name":"Limnai"},"18229":{"id":18229,"name":"Miloi"},"18258":{"id":18258,"name":"Nauplion"},"18273":{"id":18273,"name":"Nea Kios"},"18289":{"id":18289,"name":"Nea Tirins"},"18450":{"id":18450,"name":"Portokhelion"},"18593":{"id":18593,"name":"Tolon"}}},"37":{"code":"37","name":"Korinthia","cities":{"17707":{"id":17707,"name":"Arkhaia Korinthos"},"17729":{"id":17729,"name":"Assos"},"17736":{"id":17736,"name":"Athikia"},"17784":{"id":17784,"name":"Ayios Vasilios"},"17788":{"id":17788,"name":"Derveni"},"17829":{"id":17829,"name":"Examilia"},"17899":{"id":17899,"name":"Isthmia"},"17939":{"id":17939,"name":"Kamarion"},"17984":{"id":17984,"name":"Kato Assos"},"18026":{"id":18026,"name":"Khiliomodion"},"18040":{"id":18040,"name":"Kiato"},"18053":{"id":18053,"name":"Kiras Vrisi"},"18068":{"id":18068,"name":"Kokkonion"},"18081":{"id":18081,"name":"Korinthos"},"18108":{"id":18108,"name":"Krionerion"},"18128":{"id":18128,"name":"Lekhaion"},"18137":{"id":18137,"name":"Likoporia"},"18156":{"id":18156,"name":"Loutrakion"},"18201":{"id":18201,"name":"Melission"},"18249":{"id":18249,"name":"Moulkion"},"18293":{"id":18293,"name":"Nemea"},"18381":{"id":18381,"name":"Pasion"},"18395":{"id":18395,"name":"Perakhora"},"18405":{"id":18405,"name":"Periyialion"},"18511":{"id":18511,"name":"Sikion"},"18538":{"id":18538,"name":"Sofikon"},"18634":{"id":18634,"name":"Velon"},"18650":{"id":18650,"name":"Vokhaikon"},"18656":{"id":18656,"name":"Vrakhation"},"18664":{"id":18664,"name":"Xilokastron"}}},"38":{"code":"38","name":"Akhaia","cities":{"17628":{"id":17628,"name":"Aiyion"},"17629":{"id":17629,"name":"Aiyira"},"17633":{"id":17633,"name":"Akrata"},"17675":{"id":17675,"name":"Ano Kastritsion"},"17917":{"id":17917,"name":"Kalavrita"},"17938":{"id":17938,"name":"Kamarai"},"17946":{"id":17946,"name":"Kaminia"},"17982":{"id":17982,"name":"Kato Akhaia"},"17991":{"id":17991,"name":"Kato Mazarakion"},"18014":{"id":18014,"name":"Khalandritsa"},"18121":{"id":18121,"name":"Lapas"},"18339":{"id":18339,"name":"Ovria"},"18374":{"id":18374,"name":"Paralia"},"18383":{"id":18383,"name":"Patrai"},"18477":{"id":18477,"name":"Rion"},"18490":{"id":18490,"name":"Royitika"},"18500":{"id":18500,"name":"Selianitika"},"18513":{"id":18513,"name":"Silivainiotika"},"18569":{"id":18569,"name":"Temeni"},"18657":{"id":18657,"name":"Vrakhnaiika"}}},"39":{"code":"39","name":"Ilia","cities":{"17639":{"id":17639,"name":"Alfiousa"},"17646":{"id":17646,"name":"Amalias"},"17667":{"id":17667,"name":"Andravida"},"17708":{"id":17708,"name":"Arkhaia Olimbia"},"17775":{"id":17775,"name":"Ayios Nikolaos"},"17819":{"id":17819,"name":"Epitalion"},"17866":{"id":17866,"name":"Gastouni"},"17876":{"id":17876,"name":"Goumeron"},"17933":{"id":17933,"name":"Kallithea"},"17954":{"id":17954,"name":"Karatoulas"},"17956":{"id":17956,"name":"Kardamas"},"18001":{"id":18001,"name":"Kavasilas"},"18024":{"id":18024,"name":"Khavarion"},"18043":{"id":18043,"name":"Killini"},"18102":{"id":18102,"name":"Krestena"},"18119":{"id":18119,"name":"Lalas"},"18127":{"id":18127,"name":"Lekhaina"},"18169":{"id":18169,"name":"Makrisia"},"18177":{"id":18177,"name":"Manolas"},"18232":{"id":18232,"name":"Mirsini"},"18277":{"id":18277,"name":"Nea Manolas"},"18302":{"id":18302,"name":"Neokhorion"},"18389":{"id":18389,"name":"Pelopion"},"18420":{"id":18420,"name":"Pirgos"},"18429":{"id":18429,"name":"Platanos"},"18498":{"id":18498,"name":"Savalia"},"18597":{"id":18597,"name":"Traganon"},"18617":{"id":18617,"name":"Varda"},"18622":{"id":18622,"name":"Vartholomio"},"18623":{"id":18623,"name":"Varvasaina"},"18658":{"id":18658,"name":"Vrina"},"18684":{"id":18684,"name":"Zakharo"}}},"40":{"code":"40","name":"Messinia","cities":{"17697":{"id":17697,"name":"Arfara"},"17704":{"id":17704,"name":"Aris"},"17840":{"id":17840,"name":"Filiatra"},"17865":{"id":17865,"name":"Gargalianoi"},"17910":{"id":17910,"name":"Kalamata"},"18030":{"id":18030,"name":"Khora"},"18049":{"id":18049,"name":"Kiparissia"},"18085":{"id":18085,"name":"Koroni"},"18151":{"id":18151,"name":"Longa"},"18182":{"id":18182,"name":"Marathopolis"},"18197":{"id":18197,"name":"Meligalas"},"18213":{"id":18213,"name":"Messini"},"18218":{"id":18218,"name":"Methoni"},"18223":{"id":18223,"name":"Mikromani"},"18419":{"id":18419,"name":"Pilos"},"18550":{"id":18550,"name":"Sperkhoyia"},"18585":{"id":18585,"name":"Thouria"},"18610":{"id":18610,"name":"Valira"},"18648":{"id":18648,"name":"Vlakhopoulon"}}},"41":{"code":"41","name":"Arkadhia","cities":{"17732":{"id":17732,"name":"Astros"},"17763":{"id":17763,"name":"Ayios Andreas"},"17778":{"id":17778,"name":"Ayios Petros"},"17961":{"id":17961,"name":"Kariai"},"18130":{"id":18130,"name":"Leonidion"},"18194":{"id":18194,"name":"Megalopoli"},"18375":{"id":18375,"name":"Paralion Astros"},"18604":{"id":18604,"name":"Tripoli"},"18645":{"id":18645,"name":"Vitina"},"18647":{"id":18647,"name":"Vlakhokerasea"}}},"42":{"code":"42","name":"Lakonia","cities":{"17724":{"id":17724,"name":"Asopos"},"17810":{"id":17810,"name":"Elos"},"17985":{"id":17985,"name":"Kato Glikovrisi"},"18113":{"id":18113,"name":"Krokeai"},"18163":{"id":18163,"name":"Magoula"},"18241":{"id":18241,"name":"Molaoi"},"18510":{"id":18510,"name":"Sikea"},"18525":{"id":18525,"name":"Skala"},"18547":{"id":18547,"name":"Sparti"},"18646":{"id":18646,"name":"Vlakhiotis"},"18667":{"id":18667,"name":"Xirokambion"},"18671":{"id":18671,"name":"Yefira"},"18675":{"id":18675,"name":"Yerakion"},"18682":{"id":18682,"name":"Yithion"}}},"43":{"code":"43","name":"Khania","cities":{"17748":{"id":17748,"name":"Ayia Marina"},"17787":{"id":17787,"name":"Daratsos"},"17859":{"id":17859,"name":"Galatas"},"17920":{"id":17920,"name":"Kalivai"},"18019":{"id":18019,"name":"Khania"},"18057":{"id":18057,"name":"Kissamos"},"18069":{"id":18069,"name":"Kolimvari"},"18251":{"id":18251,"name":"Mournies"},"18255":{"id":18255,"name":"Mouzouras"},"18316":{"id":18316,"name":"Nerokouros"},"18349":{"id":18349,"name":"Palaiokhora"},"18403":{"id":18403,"name":"Perivolia"},"18424":{"id":18424,"name":"Pitharion"},"18430":{"id":18430,"name":"Platanos"},"18541":{"id":18541,"name":"Souda"},"18558":{"id":18558,"name":"Sternai"},"18607":{"id":18607,"name":"Tsikalaria"},"18659":{"id":18659,"name":"Vrises"},"18678":{"id":18678,"name":"Yialos"}}},"44":{"code":"44","name":"Rethimni","cities":{"17683":{"id":17683,"name":"Anoyia"},"17739":{"id":17739,"name":"Atsipopoulon"},"18115":{"id":18115,"name":"Krouson"},"18366":{"id":18366,"name":"Panormos"},"18398":{"id":18398,"name":"Perama"},"18476":{"id":18476,"name":"Rethimnon"},"18676":{"id":18676,"name":"Yerani"},"18693":{"id":18693,"name":"Zoniana"}}},"45":{"code":"45","name":"Iraklion","cities":{"17706":{"id":17706,"name":"Arkalokhorion"},"17720":{"id":17720,"name":"Asimion"},"17761":{"id":17761,"name":"Ayia Varvara"},"17815":{"id":17815,"name":"Epano Arkhanai"},"17818":{"id":17818,"name":"Episkopi"},"17863":{"id":17863,"name":"Galia"},"17869":{"id":17869,"name":"Gazion"},"17878":{"id":17878,"name":"Gournai"},"17898":{"id":17898,"name":"Iraklion"},"17975":{"id":17975,"name":"Kastellion"},"17983":{"id":17983,"name":"Kato Asitai"},"18020":{"id":18020,"name":"Khanion Tou Kokkini"},"18025":{"id":18025,"name":"Khersonisos"},"18094":{"id":18094,"name":"Koutouloufarion"},"18140":{"id":18140,"name":"Limin Khersonisou"},"18239":{"id":18239,"name":"Moirai"},"18240":{"id":18240,"name":"Mokhos"},"18260":{"id":18260,"name":"Nea Alikarnassos"},"18421":{"id":18421,"name":"Pirgos"},"18445":{"id":18445,"name":"Pombia"},"18459":{"id":18459,"name":"Profitis Ilias"},"18523":{"id":18523,"name":"Skalanion"},"18553":{"id":18553,"name":"Stalis"},"18586":{"id":18586,"name":"Thrapsanon"},"18588":{"id":18588,"name":"Tilisos"},"18624":{"id":18624,"name":"Vasiliai"},"18636":{"id":18636,"name":"Veneraton"},"18677":{"id":18677,"name":"Yeryeri"},"18688":{"id":18688,"name":"Zaros"}}},"46":{"code":"46","name":"Lasithi","cities":{"17659":{"id":17659,"name":"Analipsis"},"17745":{"id":17745,"name":"Ayia Galini"},"17776":{"id":17776,"name":"Ayios Nikolaos"},"17881":{"id":17881,"name":"Gra Liyia"},"17889":{"id":17889,"name":"Ierapetra"},"17988":{"id":17988,"name":"Kato Khorion"},"18096":{"id":18096,"name":"Koutsouras"},"18112":{"id":18112,"name":"Kritsa"},"18173":{"id":18173,"name":"Malia"},"18285":{"id":18285,"name":"Neapolis"},"18347":{"id":18347,"name":"Palaikastron"},"18518":{"id":18518,"name":"Sision"},"18520":{"id":18520,"name":"Sitia"},"18528":{"id":18528,"name":"Skhisma"},"18589":{"id":18589,"name":"Timbakion"},"18609":{"id":18609,"name":"Tzermiadon"}}},"47":{"code":"47","name":"Dhodhekanisos","cities":{"17612":{"id":17612,"name":"Afantou"},"17686":{"id":17686,"name":"Antimakhia"},"17688":{"id":17688,"name":"Apollona"},"17709":{"id":17709,"name":"Arkhangelos"},"17731":{"id":17731,"name":"Astipalaia"},"17749":{"id":17749,"name":"Ayia Marina"},"17811":{"id":17811,"name":"Embonas"},"17834":{"id":17834,"name":"Fanai"},"17887":{"id":17887,"name":"Ialisos"},"17919":{"id":17919,"name":"Kalimnos"},"17955":{"id":17955,"name":"Kardamaina"},"17968":{"id":17968,"name":"Karpathos"},"18004":{"id":18004,"name":"Kefalos"},"18032":{"id":18032,"name":"Khorion"},"18087":{"id":18087,"name":"Kos"},"18101":{"id":18101,"name":"Kremasti"},"18117":{"id":18117,"name":"Lakkion"},"18122":{"id":18122,"name":"Lardos"},"18417":{"id":18417,"name":"Pilion"},"18487":{"id":18487,"name":"Rodos"},"18514":{"id":18514,"name":"Simi"},"18526":{"id":18526,"name":"Skala"},"18668":{"id":18668,"name":"Xirokambos"},"18691":{"id":18691,"name":"Ziparion"}}},"48":{"code":"48","name":"Samos","cities":{"17767":{"id":17767,"name":"Ayios Kirikos"},"17853":{"id":17853,"name":"Fournoi"},"18031":{"id":18031,"name":"Khora"},"18064":{"id":18064,"name":"Kokkarion"},"18180":{"id":18180,"name":"Marathokambos"},"18237":{"id":18237,"name":"Mitilinioi"},"18305":{"id":18305,"name":"Neon Karlovasion"},"18341":{"id":18341,"name":"Pagondas"},"18494":{"id":18494,"name":"Samos"},"18631":{"id":18631,"name":"Vathi"}}},"49":{"code":"49","name":"Kikladhes","cities":{"17610":{"id":17610,"name":"Adamas"},"17668":{"id":17668,"name":"Andros"},"17680":{"id":17680,"name":"Ano Mera"},"17682":{"id":17682,"name":"Ano Siros"},"17689":{"id":17689,"name":"Apollonia"},"17813":{"id":17813,"name":"Emborion"},"17827":{"id":17827,"name":"Ermoupolis"},"17847":{"id":17847,"name":"Filotion"},"17893":{"id":17893,"name":"Ios"},"17940":{"id":17940,"name":"Kamarion"},"18208":{"id":18208,"name":"Mesaria"},"18221":{"id":18221,"name":"Mikonos"},"18230":{"id":18230,"name":"Milos"},"18257":{"id":18257,"name":"Naousa"},"18259":{"id":18259,"name":"Naxos"},"18324":{"id":18324,"name":"Oia"},"18336":{"id":18336,"name":"Ormos Korthiou"},"18380":{"id":18380,"name":"Paros"},"18581":{"id":18581,"name":"Thira"},"18590":{"id":18590,"name":"Tinos"},"18620":{"id":18620,"name":"Vari"}}},"50":{"code":"50","name":"Khios","cities":{"17928":{"id":17928,"name":"Kallimasia"},"18028":{"id":18028,"name":"Khios"},"18186":{"id":18186,"name":"Marmaron"},"18294":{"id":18294,"name":"Nenita"},"18327":{"id":18327,"name":"Oinoussai"},"18423":{"id":18423,"name":"Piryion"},"18580":{"id":18580,"name":"Thimiana"},"18660":{"id":18660,"name":"Vrontados"}}},"51":{"code":"51","name":"Lesvos","cities":{"17617":{"id":17617,"name":"Agra"},"17687":{"id":17687,"name":"Antissa"},"17738":{"id":17738,"name":"Atsiki"},"17754":{"id":17754,"name":"Ayia Paraskevi"},"17756":{"id":17756,"name":"Ayiasos"},"17822":{"id":17822,"name":"Eresos"},"17935":{"id":17935,"name":"Kalloni"},"18157":{"id":18157,"name":"Loutra"},"18178":{"id":18178,"name":"Mantamados"},"18231":{"id":18231,"name":"Mirina"},"18233":{"id":18233,"name":"Mithimna"},"18236":{"id":18236,"name":"Mitilini"},"18246":{"id":18246,"name":"Moria"},"18352":{"id":18352,"name":"Palaiokipos"},"18363":{"id":18363,"name":"Pamfila"},"18369":{"id":18369,"name":"Pappados"},"18371":{"id":18371,"name":"Parakoila"},"18410":{"id":18410,"name":"Petra"},"18436":{"id":18436,"name":"Plomarion"},"18440":{"id":18440,"name":"Polikhnitos"},"18532":{"id":18532,"name":"Skopelos"},"18537":{"id":18537,"name":"Skoutaros"},"18561":{"id":18561,"name":"Stipsi"},"18618":{"id":18618,"name":"Varia"}}},"01":{"code":"01","name":"Evros","cities":{"17638":{"id":17638,"name":"Alexandroupoli"},"17684":{"id":17684,"name":"Anthia"},"17792":{"id":17792,"name":"Dikaia"},"17837":{"id":17837,"name":"Ferai"},"17941":{"id":17941,"name":"Kamariotissa"},"17966":{"id":17966,"name":"Karoti"},"17973":{"id":17973,"name":"Kastaneai"},"18002":{"id":18002,"name":"Kavili"},"18051":{"id":18051,"name":"Kiprinos"},"18092":{"id":18092,"name":"Koufovounon"},"18116":{"id":18116,"name":"Lagos"},"18125":{"id":18125,"name":"Lavara"},"18158":{"id":18158,"name":"Loutros"},"18215":{"id":18215,"name":"Metaxades"},"18291":{"id":18291,"name":"Nea Vissa"},"18297":{"id":18297,"name":"Neokhorion"},"18313":{"id":18313,"name":"Neos Pirgos"},"18332":{"id":18332,"name":"Orestias"},"18334":{"id":18334,"name":"Ormenion"},"18393":{"id":18393,"name":"Peplos"},"18467":{"id":18467,"name":"Provaton"},"18481":{"id":18481,"name":"Rizia"},"18542":{"id":18542,"name":"Souflion"},"18559":{"id":18559,"name":"Sterna"},"18587":{"id":18587,"name":"Tikheron"}}},"02":{"code":"02","name":"Rodhopi","cities":{"17693":{"id":17693,"name":"Aratos"},"17705":{"id":17705,"name":"Arisvi"},"17715":{"id":17715,"name":"Arriana"},"17845":{"id":17845,"name":"Fillira"},"17888":{"id":17888,"name":"Iasmos"},"18074":{"id":18074,"name":"Komotini"},"18136":{"id":18136,"name":"Likion"},"18195":{"id":18195,"name":"Mega Piston"},"18342":{"id":18342,"name":"Pagouria"},"18495":{"id":18495,"name":"Sapai"},"18663":{"id":18663,"name":"Xilagani"}}},"03":{"code":"03","name":"Xanthi","cities":{"17801":{"id":17801,"name":"Ekhinos"},"18046":{"id":18046,"name":"Kimmeria"},"18220":{"id":18220,"name":"Miki"},"18344":{"id":18344,"name":"Pakhni"},"18408":{"id":18408,"name":"Petinos"},"18411":{"id":18411,"name":"Petrokhorion"},"18499":{"id":18499,"name":"Seleron"},"18662":{"id":18662,"name":"Xanthi"},"18672":{"id":18672,"name":"Yenisea"}}},"04":{"code":"04","name":"Drama","cities":{"17797":{"id":17797,"name":"Drama"},"17852":{"id":17852,"name":"Fotolivos"},"17854":{"id":17854,"name":"Ftelia"},"17926":{"id":17926,"name":"Kallifitos"},"17937":{"id":17937,"name":"Kalos Agros"},"18033":{"id":18033,"name":"Khoristi"},"18413":{"id":18413,"name":"Petroussa"},"18464":{"id":18464,"name":"Prosotsani"},"18519":{"id":18519,"name":"Sitagroi"},"18651":{"id":18651,"name":"Volax"},"18669":{"id":18669,"name":"Xiropotamos"}}},"05":{"code":"05","name":"Serrai","cities":{"17641":{"id":17641,"name":"Alistrati"},"17666":{"id":17666,"name":"Anayennisis"},"17681":{"id":17681,"name":"Ano Poroia"},"17750":{"id":17750,"name":"Ayia Paraskevi"},"17814":{"id":17814,"name":"Emmanouil Pappas"},"17849":{"id":17849,"name":"Flambouron"},"17870":{"id":17870,"name":"Gazoros"},"17895":{"id":17895,"name":"Iraklia"},"17925":{"id":17925,"name":"Kali Vrisi"},"17986":{"id":17986,"name":"Kato Kamila"},"17993":{"id":17993,"name":"Kato Mitrousion"},"18011":{"id":18011,"name":"Kerkini"},"18023":{"id":18023,"name":"Kharopon"},"18039":{"id":18039,"name":"Khrison"},"18063":{"id":18063,"name":"Koimisis"},"18192":{"id":18192,"name":"Megalokhorion"},"18225":{"id":18225,"name":"Mikropolis"},"18292":{"id":18292,"name":"Nea Zikhni"},"18298":{"id":18298,"name":"Neokhorion"},"18307":{"id":18307,"name":"Neon Petritsion"},"18309":{"id":18309,"name":"Neon Soulion"},"18315":{"id":18315,"name":"Neos Skopos"},"18318":{"id":18318,"name":"Nigrita"},"18322":{"id":18322,"name":"Nikoklia"},"18353":{"id":18353,"name":"Palaiokomi"},"18392":{"id":18392,"name":"Pentapolis"},"18466":{"id":18466,"name":"Provatas"},"18469":{"id":18469,"name":"Psikhikon"},"18486":{"id":18486,"name":"Rodopolis"},"18502":{"id":18502,"name":"Serrai"},"18507":{"id":18507,"name":"Sidirokastron"},"18517":{"id":18517,"name":"Sisamia"},"18534":{"id":18534,"name":"Skotoussa"},"18536":{"id":18536,"name":"Skoutari"},"18570":{"id":18570,"name":"Terpni"},"18584":{"id":18584,"name":"Tholos"},"18594":{"id":18594,"name":"Toumba"},"18612":{"id":18612,"name":"Valteron"},"18613":{"id":18613,"name":"Valtotopion"},"18614":{"id":18614,"name":"Vamvakofiton"},"18640":{"id":18640,"name":"Veryi"},"18642":{"id":18642,"name":"Vironia"}}},"06":{"code":"06","name":"Kilkis","cities":{"17651":{"id":17651,"name":"Ambeloi"},"17726":{"id":17726,"name":"Aspros"},"17741":{"id":17741,"name":"Axioupoli"},"17777":{"id":17777,"name":"Ayios Petros"},"17798":{"id":17798,"name":"Drosaton"},"17864":{"id":17864,"name":"Gallikos"},"17874":{"id":17874,"name":"Gorgopi"},"17875":{"id":17875,"name":"Goumenissa"},"17943":{"id":17943,"name":"Kambanis"},"17970":{"id":17970,"name":"Karperi"},"18027":{"id":18027,"name":"Khimarros"},"18034":{"id":18034,"name":"Khoriyion"},"18037":{"id":18037,"name":"Khrisokhorafa"},"18042":{"id":18042,"name":"Kilkis"},"18084":{"id":18084,"name":"Koromilea"},"18110":{"id":18110,"name":"Kristoni"},"18222":{"id":18222,"name":"Mikrokambos"},"18250":{"id":18250,"name":"Mouriai"},"18286":{"id":18286,"name":"Nea Santa"},"18304":{"id":18304,"name":"Neon Ayionerion"},"18356":{"id":18356,"name":"Palaion Ayionerion"},"18386":{"id":18386,"name":"Pedinon"},"18438":{"id":18438,"name":"Polikastron"},"18566":{"id":18566,"name":"Strimonikon"},"18595":{"id":18595,"name":"Toumba"},"18665":{"id":18665,"name":"Xilopolis"}}},"07":{"code":"07","name":"Pella","cities":{"17619":{"id":17619,"name":"Agras"},"17635":{"id":17635,"name":"Akrolimni"},"17650":{"id":17650,"name":"Ambeliai"},"17690":{"id":17690,"name":"Apsalos"},"17694":{"id":17694,"name":"Aravissos"},"17703":{"id":17703,"name":"Aridaia"},"17714":{"id":17714,"name":"Arnissa"},"17716":{"id":17716,"name":"Arsenion"},"17737":{"id":17737,"name":"Athira"},"17742":{"id":17742,"name":"Axos"},"17768":{"id":17768,"name":"Ayios Loukas"},"17799":{"id":17799,"name":"Edessa"},"17828":{"id":17828,"name":"Esovalta"},"17830":{"id":17830,"name":"Exaplatanos"},"17856":{"id":17856,"name":"Galatades"},"17918":{"id":17918,"name":"Kali"},"17922":{"id":17922,"name":"Kalivia"},"17963":{"id":17963,"name":"Kariotissa"},"18007":{"id":18007,"name":"Kella"},"18174":{"id":18174,"name":"Mandalon"},"18200":{"id":18200,"name":"Melission"},"18204":{"id":18204,"name":"Meliti"},"18209":{"id":18209,"name":"Mesimerion"},"18281":{"id":18281,"name":"Nea Pella"},"18311":{"id":18311,"name":"Neos Milotopos"},"18346":{"id":18346,"name":"Palaifiton"},"18388":{"id":18388,"name":"Pella"},"18391":{"id":18391,"name":"Pentaplatanon"},"18409":{"id":18409,"name":"Petraia"},"18437":{"id":18437,"name":"Polikarpion"},"18458":{"id":18458,"name":"Profitis Ilias"},"18463":{"id":18463,"name":"Promakhoi"},"18479":{"id":18479,"name":"Rizarion"},"18485":{"id":18485,"name":"Rizon"},"18504":{"id":18504,"name":"Sevastiana"},"18540":{"id":18540,"name":"Sosandra"},"18605":{"id":18605,"name":"Tsakoi"},"18666":{"id":18666,"name":"Xinon Neron"},"18679":{"id":18679,"name":"Yiannitsa"}}},"08":{"code":"08","name":"Florina","cities":{"17658":{"id":17658,"name":"Ammokhorion"},"17712":{"id":17712,"name":"Armenokhorion"},"17850":{"id":17850,"name":"Florina"},"18109":{"id":18109,"name":"Kristallopiyi"},"18370":{"id":18370,"name":"Pappayiannis"}}},"09":{"code":"09","name":"Kastoria","cities":{"17700":{"id":17700,"name":"Argos Orestikon"},"17976":{"id":17976,"name":"Kastoria"},"18082":{"id":18082,"name":"Korisos"},"18090":{"id":18090,"name":"Kostarazion"},"18129":{"id":18129,"name":"Lekhovon"},"18176":{"id":18176,"name":"Maniakoi"},"18212":{"id":18212,"name":"Mesopotamia"},"18317":{"id":18317,"name":"Nestorion"},"18608":{"id":18608,"name":"Tsotilion"}}}}}
+{
+  "code": "GR",
+  "name": "Greece",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Grevena",
+      "cities": {
+        "17789": {
+          "id": 17789,
+          "name": "Deskati"
+        },
+        "17885": {
+          "id": 17885,
+          "name": "Grevena"
+        },
+        "18492": {
+          "id": 18492,
+          "name": "Samarina"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Kozani",
+      "cities": {
+        "17622": {
+          "id": 17622,
+          "name": "Aiani"
+        },
+        "17634": {
+          "id": 17634,
+          "name": "Akrini"
+        },
+        "17660": {
+          "id": 17660,
+          "name": "Anarrakhi"
+        },
+        "17662": {
+          "id": 17662,
+          "name": "Anatolikon"
+        },
+        "17676": {
+          "id": 17676,
+          "name": "Ano Komi"
+        },
+        "17695": {
+          "id": 17695,
+          "name": "Ardassa"
+        },
+        "17812": {
+          "id": 17812,
+          "name": "Emborion"
+        },
+        "17821": {
+          "id": 17821,
+          "name": "Eratira"
+        },
+        "17846": {
+          "id": 17846,
+          "name": "Filotas"
+        },
+        "17860": {
+          "id": 17860,
+          "name": "Galatini"
+        },
+        "18060": {
+          "id": 18060,
+          "name": "Klitos"
+        },
+        "18061": {
+          "id": 18061,
+          "name": "Koila"
+        },
+        "18073": {
+          "id": 18073,
+          "name": "Komnina"
+        },
+        "18098": {
+          "id": 18098,
+          "name": "Kozani"
+        },
+        "18114": {
+          "id": 18114,
+          "name": "Krokos"
+        },
+        "18472": {
+          "id": 18472,
+          "name": "Ptolemais"
+        },
+        "18503": {
+          "id": 18503,
+          "name": "Servia"
+        },
+        "18506": {
+          "id": 18506,
+          "name": "Siatista"
+        },
+        "18635": {
+          "id": 18635,
+          "name": "Velventos"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Imathia",
+      "cities": {
+        "17637": {
+          "id": 17637,
+          "name": "Alexandria"
+        },
+        "17671": {
+          "id": 17671,
+          "name": "Angelokhorion"
+        },
+        "17746": {
+          "id": 17746,
+          "name": "Ayia Marina"
+        },
+        "17785": {
+          "id": 17785,
+          "name": "Ayios Yeoryios"
+        },
+        "17791": {
+          "id": 17791,
+          "name": "Diavatos"
+        },
+        "18022": {
+          "id": 18022,
+          "name": "Khariessa"
+        },
+        "18078": {
+          "id": 18078,
+          "name": "Kopanos"
+        },
+        "18079": {
+          "id": 18079,
+          "name": "Korifi"
+        },
+        "18093": {
+          "id": 18093,
+          "name": "Kouloura"
+        },
+        "18103": {
+          "id": 18103,
+          "name": "Kria Vrisi"
+        },
+        "18132": {
+          "id": 18132,
+          "name": "Lianoveryion"
+        },
+        "18159": {
+          "id": 18159,
+          "name": "Loutros"
+        },
+        "18171": {
+          "id": 18171,
+          "name": "Makrokhorion"
+        },
+        "18183": {
+          "id": 18183,
+          "name": "Marina"
+        },
+        "18198": {
+          "id": 18198,
+          "name": "Meliki"
+        },
+        "18244": {
+          "id": 18244,
+          "name": "Monospita"
+        },
+        "18256": {
+          "id": 18256,
+          "name": "Naousa"
+        },
+        "18323": {
+          "id": 18323,
+          "name": "Nision"
+        },
+        "18384": {
+          "id": 18384,
+          "name": "Patris"
+        },
+        "18428": {
+          "id": 18428,
+          "name": "Platanos"
+        },
+        "18433": {
+          "id": 18433,
+          "name": "Plati"
+        },
+        "18442": {
+          "id": 18442,
+          "name": "Poliplatanos"
+        },
+        "18483": {
+          "id": 18483,
+          "name": "Rizomata"
+        },
+        "18600": {
+          "id": 18600,
+          "name": "Trikala"
+        },
+        "18638": {
+          "id": 18638,
+          "name": "Veroia"
+        },
+        "18639": {
+          "id": 18639,
+          "name": "Veryina"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Thessaloniki",
+      "cities": {
+        "17611": {
+          "id": 17611,
+          "name": "Adendron"
+        },
+        "17613": {
+          "id": 17613,
+          "name": "Afitos"
+        },
+        "17663": {
+          "id": 17663,
+          "name": "Anatolikon"
+        },
+        "17672": {
+          "id": 17672,
+          "name": "Angelokhorion"
+        },
+        "17696": {
+          "id": 17696,
+          "name": "Arethousa"
+        },
+        "17722": {
+          "id": 17722,
+          "name": "Askos"
+        },
+        "17727": {
+          "id": 17727,
+          "name": "Asprovalta"
+        },
+        "17728": {
+          "id": 17728,
+          "name": "Assiros"
+        },
+        "17733": {
+          "id": 17733,
+          "name": "Asvestokhorion"
+        },
+        "17751": {
+          "id": 17751,
+          "name": "Ayia Paraskevi"
+        },
+        "17757": {
+          "id": 17757,
+          "name": "Ayia Trias"
+        },
+        "17764": {
+          "id": 17764,
+          "name": "Ayios Athanasios"
+        },
+        "17782": {
+          "id": 17782,
+          "name": "Ayios Vasilios"
+        },
+        "17790": {
+          "id": 17790,
+          "name": "Diavata"
+        },
+        "17816": {
+          "id": 17816,
+          "name": "Epanomi"
+        },
+        "17843": {
+          "id": 17843,
+          "name": "Filiron"
+        },
+        "17851": {
+          "id": 17851,
+          "name": "Floyita"
+        },
+        "17861": {
+          "id": 17861,
+          "name": "Galatista"
+        },
+        "17896": {
+          "id": 17896,
+          "name": "Iraklion"
+        },
+        "17909": {
+          "id": 17909,
+          "name": "Kalamaria"
+        },
+        "17915": {
+          "id": 17915,
+          "name": "Kalamoton"
+        },
+        "17929": {
+          "id": 17929,
+          "name": "Kallithea"
+        },
+        "17936": {
+          "id": 17936,
+          "name": "Kalokhorion"
+        },
+        "17957": {
+          "id": 17957,
+          "name": "Kardia"
+        },
+        "17994": {
+          "id": 17994,
+          "name": "Kato Skholarion"
+        },
+        "18000": {
+          "id": 18000,
+          "name": "Kavallarion"
+        },
+        "18015": {
+          "id": 18015,
+          "name": "Khalastra"
+        },
+        "18021": {
+          "id": 18021,
+          "name": "Khaniotis"
+        },
+        "18035": {
+          "id": 18035,
+          "name": "Khortiatis"
+        },
+        "18045": {
+          "id": 18045,
+          "name": "Kimina"
+        },
+        "18071": {
+          "id": 18071,
+          "name": "Kolkhikon"
+        },
+        "18091": {
+          "id": 18091,
+          "name": "Koufalia"
+        },
+        "18106": {
+          "id": 18106,
+          "name": "Krionerion"
+        },
+        "18111": {
+          "id": 18111,
+          "name": "Krithia"
+        },
+        "18118": {
+          "id": 18118,
+          "name": "Lakkoma"
+        },
+        "18126": {
+          "id": 18126,
+          "name": "Layina"
+        },
+        "18144": {
+          "id": 18144,
+          "name": "Liti"
+        },
+        "18152": {
+          "id": 18152,
+          "name": "Loudias"
+        },
+        "18202": {
+          "id": 18202,
+          "name": "Melissokhorion"
+        },
+        "18206": {
+          "id": 18206,
+          "name": "Menemeni"
+        },
+        "18210": {
+          "id": 18210,
+          "name": "Mesimerion"
+        },
+        "18224": {
+          "id": 18224,
+          "name": "Mikron Monastirion"
+        },
+        "18262": {
+          "id": 18262,
+          "name": "Nea Apollonia"
+        },
+        "18266": {
+          "id": 18266,
+          "name": "Nea Fokaia"
+        },
+        "18269": {
+          "id": 18269,
+          "name": "Nea Kallikratia"
+        },
+        "18272": {
+          "id": 18272,
+          "name": "Nea Kerasia"
+        },
+        "18274": {
+          "id": 18274,
+          "name": "Nea Magnisia"
+        },
+        "18276": {
+          "id": 18276,
+          "name": "Nea Malgara"
+        },
+        "18278": {
+          "id": 18278,
+          "name": "Nea Mesimvria"
+        },
+        "18279": {
+          "id": 18279,
+          "name": "Nea Mikhaniona"
+        },
+        "18284": {
+          "id": 18284,
+          "name": "Nea Playia"
+        },
+        "18290": {
+          "id": 18290,
+          "name": "Nea Triglia"
+        },
+        "18295": {
+          "id": 18295,
+          "name": "Neoi Epivatai"
+        },
+        "18308": {
+          "id": 18308,
+          "name": "Neon Rision"
+        },
+        "18330": {
+          "id": 18330,
+          "name": "Oraiokastron"
+        },
+        "18365": {
+          "id": 18365,
+          "name": "Panorama"
+        },
+        "18390": {
+          "id": 18390,
+          "name": "Pentalofos"
+        },
+        "18394": {
+          "id": 18394,
+          "name": "Peraia"
+        },
+        "18401": {
+          "id": 18401,
+          "name": "Peristera"
+        },
+        "18416": {
+          "id": 18416,
+          "name": "Pilaia"
+        },
+        "18435": {
+          "id": 18435,
+          "name": "Playiarion"
+        },
+        "18439": {
+          "id": 18439,
+          "name": "Polikhni"
+        },
+        "18441": {
+          "id": 18441,
+          "name": "Polikhronon"
+        },
+        "18460": {
+          "id": 18460,
+          "name": "Profitis"
+        },
+        "18461": {
+          "id": 18461,
+          "name": "Prokhoma"
+        },
+        "18508": {
+          "id": 18508,
+          "name": "Sikeai"
+        },
+        "18516": {
+          "id": 18516,
+          "name": "Sindos"
+        },
+        "18539": {
+          "id": 18539,
+          "name": "Sokhos"
+        },
+        "18543": {
+          "id": 18543,
+          "name": "Souroti"
+        },
+        "18545": {
+          "id": 18545,
+          "name": "Sozopolis"
+        },
+        "18575": {
+          "id": 18575,
+          "name": "Thermi"
+        },
+        "18579": {
+          "id": 18579,
+          "name": "Thessaloniki"
+        },
+        "18598": {
+          "id": 18598,
+          "name": "Triandria"
+        },
+        "18603": {
+          "id": 18603,
+          "name": "Trilofon"
+        },
+        "18625": {
+          "id": 18625,
+          "name": "Vasilika"
+        },
+        "18628": {
+          "id": 18628,
+          "name": "Vathilakkos"
+        },
+        "18670": {
+          "id": 18670,
+          "name": "Yefira"
+        },
+        "18674": {
+          "id": 18674,
+          "name": "Yerakarou"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Kavala",
+      "cities": {
+        "17657": {
+          "id": 17657,
+          "name": "Amisiana"
+        },
+        "17740": {
+          "id": 17740,
+          "name": "Avaton"
+        },
+        "17755": {
+          "id": 17755,
+          "name": "Ayiasma"
+        },
+        "17765": {
+          "id": 17765,
+          "name": "Ayios Athanasios"
+        },
+        "17820": {
+          "id": 17820,
+          "name": "Eratinon"
+        },
+        "17912": {
+          "id": 17912,
+          "name": "Kalambakion"
+        },
+        "17930": {
+          "id": 17930,
+          "name": "Kallithea"
+        },
+        "17999": {
+          "id": 17999,
+          "name": "Kavala"
+        },
+        "18008": {
+          "id": 18008,
+          "name": "Keramoti"
+        },
+        "18036": {
+          "id": 18036,
+          "name": "Khrisokastron"
+        },
+        "18038": {
+          "id": 18038,
+          "name": "Khrisokhorion"
+        },
+        "18050": {
+          "id": 18050,
+          "name": "Kipia"
+        },
+        "18055": {
+          "id": 18055,
+          "name": "Kiria"
+        },
+        "18066": {
+          "id": 18066,
+          "name": "Kokkinokhoma"
+        },
+        "18083": {
+          "id": 18083,
+          "name": "Kormista"
+        },
+        "18139": {
+          "id": 18139,
+          "name": "Limenaria"
+        },
+        "18252": {
+          "id": 18252,
+          "name": "Moustheni"
+        },
+        "18268": {
+          "id": 18268,
+          "name": "Nea Iraklitsa"
+        },
+        "18270": {
+          "id": 18270,
+          "name": "Nea Karia"
+        },
+        "18271": {
+          "id": 18271,
+          "name": "Nea Karvali"
+        },
+        "18282": {
+          "id": 18282,
+          "name": "Nea Peramos"
+        },
+        "18321": {
+          "id": 18321,
+          "name": "Nikisiani"
+        },
+        "18350": {
+          "id": 18350,
+          "name": "Palaiokhorion"
+        },
+        "18406": {
+          "id": 18406,
+          "name": "Perni"
+        },
+        "18414": {
+          "id": 18414,
+          "name": "Pigai"
+        },
+        "18451": {
+          "id": 18451,
+          "name": "Potamia"
+        },
+        "18455": {
+          "id": 18455,
+          "name": "Prinos"
+        },
+        "18465": {
+          "id": 18465,
+          "name": "Proti"
+        },
+        "18572": {
+          "id": 18572,
+          "name": "Thasos"
+        },
+        "18574": {
+          "id": 18574,
+          "name": "Theologos"
+        },
+        "18673": {
+          "id": 18673,
+          "name": "Yeoryiani"
+        },
+        "18690": {
+          "id": 18690,
+          "name": "Zigos"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Khalkidhiki",
+      "cities": {
+        "17713": {
+          "id": 17713,
+          "name": "Arnaia"
+        },
+        "17770": {
+          "id": 17770,
+          "name": "Ayios Mamas"
+        },
+        "17772": {
+          "id": 17772,
+          "name": "Ayios Nikolaos"
+        },
+        "17890": {
+          "id": 17890,
+          "name": "Ierissos"
+        },
+        "17921": {
+          "id": 17921,
+          "name": "Kalivai Poliyirou"
+        },
+        "17960": {
+          "id": 17960,
+          "name": "Kariai"
+        },
+        "18190": {
+          "id": 18190,
+          "name": "Megali Panayia"
+        },
+        "18214": {
+          "id": 18214,
+          "name": "Metamorfosis"
+        },
+        "18310": {
+          "id": 18310,
+          "name": "Neos Marmaras"
+        },
+        "18328": {
+          "id": 18328,
+          "name": "Olinthos"
+        },
+        "18335": {
+          "id": 18335,
+          "name": "Ormilia"
+        },
+        "18338": {
+          "id": 18338,
+          "name": "Ouranopolis"
+        },
+        "18348": {
+          "id": 18348,
+          "name": "Palaiokhora"
+        },
+        "18351": {
+          "id": 18351,
+          "name": "Palaiokhorion"
+        },
+        "18444": {
+          "id": 18444,
+          "name": "Poliyiros"
+        },
+        "18448": {
+          "id": 18448,
+          "name": "Portaria"
+        },
+        "18497": {
+          "id": 18497,
+          "name": "Sarti"
+        },
+        "18509": {
+          "id": 18509,
+          "name": "Sikea"
+        },
+        "18564": {
+          "id": 18564,
+          "name": "Stratonion"
+        },
+        "18568": {
+          "id": 18568,
+          "name": "Taxiarkhis"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Pieria",
+      "cities": {
+        "17627": {
+          "id": 17627,
+          "name": "Aiyinion"
+        },
+        "17645": {
+          "id": 17645,
+          "name": "Alonia"
+        },
+        "17793": {
+          "id": 17793,
+          "name": "Dion"
+        },
+        "17931": {
+          "id": 17931,
+          "name": "Kallithea"
+        },
+        "17965": {
+          "id": 17965,
+          "name": "Karitsa"
+        },
+        "17981": {
+          "id": 17981,
+          "name": "Katerini"
+        },
+        "17992": {
+          "id": 17992,
+          "name": "Kato Milea"
+        },
+        "18058": {
+          "id": 18058,
+          "name": "Kitros"
+        },
+        "18070": {
+          "id": 18070,
+          "name": "Kolindros"
+        },
+        "18076": {
+          "id": 18076,
+          "name": "Kontariotissa"
+        },
+        "18080": {
+          "id": 18080,
+          "name": "Korinos"
+        },
+        "18145": {
+          "id": 18145,
+          "name": "Litokhoron"
+        },
+        "18150": {
+          "id": 18150,
+          "name": "Lofos"
+        },
+        "18170": {
+          "id": 18170,
+          "name": "Makriyialos"
+        },
+        "18217": {
+          "id": 18217,
+          "name": "Methoni"
+        },
+        "18227": {
+          "id": 18227,
+          "name": "Milea"
+        },
+        "18264": {
+          "id": 18264,
+          "name": "Nea Efesos"
+        },
+        "18372": {
+          "id": 18372,
+          "name": "Paralia"
+        },
+        "18400": {
+          "id": 18400,
+          "name": "Peristasis"
+        },
+        "18478": {
+          "id": 18478,
+          "name": "Ritini"
+        },
+        "18505": {
+          "id": 18505,
+          "name": "Sevasti"
+        },
+        "18522": {
+          "id": 18522,
+          "name": "Skala Fourkas"
+        },
+        "18533": {
+          "id": 18533,
+          "name": "Skotina"
+        },
+        "18567": {
+          "id": 18567,
+          "name": "Svoronos"
+        },
+        "18661": {
+          "id": 18661,
+          "name": "Vrontou"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Ioannina",
+      "cities": {
+        "17661": {
+          "id": 17661,
+          "name": "Anatoli"
+        },
+        "17794": {
+          "id": 17794,
+          "name": "Doliana"
+        },
+        "17806": {
+          "id": 17806,
+          "name": "Eleousa"
+        },
+        "17832": {
+          "id": 17832,
+          "name": "Exokhi"
+        },
+        "17892": {
+          "id": 17892,
+          "name": "Ioannina"
+        },
+        "17998": {
+          "id": 17998,
+          "name": "Katsikas"
+        },
+        "18005": {
+          "id": 18005,
+          "name": "Kefalovrison"
+        },
+        "18075": {
+          "id": 18075,
+          "name": "Konitsa"
+        },
+        "18095": {
+          "id": 18095,
+          "name": "Koutselion"
+        },
+        "18219": {
+          "id": 18219,
+          "name": "Metsovon"
+        },
+        "18296": {
+          "id": 18296,
+          "name": "Neokaisaria"
+        },
+        "18303": {
+          "id": 18303,
+          "name": "Neokhoropoulon"
+        },
+        "18385": {
+          "id": 18385,
+          "name": "Pedini"
+        },
+        "18396": {
+          "id": 18396,
+          "name": "Perama"
+        },
+        "18453": {
+          "id": 18453,
+          "name": "Pramanta"
+        },
+        "18488": {
+          "id": 18488,
+          "name": "Rodotopion"
+        },
+        "18692": {
+          "id": 18692,
+          "name": "Zitsa"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Thesprotia",
+      "cities": {
+        "17839": {
+          "id": 17839,
+          "name": "Filiates"
+        },
+        "17880": {
+          "id": 17880,
+          "name": "Graikokhorion"
+        },
+        "17891": {
+          "id": 17891,
+          "name": "Igoumenitsa"
+        },
+        "18376": {
+          "id": 18376,
+          "name": "Paramithia"
+        },
+        "18377": {
+          "id": 18377,
+          "name": "Parapotamos"
+        },
+        "18399": {
+          "id": 18399,
+          "name": "Perdika"
+        },
+        "18431": {
+          "id": 18431,
+          "name": "Plataria"
+        },
+        "18521": {
+          "id": 18521,
+          "name": "Sivota"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Preveza",
+      "cities": {
+        "17842": {
+          "id": 17842,
+          "name": "Filippias"
+        },
+        "17948": {
+          "id": 17948,
+          "name": "Kanalion"
+        },
+        "17950": {
+          "id": 17950,
+          "name": "Kanallakion"
+        },
+        "18154": {
+          "id": 18154,
+          "name": "Louros"
+        },
+        "18312": {
+          "id": 18312,
+          "name": "Neos Oropos"
+        },
+        "18368": {
+          "id": 18368,
+          "name": "Pappadatai"
+        },
+        "18379": {
+          "id": 18379,
+          "name": "Parga"
+        },
+        "18454": {
+          "id": 18454,
+          "name": "Preveza"
+        },
+        "18578": {
+          "id": 18578,
+          "name": "Thesprotikon"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Arta",
+      "cities": {
+        "17669": {
+          "id": 17669,
+          "name": "Aneza"
+        },
+        "17717": {
+          "id": 17717,
+          "name": "Arta"
+        },
+        "17807": {
+          "id": 17807,
+          "name": "Eleousa"
+        },
+        "17884": {
+          "id": 17884,
+          "name": "Grammenitsa"
+        },
+        "17913": {
+          "id": 17913,
+          "name": "Kalamia"
+        },
+        "17944": {
+          "id": 17944,
+          "name": "Kambi"
+        },
+        "18072": {
+          "id": 18072,
+          "name": "Kombotion"
+        },
+        "18088": {
+          "id": 18088,
+          "name": "Kostakioi"
+        },
+        "18203": {
+          "id": 18203,
+          "name": "Melissourgoi"
+        },
+        "18299": {
+          "id": 18299,
+          "name": "Neokhorion"
+        },
+        "18407": {
+          "id": 18407,
+          "name": "Peta"
+        },
+        "18573": {
+          "id": 18573,
+          "name": "Theodoriana"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Larisa",
+      "cities": {
+        "17653": {
+          "id": 17653,
+          "name": "Ambelon"
+        },
+        "17711": {
+          "id": 17711,
+          "name": "Armenion"
+        },
+        "17719": {
+          "id": 17719,
+          "name": "Aryiropoulion"
+        },
+        "17744": {
+          "id": 17744,
+          "name": "Ayia"
+        },
+        "17802": {
+          "id": 17802,
+          "name": "Elasson"
+        },
+        "17833": {
+          "id": 17833,
+          "name": "Falanna"
+        },
+        "17836": {
+          "id": 17836,
+          "name": "Farsala"
+        },
+        "17873": {
+          "id": 17873,
+          "name": "Gonnoi"
+        },
+        "18016": {
+          "id": 18016,
+          "name": "Khalki"
+        },
+        "18099": {
+          "id": 18099,
+          "name": "Kranea Elassonos"
+        },
+        "18124": {
+          "id": 18124,
+          "name": "Larisa"
+        },
+        "18146": {
+          "id": 18146,
+          "name": "Livaderon"
+        },
+        "18147": {
+          "id": 18147,
+          "name": "Livadi"
+        },
+        "18166": {
+          "id": 18166,
+          "name": "Makrikhorion"
+        },
+        "18205": {
+          "id": 18205,
+          "name": "Melivoia"
+        },
+        "18319": {
+          "id": 18319,
+          "name": "Nikaia"
+        },
+        "18422": {
+          "id": 18422,
+          "name": "Piryetos"
+        },
+        "18432": {
+          "id": 18432,
+          "name": "Platikambos"
+        },
+        "18474": {
+          "id": 18474,
+          "name": "Rapsani"
+        },
+        "18512": {
+          "id": 18512,
+          "name": "Sikourion"
+        },
+        "18557": {
+          "id": 18557,
+          "name": "Stefanovikion"
+        },
+        "18571": {
+          "id": 18571,
+          "name": "Terpsithea"
+        },
+        "18591": {
+          "id": 18591,
+          "name": "Tirnavos"
+        },
+        "18606": {
+          "id": 18606,
+          "name": "Tsaritsani"
+        },
+        "18615": {
+          "id": 18615,
+          "name": "Vamvakou"
+        },
+        "18637": {
+          "id": 18637,
+          "name": "Verdikoussa"
+        },
+        "18680": {
+          "id": 18680,
+          "name": "Yiannouli"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Trikala",
+      "cities": {
+        "17804": {
+          "id": 17804,
+          "name": "Elati"
+        },
+        "17838": {
+          "id": 17838,
+          "name": "Fiki"
+        },
+        "17872": {
+          "id": 17872,
+          "name": "Gomfoi"
+        },
+        "17886": {
+          "id": 17886,
+          "name": "Grizanon"
+        },
+        "17911": {
+          "id": 17911,
+          "name": "Kalambaka"
+        },
+        "17977": {
+          "id": 17977,
+          "name": "Kastrakion"
+        },
+        "18006": {
+          "id": 18006,
+          "name": "Kefalovrison"
+        },
+        "18105": {
+          "id": 18105,
+          "name": "Krini"
+        },
+        "18188": {
+          "id": 18188,
+          "name": "Megala Kalivia"
+        },
+        "18193": {
+          "id": 18193,
+          "name": "Megalokhorion"
+        },
+        "18355": {
+          "id": 18355,
+          "name": "Palaiomonastiron"
+        },
+        "18358": {
+          "id": 18358,
+          "name": "Palaiopirgos"
+        },
+        "18412": {
+          "id": 18412,
+          "name": "Petroton"
+        },
+        "18418": {
+          "id": 18418,
+          "name": "Pili"
+        },
+        "18425": {
+          "id": 18425,
+          "name": "Piyi"
+        },
+        "18480": {
+          "id": 18480,
+          "name": "Rizarion"
+        },
+        "18482": {
+          "id": 18482,
+          "name": "Rizoma"
+        },
+        "18563": {
+          "id": 18563,
+          "name": "Stournaraiika"
+        },
+        "18601": {
+          "id": 18601,
+          "name": "Trikala"
+        },
+        "18626": {
+          "id": 18626,
+          "name": "Vasiliki"
+        },
+        "18649": {
+          "id": 18649,
+          "name": "Vlakhoyiannion"
+        },
+        "18687": {
+          "id": 18687,
+          "name": "Zarkos"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Kardhitsa",
+      "cities": {
+        "17616": {
+          "id": 17616,
+          "name": "Agnanteron"
+        },
+        "17631": {
+          "id": 17631,
+          "name": "Akhinos"
+        },
+        "17665": {
+          "id": 17665,
+          "name": "Anavra"
+        },
+        "17718": {
+          "id": 17718,
+          "name": "Artesianon"
+        },
+        "17758": {
+          "id": 17758,
+          "name": "Ayia Trias"
+        },
+        "17901": {
+          "id": 17901,
+          "name": "Itea"
+        },
+        "17927": {
+          "id": 17927,
+          "name": "Kallifonion"
+        },
+        "17934": {
+          "id": 17934,
+          "name": "Kallithiron"
+        },
+        "17958": {
+          "id": 17958,
+          "name": "Karditsa"
+        },
+        "17959": {
+          "id": 17959,
+          "name": "Karditsomagoula"
+        },
+        "17971": {
+          "id": 17971,
+          "name": "Karpokhorion"
+        },
+        "18160": {
+          "id": 18160,
+          "name": "Magoula"
+        },
+        "18164": {
+          "id": 18164,
+          "name": "Makrakomi"
+        },
+        "18167": {
+          "id": 18167,
+          "name": "Makrikhorion"
+        },
+        "18238": {
+          "id": 18238,
+          "name": "Mitropoli"
+        },
+        "18245": {
+          "id": 18245,
+          "name": "Morfovounion"
+        },
+        "18253": {
+          "id": 18253,
+          "name": "Mouzakion"
+        },
+        "18300": {
+          "id": 18300,
+          "name": "Neokhorion"
+        },
+        "18306": {
+          "id": 18306,
+          "name": "Neon Monastirion"
+        },
+        "18360": {
+          "id": 18360,
+          "name": "Palamas"
+        },
+        "18456": {
+          "id": 18456,
+          "name": "Proastion"
+        },
+        "18457": {
+          "id": 18457,
+          "name": "Prodromos"
+        },
+        "18475": {
+          "id": 18475,
+          "name": "Rentina"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Magnisia",
+      "cities": {
+        "17620": {
+          "id": 17620,
+          "name": "Agria"
+        },
+        "17643": {
+          "id": 17643,
+          "name": "Alli Meria"
+        },
+        "17644": {
+          "id": 17644,
+          "name": "Almiros"
+        },
+        "17678": {
+          "id": 17678,
+          "name": "Ano Lekhonia"
+        },
+        "17698": {
+          "id": 17698,
+          "name": "Argalasti"
+        },
+        "17871": {
+          "id": 17871,
+          "name": "Glossa"
+        },
+        "17916": {
+          "id": 17916,
+          "name": "Kala Nera"
+        },
+        "17947": {
+          "id": 17947,
+          "name": "Kanalia"
+        },
+        "17990": {
+          "id": 17990,
+          "name": "Kato Lekhonia"
+        },
+        "18168": {
+          "id": 18168,
+          "name": "Makrinitsa"
+        },
+        "18226": {
+          "id": 18226,
+          "name": "Mileai"
+        },
+        "18261": {
+          "id": 18261,
+          "name": "Nea Ankhialos"
+        },
+        "18382": {
+          "id": 18382,
+          "name": "Patitirion"
+        },
+        "18387": {
+          "id": 18387,
+          "name": "Pelasyia"
+        },
+        "18449": {
+          "id": 18449,
+          "name": "Portaria"
+        },
+        "18471": {
+          "id": 18471,
+          "name": "Pteleos"
+        },
+        "18484": {
+          "id": 18484,
+          "name": "Rizomilos"
+        },
+        "18529": {
+          "id": 18529,
+          "name": "Skiathos"
+        },
+        "18531": {
+          "id": 18531,
+          "name": "Skopelos"
+        },
+        "18544": {
+          "id": 18544,
+          "name": "Sourpi"
+        },
+        "18602": {
+          "id": 18602,
+          "name": "Trikerion"
+        },
+        "18633": {
+          "id": 18633,
+          "name": "Velestinon"
+        },
+        "18652": {
+          "id": 18652,
+          "name": "Volos"
+        },
+        "18683": {
+          "id": 18683,
+          "name": "Zagora"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Kerkira",
+      "cities": {
+        "17614": {
+          "id": 17614,
+          "name": "Afra"
+        },
+        "17636": {
+          "id": 17636,
+          "name": "Alepou"
+        },
+        "17677": {
+          "id": 17677,
+          "name": "Ano Korakiana"
+        },
+        "17771": {
+          "id": 17771,
+          "name": "Ayios Matthaios"
+        },
+        "17824": {
+          "id": 17824,
+          "name": "Erikoussa"
+        },
+        "17867": {
+          "id": 17867,
+          "name": "Gastouri"
+        },
+        "17879": {
+          "id": 17879,
+          "name": "Gouvia"
+        },
+        "17894": {
+          "id": 17894,
+          "name": "Ipsos"
+        },
+        "17949": {
+          "id": 17949,
+          "name": "Kanalion"
+        },
+        "17967": {
+          "id": 17967,
+          "name": "Karousades"
+        },
+        "17972": {
+          "id": 17972,
+          "name": "Kassiopi"
+        },
+        "17989": {
+          "id": 17989,
+          "name": "Kato Korakiana"
+        },
+        "18003": {
+          "id": 18003,
+          "name": "Kavos"
+        },
+        "18012": {
+          "id": 18012,
+          "name": "Kerkira"
+        },
+        "18048": {
+          "id": 18048,
+          "name": "Kinopiastai"
+        },
+        "18065": {
+          "id": 18065,
+          "name": "Kokkinion"
+        },
+        "18077": {
+          "id": 18077,
+          "name": "Kontokalion"
+        },
+        "18133": {
+          "id": 18133,
+          "name": "Liapades"
+        },
+        "18337": {
+          "id": 18337,
+          "name": "Othonoi"
+        },
+        "18404": {
+          "id": 18404,
+          "name": "Perivolion"
+        },
+        "18452": {
+          "id": 18452,
+          "name": "Potamos"
+        },
+        "18515": {
+          "id": 18515,
+          "name": "Sinarades"
+        },
+        "18644": {
+          "id": 18644,
+          "name": "Viros"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Levkas",
+      "cities": {
+        "17962": {
+          "id": 17962,
+          "name": "Karia"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Kefallinia",
+      "cities": {
+        "17701": {
+          "id": 17701,
+          "name": "Argostolion"
+        },
+        "17903": {
+          "id": 17903,
+          "name": "Ithaki"
+        },
+        "17974": {
+          "id": 17974,
+          "name": "Kastella"
+        },
+        "18149": {
+          "id": 18149,
+          "name": "Lixourion"
+        },
+        "18165": {
+          "id": 18165,
+          "name": "Makrikapa"
+        },
+        "18443": {
+          "id": 18443,
+          "name": "Politika"
+        },
+        "18446": {
+          "id": 18446,
+          "name": "Poros"
+        },
+        "18468": {
+          "id": 18468,
+          "name": "Psakhna"
+        },
+        "18493": {
+          "id": 18493,
+          "name": "Sami"
+        },
+        "18611": {
+          "id": 18611,
+          "name": "Valsamata"
+        }
+      }
+    },
+    "28": {
+      "code": "28",
+      "name": "Zakinthos",
+      "cities": {
+        "17652": {
+          "id": 17652,
+          "name": "Ambelokipoi"
+        },
+        "17855": {
+          "id": 17855,
+          "name": "Gaitanion"
+        },
+        "17907": {
+          "id": 17907,
+          "name": "Kalamakion"
+        },
+        "17980": {
+          "id": 17980,
+          "name": "Katastarion"
+        },
+        "18143": {
+          "id": 18143,
+          "name": "Lithakia"
+        },
+        "18254": {
+          "id": 18254,
+          "name": "Mouzakion"
+        },
+        "18426": {
+          "id": 18426,
+          "name": "Planos"
+        },
+        "18616": {
+          "id": 18616,
+          "name": "Vanaton"
+        },
+        "18685": {
+          "id": 18685,
+          "name": "Zakinthos"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Fthiotis",
+      "cities": {
+        "17685": {
+          "id": 17685,
+          "name": "Anthili"
+        },
+        "17734": {
+          "id": 17734,
+          "name": "Atalanti"
+        },
+        "17779": {
+          "id": 17779,
+          "name": "Ayios Serafim"
+        },
+        "17795": {
+          "id": 17795,
+          "name": "Domokos"
+        },
+        "17904": {
+          "id": 17904,
+          "name": "Kainouryion"
+        },
+        "17945": {
+          "id": 17945,
+          "name": "Kamena Vourla"
+        },
+        "18089": {
+          "id": 18089,
+          "name": "Kostalexis"
+        },
+        "18120": {
+          "id": 18120,
+          "name": "Lamia"
+        },
+        "18148": {
+          "id": 18148,
+          "name": "Livanatai"
+        },
+        "18155": {
+          "id": 18155,
+          "name": "Loutra Ipatis"
+        },
+        "18191": {
+          "id": 18191,
+          "name": "Megali Vrisi"
+        },
+        "18242": {
+          "id": 18242,
+          "name": "Molos"
+        },
+        "18248": {
+          "id": 18248,
+          "name": "Moskhokhorion"
+        },
+        "18329": {
+          "id": 18329,
+          "name": "Omvriaki"
+        },
+        "18560": {
+          "id": 18560,
+          "name": "Stilis"
+        },
+        "18596": {
+          "id": 18596,
+          "name": "Tragana"
+        },
+        "18689": {
+          "id": 18689,
+          "name": "Zelion"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Evritania",
+      "cities": {
+        "17618": {
+          "id": 17618,
+          "name": "Agrafa"
+        },
+        "17817": {
+          "id": 17817,
+          "name": "Epiniana"
+        },
+        "17969": {
+          "id": 17969,
+          "name": "Karpenision"
+        },
+        "18549": {
+          "id": 18549,
+          "name": "Sperkhias"
+        }
+      }
+    },
+    "31": {
+      "code": "31",
+      "name": "Aitolia kai Akarnania",
+      "cities": {
+        "17621": {
+          "id": 17621,
+          "name": "Agrinion"
+        },
+        "17625": {
+          "id": 17625,
+          "name": "Aitolikon"
+        },
+        "17655": {
+          "id": 17655,
+          "name": "Amfilokhia"
+        },
+        "17670": {
+          "id": 17670,
+          "name": "Angelokastron"
+        },
+        "17730": {
+          "id": 17730,
+          "name": "Astakos"
+        },
+        "17773": {
+          "id": 17773,
+          "name": "Ayios Nikolaos"
+        },
+        "17783": {
+          "id": 17783,
+          "name": "Ayios Vasilios"
+        },
+        "17848": {
+          "id": 17848,
+          "name": "Fitiai"
+        },
+        "17857": {
+          "id": 17857,
+          "name": "Galatas"
+        },
+        "17868": {
+          "id": 17868,
+          "name": "Gavalou"
+        },
+        "17877": {
+          "id": 17877,
+          "name": "Gouria"
+        },
+        "17883": {
+          "id": 17883,
+          "name": "Grammatikou"
+        },
+        "17905": {
+          "id": 17905,
+          "name": "Kainouryion"
+        },
+        "17923": {
+          "id": 17923,
+          "name": "Kalivia"
+        },
+        "17951": {
+          "id": 17951,
+          "name": "Kandila"
+        },
+        "17978": {
+          "id": 17978,
+          "name": "Kastrakion"
+        },
+        "17987": {
+          "id": 17987,
+          "name": "Katokhi"
+        },
+        "17997": {
+          "id": 17997,
+          "name": "Katouna"
+        },
+        "18104": {
+          "id": 18104,
+          "name": "Krikellos"
+        },
+        "18131": {
+          "id": 18131,
+          "name": "Lepenou"
+        },
+        "18189": {
+          "id": 18189,
+          "name": "Megali Khora"
+        },
+        "18207": {
+          "id": 18207,
+          "name": "Menidion"
+        },
+        "18211": {
+          "id": 18211,
+          "name": "Mesolongion"
+        },
+        "18234": {
+          "id": 18234,
+          "name": "Mitikas"
+        },
+        "18243": {
+          "id": 18243,
+          "name": "Monastirakion"
+        },
+        "18301": {
+          "id": 18301,
+          "name": "Neokhorion"
+        },
+        "18354": {
+          "id": 18354,
+          "name": "Palaiomanina"
+        },
+        "18359": {
+          "id": 18359,
+          "name": "Palairos"
+        },
+        "18361": {
+          "id": 18361,
+          "name": "Paliambela"
+        },
+        "18364": {
+          "id": 18364,
+          "name": "Panaitolion"
+        },
+        "18378": {
+          "id": 18378,
+          "name": "Paravola"
+        },
+        "18434": {
+          "id": 18434,
+          "name": "Playia"
+        },
+        "18496": {
+          "id": 18496,
+          "name": "Sardinia"
+        },
+        "18552": {
+          "id": 18552,
+          "name": "Spolaita"
+        },
+        "18555": {
+          "id": 18555,
+          "name": "Stamna"
+        },
+        "18556": {
+          "id": 18556,
+          "name": "Stanos"
+        },
+        "18565": {
+          "id": 18565,
+          "name": "Stratos"
+        },
+        "18576": {
+          "id": 18576,
+          "name": "Thermon"
+        },
+        "18582": {
+          "id": 18582,
+          "name": "Thirion"
+        },
+        "18599": {
+          "id": 18599,
+          "name": "Trifos"
+        },
+        "18653": {
+          "id": 18653,
+          "name": "Vonitsa"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Fokis",
+      "cities": {
+        "17656": {
+          "id": 17656,
+          "name": "Amfissa"
+        },
+        "17902": {
+          "id": 17902,
+          "name": "Itea"
+        },
+        "18134": {
+          "id": 18134,
+          "name": "Lidorikion"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "Voiotia",
+      "cities": {
+        "17632": {
+          "id": 17632,
+          "name": "Akraifnion"
+        },
+        "17640": {
+          "id": 17640,
+          "name": "Aliartos"
+        },
+        "17654": {
+          "id": 17654,
+          "name": "Amfiklia"
+        },
+        "17692": {
+          "id": 17692,
+          "name": "Arakhova"
+        },
+        "17710": {
+          "id": 17710,
+          "name": "Arma"
+        },
+        "17723": {
+          "id": 17723,
+          "name": "Asopia"
+        },
+        "17752": {
+          "id": 17752,
+          "name": "Ayia Paraskevi"
+        },
+        "17759": {
+          "id": 17759,
+          "name": "Ayia Trias"
+        },
+        "17786": {
+          "id": 17786,
+          "name": "Ayios Yeoryios"
+        },
+        "17796": {
+          "id": 17796,
+          "name": "Domvraina"
+        },
+        "17803": {
+          "id": 17803,
+          "name": "Elatia"
+        },
+        "17805": {
+          "id": 17805,
+          "name": "Eleon"
+        },
+        "17825": {
+          "id": 17825,
+          "name": "Erithrai"
+        },
+        "17831": {
+          "id": 17831,
+          "name": "Exarkhos"
+        },
+        "17953": {
+          "id": 17953,
+          "name": "Kaparellion"
+        },
+        "17979": {
+          "id": 17979,
+          "name": "Kastron"
+        },
+        "17996": {
+          "id": 17996,
+          "name": "Kato Tithorea"
+        },
+        "18054": {
+          "id": 18054,
+          "name": "Kiriakion"
+        },
+        "18056": {
+          "id": 18056,
+          "name": "Kirra"
+        },
+        "18067": {
+          "id": 18067,
+          "name": "Kokkinon"
+        },
+        "18123": {
+          "id": 18123,
+          "name": "Larimna"
+        },
+        "18172": {
+          "id": 18172,
+          "name": "Malesina"
+        },
+        "18187": {
+          "id": 18187,
+          "name": "Martinon"
+        },
+        "18333": {
+          "id": 18333,
+          "name": "Orkhomenos"
+        },
+        "18427": {
+          "id": 18427,
+          "name": "Plataiai"
+        },
+        "18562": {
+          "id": 18562,
+          "name": "Stirion"
+        },
+        "18577": {
+          "id": 18577,
+          "name": "Thespiai"
+        },
+        "18583": {
+          "id": 18583,
+          "name": "Thivai"
+        },
+        "18592": {
+          "id": 18592,
+          "name": "Tithorea"
+        },
+        "18632": {
+          "id": 18632,
+          "name": "Vayia"
+        },
+        "18641": {
+          "id": 18641,
+          "name": "Vilia"
+        }
+      }
+    },
+    "34": {
+      "code": "34",
+      "name": "Evvoia",
+      "cities": {
+        "17615": {
+          "id": 17615,
+          "name": "Afration"
+        },
+        "17647": {
+          "id": 17647,
+          "name": "Amarinthos"
+        },
+        "17743": {
+          "id": 17743,
+          "name": "Ayia Anna"
+        },
+        "17766": {
+          "id": 17766,
+          "name": "Ayios Ioannis"
+        },
+        "17774": {
+          "id": 17774,
+          "name": "Ayios Nikolaos"
+        },
+        "17823": {
+          "id": 17823,
+          "name": "Eretria"
+        },
+        "17835": {
+          "id": 17835,
+          "name": "Faros"
+        },
+        "17844": {
+          "id": 17844,
+          "name": "Filla"
+        },
+        "17900": {
+          "id": 17900,
+          "name": "Istiaia"
+        },
+        "17964": {
+          "id": 17964,
+          "name": "Karistos"
+        },
+        "18017": {
+          "id": 18017,
+          "name": "Khalkis"
+        },
+        "18018": {
+          "id": 18018,
+          "name": "Khalkoutsion"
+        },
+        "18044": {
+          "id": 18044,
+          "name": "Kimi"
+        },
+        "18142": {
+          "id": 18142,
+          "name": "Limni"
+        },
+        "18153": {
+          "id": 18153,
+          "name": "Loukisia"
+        },
+        "18161": {
+          "id": 18161,
+          "name": "Magoula"
+        },
+        "18179": {
+          "id": 18179,
+          "name": "Mantoudion"
+        },
+        "18185": {
+          "id": 18185,
+          "name": "Marmarion"
+        },
+        "18235": {
+          "id": 18235,
+          "name": "Mitikas"
+        },
+        "18263": {
+          "id": 18263,
+          "name": "Nea Artaki"
+        },
+        "18288": {
+          "id": 18288,
+          "name": "Nea Stira"
+        },
+        "18314": {
+          "id": 18314,
+          "name": "Neos Pirgos"
+        },
+        "18325": {
+          "id": 18325,
+          "name": "Oinofita"
+        },
+        "18331": {
+          "id": 18331,
+          "name": "Oreoi"
+        },
+        "18340": {
+          "id": 18340,
+          "name": "Oxilithos"
+        },
+        "18373": {
+          "id": 18373,
+          "name": "Paralia"
+        },
+        "18462": {
+          "id": 18462,
+          "name": "Prokopion"
+        },
+        "18489": {
+          "id": 18489,
+          "name": "Roviai"
+        },
+        "18524": {
+          "id": 18524,
+          "name": "Skala Oropou"
+        },
+        "18527": {
+          "id": 18527,
+          "name": "Skhimatarion"
+        },
+        "18530": {
+          "id": 18530,
+          "name": "Skiros"
+        },
+        "18627": {
+          "id": 18627,
+          "name": "Vasilikon"
+        },
+        "18629": {
+          "id": 18629,
+          "name": "Vathi"
+        },
+        "18681": {
+          "id": 18681,
+          "name": "Yimnon"
+        }
+      }
+    },
+    "35": {
+      "code": "35",
+      "name": "Attiki",
+      "cities": {
+        "17623": {
+          "id": 17623,
+          "name": "Aiantion"
+        },
+        "17624": {
+          "id": 17624,
+          "name": "Aigaleo"
+        },
+        "17626": {
+          "id": 17626,
+          "name": "Aiyina"
+        },
+        "17630": {
+          "id": 17630,
+          "name": "Akharnai"
+        },
+        "17642": {
+          "id": 17642,
+          "name": "Aliverion"
+        },
+        "17648": {
+          "id": 17648,
+          "name": "Amarousion"
+        },
+        "17649": {
+          "id": 17649,
+          "name": "Ambelakia"
+        },
+        "17664": {
+          "id": 17664,
+          "name": "Anavissos"
+        },
+        "17674": {
+          "id": 17674,
+          "name": "Anoixis"
+        },
+        "17679": {
+          "id": 17679,
+          "name": "Ano Liosia"
+        },
+        "17725": {
+          "id": 17725,
+          "name": "Aspropirgos"
+        },
+        "17735": {
+          "id": 17735,
+          "name": "Athens"
+        },
+        "17747": {
+          "id": 17747,
+          "name": "Ayia Marina"
+        },
+        "17753": {
+          "id": 17753,
+          "name": "Ayia Paraskevi"
+        },
+        "17760": {
+          "id": 17760,
+          "name": "Ayia Varvara"
+        },
+        "17762": {
+          "id": 17762,
+          "name": "Ayioi Apostoloi"
+        },
+        "17769": {
+          "id": 17769,
+          "name": "Ayios Loukas"
+        },
+        "17780": {
+          "id": 17780,
+          "name": "Ayios Stefanos"
+        },
+        "17781": {
+          "id": 17781,
+          "name": "Ayios Thomas"
+        },
+        "17800": {
+          "id": 17800,
+          "name": "Ekali"
+        },
+        "17808": {
+          "id": 17808,
+          "name": "Eleusis"
+        },
+        "17809": {
+          "id": 17809,
+          "name": "Ellinikon"
+        },
+        "17841": {
+          "id": 17841,
+          "name": "Fili"
+        },
+        "17858": {
+          "id": 17858,
+          "name": "Galatas"
+        },
+        "17862": {
+          "id": 17862,
+          "name": "Galatsion"
+        },
+        "17882": {
+          "id": 17882,
+          "name": "Grammatikon"
+        },
+        "17897": {
+          "id": 17897,
+          "name": "Iraklion"
+        },
+        "17906": {
+          "id": 17906,
+          "name": "Kaisariani"
+        },
+        "17908": {
+          "id": 17908,
+          "name": "Kalamakion"
+        },
+        "17914": {
+          "id": 17914,
+          "name": "Kalamos"
+        },
+        "17924": {
+          "id": 17924,
+          "name": "Kalivia Thorikou"
+        },
+        "17932": {
+          "id": 17932,
+          "name": "Kallithea"
+        },
+        "17942": {
+          "id": 17942,
+          "name": "Kamateron"
+        },
+        "17952": {
+          "id": 17952,
+          "name": "Kapandrition"
+        },
+        "17995": {
+          "id": 17995,
+          "name": "Kato Soulion"
+        },
+        "18009": {
+          "id": 18009,
+          "name": "Keratea"
+        },
+        "18010": {
+          "id": 18010,
+          "name": "Keratsinion"
+        },
+        "18013": {
+          "id": 18013,
+          "name": "Khalandrion"
+        },
+        "18029": {
+          "id": 18029,
+          "name": "Kholargos"
+        },
+        "18041": {
+          "id": 18041,
+          "name": "Kifisia"
+        },
+        "18047": {
+          "id": 18047,
+          "name": "Kineta"
+        },
+        "18052": {
+          "id": 18052,
+          "name": "Kipseli"
+        },
+        "18086": {
+          "id": 18086,
+          "name": "Koropion"
+        },
+        "18097": {
+          "id": 18097,
+          "name": "Kouvaras"
+        },
+        "18107": {
+          "id": 18107,
+          "name": "Krionerion"
+        },
+        "18138": {
+          "id": 18138,
+          "name": "Likovrisi"
+        },
+        "18162": {
+          "id": 18162,
+          "name": "Magoula"
+        },
+        "18175": {
+          "id": 18175,
+          "name": "Mandra"
+        },
+        "18181": {
+          "id": 18181,
+          "name": "Marathon"
+        },
+        "18184": {
+          "id": 18184,
+          "name": "Markopoulon"
+        },
+        "18196": {
+          "id": 18196,
+          "name": "Megara"
+        },
+        "18199": {
+          "id": 18199,
+          "name": "Melissia"
+        },
+        "18216": {
+          "id": 18216,
+          "name": "Methana"
+        },
+        "18228": {
+          "id": 18228,
+          "name": "Milesion"
+        },
+        "18247": {
+          "id": 18247,
+          "name": "Moskhaton"
+        },
+        "18265": {
+          "id": 18265,
+          "name": "Nea Erithraia"
+        },
+        "18267": {
+          "id": 18267,
+          "name": "Nea Ionia"
+        },
+        "18275": {
+          "id": 18275,
+          "name": "Nea Makri"
+        },
+        "18280": {
+          "id": 18280,
+          "name": "Nea Palatia"
+        },
+        "18283": {
+          "id": 18283,
+          "name": "Nea Peramos"
+        },
+        "18287": {
+          "id": 18287,
+          "name": "Nea Smirni"
+        },
+        "18320": {
+          "id": 18320,
+          "name": "Nikaia"
+        },
+        "18326": {
+          "id": 18326,
+          "name": "Oinoi"
+        },
+        "18343": {
+          "id": 18343,
+          "name": "Paiania"
+        },
+        "18345": {
+          "id": 18345,
+          "name": "Palaia Fokaia"
+        },
+        "18357": {
+          "id": 18357,
+          "name": "Palaion Faliron"
+        },
+        "18362": {
+          "id": 18362,
+          "name": "Pallini"
+        },
+        "18367": {
+          "id": 18367,
+          "name": "Papagos"
+        },
+        "18397": {
+          "id": 18397,
+          "name": "Perama"
+        },
+        "18402": {
+          "id": 18402,
+          "name": "Peristerion"
+        },
+        "18415": {
+          "id": 18415,
+          "name": "Pikermion"
+        },
+        "18447": {
+          "id": 18447,
+          "name": "Poros"
+        },
+        "18470": {
+          "id": 18470,
+          "name": "Psikhikon"
+        },
+        "18473": {
+          "id": 18473,
+          "name": "Rafina"
+        },
+        "18491": {
+          "id": 18491,
+          "name": "Salamis"
+        },
+        "18501": {
+          "id": 18501,
+          "name": "Selinia"
+        },
+        "18535": {
+          "id": 18535,
+          "name": "Skourta"
+        },
+        "18546": {
+          "id": 18546,
+          "name": "Sparta"
+        },
+        "18548": {
+          "id": 18548,
+          "name": "Spata"
+        },
+        "18551": {
+          "id": 18551,
+          "name": "Spetsai"
+        },
+        "18554": {
+          "id": 18554,
+          "name": "Stamata"
+        },
+        "18619": {
+          "id": 18619,
+          "name": "Vari"
+        },
+        "18621": {
+          "id": 18621,
+          "name": "Varnavas"
+        },
+        "18630": {
+          "id": 18630,
+          "name": "Vathi"
+        },
+        "18643": {
+          "id": 18643,
+          "name": "Viron"
+        },
+        "18654": {
+          "id": 18654,
+          "name": "Voula"
+        },
+        "18655": {
+          "id": 18655,
+          "name": "Vouliagmeni"
+        },
+        "18686": {
+          "id": 18686,
+          "name": "Zarakes"
+        }
+      }
+    },
+    "36": {
+      "code": "36",
+      "name": "Argolis",
+      "cities": {
+        "17673": {
+          "id": 17673,
+          "name": "Anifion"
+        },
+        "17691": {
+          "id": 17691,
+          "name": "Arakhnaion"
+        },
+        "17699": {
+          "id": 17699,
+          "name": "Argos"
+        },
+        "17702": {
+          "id": 17702,
+          "name": "Aria"
+        },
+        "17721": {
+          "id": 17721,
+          "name": "Asini"
+        },
+        "17826": {
+          "id": 17826,
+          "name": "Ermioni"
+        },
+        "18059": {
+          "id": 18059,
+          "name": "Kiverion"
+        },
+        "18062": {
+          "id": 18062,
+          "name": "Koilas"
+        },
+        "18100": {
+          "id": 18100,
+          "name": "Kranidion"
+        },
+        "18135": {
+          "id": 18135,
+          "name": "Ligourion"
+        },
+        "18141": {
+          "id": 18141,
+          "name": "Limnai"
+        },
+        "18229": {
+          "id": 18229,
+          "name": "Miloi"
+        },
+        "18258": {
+          "id": 18258,
+          "name": "Nauplion"
+        },
+        "18273": {
+          "id": 18273,
+          "name": "Nea Kios"
+        },
+        "18289": {
+          "id": 18289,
+          "name": "Nea Tirins"
+        },
+        "18450": {
+          "id": 18450,
+          "name": "Portokhelion"
+        },
+        "18593": {
+          "id": 18593,
+          "name": "Tolon"
+        }
+      }
+    },
+    "37": {
+      "code": "37",
+      "name": "Korinthia",
+      "cities": {
+        "17707": {
+          "id": 17707,
+          "name": "Arkhaia Korinthos"
+        },
+        "17729": {
+          "id": 17729,
+          "name": "Assos"
+        },
+        "17736": {
+          "id": 17736,
+          "name": "Athikia"
+        },
+        "17784": {
+          "id": 17784,
+          "name": "Ayios Vasilios"
+        },
+        "17788": {
+          "id": 17788,
+          "name": "Derveni"
+        },
+        "17829": {
+          "id": 17829,
+          "name": "Examilia"
+        },
+        "17899": {
+          "id": 17899,
+          "name": "Isthmia"
+        },
+        "17939": {
+          "id": 17939,
+          "name": "Kamarion"
+        },
+        "17984": {
+          "id": 17984,
+          "name": "Kato Assos"
+        },
+        "18026": {
+          "id": 18026,
+          "name": "Khiliomodion"
+        },
+        "18040": {
+          "id": 18040,
+          "name": "Kiato"
+        },
+        "18053": {
+          "id": 18053,
+          "name": "Kiras Vrisi"
+        },
+        "18068": {
+          "id": 18068,
+          "name": "Kokkonion"
+        },
+        "18081": {
+          "id": 18081,
+          "name": "Korinthos"
+        },
+        "18108": {
+          "id": 18108,
+          "name": "Krionerion"
+        },
+        "18128": {
+          "id": 18128,
+          "name": "Lekhaion"
+        },
+        "18137": {
+          "id": 18137,
+          "name": "Likoporia"
+        },
+        "18156": {
+          "id": 18156,
+          "name": "Loutrakion"
+        },
+        "18201": {
+          "id": 18201,
+          "name": "Melission"
+        },
+        "18249": {
+          "id": 18249,
+          "name": "Moulkion"
+        },
+        "18293": {
+          "id": 18293,
+          "name": "Nemea"
+        },
+        "18381": {
+          "id": 18381,
+          "name": "Pasion"
+        },
+        "18395": {
+          "id": 18395,
+          "name": "Perakhora"
+        },
+        "18405": {
+          "id": 18405,
+          "name": "Periyialion"
+        },
+        "18511": {
+          "id": 18511,
+          "name": "Sikion"
+        },
+        "18538": {
+          "id": 18538,
+          "name": "Sofikon"
+        },
+        "18634": {
+          "id": 18634,
+          "name": "Velon"
+        },
+        "18650": {
+          "id": 18650,
+          "name": "Vokhaikon"
+        },
+        "18656": {
+          "id": 18656,
+          "name": "Vrakhation"
+        },
+        "18664": {
+          "id": 18664,
+          "name": "Xilokastron"
+        }
+      }
+    },
+    "38": {
+      "code": "38",
+      "name": "Akhaia",
+      "cities": {
+        "17628": {
+          "id": 17628,
+          "name": "Aiyion"
+        },
+        "17629": {
+          "id": 17629,
+          "name": "Aiyira"
+        },
+        "17633": {
+          "id": 17633,
+          "name": "Akrata"
+        },
+        "17675": {
+          "id": 17675,
+          "name": "Ano Kastritsion"
+        },
+        "17917": {
+          "id": 17917,
+          "name": "Kalavrita"
+        },
+        "17938": {
+          "id": 17938,
+          "name": "Kamarai"
+        },
+        "17946": {
+          "id": 17946,
+          "name": "Kaminia"
+        },
+        "17982": {
+          "id": 17982,
+          "name": "Kato Akhaia"
+        },
+        "17991": {
+          "id": 17991,
+          "name": "Kato Mazarakion"
+        },
+        "18014": {
+          "id": 18014,
+          "name": "Khalandritsa"
+        },
+        "18121": {
+          "id": 18121,
+          "name": "Lapas"
+        },
+        "18339": {
+          "id": 18339,
+          "name": "Ovria"
+        },
+        "18374": {
+          "id": 18374,
+          "name": "Paralia"
+        },
+        "18383": {
+          "id": 18383,
+          "name": "Patrai"
+        },
+        "18477": {
+          "id": 18477,
+          "name": "Rion"
+        },
+        "18490": {
+          "id": 18490,
+          "name": "Royitika"
+        },
+        "18500": {
+          "id": 18500,
+          "name": "Selianitika"
+        },
+        "18513": {
+          "id": 18513,
+          "name": "Silivainiotika"
+        },
+        "18569": {
+          "id": 18569,
+          "name": "Temeni"
+        },
+        "18657": {
+          "id": 18657,
+          "name": "Vrakhnaiika"
+        }
+      }
+    },
+    "39": {
+      "code": "39",
+      "name": "Ilia",
+      "cities": {
+        "17639": {
+          "id": 17639,
+          "name": "Alfiousa"
+        },
+        "17646": {
+          "id": 17646,
+          "name": "Amalias"
+        },
+        "17667": {
+          "id": 17667,
+          "name": "Andravida"
+        },
+        "17708": {
+          "id": 17708,
+          "name": "Arkhaia Olimbia"
+        },
+        "17775": {
+          "id": 17775,
+          "name": "Ayios Nikolaos"
+        },
+        "17819": {
+          "id": 17819,
+          "name": "Epitalion"
+        },
+        "17866": {
+          "id": 17866,
+          "name": "Gastouni"
+        },
+        "17876": {
+          "id": 17876,
+          "name": "Goumeron"
+        },
+        "17933": {
+          "id": 17933,
+          "name": "Kallithea"
+        },
+        "17954": {
+          "id": 17954,
+          "name": "Karatoulas"
+        },
+        "17956": {
+          "id": 17956,
+          "name": "Kardamas"
+        },
+        "18001": {
+          "id": 18001,
+          "name": "Kavasilas"
+        },
+        "18024": {
+          "id": 18024,
+          "name": "Khavarion"
+        },
+        "18043": {
+          "id": 18043,
+          "name": "Killini"
+        },
+        "18102": {
+          "id": 18102,
+          "name": "Krestena"
+        },
+        "18119": {
+          "id": 18119,
+          "name": "Lalas"
+        },
+        "18127": {
+          "id": 18127,
+          "name": "Lekhaina"
+        },
+        "18169": {
+          "id": 18169,
+          "name": "Makrisia"
+        },
+        "18177": {
+          "id": 18177,
+          "name": "Manolas"
+        },
+        "18232": {
+          "id": 18232,
+          "name": "Mirsini"
+        },
+        "18277": {
+          "id": 18277,
+          "name": "Nea Manolas"
+        },
+        "18302": {
+          "id": 18302,
+          "name": "Neokhorion"
+        },
+        "18389": {
+          "id": 18389,
+          "name": "Pelopion"
+        },
+        "18420": {
+          "id": 18420,
+          "name": "Pirgos"
+        },
+        "18429": {
+          "id": 18429,
+          "name": "Platanos"
+        },
+        "18498": {
+          "id": 18498,
+          "name": "Savalia"
+        },
+        "18597": {
+          "id": 18597,
+          "name": "Traganon"
+        },
+        "18617": {
+          "id": 18617,
+          "name": "Varda"
+        },
+        "18622": {
+          "id": 18622,
+          "name": "Vartholomio"
+        },
+        "18623": {
+          "id": 18623,
+          "name": "Varvasaina"
+        },
+        "18658": {
+          "id": 18658,
+          "name": "Vrina"
+        },
+        "18684": {
+          "id": 18684,
+          "name": "Zakharo"
+        }
+      }
+    },
+    "40": {
+      "code": "40",
+      "name": "Messinia",
+      "cities": {
+        "17697": {
+          "id": 17697,
+          "name": "Arfara"
+        },
+        "17704": {
+          "id": 17704,
+          "name": "Aris"
+        },
+        "17840": {
+          "id": 17840,
+          "name": "Filiatra"
+        },
+        "17865": {
+          "id": 17865,
+          "name": "Gargalianoi"
+        },
+        "17910": {
+          "id": 17910,
+          "name": "Kalamata"
+        },
+        "18030": {
+          "id": 18030,
+          "name": "Khora"
+        },
+        "18049": {
+          "id": 18049,
+          "name": "Kiparissia"
+        },
+        "18085": {
+          "id": 18085,
+          "name": "Koroni"
+        },
+        "18151": {
+          "id": 18151,
+          "name": "Longa"
+        },
+        "18182": {
+          "id": 18182,
+          "name": "Marathopolis"
+        },
+        "18197": {
+          "id": 18197,
+          "name": "Meligalas"
+        },
+        "18213": {
+          "id": 18213,
+          "name": "Messini"
+        },
+        "18218": {
+          "id": 18218,
+          "name": "Methoni"
+        },
+        "18223": {
+          "id": 18223,
+          "name": "Mikromani"
+        },
+        "18419": {
+          "id": 18419,
+          "name": "Pilos"
+        },
+        "18550": {
+          "id": 18550,
+          "name": "Sperkhoyia"
+        },
+        "18585": {
+          "id": 18585,
+          "name": "Thouria"
+        },
+        "18610": {
+          "id": 18610,
+          "name": "Valira"
+        },
+        "18648": {
+          "id": 18648,
+          "name": "Vlakhopoulon"
+        }
+      }
+    },
+    "41": {
+      "code": "41",
+      "name": "Arkadhia",
+      "cities": {
+        "17732": {
+          "id": 17732,
+          "name": "Astros"
+        },
+        "17763": {
+          "id": 17763,
+          "name": "Ayios Andreas"
+        },
+        "17778": {
+          "id": 17778,
+          "name": "Ayios Petros"
+        },
+        "17961": {
+          "id": 17961,
+          "name": "Kariai"
+        },
+        "18130": {
+          "id": 18130,
+          "name": "Leonidion"
+        },
+        "18194": {
+          "id": 18194,
+          "name": "Megalopoli"
+        },
+        "18375": {
+          "id": 18375,
+          "name": "Paralion Astros"
+        },
+        "18604": {
+          "id": 18604,
+          "name": "Tripoli"
+        },
+        "18645": {
+          "id": 18645,
+          "name": "Vitina"
+        },
+        "18647": {
+          "id": 18647,
+          "name": "Vlakhokerasea"
+        }
+      }
+    },
+    "42": {
+      "code": "42",
+      "name": "Lakonia",
+      "cities": {
+        "17724": {
+          "id": 17724,
+          "name": "Asopos"
+        },
+        "17810": {
+          "id": 17810,
+          "name": "Elos"
+        },
+        "17985": {
+          "id": 17985,
+          "name": "Kato Glikovrisi"
+        },
+        "18113": {
+          "id": 18113,
+          "name": "Krokeai"
+        },
+        "18163": {
+          "id": 18163,
+          "name": "Magoula"
+        },
+        "18241": {
+          "id": 18241,
+          "name": "Molaoi"
+        },
+        "18510": {
+          "id": 18510,
+          "name": "Sikea"
+        },
+        "18525": {
+          "id": 18525,
+          "name": "Skala"
+        },
+        "18547": {
+          "id": 18547,
+          "name": "Sparti"
+        },
+        "18646": {
+          "id": 18646,
+          "name": "Vlakhiotis"
+        },
+        "18667": {
+          "id": 18667,
+          "name": "Xirokambion"
+        },
+        "18671": {
+          "id": 18671,
+          "name": "Yefira"
+        },
+        "18675": {
+          "id": 18675,
+          "name": "Yerakion"
+        },
+        "18682": {
+          "id": 18682,
+          "name": "Yithion"
+        }
+      }
+    },
+    "43": {
+      "code": "43",
+      "name": "Khania",
+      "cities": {
+        "17748": {
+          "id": 17748,
+          "name": "Ayia Marina"
+        },
+        "17787": {
+          "id": 17787,
+          "name": "Daratsos"
+        },
+        "17859": {
+          "id": 17859,
+          "name": "Galatas"
+        },
+        "17920": {
+          "id": 17920,
+          "name": "Kalivai"
+        },
+        "18019": {
+          "id": 18019,
+          "name": "Khania"
+        },
+        "18057": {
+          "id": 18057,
+          "name": "Kissamos"
+        },
+        "18069": {
+          "id": 18069,
+          "name": "Kolimvari"
+        },
+        "18251": {
+          "id": 18251,
+          "name": "Mournies"
+        },
+        "18255": {
+          "id": 18255,
+          "name": "Mouzouras"
+        },
+        "18316": {
+          "id": 18316,
+          "name": "Nerokouros"
+        },
+        "18349": {
+          "id": 18349,
+          "name": "Palaiokhora"
+        },
+        "18403": {
+          "id": 18403,
+          "name": "Perivolia"
+        },
+        "18424": {
+          "id": 18424,
+          "name": "Pitharion"
+        },
+        "18430": {
+          "id": 18430,
+          "name": "Platanos"
+        },
+        "18541": {
+          "id": 18541,
+          "name": "Souda"
+        },
+        "18558": {
+          "id": 18558,
+          "name": "Sternai"
+        },
+        "18607": {
+          "id": 18607,
+          "name": "Tsikalaria"
+        },
+        "18659": {
+          "id": 18659,
+          "name": "Vrises"
+        },
+        "18678": {
+          "id": 18678,
+          "name": "Yialos"
+        }
+      }
+    },
+    "44": {
+      "code": "44",
+      "name": "Rethimni",
+      "cities": {
+        "17683": {
+          "id": 17683,
+          "name": "Anoyia"
+        },
+        "17739": {
+          "id": 17739,
+          "name": "Atsipopoulon"
+        },
+        "18115": {
+          "id": 18115,
+          "name": "Krouson"
+        },
+        "18366": {
+          "id": 18366,
+          "name": "Panormos"
+        },
+        "18398": {
+          "id": 18398,
+          "name": "Perama"
+        },
+        "18476": {
+          "id": 18476,
+          "name": "Rethimnon"
+        },
+        "18676": {
+          "id": 18676,
+          "name": "Yerani"
+        },
+        "18693": {
+          "id": 18693,
+          "name": "Zoniana"
+        }
+      }
+    },
+    "45": {
+      "code": "45",
+      "name": "Iraklion",
+      "cities": {
+        "17706": {
+          "id": 17706,
+          "name": "Arkalokhorion"
+        },
+        "17720": {
+          "id": 17720,
+          "name": "Asimion"
+        },
+        "17761": {
+          "id": 17761,
+          "name": "Ayia Varvara"
+        },
+        "17815": {
+          "id": 17815,
+          "name": "Epano Arkhanai"
+        },
+        "17818": {
+          "id": 17818,
+          "name": "Episkopi"
+        },
+        "17863": {
+          "id": 17863,
+          "name": "Galia"
+        },
+        "17869": {
+          "id": 17869,
+          "name": "Gazion"
+        },
+        "17878": {
+          "id": 17878,
+          "name": "Gournai"
+        },
+        "17898": {
+          "id": 17898,
+          "name": "Iraklion"
+        },
+        "17975": {
+          "id": 17975,
+          "name": "Kastellion"
+        },
+        "17983": {
+          "id": 17983,
+          "name": "Kato Asitai"
+        },
+        "18020": {
+          "id": 18020,
+          "name": "Khanion Tou Kokkini"
+        },
+        "18025": {
+          "id": 18025,
+          "name": "Khersonisos"
+        },
+        "18094": {
+          "id": 18094,
+          "name": "Koutouloufarion"
+        },
+        "18140": {
+          "id": 18140,
+          "name": "Limin Khersonisou"
+        },
+        "18239": {
+          "id": 18239,
+          "name": "Moirai"
+        },
+        "18240": {
+          "id": 18240,
+          "name": "Mokhos"
+        },
+        "18260": {
+          "id": 18260,
+          "name": "Nea Alikarnassos"
+        },
+        "18421": {
+          "id": 18421,
+          "name": "Pirgos"
+        },
+        "18445": {
+          "id": 18445,
+          "name": "Pombia"
+        },
+        "18459": {
+          "id": 18459,
+          "name": "Profitis Ilias"
+        },
+        "18523": {
+          "id": 18523,
+          "name": "Skalanion"
+        },
+        "18553": {
+          "id": 18553,
+          "name": "Stalis"
+        },
+        "18586": {
+          "id": 18586,
+          "name": "Thrapsanon"
+        },
+        "18588": {
+          "id": 18588,
+          "name": "Tilisos"
+        },
+        "18624": {
+          "id": 18624,
+          "name": "Vasiliai"
+        },
+        "18636": {
+          "id": 18636,
+          "name": "Veneraton"
+        },
+        "18677": {
+          "id": 18677,
+          "name": "Yeryeri"
+        },
+        "18688": {
+          "id": 18688,
+          "name": "Zaros"
+        }
+      }
+    },
+    "46": {
+      "code": "46",
+      "name": "Lasithi",
+      "cities": {
+        "17659": {
+          "id": 17659,
+          "name": "Analipsis"
+        },
+        "17745": {
+          "id": 17745,
+          "name": "Ayia Galini"
+        },
+        "17776": {
+          "id": 17776,
+          "name": "Ayios Nikolaos"
+        },
+        "17881": {
+          "id": 17881,
+          "name": "Gra Liyia"
+        },
+        "17889": {
+          "id": 17889,
+          "name": "Ierapetra"
+        },
+        "17988": {
+          "id": 17988,
+          "name": "Kato Khorion"
+        },
+        "18096": {
+          "id": 18096,
+          "name": "Koutsouras"
+        },
+        "18112": {
+          "id": 18112,
+          "name": "Kritsa"
+        },
+        "18173": {
+          "id": 18173,
+          "name": "Malia"
+        },
+        "18285": {
+          "id": 18285,
+          "name": "Neapolis"
+        },
+        "18347": {
+          "id": 18347,
+          "name": "Palaikastron"
+        },
+        "18518": {
+          "id": 18518,
+          "name": "Sision"
+        },
+        "18520": {
+          "id": 18520,
+          "name": "Sitia"
+        },
+        "18528": {
+          "id": 18528,
+          "name": "Skhisma"
+        },
+        "18589": {
+          "id": 18589,
+          "name": "Timbakion"
+        },
+        "18609": {
+          "id": 18609,
+          "name": "Tzermiadon"
+        }
+      }
+    },
+    "47": {
+      "code": "47",
+      "name": "Dhodhekanisos",
+      "cities": {
+        "17612": {
+          "id": 17612,
+          "name": "Afantou"
+        },
+        "17686": {
+          "id": 17686,
+          "name": "Antimakhia"
+        },
+        "17688": {
+          "id": 17688,
+          "name": "Apollona"
+        },
+        "17709": {
+          "id": 17709,
+          "name": "Arkhangelos"
+        },
+        "17731": {
+          "id": 17731,
+          "name": "Astipalaia"
+        },
+        "17749": {
+          "id": 17749,
+          "name": "Ayia Marina"
+        },
+        "17811": {
+          "id": 17811,
+          "name": "Embonas"
+        },
+        "17834": {
+          "id": 17834,
+          "name": "Fanai"
+        },
+        "17887": {
+          "id": 17887,
+          "name": "Ialisos"
+        },
+        "17919": {
+          "id": 17919,
+          "name": "Kalimnos"
+        },
+        "17955": {
+          "id": 17955,
+          "name": "Kardamaina"
+        },
+        "17968": {
+          "id": 17968,
+          "name": "Karpathos"
+        },
+        "18004": {
+          "id": 18004,
+          "name": "Kefalos"
+        },
+        "18032": {
+          "id": 18032,
+          "name": "Khorion"
+        },
+        "18087": {
+          "id": 18087,
+          "name": "Kos"
+        },
+        "18101": {
+          "id": 18101,
+          "name": "Kremasti"
+        },
+        "18117": {
+          "id": 18117,
+          "name": "Lakkion"
+        },
+        "18122": {
+          "id": 18122,
+          "name": "Lardos"
+        },
+        "18417": {
+          "id": 18417,
+          "name": "Pilion"
+        },
+        "18487": {
+          "id": 18487,
+          "name": "Rodos"
+        },
+        "18514": {
+          "id": 18514,
+          "name": "Simi"
+        },
+        "18526": {
+          "id": 18526,
+          "name": "Skala"
+        },
+        "18668": {
+          "id": 18668,
+          "name": "Xirokambos"
+        },
+        "18691": {
+          "id": 18691,
+          "name": "Ziparion"
+        }
+      }
+    },
+    "48": {
+      "code": "48",
+      "name": "Samos",
+      "cities": {
+        "17767": {
+          "id": 17767,
+          "name": "Ayios Kirikos"
+        },
+        "17853": {
+          "id": 17853,
+          "name": "Fournoi"
+        },
+        "18031": {
+          "id": 18031,
+          "name": "Khora"
+        },
+        "18064": {
+          "id": 18064,
+          "name": "Kokkarion"
+        },
+        "18180": {
+          "id": 18180,
+          "name": "Marathokambos"
+        },
+        "18237": {
+          "id": 18237,
+          "name": "Mitilinioi"
+        },
+        "18305": {
+          "id": 18305,
+          "name": "Neon Karlovasion"
+        },
+        "18341": {
+          "id": 18341,
+          "name": "Pagondas"
+        },
+        "18494": {
+          "id": 18494,
+          "name": "Samos"
+        },
+        "18631": {
+          "id": 18631,
+          "name": "Vathi"
+        }
+      }
+    },
+    "49": {
+      "code": "49",
+      "name": "Kikladhes",
+      "cities": {
+        "17610": {
+          "id": 17610,
+          "name": "Adamas"
+        },
+        "17668": {
+          "id": 17668,
+          "name": "Andros"
+        },
+        "17680": {
+          "id": 17680,
+          "name": "Ano Mera"
+        },
+        "17682": {
+          "id": 17682,
+          "name": "Ano Siros"
+        },
+        "17689": {
+          "id": 17689,
+          "name": "Apollonia"
+        },
+        "17813": {
+          "id": 17813,
+          "name": "Emborion"
+        },
+        "17827": {
+          "id": 17827,
+          "name": "Ermoupolis"
+        },
+        "17847": {
+          "id": 17847,
+          "name": "Filotion"
+        },
+        "17893": {
+          "id": 17893,
+          "name": "Ios"
+        },
+        "17940": {
+          "id": 17940,
+          "name": "Kamarion"
+        },
+        "18208": {
+          "id": 18208,
+          "name": "Mesaria"
+        },
+        "18221": {
+          "id": 18221,
+          "name": "Mikonos"
+        },
+        "18230": {
+          "id": 18230,
+          "name": "Milos"
+        },
+        "18257": {
+          "id": 18257,
+          "name": "Naousa"
+        },
+        "18259": {
+          "id": 18259,
+          "name": "Naxos"
+        },
+        "18324": {
+          "id": 18324,
+          "name": "Oia"
+        },
+        "18336": {
+          "id": 18336,
+          "name": "Ormos Korthiou"
+        },
+        "18380": {
+          "id": 18380,
+          "name": "Paros"
+        },
+        "18581": {
+          "id": 18581,
+          "name": "Thira"
+        },
+        "18590": {
+          "id": 18590,
+          "name": "Tinos"
+        },
+        "18620": {
+          "id": 18620,
+          "name": "Vari"
+        }
+      }
+    },
+    "50": {
+      "code": "50",
+      "name": "Khios",
+      "cities": {
+        "17928": {
+          "id": 17928,
+          "name": "Kallimasia"
+        },
+        "18028": {
+          "id": 18028,
+          "name": "Khios"
+        },
+        "18186": {
+          "id": 18186,
+          "name": "Marmaron"
+        },
+        "18294": {
+          "id": 18294,
+          "name": "Nenita"
+        },
+        "18327": {
+          "id": 18327,
+          "name": "Oinoussai"
+        },
+        "18423": {
+          "id": 18423,
+          "name": "Piryion"
+        },
+        "18580": {
+          "id": 18580,
+          "name": "Thimiana"
+        },
+        "18660": {
+          "id": 18660,
+          "name": "Vrontados"
+        }
+      }
+    },
+    "51": {
+      "code": "51",
+      "name": "Lesvos",
+      "cities": {
+        "17617": {
+          "id": 17617,
+          "name": "Agra"
+        },
+        "17687": {
+          "id": 17687,
+          "name": "Antissa"
+        },
+        "17738": {
+          "id": 17738,
+          "name": "Atsiki"
+        },
+        "17754": {
+          "id": 17754,
+          "name": "Ayia Paraskevi"
+        },
+        "17756": {
+          "id": 17756,
+          "name": "Ayiasos"
+        },
+        "17822": {
+          "id": 17822,
+          "name": "Eresos"
+        },
+        "17935": {
+          "id": 17935,
+          "name": "Kalloni"
+        },
+        "18157": {
+          "id": 18157,
+          "name": "Loutra"
+        },
+        "18178": {
+          "id": 18178,
+          "name": "Mantamados"
+        },
+        "18231": {
+          "id": 18231,
+          "name": "Mirina"
+        },
+        "18233": {
+          "id": 18233,
+          "name": "Mithimna"
+        },
+        "18236": {
+          "id": 18236,
+          "name": "Mitilini"
+        },
+        "18246": {
+          "id": 18246,
+          "name": "Moria"
+        },
+        "18352": {
+          "id": 18352,
+          "name": "Palaiokipos"
+        },
+        "18363": {
+          "id": 18363,
+          "name": "Pamfila"
+        },
+        "18369": {
+          "id": 18369,
+          "name": "Pappados"
+        },
+        "18371": {
+          "id": 18371,
+          "name": "Parakoila"
+        },
+        "18410": {
+          "id": 18410,
+          "name": "Petra"
+        },
+        "18436": {
+          "id": 18436,
+          "name": "Plomarion"
+        },
+        "18440": {
+          "id": 18440,
+          "name": "Polikhnitos"
+        },
+        "18532": {
+          "id": 18532,
+          "name": "Skopelos"
+        },
+        "18537": {
+          "id": 18537,
+          "name": "Skoutaros"
+        },
+        "18561": {
+          "id": 18561,
+          "name": "Stipsi"
+        },
+        "18618": {
+          "id": 18618,
+          "name": "Varia"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Evros",
+      "cities": {
+        "17638": {
+          "id": 17638,
+          "name": "Alexandroupoli"
+        },
+        "17684": {
+          "id": 17684,
+          "name": "Anthia"
+        },
+        "17792": {
+          "id": 17792,
+          "name": "Dikaia"
+        },
+        "17837": {
+          "id": 17837,
+          "name": "Ferai"
+        },
+        "17941": {
+          "id": 17941,
+          "name": "Kamariotissa"
+        },
+        "17966": {
+          "id": 17966,
+          "name": "Karoti"
+        },
+        "17973": {
+          "id": 17973,
+          "name": "Kastaneai"
+        },
+        "18002": {
+          "id": 18002,
+          "name": "Kavili"
+        },
+        "18051": {
+          "id": 18051,
+          "name": "Kiprinos"
+        },
+        "18092": {
+          "id": 18092,
+          "name": "Koufovounon"
+        },
+        "18116": {
+          "id": 18116,
+          "name": "Lagos"
+        },
+        "18125": {
+          "id": 18125,
+          "name": "Lavara"
+        },
+        "18158": {
+          "id": 18158,
+          "name": "Loutros"
+        },
+        "18215": {
+          "id": 18215,
+          "name": "Metaxades"
+        },
+        "18291": {
+          "id": 18291,
+          "name": "Nea Vissa"
+        },
+        "18297": {
+          "id": 18297,
+          "name": "Neokhorion"
+        },
+        "18313": {
+          "id": 18313,
+          "name": "Neos Pirgos"
+        },
+        "18332": {
+          "id": 18332,
+          "name": "Orestias"
+        },
+        "18334": {
+          "id": 18334,
+          "name": "Ormenion"
+        },
+        "18393": {
+          "id": 18393,
+          "name": "Peplos"
+        },
+        "18467": {
+          "id": 18467,
+          "name": "Provaton"
+        },
+        "18481": {
+          "id": 18481,
+          "name": "Rizia"
+        },
+        "18542": {
+          "id": 18542,
+          "name": "Souflion"
+        },
+        "18559": {
+          "id": 18559,
+          "name": "Sterna"
+        },
+        "18587": {
+          "id": 18587,
+          "name": "Tikheron"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Rodhopi",
+      "cities": {
+        "17693": {
+          "id": 17693,
+          "name": "Aratos"
+        },
+        "17705": {
+          "id": 17705,
+          "name": "Arisvi"
+        },
+        "17715": {
+          "id": 17715,
+          "name": "Arriana"
+        },
+        "17845": {
+          "id": 17845,
+          "name": "Fillira"
+        },
+        "17888": {
+          "id": 17888,
+          "name": "Iasmos"
+        },
+        "18074": {
+          "id": 18074,
+          "name": "Komotini"
+        },
+        "18136": {
+          "id": 18136,
+          "name": "Likion"
+        },
+        "18195": {
+          "id": 18195,
+          "name": "Mega Piston"
+        },
+        "18342": {
+          "id": 18342,
+          "name": "Pagouria"
+        },
+        "18495": {
+          "id": 18495,
+          "name": "Sapai"
+        },
+        "18663": {
+          "id": 18663,
+          "name": "Xilagani"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Xanthi",
+      "cities": {
+        "17801": {
+          "id": 17801,
+          "name": "Ekhinos"
+        },
+        "18046": {
+          "id": 18046,
+          "name": "Kimmeria"
+        },
+        "18220": {
+          "id": 18220,
+          "name": "Miki"
+        },
+        "18344": {
+          "id": 18344,
+          "name": "Pakhni"
+        },
+        "18408": {
+          "id": 18408,
+          "name": "Petinos"
+        },
+        "18411": {
+          "id": 18411,
+          "name": "Petrokhorion"
+        },
+        "18499": {
+          "id": 18499,
+          "name": "Seleron"
+        },
+        "18662": {
+          "id": 18662,
+          "name": "Xanthi"
+        },
+        "18672": {
+          "id": 18672,
+          "name": "Yenisea"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Drama",
+      "cities": {
+        "17797": {
+          "id": 17797,
+          "name": "Drama"
+        },
+        "17852": {
+          "id": 17852,
+          "name": "Fotolivos"
+        },
+        "17854": {
+          "id": 17854,
+          "name": "Ftelia"
+        },
+        "17926": {
+          "id": 17926,
+          "name": "Kallifitos"
+        },
+        "17937": {
+          "id": 17937,
+          "name": "Kalos Agros"
+        },
+        "18033": {
+          "id": 18033,
+          "name": "Khoristi"
+        },
+        "18413": {
+          "id": 18413,
+          "name": "Petroussa"
+        },
+        "18464": {
+          "id": 18464,
+          "name": "Prosotsani"
+        },
+        "18519": {
+          "id": 18519,
+          "name": "Sitagroi"
+        },
+        "18651": {
+          "id": 18651,
+          "name": "Volax"
+        },
+        "18669": {
+          "id": 18669,
+          "name": "Xiropotamos"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Serrai",
+      "cities": {
+        "17641": {
+          "id": 17641,
+          "name": "Alistrati"
+        },
+        "17666": {
+          "id": 17666,
+          "name": "Anayennisis"
+        },
+        "17681": {
+          "id": 17681,
+          "name": "Ano Poroia"
+        },
+        "17750": {
+          "id": 17750,
+          "name": "Ayia Paraskevi"
+        },
+        "17814": {
+          "id": 17814,
+          "name": "Emmanouil Pappas"
+        },
+        "17849": {
+          "id": 17849,
+          "name": "Flambouron"
+        },
+        "17870": {
+          "id": 17870,
+          "name": "Gazoros"
+        },
+        "17895": {
+          "id": 17895,
+          "name": "Iraklia"
+        },
+        "17925": {
+          "id": 17925,
+          "name": "Kali Vrisi"
+        },
+        "17986": {
+          "id": 17986,
+          "name": "Kato Kamila"
+        },
+        "17993": {
+          "id": 17993,
+          "name": "Kato Mitrousion"
+        },
+        "18011": {
+          "id": 18011,
+          "name": "Kerkini"
+        },
+        "18023": {
+          "id": 18023,
+          "name": "Kharopon"
+        },
+        "18039": {
+          "id": 18039,
+          "name": "Khrison"
+        },
+        "18063": {
+          "id": 18063,
+          "name": "Koimisis"
+        },
+        "18192": {
+          "id": 18192,
+          "name": "Megalokhorion"
+        },
+        "18225": {
+          "id": 18225,
+          "name": "Mikropolis"
+        },
+        "18292": {
+          "id": 18292,
+          "name": "Nea Zikhni"
+        },
+        "18298": {
+          "id": 18298,
+          "name": "Neokhorion"
+        },
+        "18307": {
+          "id": 18307,
+          "name": "Neon Petritsion"
+        },
+        "18309": {
+          "id": 18309,
+          "name": "Neon Soulion"
+        },
+        "18315": {
+          "id": 18315,
+          "name": "Neos Skopos"
+        },
+        "18318": {
+          "id": 18318,
+          "name": "Nigrita"
+        },
+        "18322": {
+          "id": 18322,
+          "name": "Nikoklia"
+        },
+        "18353": {
+          "id": 18353,
+          "name": "Palaiokomi"
+        },
+        "18392": {
+          "id": 18392,
+          "name": "Pentapolis"
+        },
+        "18466": {
+          "id": 18466,
+          "name": "Provatas"
+        },
+        "18469": {
+          "id": 18469,
+          "name": "Psikhikon"
+        },
+        "18486": {
+          "id": 18486,
+          "name": "Rodopolis"
+        },
+        "18502": {
+          "id": 18502,
+          "name": "Serrai"
+        },
+        "18507": {
+          "id": 18507,
+          "name": "Sidirokastron"
+        },
+        "18517": {
+          "id": 18517,
+          "name": "Sisamia"
+        },
+        "18534": {
+          "id": 18534,
+          "name": "Skotoussa"
+        },
+        "18536": {
+          "id": 18536,
+          "name": "Skoutari"
+        },
+        "18570": {
+          "id": 18570,
+          "name": "Terpni"
+        },
+        "18584": {
+          "id": 18584,
+          "name": "Tholos"
+        },
+        "18594": {
+          "id": 18594,
+          "name": "Toumba"
+        },
+        "18612": {
+          "id": 18612,
+          "name": "Valteron"
+        },
+        "18613": {
+          "id": 18613,
+          "name": "Valtotopion"
+        },
+        "18614": {
+          "id": 18614,
+          "name": "Vamvakofiton"
+        },
+        "18640": {
+          "id": 18640,
+          "name": "Veryi"
+        },
+        "18642": {
+          "id": 18642,
+          "name": "Vironia"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Kilkis",
+      "cities": {
+        "17651": {
+          "id": 17651,
+          "name": "Ambeloi"
+        },
+        "17726": {
+          "id": 17726,
+          "name": "Aspros"
+        },
+        "17741": {
+          "id": 17741,
+          "name": "Axioupoli"
+        },
+        "17777": {
+          "id": 17777,
+          "name": "Ayios Petros"
+        },
+        "17798": {
+          "id": 17798,
+          "name": "Drosaton"
+        },
+        "17864": {
+          "id": 17864,
+          "name": "Gallikos"
+        },
+        "17874": {
+          "id": 17874,
+          "name": "Gorgopi"
+        },
+        "17875": {
+          "id": 17875,
+          "name": "Goumenissa"
+        },
+        "17943": {
+          "id": 17943,
+          "name": "Kambanis"
+        },
+        "17970": {
+          "id": 17970,
+          "name": "Karperi"
+        },
+        "18027": {
+          "id": 18027,
+          "name": "Khimarros"
+        },
+        "18034": {
+          "id": 18034,
+          "name": "Khoriyion"
+        },
+        "18037": {
+          "id": 18037,
+          "name": "Khrisokhorafa"
+        },
+        "18042": {
+          "id": 18042,
+          "name": "Kilkis"
+        },
+        "18084": {
+          "id": 18084,
+          "name": "Koromilea"
+        },
+        "18110": {
+          "id": 18110,
+          "name": "Kristoni"
+        },
+        "18222": {
+          "id": 18222,
+          "name": "Mikrokambos"
+        },
+        "18250": {
+          "id": 18250,
+          "name": "Mouriai"
+        },
+        "18286": {
+          "id": 18286,
+          "name": "Nea Santa"
+        },
+        "18304": {
+          "id": 18304,
+          "name": "Neon Ayionerion"
+        },
+        "18356": {
+          "id": 18356,
+          "name": "Palaion Ayionerion"
+        },
+        "18386": {
+          "id": 18386,
+          "name": "Pedinon"
+        },
+        "18438": {
+          "id": 18438,
+          "name": "Polikastron"
+        },
+        "18566": {
+          "id": 18566,
+          "name": "Strimonikon"
+        },
+        "18595": {
+          "id": 18595,
+          "name": "Toumba"
+        },
+        "18665": {
+          "id": 18665,
+          "name": "Xilopolis"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Pella",
+      "cities": {
+        "17619": {
+          "id": 17619,
+          "name": "Agras"
+        },
+        "17635": {
+          "id": 17635,
+          "name": "Akrolimni"
+        },
+        "17650": {
+          "id": 17650,
+          "name": "Ambeliai"
+        },
+        "17690": {
+          "id": 17690,
+          "name": "Apsalos"
+        },
+        "17694": {
+          "id": 17694,
+          "name": "Aravissos"
+        },
+        "17703": {
+          "id": 17703,
+          "name": "Aridaia"
+        },
+        "17714": {
+          "id": 17714,
+          "name": "Arnissa"
+        },
+        "17716": {
+          "id": 17716,
+          "name": "Arsenion"
+        },
+        "17737": {
+          "id": 17737,
+          "name": "Athira"
+        },
+        "17742": {
+          "id": 17742,
+          "name": "Axos"
+        },
+        "17768": {
+          "id": 17768,
+          "name": "Ayios Loukas"
+        },
+        "17799": {
+          "id": 17799,
+          "name": "Edessa"
+        },
+        "17828": {
+          "id": 17828,
+          "name": "Esovalta"
+        },
+        "17830": {
+          "id": 17830,
+          "name": "Exaplatanos"
+        },
+        "17856": {
+          "id": 17856,
+          "name": "Galatades"
+        },
+        "17918": {
+          "id": 17918,
+          "name": "Kali"
+        },
+        "17922": {
+          "id": 17922,
+          "name": "Kalivia"
+        },
+        "17963": {
+          "id": 17963,
+          "name": "Kariotissa"
+        },
+        "18007": {
+          "id": 18007,
+          "name": "Kella"
+        },
+        "18174": {
+          "id": 18174,
+          "name": "Mandalon"
+        },
+        "18200": {
+          "id": 18200,
+          "name": "Melission"
+        },
+        "18204": {
+          "id": 18204,
+          "name": "Meliti"
+        },
+        "18209": {
+          "id": 18209,
+          "name": "Mesimerion"
+        },
+        "18281": {
+          "id": 18281,
+          "name": "Nea Pella"
+        },
+        "18311": {
+          "id": 18311,
+          "name": "Neos Milotopos"
+        },
+        "18346": {
+          "id": 18346,
+          "name": "Palaifiton"
+        },
+        "18388": {
+          "id": 18388,
+          "name": "Pella"
+        },
+        "18391": {
+          "id": 18391,
+          "name": "Pentaplatanon"
+        },
+        "18409": {
+          "id": 18409,
+          "name": "Petraia"
+        },
+        "18437": {
+          "id": 18437,
+          "name": "Polikarpion"
+        },
+        "18458": {
+          "id": 18458,
+          "name": "Profitis Ilias"
+        },
+        "18463": {
+          "id": 18463,
+          "name": "Promakhoi"
+        },
+        "18479": {
+          "id": 18479,
+          "name": "Rizarion"
+        },
+        "18485": {
+          "id": 18485,
+          "name": "Rizon"
+        },
+        "18504": {
+          "id": 18504,
+          "name": "Sevastiana"
+        },
+        "18540": {
+          "id": 18540,
+          "name": "Sosandra"
+        },
+        "18605": {
+          "id": 18605,
+          "name": "Tsakoi"
+        },
+        "18666": {
+          "id": 18666,
+          "name": "Xinon Neron"
+        },
+        "18679": {
+          "id": 18679,
+          "name": "Yiannitsa"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Florina",
+      "cities": {
+        "17658": {
+          "id": 17658,
+          "name": "Ammokhorion"
+        },
+        "17712": {
+          "id": 17712,
+          "name": "Armenokhorion"
+        },
+        "17850": {
+          "id": 17850,
+          "name": "Florina"
+        },
+        "18109": {
+          "id": 18109,
+          "name": "Kristallopiyi"
+        },
+        "18370": {
+          "id": 18370,
+          "name": "Pappayiannis"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Kastoria",
+      "cities": {
+        "17700": {
+          "id": 17700,
+          "name": "Argos Orestikon"
+        },
+        "17976": {
+          "id": 17976,
+          "name": "Kastoria"
+        },
+        "18082": {
+          "id": 18082,
+          "name": "Korisos"
+        },
+        "18090": {
+          "id": 18090,
+          "name": "Kostarazion"
+        },
+        "18129": {
+          "id": 18129,
+          "name": "Lekhovon"
+        },
+        "18176": {
+          "id": 18176,
+          "name": "Maniakoi"
+        },
+        "18212": {
+          "id": 18212,
+          "name": "Mesopotamia"
+        },
+        "18317": {
+          "id": 18317,
+          "name": "Nestorion"
+        },
+        "18608": {
+          "id": 18608,
+          "name": "Tsotilion"
+        }
+      }
+    }
+  }
+}

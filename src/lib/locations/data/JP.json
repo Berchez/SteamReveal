@@ -1,1 +1,3196 @@
-{"code":"JP","name":"Japan","states":{"10":{"code":"10","name":"Gumma","cities":{"25524":{"id":25524,"name":"Annaka"},"25559":{"id":25559,"name":"Fujioka"},"25671":{"id":25671,"name":"Isesaki"},"25765":{"id":25765,"name":"Kiryu"},"25824":{"id":25824,"name":"Maebashi"},"25906":{"id":25906,"name":"Nakanojo"},"25943":{"id":25943,"name":"Numata"},"25973":{"id":25973,"name":"Omama"},"25985":{"id":25985,"name":"Ota"},"26013":{"id":26013,"name":"Sakai"},"26038":{"id":26038,"name":"Shibukawa"},"26098":{"id":26098,"name":"Takasaki"},"26107":{"id":26107,"name":"Tamamura"},"26116":{"id":26116,"name":"Tatebayashi"},"26141":{"id":26141,"name":"Tomioka"},"26225":{"id":26225,"name":"Yoshii"}}},"11":{"code":"11","name":"Hiroshima","cities":{"25554":{"id":25554,"name":"Fuchu"},"25573":{"id":25573,"name":"Fukuyama"},"25612":{"id":25612,"name":"Hatsukaichi"},"25630":{"id":25630,"name":"Hiroshima"},"25664":{"id":25664,"name":"Innoshima"},"25706":{"id":25706,"name":"Kaita"},"25731":{"id":25731,"name":"Kannabe"},"25810":{"id":25810,"name":"Kure"},"25847":{"id":25847,"name":"Mihara"},"25868":{"id":25868,"name":"Miyoshi"},"25979":{"id":25979,"name":"Onomichi"},"25981":{"id":25981,"name":"Ono"},"26051":{"id":26051,"name":"Shinichi"},"26066":{"id":26066,"name":"Shobara"},"26102":{"id":26102,"name":"Takehara"}}},"12":{"code":"12","name":"Hokkaido","cities":{"25509":{"id":25509,"name":"Abashiri"},"25513":{"id":25513,"name":"Akabira"},"25528":{"id":25528,"name":"Asahikawa"},"25530":{"id":25530,"name":"Ashibetsu"},"25537":{"id":25537,"name":"Bibai"},"25538":{"id":25538,"name":"Bihoro"},"25545":{"id":25545,"name":"Chitose"},"25550":{"id":25550,"name":"Date"},"25551":{"id":25551,"name":"Ebetsu"},"25562":{"id":25562,"name":"Fukagawa"},"25598":{"id":25598,"name":"Hakodate"},"25675":{"id":25675,"name":"Ishikari"},"25692":{"id":25692,"name":"Iwamizawa"},"25693":{"id":25693,"name":"Iwanai"},"25720":{"id":25720,"name":"Kamiiso"},"25774":{"id":25774,"name":"Kitami"},"25818":{"id":25818,"name":"Kushiro"},"25828":{"id":25828,"name":"Makubetsu"},"25873":{"id":25873,"name":"Mombetsu"},"25886":{"id":25886,"name":"Muroran"},"25913":{"id":25913,"name":"Nanae"},"25920":{"id":25920,"name":"Nayoro"},"25922":{"id":25922,"name":"Nemuro"},"25938":{"id":25938,"name":"Noboribetsu"},"25949":{"id":25949,"name":"Obihiro"},"25986":{"id":25986,"name":"Otaru"},"25988":{"id":25988,"name":"Otofuke"},"25998":{"id":25998,"name":"Rumoi"},"26023":{"id":26023,"name":"Sapporo"},"26037":{"id":26037,"name":"Shibetsu"},"26057":{"id":26057,"name":"Shiraoi"},"26064":{"id":26064,"name":"Shizunai"},"26078":{"id":26078,"name":"Sunagawa"},"26106":{"id":26106,"name":"Takikawa"},"26126":{"id":26126,"name":"Tobetsu"},"26139":{"id":26139,"name":"Tomakomai"},"26182":{"id":26182,"name":"Utashinai"},"26189":{"id":26189,"name":"Wakkanai"},"26214":{"id":26214,"name":"Yoichi"},"26228":{"id":26228,"name":"Yubari"}}},"13":{"code":"13","name":"Hyogo","cities":{"25512":{"id":25512,"name":"Aioi"},"25514":{"id":25514,"name":"Akashi"},"25517":{"id":25517,"name":"Ako"},"25519":{"id":25519,"name":"Amagasaki"},"25532":{"id":25532,"name":"Ashiya"},"25620":{"id":25620,"name":"Himeji"},"25655":{"id":25655,"name":"Ikeda"},"25682":{"id":25682,"name":"Itami"},"25711":{"id":25711,"name":"Kakogawa"},"25756":{"id":25756,"name":"Kawanishi"},"25779":{"id":25779,"name":"Kobe"},"25849":{"id":25849,"name":"Miki"},"25933":{"id":25933,"name":"Nishinomiya"},"25936":{"id":25936,"name":"Nishiwaki"},"25982":{"id":25982,"name":"Ono"},"26020":{"id":26020,"name":"Sanda"},"26025":{"id":26025,"name":"Sasayama"},"26077":{"id":26077,"name":"Sumoto"},"26097":{"id":26097,"name":"Takarazuka"},"26118":{"id":26118,"name":"Tatsuno"},"26154":{"id":26154,"name":"Toyooka"},"26201":{"id":26201,"name":"Yamasaki"},"26207":{"id":26207,"name":"Yashiro"}}},"14":{"code":"14","name":"Ibaraki","cities":{"25521":{"id":25521,"name":"Ami"},"25548":{"id":25548,"name":"Daigo"},"25552":{"id":25552,"name":"Edosaki"},"25561":{"id":25561,"name":"Fujishiro"},"25632":{"id":25632,"name":"Hitachi"},"25638":{"id":25638,"name":"Hokota"},"25673":{"id":25673,"name":"Ishige"},"25679":{"id":25679,"name":"Ishioka"},"25681":{"id":25681,"name":"Itako"},"25688":{"id":25688,"name":"Iwai"},"25695":{"id":25695,"name":"Iwase"},"25739":{"id":25739,"name":"Kasama"},"25744":{"id":25744,"name":"Kashima"},"25770":{"id":25770,"name":"Kitaibaraki"},"25785":{"id":25785,"name":"Koga"},"25803":{"id":25803,"name":"Kuji"},"25826":{"id":25826,"name":"Makabe"},"25858":{"id":25858,"name":"Mito"},"25859":{"id":25859,"name":"Mitsukaido"},"25878":{"id":25878,"name":"Moriya"},"25905":{"id":25905,"name":"Naka"},"25946":{"id":25946,"name":"Oarai"},"26000":{"id":26000,"name":"Ryugasaki"},"26014":{"id":26014,"name":"Sakai"},"26031":{"id":26031,"name":"Sekiyado"},"26047":{"id":26047,"name":"Shimodate"},"26088":{"id":26088,"name":"Takahagi"},"26143":{"id":26143,"name":"Tomobe"},"26160":{"id":26160,"name":"Tsukuba"},"26180":{"id":26180,"name":"Ushiku"},"26230":{"id":26230,"name":"Yuki"}}},"15":{"code":"15","name":"Ishikawa","cities":{"25600":{"id":25600,"name":"Hakui"},"25728":{"id":25728,"name":"Kanazawa"},"25792":{"id":25792,"name":"Komatsu"},"25844":{"id":25844,"name":"Matto"},"25914":{"id":25914,"name":"Nanao"},"25941":{"id":25941,"name":"Nonoichi"},"26159":{"id":26159,"name":"Tsubata"},"26163":{"id":26163,"name":"Tsurugi"},"26186":{"id":26186,"name":"Wajima"}}},"16":{"code":"16","name":"Iwate","cities":{"25604":{"id":25604,"name":"Hanamaki"},"25648":{"id":25648,"name":"Ichinohe"},"25650":{"id":25650,"name":"Ichinoseki"},"25713":{"id":25713,"name":"Kamaishi"},"25771":{"id":25771,"name":"Kitakami"},"25862":{"id":25862,"name":"Miyako"},"25870":{"id":25870,"name":"Mizusawa"},"25876":{"id":25876,"name":"Morioka"},"25954":{"id":25954,"name":"Ofunato"},"25989":{"id":25989,"name":"Otsuchi"},"26063":{"id":26063,"name":"Shizukuishi"},"26146":{"id":26146,"name":"Tono"},"26197":{"id":26197,"name":"Yamada"}}},"17":{"code":"17","name":"Kagawa","cities":{"25732":{"id":25732,"name":"Kanonji"},"25830":{"id":25830,"name":"Marugame"},"26011":{"id":26011,"name":"Sakaide"},"26040":{"id":26040,"name":"Shido"},"26084":{"id":26084,"name":"Tadotsu"},"26093":{"id":26093,"name":"Takamatsu"},"26145":{"id":26145,"name":"Tonosho"}}},"18":{"code":"18","name":"Kagoshima","cities":{"25518":{"id":25518,"name":"Akune"},"25614":{"id":25614,"name":"Hayato"},"25645":{"id":25645,"name":"Ibusuki"},"25654":{"id":25654,"name":"Ijuin"},"25699":{"id":25699,"name":"Izumi"},"25704":{"id":25704,"name":"Kagoshima"},"25708":{"id":25708,"name":"Kajiki"},"25733":{"id":25733,"name":"Kanoya"},"25742":{"id":25742,"name":"Kaseda"},"25788":{"id":25788,"name":"Kokubu"},"25816":{"id":25816,"name":"Kushikino"},"25829":{"id":25829,"name":"Makurazaki"},"25921":{"id":25921,"name":"Naze"},"25934":{"id":25934,"name":"Nishinoomote"},"25970":{"id":25970,"name":"Okuchi"},"26032":{"id":26032,"name":"Sendai"},"26039":{"id":26039,"name":"Shibushi"},"26071":{"id":26071,"name":"Sueyoshi"},"26115":{"id":26115,"name":"Tarumizu"}}},"19":{"code":"19","name":"Kanagawa","cities":{"25534":{"id":25534,"name":"Atsugi"},"25542":{"id":25542,"name":"Chigasaki"},"25560":{"id":25560,"name":"Fujisawa"},"25594":{"id":25594,"name":"Hadano"},"25599":{"id":25599,"name":"Hakone"},"25613":{"id":25613,"name":"Hayama"},"25628":{"id":25628,"name":"Hiratsuka"},"25669":{"id":25669,"name":"Isehara"},"25714":{"id":25714,"name":"Kamakura"},"25759":{"id":25759,"name":"Kawasaki"},"25861":{"id":25861,"name":"Miura"},"25930":{"id":25930,"name":"Ninomiya"},"25953":{"id":25953,"name":"Odawara"},"25961":{"id":25961,"name":"Oiso"},"26005":{"id":26005,"name":"Sagamihara"},"26218":{"id":26218,"name":"Yokohama"},"26219":{"id":26219,"name":"Yokosuka"},"26229":{"id":26229,"name":"Yugawara"},"26234":{"id":26234,"name":"Zama"},"26235":{"id":26235,"name":"Zushi"}}},"20":{"code":"20","name":"Kochi","cities":{"25515":{"id":25515,"name":"Aki"},"25665":{"id":25665,"name":"Ino"},"25780":{"id":25780,"name":"Kochi"},"25887":{"id":25887,"name":"Muroto"},"25904":{"id":25904,"name":"Nakamura"},"26076":{"id":26076,"name":"Sukumo"},"26079":{"id":26079,"name":"Susaki"}}},"21":{"code":"21","name":"Kumamoto","cities":{"25634":{"id":25634,"name":"Hitoyoshi"},"25639":{"id":25639,"name":"Hondo"},"25763":{"id":25763,"name":"Kikuchi"},"25806":{"id":25806,"name":"Kumamoto"},"25838":{"id":25838,"name":"Matsubase"},"25852":{"id":25852,"name":"Minamata"},"25996":{"id":25996,"name":"Ozu"},"26108":{"id":26108,"name":"Tamana"},"26170":{"id":26170,"name":"Ueki"},"26179":{"id":26179,"name":"Ushibuka"},"26183":{"id":26183,"name":"Uto"},"26199":{"id":26199,"name":"Yamaga"},"26211":{"id":26211,"name":"Yatsushiro"}}},"22":{"code":"22","name":"Kyoto","cities":{"25535":{"id":25535,"name":"Ayabe"},"25565":{"id":25565,"name":"Fukuchiyama"},"25716":{"id":25716,"name":"Kameoka"},"25776":{"id":25776,"name":"Kizu"},"25821":{"id":25821,"name":"Kyoto"},"25825":{"id":25825,"name":"Maizuru"},"25866":{"id":25866,"name":"Miyazu"},"25883":{"id":25883,"name":"Muko"},"26174":{"id":26174,"name":"Uji"},"26213":{"id":26213,"name":"Yawata"}}},"23":{"code":"23","name":"Mie","cities":{"25631":{"id":25631,"name":"Hisai"},"25670":{"id":25670,"name":"Ise"},"25717":{"id":25717,"name":"Kameyama"},"25794":{"id":25794,"name":"Komono"},"25820":{"id":25820,"name":"Kuwana"},"25842":{"id":25842,"name":"Matsusaka"},"25890":{"id":25890,"name":"Nabari"},"25992":{"id":25992,"name":"Owase"},"26030":{"id":26030,"name":"Seki"},"26082":{"id":26082,"name":"Suzuka"},"26124":{"id":26124,"name":"Toba"},"26166":{"id":26166,"name":"Tsu"},"26172":{"id":26172,"name":"Ueno"},"26217":{"id":26217,"name":"Yokkaichi"}}},"24":{"code":"24","name":"Miyagi","cities":{"25576":{"id":25576,"name":"Furukawa"},"25678":{"id":25678,"name":"Ishinomaki"},"25694":{"id":25694,"name":"Iwanuma"},"25712":{"id":25712,"name":"Kakuda"},"25762":{"id":25762,"name":"Kesennuma"},"25787":{"id":25787,"name":"Kogota"},"25832":{"id":25832,"name":"Marumori"},"25957":{"id":25957,"name":"Ogawara"},"25997":{"id":25997,"name":"Rifu"},"26033":{"id":26033,"name":"Sendai"},"26054":{"id":26054,"name":"Shiogama"},"26060":{"id":26060,"name":"Shiroishi"},"26142":{"id":26142,"name":"Tomiya"},"26191":{"id":26191,"name":"Wakuya"},"26193":{"id":26193,"name":"Watari"},"26202":{"id":26202,"name":"Yamoto"}}},"25":{"code":"25","name":"Miyazaki","cities":{"25778":{"id":25778,"name":"Kobayashi"},"25817":{"id":25817,"name":"Kushima"},"25863":{"id":25863,"name":"Miyakonojo"},"25865":{"id":25865,"name":"Miyazaki"},"25923":{"id":25923,"name":"Nichinan"},"25937":{"id":25937,"name":"Nobeoka"},"26003":{"id":26003,"name":"Sadowara"},"26094":{"id":26094,"name":"Takanabe"}}},"26":{"code":"26","name":"Nagano","cities":{"25543":{"id":25543,"name":"Chino"},"25642":{"id":25642,"name":"Hotaka"},"25651":{"id":25651,"name":"Iida"},"25652":{"id":25652,"name":"Iiyama"},"25661":{"id":25661,"name":"Ina"},"25795":{"id":25795,"name":"Komoro"},"25831":{"id":25831,"name":"Maruko"},"25841":{"id":25841,"name":"Matsumoto"},"25893":{"id":25893,"name":"Nagano"},"25907":{"id":25907,"name":"Nakano"},"25966":{"id":25966,"name":"Okaya"},"25971":{"id":25971,"name":"Omachi"},"26019":{"id":26019,"name":"Saku"},"26055":{"id":26055,"name":"Shiojiri"},"26080":{"id":26080,"name":"Suwa"},"26081":{"id":26081,"name":"Suzaka"},"26119":{"id":26119,"name":"Tatsuno"},"26155":{"id":26155,"name":"Toyoshina"},"26169":{"id":26169,"name":"Ueda"}}},"27":{"code":"27","name":"Nagasaki","cities":{"25566":{"id":25566,"name":"Fukue"},"25624":{"id":25624,"name":"Hirado"},"25667":{"id":25667,"name":"Isahaya"},"25896":{"id":25896,"name":"Nagasaki"},"25898":{"id":25898,"name":"Nagayo"},"25976":{"id":25976,"name":"Omura"},"26026":{"id":26026,"name":"Sasebo"},"26042":{"id":26042,"name":"Shimabara"},"26131":{"id":26131,"name":"Togitsu"}}},"28":{"code":"28","name":"Nara","cities":{"25584":{"id":25584,"name":"Gojo"},"25585":{"id":25585,"name":"Gose"},"25597":{"id":25597,"name":"Haibara"},"25657":{"id":25657,"name":"Ikoma"},"25743":{"id":25743,"name":"Kashihara"},"25755":{"id":25755,"name":"Kawai"},"25915":{"id":25915,"name":"Nara"},"26017":{"id":26017,"name":"Sakurai"},"26120":{"id":26120,"name":"Tawaramoto"},"26123":{"id":26123,"name":"Tenri"}}},"29":{"code":"29","name":"Niigata","cities":{"25526":{"id":25526,"name":"Arai"},"25586":{"id":25586,"name":"Gosen"},"25683":{"id":25683,"name":"Itoigawa"},"25715":{"id":25715,"name":"Kameda"},"25726":{"id":25726,"name":"Kamo"},"25748":{"id":25748,"name":"Kashiwazaki"},"25827":{"id":25827,"name":"Maki"},"25860":{"id":25860,"name":"Mitsuke"},"25882":{"id":25882,"name":"Muika"},"25884":{"id":25884,"name":"Murakami"},"25885":{"id":25885,"name":"Muramatsu"},"25894":{"id":25894,"name":"Nagaoka"},"25902":{"id":25902,"name":"Nakajo"},"25925":{"id":25925,"name":"Niigata"},"25928":{"id":25928,"name":"Niitsu"},"25963":{"id":25963,"name":"Ojiya"},"25999":{"id":25999,"name":"Ryotsu"},"26021":{"id":26021,"name":"Sanjo"},"26036":{"id":26036,"name":"Shibata"},"26056":{"id":26056,"name":"Shiozawa"},"26061":{"id":26061,"name":"Shirone"},"26073":{"id":26073,"name":"Suibara"},"26128":{"id":26128,"name":"Tochio"},"26132":{"id":26132,"name":"Tokamachi"},"26158":{"id":26158,"name":"Tsubame"},"26224":{"id":26224,"name":"Yoshida"}}},"30":{"code":"30","name":"Oita","cities":{"25536":{"id":25536,"name":"Beppu"},"25617":{"id":25617,"name":"Hiji"},"25633":{"id":25633,"name":"Hita"},"25775":{"id":25775,"name":"Kitsuki"},"25819":{"id":25819,"name":"Kusu"},"25962":{"id":25962,"name":"Oita"},"26009":{"id":26009,"name":"Saiki"},"26104":{"id":26104,"name":"Taketa"},"26161":{"id":26161,"name":"Tsukumi"},"26181":{"id":26181,"name":"Usuki"}}},"31":{"code":"31","name":"Okayama","cities":{"25643":{"id":25643,"name":"Ibara"},"25723":{"id":25723,"name":"Kamogata"},"25741":{"id":25741,"name":"Kasaoka"},"25808":{"id":25808,"name":"Kurashiki"},"25927":{"id":25927,"name":"Niimi"},"25965":{"id":25965,"name":"Okayama"},"26069":{"id":26069,"name":"Soja"},"26090":{"id":26090,"name":"Takahashi"},"26109":{"id":26109,"name":"Tamano"},"26167":{"id":26167,"name":"Tsuyama"}}},"32":{"code":"32","name":"Osaka","cities":{"25549":{"id":25549,"name":"Daito"},"25625":{"id":25625,"name":"Hirakata"},"25644":{"id":25644,"name":"Ibaraki"},"25700":{"id":25700,"name":"Izumi"},"25701":{"id":25701,"name":"Izumiotsu"},"25703":{"id":25703,"name":"Kadoma"},"25707":{"id":25707,"name":"Kaizuka"},"25747":{"id":25747,"name":"Kashiwara"},"25768":{"id":25768,"name":"Kishiwada"},"25837":{"id":25837,"name":"Matsubara"},"25874":{"id":25874,"name":"Moriguchi"},"25983":{"id":25983,"name":"Osaka"},"26015":{"id":26015,"name":"Sakai"},"26074":{"id":26074,"name":"Suita"},"26092":{"id":26092,"name":"Takaishi"},"26099":{"id":26099,"name":"Takatsuki"},"26144":{"id":26144,"name":"Tondabayashi"},"26153":{"id":26153,"name":"Toyonaka"},"26206":{"id":26206,"name":"Yao"}}},"33":{"code":"33","name":"Saga","cities":{"25660":{"id":25660,"name":"Imari"},"25735":{"id":25735,"name":"Kanzaki"},"25737":{"id":25737,"name":"Karatsu"},"25745":{"id":25745,"name":"Kashima"},"25964":{"id":25964,"name":"Okawa"},"26007":{"id":26007,"name":"Saga"},"26103":{"id":26103,"name":"Takeo"},"26148":{"id":26148,"name":"Tosu"},"26178":{"id":26178,"name":"Ureshino"}}},"34":{"code":"34","name":"Saitama","cities":{"25511":{"id":25511,"name":"Ageo"},"25529":{"id":25529,"name":"Asaka"},"25541":{"id":25541,"name":"Chichibu"},"25563":{"id":25563,"name":"Fukaya"},"25564":{"id":25564,"name":"Fukiage"},"25591":{"id":25591,"name":"Gyoda"},"25606":{"id":25606,"name":"Hanno"},"25607":{"id":25607,"name":"Hanyu"},"25610":{"id":25610,"name":"Hasuda"},"25611":{"id":25611,"name":"Hatogaya"},"25641":{"id":25641,"name":"Honjo"},"25697":{"id":25697,"name":"Iwatsuki"},"25718":{"id":25718,"name":"Kamifukuoka"},"25750":{"id":25750,"name":"Kasukabe"},"25753":{"id":25753,"name":"Kawagoe"},"25754":{"id":25754,"name":"Kawaguchi"},"25760":{"id":25760,"name":"Kazo"},"25766":{"id":25766,"name":"Kisai"},"25782":{"id":25782,"name":"Kodama"},"25797":{"id":25797,"name":"Konosu"},"25799":{"id":25799,"name":"Koshigaya"},"25804":{"id":25804,"name":"Kuki"},"25805":{"id":25805,"name":"Kumagaya"},"25811":{"id":25811,"name":"Kurihashi"},"25845":{"id":25845,"name":"Menuma"},"25879":{"id":25879,"name":"Moroyama"},"25895":{"id":25895,"name":"Nagareyama"},"25956":{"id":25956,"name":"Ogawa"},"25960":{"id":25960,"name":"Oi"},"25968":{"id":25968,"name":"Okegawa"},"26010":{"id":26010,"name":"Sakado"},"26027":{"id":26027,"name":"Satte"},"26029":{"id":26029,"name":"Sayama"},"26041":{"id":26041,"name":"Shiki"},"26058":{"id":26058,"name":"Shiraoka"},"26067":{"id":26067,"name":"Shobu"},"26070":{"id":26070,"name":"Soka"},"26072":{"id":26072,"name":"Sugito"},"26129":{"id":26129,"name":"Toda"},"26135":{"id":26135,"name":"Tokorozawa"},"26190":{"id":26190,"name":"Wako"},"26192":{"id":26192,"name":"Warabi"},"26223":{"id":26223,"name":"Yorii"},"26226":{"id":26226,"name":"Yoshikawa"}}},"35":{"code":"35","name":"Shiga","cities":{"25619":{"id":25619,"name":"Hikone"},"25622":{"id":25622,"name":"Hino"},"25815":{"id":25815,"name":"Kusatsu"},"25851":{"id":25851,"name":"Minakuchi"},"25877":{"id":25877,"name":"Moriyama"},"25891":{"id":25891,"name":"Nagahama"},"25991":{"id":25991,"name":"Otsu"},"26209":{"id":26209,"name":"Yasu"},"26216":{"id":26216,"name":"Yokaichi"}}},"36":{"code":"36","name":"Shimane","cities":{"25589":{"id":25589,"name":"Gotsu"},"25601":{"id":25601,"name":"Hamada"},"25627":{"id":25627,"name":"Hirata"},"25702":{"id":25702,"name":"Izumo"},"25836":{"id":25836,"name":"Masuda"},"25840":{"id":25840,"name":"Matsue"},"25951":{"id":25951,"name":"Oda"},"26208":{"id":26208,"name":"Yasugi"}}},"37":{"code":"37","name":"Shizuoka","cities":{"25533":{"id":25533,"name":"Atami"},"25556":{"id":25556,"name":"Fujieda"},"25557":{"id":25557,"name":"Fuji"},"25558":{"id":25558,"name":"Fujinomiya"},"25571":{"id":25571,"name":"Fukuroi"},"25588":{"id":25588,"name":"Gotemba"},"25602":{"id":25602,"name":"Hamakita"},"25603":{"id":25603,"name":"Hamamatsu"},"25684":{"id":25684,"name":"Ito"},"25696":{"id":25696,"name":"Iwata"},"25710":{"id":25710,"name":"Kakegawa"},"25727":{"id":25727,"name":"Kanaya"},"25855":{"id":25855,"name":"Mishima"},"25875":{"id":25875,"name":"Mori"},"25944":{"id":25944,"name":"Numazu"},"25993":{"id":25993,"name":"Oyama"},"26006":{"id":26006,"name":"Sagara"},"26043":{"id":26043,"name":"Shimada"},"26044":{"id":26044,"name":"Shimizu"},"26046":{"id":26046,"name":"Shimoda"},"26065":{"id":26065,"name":"Shizuoka"},"26196":{"id":26196,"name":"Yaizu"}}},"38":{"code":"38","name":"Tochigi","cities":{"25531":{"id":25531,"name":"Ashikaga"},"25659":{"id":25659,"name":"Imaichi"},"25721":{"id":25721,"name":"Kaminokawa"},"25734":{"id":25734,"name":"Kanuma"},"25736":{"id":25736,"name":"Karasuyama"},"25813":{"id":25813,"name":"Kuroiso"},"25835":{"id":25835,"name":"Mashiko"},"25846":{"id":25846,"name":"Mibu"},"25872":{"id":25872,"name":"Moka"},"25880":{"id":25880,"name":"Motegi"},"25929":{"id":25929,"name":"Nikko"},"25987":{"id":25987,"name":"Otawara"},"25994":{"id":25994,"name":"Oyama"},"26022":{"id":26022,"name":"Sano"},"26112":{"id":26112,"name":"Tanuma"},"26127":{"id":26127,"name":"Tochigi"},"26173":{"id":26173,"name":"Ujiie"},"26184":{"id":26184,"name":"Utsunomiya"},"26195":{"id":26195,"name":"Yaita"}}},"39":{"code":"39","name":"Tokushima","cities":{"25522":{"id":25522,"name":"Anan"},"25656":{"id":25656,"name":"Ikeda"},"25674":{"id":25674,"name":"Ishii"},"25725":{"id":25725,"name":"Kamojima"},"25793":{"id":25793,"name":"Komatsushima"},"25919":{"id":25919,"name":"Naruto"},"26136":{"id":26136,"name":"Tokushima"},"26188":{"id":26188,"name":"Waki"}}},"40":{"code":"40","name":"Tokyo","cities":{"25546":{"id":25546,"name":"Chofu"},"25555":{"id":25555,"name":"Fuchu"},"25577":{"id":25577,"name":"Fussa"},"25593":{"id":25593,"name":"Hachioji"},"25623":{"id":25623,"name":"Hino"},"25686":{"id":25686,"name":"Itsukaichi"},"25781":{"id":25781,"name":"Kodaira"},"25786":{"id":25786,"name":"Koganei"},"25789":{"id":25789,"name":"Kokubunji"},"25790":{"id":25790,"name":"Komae"},"25807":{"id":25807,"name":"Kunitachi"},"25822":{"id":25822,"name":"Machida"},"25856":{"id":25856,"name":"Mitaka"},"25888":{"id":25888,"name":"Musashino"},"25974":{"id":25974,"name":"Ome"},"26083":{"id":26083,"name":"Tachikawa"},"26111":{"id":26111,"name":"Tanashi"},"26138":{"id":26138,"name":"Tokyo"},"26177":{"id":26177,"name":"Urayasu"}}},"41":{"code":"41","name":"Tottori","cities":{"25809":{"id":25809,"name":"Kurayoshi"},"26012":{"id":26012,"name":"Sakaiminato"},"26149":{"id":26149,"name":"Tottori"},"26221":{"id":26221,"name":"Yonago"}}},"42":{"code":"42","name":"Toyama","cities":{"25569":{"id":25569,"name":"Fukumitsu"},"25621":{"id":25621,"name":"Himi"},"25719":{"id":25719,"name":"Kamiichi"},"25800":{"id":25800,"name":"Kosugi"},"25910":{"id":25910,"name":"Namerikawa"},"25945":{"id":25945,"name":"Nyuzen"},"26045":{"id":26045,"name":"Shimminato"},"26096":{"id":26096,"name":"Takaoka"},"26150":{"id":26150,"name":"Toyama"},"26176":{"id":26176,"name":"Uozu"},"26210":{"id":26210,"name":"Yatsuo"}}},"43":{"code":"43","name":"Wakayama","cities":{"25582":{"id":25582,"name":"Gobo"},"25609":{"id":25609,"name":"Hashimoto"},"25687":{"id":25687,"name":"Iwade"},"25705":{"id":25705,"name":"Kainan"},"26050":{"id":26050,"name":"Shingu"},"26110":{"id":26110,"name":"Tanabe"},"26187":{"id":26187,"name":"Wakayama"}}},"44":{"code":"44","name":"Yamagata","cities":{"25616":{"id":25616,"name":"Higashine"},"25722":{"id":25722,"name":"Kaminoyama"},"25892":{"id":25892,"name":"Nagai"},"25948":{"id":25948,"name":"Obanazawa"},"26004":{"id":26004,"name":"Sagae"},"26016":{"id":26016,"name":"Sakata"},"26052":{"id":26052,"name":"Shinjo"},"26091":{"id":26091,"name":"Takahata"},"26121":{"id":26121,"name":"Tendo"},"26164":{"id":26164,"name":"Tsuruoka"},"26198":{"id":26198,"name":"Yamagata"},"26222":{"id":26222,"name":"Yonezawa"},"26233":{"id":26233,"name":"Yuza"}}},"45":{"code":"45","name":"Yamaguchi","cities":{"25596":{"id":25596,"name":"Hagi"},"25618":{"id":25618,"name":"Hikari"},"25636":{"id":25636,"name":"Hofu"},"25690":{"id":25690,"name":"Iwakuni"},"25802":{"id":25802,"name":"Kudamatsu"},"25897":{"id":25897,"name":"Nagato"},"25958":{"id":25958,"name":"Ogori"},"25978":{"id":25978,"name":"Onoda"},"25984":{"id":25984,"name":"Otake"},"26048":{"id":26048,"name":"Shimonoseki"},"26137":{"id":26137,"name":"Tokuyama"},"26168":{"id":26168,"name":"Ube"},"26200":{"id":26200,"name":"Yamaguchi"},"26205":{"id":26205,"name":"Yanai"}}},"46":{"code":"46","name":"Yamanashi","cities":{"25553":{"id":25553,"name":"Enzan"},"25668":{"id":25668,"name":"Isawa"},"25783":{"id":25783,"name":"Kofu"},"25931":{"id":25931,"name":"Nirasaki"},"25990":{"id":25990,"name":"Otsuki"},"26001":{"id":26001,"name":"Ryuo"},"26171":{"id":26171,"name":"Uenohara"}}},"47":{"code":"47","name":"Okinawa","cities":{"25539":{"id":25539,"name":"Chatan"},"25581":{"id":25581,"name":"Ginowan"},"25590":{"id":25590,"name":"Gushikawa"},"25595":{"id":25595,"name":"Haebaru"},"25626":{"id":25626,"name":"Hirara"},"25672":{"id":25672,"name":"Ishigaki"},"25677":{"id":25677,"name":"Ishikawa"},"25685":{"id":25685,"name":"Itoman"},"25899":{"id":25899,"name":"Nago"},"25901":{"id":25901,"name":"Naha"},"25932":{"id":25932,"name":"Nishihara"},"25969":{"id":25969,"name":"Okinawa"},"26140":{"id":26140,"name":"Tomigusuku"}}},"01":{"code":"01","name":"Aichi","cities":{"25523":{"id":25523,"name":"Anjo"},"25544":{"id":25544,"name":"Chiryu"},"25579":{"id":25579,"name":"Gamagori"},"25605":{"id":25605,"name":"Handa"},"25615":{"id":25615,"name":"Hekinan"},"25649":{"id":25649,"name":"Ichinomiya"},"25663":{"id":25663,"name":"Inazawa"},"25680":{"id":25680,"name":"Isshiki"},"25691":{"id":25691,"name":"Iwakura"},"25730":{"id":25730,"name":"Kanie"},"25738":{"id":25738,"name":"Kariya"},"25749":{"id":25749,"name":"Kasugai"},"25769":{"id":25769,"name":"Kisogawa"},"25791":{"id":25791,"name":"Komaki"},"25796":{"id":25796,"name":"Konan"},"25801":{"id":25801,"name":"Kozakai"},"25867":{"id":25867,"name":"Miyoshi"},"25900":{"id":25900,"name":"Nagoya"},"25935":{"id":25935,"name":"Nishio"},"25950":{"id":25950,"name":"Obu"},"25967":{"id":25967,"name":"Okazaki"},"26035":{"id":26035,"name":"Seto"},"26053":{"id":26053,"name":"Shinshiro"},"26068":{"id":26068,"name":"Sobue"},"26086":{"id":26086,"name":"Tahara"},"26089":{"id":26089,"name":"Takahama"},"26105":{"id":26105,"name":"Taketoyo"},"26134":{"id":26134,"name":"Tokoname"},"26151":{"id":26151,"name":"Toyohashi"},"26152":{"id":26152,"name":"Toyokawa"},"26156":{"id":26156,"name":"Toyota"},"26165":{"id":26165,"name":"Tsushima"}}},"02":{"code":"02","name":"Akita","cities":{"25516":{"id":25516,"name":"Akita"},"25640":{"id":25640,"name":"Honjo"},"25761":{"id":25761,"name":"Kazuno"},"25942":{"id":25942,"name":"Noshiro"},"25952":{"id":25952,"name":"Odate"},"25972":{"id":25972,"name":"Omagari"},"26095":{"id":26095,"name":"Takanosu"},"26122":{"id":26122,"name":"Tenno"},"26220":{"id":26220,"name":"Yokote"},"26232":{"id":26232,"name":"Yuzawa"}}},"03":{"code":"03","name":"Aomori","cities":{"25525":{"id":25525,"name":"Aomori"},"25587":{"id":25587,"name":"Goshogawara"},"25592":{"id":25592,"name":"Hachinohe"},"25629":{"id":25629,"name":"Hirosaki"},"25777":{"id":25777,"name":"Kizukuri"},"25812":{"id":25812,"name":"Kuroishi"},"25854":{"id":25854,"name":"Misawa"},"25889":{"id":25889,"name":"Mutsu"},"25912":{"id":25912,"name":"Namioka"}}},"04":{"code":"04","name":"Chiba","cities":{"25510":{"id":25510,"name":"Abiko"},"25527":{"id":25527,"name":"Asahi"},"25540":{"id":25540,"name":"Chiba"},"25547":{"id":25547,"name":"Choshi"},"25574":{"id":25574,"name":"Funabashi"},"25578":{"id":25578,"name":"Futtsu"},"25608":{"id":25608,"name":"Hasaki"},"25646":{"id":25646,"name":"Ichihara"},"25647":{"id":25647,"name":"Ichikawa"},"25724":{"id":25724,"name":"Kamogawa"},"25746":{"id":25746,"name":"Kashiwa"},"25751":{"id":25751,"name":"Katsuura"},"25764":{"id":25764,"name":"Kimitsu"},"25767":{"id":25767,"name":"Kisarazu"},"25839":{"id":25839,"name":"Matsudo"},"25871":{"id":25871,"name":"Mobara"},"25916":{"id":25916,"name":"Narashino"},"25917":{"id":25917,"name":"Narita"},"25918":{"id":25918,"name":"Naruto"},"25939":{"id":25939,"name":"Noda"},"25959":{"id":25959,"name":"Ohara"},"25975":{"id":25975,"name":"Omigawa"},"26018":{"id":26018,"name":"Sakura"},"26028":{"id":26028,"name":"Sawara"},"26059":{"id":26059,"name":"Shiroi"},"26062":{"id":26062,"name":"Shisui"},"26117":{"id":26117,"name":"Tateyama"},"26130":{"id":26130,"name":"Togane"},"26147":{"id":26147,"name":"Toride"},"26194":{"id":26194,"name":"Yachimata"},"26215":{"id":26215,"name":"Yokaichiba"},"26227":{"id":26227,"name":"Yotsukaido"}}},"05":{"code":"05","name":"Ehime","cities":{"25637":{"id":25637,"name":"Hojo"},"25658":{"id":25658,"name":"Imabari"},"25698":{"id":25698,"name":"Iyo"},"25757":{"id":25757,"name":"Kawanoe"},"25834":{"id":25834,"name":"Masaki"},"25843":{"id":25843,"name":"Matsuyama"},"25926":{"id":25926,"name":"Niihama"},"25995":{"id":25995,"name":"Ozu"},"26008":{"id":26008,"name":"Saijo"},"26125":{"id":26125,"name":"Tobe"},"26157":{"id":26157,"name":"Toyo"},"26185":{"id":26185,"name":"Uwajima"},"26212":{"id":26212,"name":"Yawatahama"}}},"06":{"code":"06","name":"Fukui","cities":{"25567":{"id":25567,"name":"Fukui"},"25752":{"id":25752,"name":"Katsuyama"},"25833":{"id":25833,"name":"Maruoka"},"25850":{"id":25850,"name":"Mikuni"},"25947":{"id":25947,"name":"Obama"},"25980":{"id":25980,"name":"Ono"},"26002":{"id":26002,"name":"Sabae"},"26101":{"id":26101,"name":"Takefu"},"26162":{"id":26162,"name":"Tsuruga"}}},"07":{"code":"07","name":"Fukuoka","cities":{"25520":{"id":25520,"name":"Amagi"},"25568":{"id":25568,"name":"Fukuma"},"25570":{"id":25570,"name":"Fukuoka"},"25653":{"id":25653,"name":"Iizuka"},"25729":{"id":25729,"name":"Kanda"},"25758":{"id":25758,"name":"Kawasaki"},"25773":{"id":25773,"name":"Kitakyushu"},"25784":{"id":25784,"name":"Koga"},"25814":{"id":25814,"name":"Kurume"},"25823":{"id":25823,"name":"Maebaru"},"25864":{"id":25864,"name":"Miyata"},"25903":{"id":25903,"name":"Nakama"},"25909":{"id":25909,"name":"Nakatsu"},"25940":{"id":25940,"name":"Nogata"},"25977":{"id":25977,"name":"Omuta"},"26024":{"id":26024,"name":"Sasaguri"},"26034":{"id":26034,"name":"Setaka"},"26049":{"id":26049,"name":"Shingu"},"26085":{"id":26085,"name":"Tagawa"},"26113":{"id":26113,"name":"Tanushimaru"},"26175":{"id":26175,"name":"Umi"},"26203":{"id":26203,"name":"Yanagawa"},"26231":{"id":26231,"name":"Yukuhashi"}}},"08":{"code":"08","name":"Fukushima","cities":{"25572":{"id":25572,"name":"Fukushima"},"25575":{"id":25575,"name":"Funehiki"},"25635":{"id":25635,"name":"Hobara"},"25662":{"id":25662,"name":"Inawashiro"},"25676":{"id":25676,"name":"Ishikawa"},"25689":{"id":25689,"name":"Iwaki"},"25772":{"id":25772,"name":"Kitakata"},"25798":{"id":25798,"name":"Koriyama"},"25848":{"id":25848,"name":"Miharu"},"25881":{"id":25881,"name":"Motomiya"},"25911":{"id":25911,"name":"Namie"},"25924":{"id":25924,"name":"Nihommatsu"},"26075":{"id":26075,"name":"Sukagawa"},"26204":{"id":26204,"name":"Yanagawa"}}},"09":{"code":"09","name":"Gifu","cities":{"25580":{"id":25580,"name":"Gifu"},"25583":{"id":25583,"name":"Godo"},"25666":{"id":25666,"name":"Inuyama"},"25709":{"id":25709,"name":"Kakamigahara"},"25740":{"id":25740,"name":"Kasamatsu"},"25853":{"id":25853,"name":"Mino"},"25857":{"id":25857,"name":"Mitake"},"25869":{"id":25869,"name":"Mizunami"},"25908":{"id":25908,"name":"Nakatsugawa"},"25955":{"id":25955,"name":"Ogaki"},"26087":{"id":26087,"name":"Tajimi"},"26100":{"id":26100,"name":"Takayama"},"26114":{"id":26114,"name":"Tarui"},"26133":{"id":26133,"name":"Toki"}}}}}
+{
+  "code": "JP",
+  "name": "Japan",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Gumma",
+      "cities": {
+        "25524": {
+          "id": 25524,
+          "name": "Annaka"
+        },
+        "25559": {
+          "id": 25559,
+          "name": "Fujioka"
+        },
+        "25671": {
+          "id": 25671,
+          "name": "Isesaki"
+        },
+        "25765": {
+          "id": 25765,
+          "name": "Kiryu"
+        },
+        "25824": {
+          "id": 25824,
+          "name": "Maebashi"
+        },
+        "25906": {
+          "id": 25906,
+          "name": "Nakanojo"
+        },
+        "25943": {
+          "id": 25943,
+          "name": "Numata"
+        },
+        "25973": {
+          "id": 25973,
+          "name": "Omama"
+        },
+        "25985": {
+          "id": 25985,
+          "name": "Ota"
+        },
+        "26013": {
+          "id": 26013,
+          "name": "Sakai"
+        },
+        "26038": {
+          "id": 26038,
+          "name": "Shibukawa"
+        },
+        "26098": {
+          "id": 26098,
+          "name": "Takasaki"
+        },
+        "26107": {
+          "id": 26107,
+          "name": "Tamamura"
+        },
+        "26116": {
+          "id": 26116,
+          "name": "Tatebayashi"
+        },
+        "26141": {
+          "id": 26141,
+          "name": "Tomioka"
+        },
+        "26225": {
+          "id": 26225,
+          "name": "Yoshii"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Hiroshima",
+      "cities": {
+        "25554": {
+          "id": 25554,
+          "name": "Fuchu"
+        },
+        "25573": {
+          "id": 25573,
+          "name": "Fukuyama"
+        },
+        "25612": {
+          "id": 25612,
+          "name": "Hatsukaichi"
+        },
+        "25630": {
+          "id": 25630,
+          "name": "Hiroshima"
+        },
+        "25664": {
+          "id": 25664,
+          "name": "Innoshima"
+        },
+        "25706": {
+          "id": 25706,
+          "name": "Kaita"
+        },
+        "25731": {
+          "id": 25731,
+          "name": "Kannabe"
+        },
+        "25810": {
+          "id": 25810,
+          "name": "Kure"
+        },
+        "25847": {
+          "id": 25847,
+          "name": "Mihara"
+        },
+        "25868": {
+          "id": 25868,
+          "name": "Miyoshi"
+        },
+        "25979": {
+          "id": 25979,
+          "name": "Onomichi"
+        },
+        "25981": {
+          "id": 25981,
+          "name": "Ono"
+        },
+        "26051": {
+          "id": 26051,
+          "name": "Shinichi"
+        },
+        "26066": {
+          "id": 26066,
+          "name": "Shobara"
+        },
+        "26102": {
+          "id": 26102,
+          "name": "Takehara"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Hokkaido",
+      "cities": {
+        "25509": {
+          "id": 25509,
+          "name": "Abashiri"
+        },
+        "25513": {
+          "id": 25513,
+          "name": "Akabira"
+        },
+        "25528": {
+          "id": 25528,
+          "name": "Asahikawa"
+        },
+        "25530": {
+          "id": 25530,
+          "name": "Ashibetsu"
+        },
+        "25537": {
+          "id": 25537,
+          "name": "Bibai"
+        },
+        "25538": {
+          "id": 25538,
+          "name": "Bihoro"
+        },
+        "25545": {
+          "id": 25545,
+          "name": "Chitose"
+        },
+        "25550": {
+          "id": 25550,
+          "name": "Date"
+        },
+        "25551": {
+          "id": 25551,
+          "name": "Ebetsu"
+        },
+        "25562": {
+          "id": 25562,
+          "name": "Fukagawa"
+        },
+        "25598": {
+          "id": 25598,
+          "name": "Hakodate"
+        },
+        "25675": {
+          "id": 25675,
+          "name": "Ishikari"
+        },
+        "25692": {
+          "id": 25692,
+          "name": "Iwamizawa"
+        },
+        "25693": {
+          "id": 25693,
+          "name": "Iwanai"
+        },
+        "25720": {
+          "id": 25720,
+          "name": "Kamiiso"
+        },
+        "25774": {
+          "id": 25774,
+          "name": "Kitami"
+        },
+        "25818": {
+          "id": 25818,
+          "name": "Kushiro"
+        },
+        "25828": {
+          "id": 25828,
+          "name": "Makubetsu"
+        },
+        "25873": {
+          "id": 25873,
+          "name": "Mombetsu"
+        },
+        "25886": {
+          "id": 25886,
+          "name": "Muroran"
+        },
+        "25913": {
+          "id": 25913,
+          "name": "Nanae"
+        },
+        "25920": {
+          "id": 25920,
+          "name": "Nayoro"
+        },
+        "25922": {
+          "id": 25922,
+          "name": "Nemuro"
+        },
+        "25938": {
+          "id": 25938,
+          "name": "Noboribetsu"
+        },
+        "25949": {
+          "id": 25949,
+          "name": "Obihiro"
+        },
+        "25986": {
+          "id": 25986,
+          "name": "Otaru"
+        },
+        "25988": {
+          "id": 25988,
+          "name": "Otofuke"
+        },
+        "25998": {
+          "id": 25998,
+          "name": "Rumoi"
+        },
+        "26023": {
+          "id": 26023,
+          "name": "Sapporo"
+        },
+        "26037": {
+          "id": 26037,
+          "name": "Shibetsu"
+        },
+        "26057": {
+          "id": 26057,
+          "name": "Shiraoi"
+        },
+        "26064": {
+          "id": 26064,
+          "name": "Shizunai"
+        },
+        "26078": {
+          "id": 26078,
+          "name": "Sunagawa"
+        },
+        "26106": {
+          "id": 26106,
+          "name": "Takikawa"
+        },
+        "26126": {
+          "id": 26126,
+          "name": "Tobetsu"
+        },
+        "26139": {
+          "id": 26139,
+          "name": "Tomakomai"
+        },
+        "26182": {
+          "id": 26182,
+          "name": "Utashinai"
+        },
+        "26189": {
+          "id": 26189,
+          "name": "Wakkanai"
+        },
+        "26214": {
+          "id": 26214,
+          "name": "Yoichi"
+        },
+        "26228": {
+          "id": 26228,
+          "name": "Yubari"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Hyogo",
+      "cities": {
+        "25512": {
+          "id": 25512,
+          "name": "Aioi"
+        },
+        "25514": {
+          "id": 25514,
+          "name": "Akashi"
+        },
+        "25517": {
+          "id": 25517,
+          "name": "Ako"
+        },
+        "25519": {
+          "id": 25519,
+          "name": "Amagasaki"
+        },
+        "25532": {
+          "id": 25532,
+          "name": "Ashiya"
+        },
+        "25620": {
+          "id": 25620,
+          "name": "Himeji"
+        },
+        "25655": {
+          "id": 25655,
+          "name": "Ikeda"
+        },
+        "25682": {
+          "id": 25682,
+          "name": "Itami"
+        },
+        "25711": {
+          "id": 25711,
+          "name": "Kakogawa"
+        },
+        "25756": {
+          "id": 25756,
+          "name": "Kawanishi"
+        },
+        "25779": {
+          "id": 25779,
+          "name": "Kobe"
+        },
+        "25849": {
+          "id": 25849,
+          "name": "Miki"
+        },
+        "25933": {
+          "id": 25933,
+          "name": "Nishinomiya"
+        },
+        "25936": {
+          "id": 25936,
+          "name": "Nishiwaki"
+        },
+        "25982": {
+          "id": 25982,
+          "name": "Ono"
+        },
+        "26020": {
+          "id": 26020,
+          "name": "Sanda"
+        },
+        "26025": {
+          "id": 26025,
+          "name": "Sasayama"
+        },
+        "26077": {
+          "id": 26077,
+          "name": "Sumoto"
+        },
+        "26097": {
+          "id": 26097,
+          "name": "Takarazuka"
+        },
+        "26118": {
+          "id": 26118,
+          "name": "Tatsuno"
+        },
+        "26154": {
+          "id": 26154,
+          "name": "Toyooka"
+        },
+        "26201": {
+          "id": 26201,
+          "name": "Yamasaki"
+        },
+        "26207": {
+          "id": 26207,
+          "name": "Yashiro"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Ibaraki",
+      "cities": {
+        "25521": {
+          "id": 25521,
+          "name": "Ami"
+        },
+        "25548": {
+          "id": 25548,
+          "name": "Daigo"
+        },
+        "25552": {
+          "id": 25552,
+          "name": "Edosaki"
+        },
+        "25561": {
+          "id": 25561,
+          "name": "Fujishiro"
+        },
+        "25632": {
+          "id": 25632,
+          "name": "Hitachi"
+        },
+        "25638": {
+          "id": 25638,
+          "name": "Hokota"
+        },
+        "25673": {
+          "id": 25673,
+          "name": "Ishige"
+        },
+        "25679": {
+          "id": 25679,
+          "name": "Ishioka"
+        },
+        "25681": {
+          "id": 25681,
+          "name": "Itako"
+        },
+        "25688": {
+          "id": 25688,
+          "name": "Iwai"
+        },
+        "25695": {
+          "id": 25695,
+          "name": "Iwase"
+        },
+        "25739": {
+          "id": 25739,
+          "name": "Kasama"
+        },
+        "25744": {
+          "id": 25744,
+          "name": "Kashima"
+        },
+        "25770": {
+          "id": 25770,
+          "name": "Kitaibaraki"
+        },
+        "25785": {
+          "id": 25785,
+          "name": "Koga"
+        },
+        "25803": {
+          "id": 25803,
+          "name": "Kuji"
+        },
+        "25826": {
+          "id": 25826,
+          "name": "Makabe"
+        },
+        "25858": {
+          "id": 25858,
+          "name": "Mito"
+        },
+        "25859": {
+          "id": 25859,
+          "name": "Mitsukaido"
+        },
+        "25878": {
+          "id": 25878,
+          "name": "Moriya"
+        },
+        "25905": {
+          "id": 25905,
+          "name": "Naka"
+        },
+        "25946": {
+          "id": 25946,
+          "name": "Oarai"
+        },
+        "26000": {
+          "id": 26000,
+          "name": "Ryugasaki"
+        },
+        "26014": {
+          "id": 26014,
+          "name": "Sakai"
+        },
+        "26031": {
+          "id": 26031,
+          "name": "Sekiyado"
+        },
+        "26047": {
+          "id": 26047,
+          "name": "Shimodate"
+        },
+        "26088": {
+          "id": 26088,
+          "name": "Takahagi"
+        },
+        "26143": {
+          "id": 26143,
+          "name": "Tomobe"
+        },
+        "26160": {
+          "id": 26160,
+          "name": "Tsukuba"
+        },
+        "26180": {
+          "id": 26180,
+          "name": "Ushiku"
+        },
+        "26230": {
+          "id": 26230,
+          "name": "Yuki"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Ishikawa",
+      "cities": {
+        "25600": {
+          "id": 25600,
+          "name": "Hakui"
+        },
+        "25728": {
+          "id": 25728,
+          "name": "Kanazawa"
+        },
+        "25792": {
+          "id": 25792,
+          "name": "Komatsu"
+        },
+        "25844": {
+          "id": 25844,
+          "name": "Matto"
+        },
+        "25914": {
+          "id": 25914,
+          "name": "Nanao"
+        },
+        "25941": {
+          "id": 25941,
+          "name": "Nonoichi"
+        },
+        "26159": {
+          "id": 26159,
+          "name": "Tsubata"
+        },
+        "26163": {
+          "id": 26163,
+          "name": "Tsurugi"
+        },
+        "26186": {
+          "id": 26186,
+          "name": "Wajima"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Iwate",
+      "cities": {
+        "25604": {
+          "id": 25604,
+          "name": "Hanamaki"
+        },
+        "25648": {
+          "id": 25648,
+          "name": "Ichinohe"
+        },
+        "25650": {
+          "id": 25650,
+          "name": "Ichinoseki"
+        },
+        "25713": {
+          "id": 25713,
+          "name": "Kamaishi"
+        },
+        "25771": {
+          "id": 25771,
+          "name": "Kitakami"
+        },
+        "25862": {
+          "id": 25862,
+          "name": "Miyako"
+        },
+        "25870": {
+          "id": 25870,
+          "name": "Mizusawa"
+        },
+        "25876": {
+          "id": 25876,
+          "name": "Morioka"
+        },
+        "25954": {
+          "id": 25954,
+          "name": "Ofunato"
+        },
+        "25989": {
+          "id": 25989,
+          "name": "Otsuchi"
+        },
+        "26063": {
+          "id": 26063,
+          "name": "Shizukuishi"
+        },
+        "26146": {
+          "id": 26146,
+          "name": "Tono"
+        },
+        "26197": {
+          "id": 26197,
+          "name": "Yamada"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Kagawa",
+      "cities": {
+        "25732": {
+          "id": 25732,
+          "name": "Kanonji"
+        },
+        "25830": {
+          "id": 25830,
+          "name": "Marugame"
+        },
+        "26011": {
+          "id": 26011,
+          "name": "Sakaide"
+        },
+        "26040": {
+          "id": 26040,
+          "name": "Shido"
+        },
+        "26084": {
+          "id": 26084,
+          "name": "Tadotsu"
+        },
+        "26093": {
+          "id": 26093,
+          "name": "Takamatsu"
+        },
+        "26145": {
+          "id": 26145,
+          "name": "Tonosho"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Kagoshima",
+      "cities": {
+        "25518": {
+          "id": 25518,
+          "name": "Akune"
+        },
+        "25614": {
+          "id": 25614,
+          "name": "Hayato"
+        },
+        "25645": {
+          "id": 25645,
+          "name": "Ibusuki"
+        },
+        "25654": {
+          "id": 25654,
+          "name": "Ijuin"
+        },
+        "25699": {
+          "id": 25699,
+          "name": "Izumi"
+        },
+        "25704": {
+          "id": 25704,
+          "name": "Kagoshima"
+        },
+        "25708": {
+          "id": 25708,
+          "name": "Kajiki"
+        },
+        "25733": {
+          "id": 25733,
+          "name": "Kanoya"
+        },
+        "25742": {
+          "id": 25742,
+          "name": "Kaseda"
+        },
+        "25788": {
+          "id": 25788,
+          "name": "Kokubu"
+        },
+        "25816": {
+          "id": 25816,
+          "name": "Kushikino"
+        },
+        "25829": {
+          "id": 25829,
+          "name": "Makurazaki"
+        },
+        "25921": {
+          "id": 25921,
+          "name": "Naze"
+        },
+        "25934": {
+          "id": 25934,
+          "name": "Nishinoomote"
+        },
+        "25970": {
+          "id": 25970,
+          "name": "Okuchi"
+        },
+        "26032": {
+          "id": 26032,
+          "name": "Sendai"
+        },
+        "26039": {
+          "id": 26039,
+          "name": "Shibushi"
+        },
+        "26071": {
+          "id": 26071,
+          "name": "Sueyoshi"
+        },
+        "26115": {
+          "id": 26115,
+          "name": "Tarumizu"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Kanagawa",
+      "cities": {
+        "25534": {
+          "id": 25534,
+          "name": "Atsugi"
+        },
+        "25542": {
+          "id": 25542,
+          "name": "Chigasaki"
+        },
+        "25560": {
+          "id": 25560,
+          "name": "Fujisawa"
+        },
+        "25594": {
+          "id": 25594,
+          "name": "Hadano"
+        },
+        "25599": {
+          "id": 25599,
+          "name": "Hakone"
+        },
+        "25613": {
+          "id": 25613,
+          "name": "Hayama"
+        },
+        "25628": {
+          "id": 25628,
+          "name": "Hiratsuka"
+        },
+        "25669": {
+          "id": 25669,
+          "name": "Isehara"
+        },
+        "25714": {
+          "id": 25714,
+          "name": "Kamakura"
+        },
+        "25759": {
+          "id": 25759,
+          "name": "Kawasaki"
+        },
+        "25861": {
+          "id": 25861,
+          "name": "Miura"
+        },
+        "25930": {
+          "id": 25930,
+          "name": "Ninomiya"
+        },
+        "25953": {
+          "id": 25953,
+          "name": "Odawara"
+        },
+        "25961": {
+          "id": 25961,
+          "name": "Oiso"
+        },
+        "26005": {
+          "id": 26005,
+          "name": "Sagamihara"
+        },
+        "26218": {
+          "id": 26218,
+          "name": "Yokohama"
+        },
+        "26219": {
+          "id": 26219,
+          "name": "Yokosuka"
+        },
+        "26229": {
+          "id": 26229,
+          "name": "Yugawara"
+        },
+        "26234": {
+          "id": 26234,
+          "name": "Zama"
+        },
+        "26235": {
+          "id": 26235,
+          "name": "Zushi"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Kochi",
+      "cities": {
+        "25515": {
+          "id": 25515,
+          "name": "Aki"
+        },
+        "25665": {
+          "id": 25665,
+          "name": "Ino"
+        },
+        "25780": {
+          "id": 25780,
+          "name": "Kochi"
+        },
+        "25887": {
+          "id": 25887,
+          "name": "Muroto"
+        },
+        "25904": {
+          "id": 25904,
+          "name": "Nakamura"
+        },
+        "26076": {
+          "id": 26076,
+          "name": "Sukumo"
+        },
+        "26079": {
+          "id": 26079,
+          "name": "Susaki"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Kumamoto",
+      "cities": {
+        "25634": {
+          "id": 25634,
+          "name": "Hitoyoshi"
+        },
+        "25639": {
+          "id": 25639,
+          "name": "Hondo"
+        },
+        "25763": {
+          "id": 25763,
+          "name": "Kikuchi"
+        },
+        "25806": {
+          "id": 25806,
+          "name": "Kumamoto"
+        },
+        "25838": {
+          "id": 25838,
+          "name": "Matsubase"
+        },
+        "25852": {
+          "id": 25852,
+          "name": "Minamata"
+        },
+        "25996": {
+          "id": 25996,
+          "name": "Ozu"
+        },
+        "26108": {
+          "id": 26108,
+          "name": "Tamana"
+        },
+        "26170": {
+          "id": 26170,
+          "name": "Ueki"
+        },
+        "26179": {
+          "id": 26179,
+          "name": "Ushibuka"
+        },
+        "26183": {
+          "id": 26183,
+          "name": "Uto"
+        },
+        "26199": {
+          "id": 26199,
+          "name": "Yamaga"
+        },
+        "26211": {
+          "id": 26211,
+          "name": "Yatsushiro"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Kyoto",
+      "cities": {
+        "25535": {
+          "id": 25535,
+          "name": "Ayabe"
+        },
+        "25565": {
+          "id": 25565,
+          "name": "Fukuchiyama"
+        },
+        "25716": {
+          "id": 25716,
+          "name": "Kameoka"
+        },
+        "25776": {
+          "id": 25776,
+          "name": "Kizu"
+        },
+        "25821": {
+          "id": 25821,
+          "name": "Kyoto"
+        },
+        "25825": {
+          "id": 25825,
+          "name": "Maizuru"
+        },
+        "25866": {
+          "id": 25866,
+          "name": "Miyazu"
+        },
+        "25883": {
+          "id": 25883,
+          "name": "Muko"
+        },
+        "26174": {
+          "id": 26174,
+          "name": "Uji"
+        },
+        "26213": {
+          "id": 26213,
+          "name": "Yawata"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Mie",
+      "cities": {
+        "25631": {
+          "id": 25631,
+          "name": "Hisai"
+        },
+        "25670": {
+          "id": 25670,
+          "name": "Ise"
+        },
+        "25717": {
+          "id": 25717,
+          "name": "Kameyama"
+        },
+        "25794": {
+          "id": 25794,
+          "name": "Komono"
+        },
+        "25820": {
+          "id": 25820,
+          "name": "Kuwana"
+        },
+        "25842": {
+          "id": 25842,
+          "name": "Matsusaka"
+        },
+        "25890": {
+          "id": 25890,
+          "name": "Nabari"
+        },
+        "25992": {
+          "id": 25992,
+          "name": "Owase"
+        },
+        "26030": {
+          "id": 26030,
+          "name": "Seki"
+        },
+        "26082": {
+          "id": 26082,
+          "name": "Suzuka"
+        },
+        "26124": {
+          "id": 26124,
+          "name": "Toba"
+        },
+        "26166": {
+          "id": 26166,
+          "name": "Tsu"
+        },
+        "26172": {
+          "id": 26172,
+          "name": "Ueno"
+        },
+        "26217": {
+          "id": 26217,
+          "name": "Yokkaichi"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Miyagi",
+      "cities": {
+        "25576": {
+          "id": 25576,
+          "name": "Furukawa"
+        },
+        "25678": {
+          "id": 25678,
+          "name": "Ishinomaki"
+        },
+        "25694": {
+          "id": 25694,
+          "name": "Iwanuma"
+        },
+        "25712": {
+          "id": 25712,
+          "name": "Kakuda"
+        },
+        "25762": {
+          "id": 25762,
+          "name": "Kesennuma"
+        },
+        "25787": {
+          "id": 25787,
+          "name": "Kogota"
+        },
+        "25832": {
+          "id": 25832,
+          "name": "Marumori"
+        },
+        "25957": {
+          "id": 25957,
+          "name": "Ogawara"
+        },
+        "25997": {
+          "id": 25997,
+          "name": "Rifu"
+        },
+        "26033": {
+          "id": 26033,
+          "name": "Sendai"
+        },
+        "26054": {
+          "id": 26054,
+          "name": "Shiogama"
+        },
+        "26060": {
+          "id": 26060,
+          "name": "Shiroishi"
+        },
+        "26142": {
+          "id": 26142,
+          "name": "Tomiya"
+        },
+        "26191": {
+          "id": 26191,
+          "name": "Wakuya"
+        },
+        "26193": {
+          "id": 26193,
+          "name": "Watari"
+        },
+        "26202": {
+          "id": 26202,
+          "name": "Yamoto"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Miyazaki",
+      "cities": {
+        "25778": {
+          "id": 25778,
+          "name": "Kobayashi"
+        },
+        "25817": {
+          "id": 25817,
+          "name": "Kushima"
+        },
+        "25863": {
+          "id": 25863,
+          "name": "Miyakonojo"
+        },
+        "25865": {
+          "id": 25865,
+          "name": "Miyazaki"
+        },
+        "25923": {
+          "id": 25923,
+          "name": "Nichinan"
+        },
+        "25937": {
+          "id": 25937,
+          "name": "Nobeoka"
+        },
+        "26003": {
+          "id": 26003,
+          "name": "Sadowara"
+        },
+        "26094": {
+          "id": 26094,
+          "name": "Takanabe"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Nagano",
+      "cities": {
+        "25543": {
+          "id": 25543,
+          "name": "Chino"
+        },
+        "25642": {
+          "id": 25642,
+          "name": "Hotaka"
+        },
+        "25651": {
+          "id": 25651,
+          "name": "Iida"
+        },
+        "25652": {
+          "id": 25652,
+          "name": "Iiyama"
+        },
+        "25661": {
+          "id": 25661,
+          "name": "Ina"
+        },
+        "25795": {
+          "id": 25795,
+          "name": "Komoro"
+        },
+        "25831": {
+          "id": 25831,
+          "name": "Maruko"
+        },
+        "25841": {
+          "id": 25841,
+          "name": "Matsumoto"
+        },
+        "25893": {
+          "id": 25893,
+          "name": "Nagano"
+        },
+        "25907": {
+          "id": 25907,
+          "name": "Nakano"
+        },
+        "25966": {
+          "id": 25966,
+          "name": "Okaya"
+        },
+        "25971": {
+          "id": 25971,
+          "name": "Omachi"
+        },
+        "26019": {
+          "id": 26019,
+          "name": "Saku"
+        },
+        "26055": {
+          "id": 26055,
+          "name": "Shiojiri"
+        },
+        "26080": {
+          "id": 26080,
+          "name": "Suwa"
+        },
+        "26081": {
+          "id": 26081,
+          "name": "Suzaka"
+        },
+        "26119": {
+          "id": 26119,
+          "name": "Tatsuno"
+        },
+        "26155": {
+          "id": 26155,
+          "name": "Toyoshina"
+        },
+        "26169": {
+          "id": 26169,
+          "name": "Ueda"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Nagasaki",
+      "cities": {
+        "25566": {
+          "id": 25566,
+          "name": "Fukue"
+        },
+        "25624": {
+          "id": 25624,
+          "name": "Hirado"
+        },
+        "25667": {
+          "id": 25667,
+          "name": "Isahaya"
+        },
+        "25896": {
+          "id": 25896,
+          "name": "Nagasaki"
+        },
+        "25898": {
+          "id": 25898,
+          "name": "Nagayo"
+        },
+        "25976": {
+          "id": 25976,
+          "name": "Omura"
+        },
+        "26026": {
+          "id": 26026,
+          "name": "Sasebo"
+        },
+        "26042": {
+          "id": 26042,
+          "name": "Shimabara"
+        },
+        "26131": {
+          "id": 26131,
+          "name": "Togitsu"
+        }
+      }
+    },
+    "28": {
+      "code": "28",
+      "name": "Nara",
+      "cities": {
+        "25584": {
+          "id": 25584,
+          "name": "Gojo"
+        },
+        "25585": {
+          "id": 25585,
+          "name": "Gose"
+        },
+        "25597": {
+          "id": 25597,
+          "name": "Haibara"
+        },
+        "25657": {
+          "id": 25657,
+          "name": "Ikoma"
+        },
+        "25743": {
+          "id": 25743,
+          "name": "Kashihara"
+        },
+        "25755": {
+          "id": 25755,
+          "name": "Kawai"
+        },
+        "25915": {
+          "id": 25915,
+          "name": "Nara"
+        },
+        "26017": {
+          "id": 26017,
+          "name": "Sakurai"
+        },
+        "26120": {
+          "id": 26120,
+          "name": "Tawaramoto"
+        },
+        "26123": {
+          "id": 26123,
+          "name": "Tenri"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Niigata",
+      "cities": {
+        "25526": {
+          "id": 25526,
+          "name": "Arai"
+        },
+        "25586": {
+          "id": 25586,
+          "name": "Gosen"
+        },
+        "25683": {
+          "id": 25683,
+          "name": "Itoigawa"
+        },
+        "25715": {
+          "id": 25715,
+          "name": "Kameda"
+        },
+        "25726": {
+          "id": 25726,
+          "name": "Kamo"
+        },
+        "25748": {
+          "id": 25748,
+          "name": "Kashiwazaki"
+        },
+        "25827": {
+          "id": 25827,
+          "name": "Maki"
+        },
+        "25860": {
+          "id": 25860,
+          "name": "Mitsuke"
+        },
+        "25882": {
+          "id": 25882,
+          "name": "Muika"
+        },
+        "25884": {
+          "id": 25884,
+          "name": "Murakami"
+        },
+        "25885": {
+          "id": 25885,
+          "name": "Muramatsu"
+        },
+        "25894": {
+          "id": 25894,
+          "name": "Nagaoka"
+        },
+        "25902": {
+          "id": 25902,
+          "name": "Nakajo"
+        },
+        "25925": {
+          "id": 25925,
+          "name": "Niigata"
+        },
+        "25928": {
+          "id": 25928,
+          "name": "Niitsu"
+        },
+        "25963": {
+          "id": 25963,
+          "name": "Ojiya"
+        },
+        "25999": {
+          "id": 25999,
+          "name": "Ryotsu"
+        },
+        "26021": {
+          "id": 26021,
+          "name": "Sanjo"
+        },
+        "26036": {
+          "id": 26036,
+          "name": "Shibata"
+        },
+        "26056": {
+          "id": 26056,
+          "name": "Shiozawa"
+        },
+        "26061": {
+          "id": 26061,
+          "name": "Shirone"
+        },
+        "26073": {
+          "id": 26073,
+          "name": "Suibara"
+        },
+        "26128": {
+          "id": 26128,
+          "name": "Tochio"
+        },
+        "26132": {
+          "id": 26132,
+          "name": "Tokamachi"
+        },
+        "26158": {
+          "id": 26158,
+          "name": "Tsubame"
+        },
+        "26224": {
+          "id": 26224,
+          "name": "Yoshida"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Oita",
+      "cities": {
+        "25536": {
+          "id": 25536,
+          "name": "Beppu"
+        },
+        "25617": {
+          "id": 25617,
+          "name": "Hiji"
+        },
+        "25633": {
+          "id": 25633,
+          "name": "Hita"
+        },
+        "25775": {
+          "id": 25775,
+          "name": "Kitsuki"
+        },
+        "25819": {
+          "id": 25819,
+          "name": "Kusu"
+        },
+        "25962": {
+          "id": 25962,
+          "name": "Oita"
+        },
+        "26009": {
+          "id": 26009,
+          "name": "Saiki"
+        },
+        "26104": {
+          "id": 26104,
+          "name": "Taketa"
+        },
+        "26161": {
+          "id": 26161,
+          "name": "Tsukumi"
+        },
+        "26181": {
+          "id": 26181,
+          "name": "Usuki"
+        }
+      }
+    },
+    "31": {
+      "code": "31",
+      "name": "Okayama",
+      "cities": {
+        "25643": {
+          "id": 25643,
+          "name": "Ibara"
+        },
+        "25723": {
+          "id": 25723,
+          "name": "Kamogata"
+        },
+        "25741": {
+          "id": 25741,
+          "name": "Kasaoka"
+        },
+        "25808": {
+          "id": 25808,
+          "name": "Kurashiki"
+        },
+        "25927": {
+          "id": 25927,
+          "name": "Niimi"
+        },
+        "25965": {
+          "id": 25965,
+          "name": "Okayama"
+        },
+        "26069": {
+          "id": 26069,
+          "name": "Soja"
+        },
+        "26090": {
+          "id": 26090,
+          "name": "Takahashi"
+        },
+        "26109": {
+          "id": 26109,
+          "name": "Tamano"
+        },
+        "26167": {
+          "id": 26167,
+          "name": "Tsuyama"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Osaka",
+      "cities": {
+        "25549": {
+          "id": 25549,
+          "name": "Daito"
+        },
+        "25625": {
+          "id": 25625,
+          "name": "Hirakata"
+        },
+        "25644": {
+          "id": 25644,
+          "name": "Ibaraki"
+        },
+        "25700": {
+          "id": 25700,
+          "name": "Izumi"
+        },
+        "25701": {
+          "id": 25701,
+          "name": "Izumiotsu"
+        },
+        "25703": {
+          "id": 25703,
+          "name": "Kadoma"
+        },
+        "25707": {
+          "id": 25707,
+          "name": "Kaizuka"
+        },
+        "25747": {
+          "id": 25747,
+          "name": "Kashiwara"
+        },
+        "25768": {
+          "id": 25768,
+          "name": "Kishiwada"
+        },
+        "25837": {
+          "id": 25837,
+          "name": "Matsubara"
+        },
+        "25874": {
+          "id": 25874,
+          "name": "Moriguchi"
+        },
+        "25983": {
+          "id": 25983,
+          "name": "Osaka"
+        },
+        "26015": {
+          "id": 26015,
+          "name": "Sakai"
+        },
+        "26074": {
+          "id": 26074,
+          "name": "Suita"
+        },
+        "26092": {
+          "id": 26092,
+          "name": "Takaishi"
+        },
+        "26099": {
+          "id": 26099,
+          "name": "Takatsuki"
+        },
+        "26144": {
+          "id": 26144,
+          "name": "Tondabayashi"
+        },
+        "26153": {
+          "id": 26153,
+          "name": "Toyonaka"
+        },
+        "26206": {
+          "id": 26206,
+          "name": "Yao"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "Saga",
+      "cities": {
+        "25660": {
+          "id": 25660,
+          "name": "Imari"
+        },
+        "25735": {
+          "id": 25735,
+          "name": "Kanzaki"
+        },
+        "25737": {
+          "id": 25737,
+          "name": "Karatsu"
+        },
+        "25745": {
+          "id": 25745,
+          "name": "Kashima"
+        },
+        "25964": {
+          "id": 25964,
+          "name": "Okawa"
+        },
+        "26007": {
+          "id": 26007,
+          "name": "Saga"
+        },
+        "26103": {
+          "id": 26103,
+          "name": "Takeo"
+        },
+        "26148": {
+          "id": 26148,
+          "name": "Tosu"
+        },
+        "26178": {
+          "id": 26178,
+          "name": "Ureshino"
+        }
+      }
+    },
+    "34": {
+      "code": "34",
+      "name": "Saitama",
+      "cities": {
+        "25511": {
+          "id": 25511,
+          "name": "Ageo"
+        },
+        "25529": {
+          "id": 25529,
+          "name": "Asaka"
+        },
+        "25541": {
+          "id": 25541,
+          "name": "Chichibu"
+        },
+        "25563": {
+          "id": 25563,
+          "name": "Fukaya"
+        },
+        "25564": {
+          "id": 25564,
+          "name": "Fukiage"
+        },
+        "25591": {
+          "id": 25591,
+          "name": "Gyoda"
+        },
+        "25606": {
+          "id": 25606,
+          "name": "Hanno"
+        },
+        "25607": {
+          "id": 25607,
+          "name": "Hanyu"
+        },
+        "25610": {
+          "id": 25610,
+          "name": "Hasuda"
+        },
+        "25611": {
+          "id": 25611,
+          "name": "Hatogaya"
+        },
+        "25641": {
+          "id": 25641,
+          "name": "Honjo"
+        },
+        "25697": {
+          "id": 25697,
+          "name": "Iwatsuki"
+        },
+        "25718": {
+          "id": 25718,
+          "name": "Kamifukuoka"
+        },
+        "25750": {
+          "id": 25750,
+          "name": "Kasukabe"
+        },
+        "25753": {
+          "id": 25753,
+          "name": "Kawagoe"
+        },
+        "25754": {
+          "id": 25754,
+          "name": "Kawaguchi"
+        },
+        "25760": {
+          "id": 25760,
+          "name": "Kazo"
+        },
+        "25766": {
+          "id": 25766,
+          "name": "Kisai"
+        },
+        "25782": {
+          "id": 25782,
+          "name": "Kodama"
+        },
+        "25797": {
+          "id": 25797,
+          "name": "Konosu"
+        },
+        "25799": {
+          "id": 25799,
+          "name": "Koshigaya"
+        },
+        "25804": {
+          "id": 25804,
+          "name": "Kuki"
+        },
+        "25805": {
+          "id": 25805,
+          "name": "Kumagaya"
+        },
+        "25811": {
+          "id": 25811,
+          "name": "Kurihashi"
+        },
+        "25845": {
+          "id": 25845,
+          "name": "Menuma"
+        },
+        "25879": {
+          "id": 25879,
+          "name": "Moroyama"
+        },
+        "25895": {
+          "id": 25895,
+          "name": "Nagareyama"
+        },
+        "25956": {
+          "id": 25956,
+          "name": "Ogawa"
+        },
+        "25960": {
+          "id": 25960,
+          "name": "Oi"
+        },
+        "25968": {
+          "id": 25968,
+          "name": "Okegawa"
+        },
+        "26010": {
+          "id": 26010,
+          "name": "Sakado"
+        },
+        "26027": {
+          "id": 26027,
+          "name": "Satte"
+        },
+        "26029": {
+          "id": 26029,
+          "name": "Sayama"
+        },
+        "26041": {
+          "id": 26041,
+          "name": "Shiki"
+        },
+        "26058": {
+          "id": 26058,
+          "name": "Shiraoka"
+        },
+        "26067": {
+          "id": 26067,
+          "name": "Shobu"
+        },
+        "26070": {
+          "id": 26070,
+          "name": "Soka"
+        },
+        "26072": {
+          "id": 26072,
+          "name": "Sugito"
+        },
+        "26129": {
+          "id": 26129,
+          "name": "Toda"
+        },
+        "26135": {
+          "id": 26135,
+          "name": "Tokorozawa"
+        },
+        "26190": {
+          "id": 26190,
+          "name": "Wako"
+        },
+        "26192": {
+          "id": 26192,
+          "name": "Warabi"
+        },
+        "26223": {
+          "id": 26223,
+          "name": "Yorii"
+        },
+        "26226": {
+          "id": 26226,
+          "name": "Yoshikawa"
+        }
+      }
+    },
+    "35": {
+      "code": "35",
+      "name": "Shiga",
+      "cities": {
+        "25619": {
+          "id": 25619,
+          "name": "Hikone"
+        },
+        "25622": {
+          "id": 25622,
+          "name": "Hino"
+        },
+        "25815": {
+          "id": 25815,
+          "name": "Kusatsu"
+        },
+        "25851": {
+          "id": 25851,
+          "name": "Minakuchi"
+        },
+        "25877": {
+          "id": 25877,
+          "name": "Moriyama"
+        },
+        "25891": {
+          "id": 25891,
+          "name": "Nagahama"
+        },
+        "25991": {
+          "id": 25991,
+          "name": "Otsu"
+        },
+        "26209": {
+          "id": 26209,
+          "name": "Yasu"
+        },
+        "26216": {
+          "id": 26216,
+          "name": "Yokaichi"
+        }
+      }
+    },
+    "36": {
+      "code": "36",
+      "name": "Shimane",
+      "cities": {
+        "25589": {
+          "id": 25589,
+          "name": "Gotsu"
+        },
+        "25601": {
+          "id": 25601,
+          "name": "Hamada"
+        },
+        "25627": {
+          "id": 25627,
+          "name": "Hirata"
+        },
+        "25702": {
+          "id": 25702,
+          "name": "Izumo"
+        },
+        "25836": {
+          "id": 25836,
+          "name": "Masuda"
+        },
+        "25840": {
+          "id": 25840,
+          "name": "Matsue"
+        },
+        "25951": {
+          "id": 25951,
+          "name": "Oda"
+        },
+        "26208": {
+          "id": 26208,
+          "name": "Yasugi"
+        }
+      }
+    },
+    "37": {
+      "code": "37",
+      "name": "Shizuoka",
+      "cities": {
+        "25533": {
+          "id": 25533,
+          "name": "Atami"
+        },
+        "25556": {
+          "id": 25556,
+          "name": "Fujieda"
+        },
+        "25557": {
+          "id": 25557,
+          "name": "Fuji"
+        },
+        "25558": {
+          "id": 25558,
+          "name": "Fujinomiya"
+        },
+        "25571": {
+          "id": 25571,
+          "name": "Fukuroi"
+        },
+        "25588": {
+          "id": 25588,
+          "name": "Gotemba"
+        },
+        "25602": {
+          "id": 25602,
+          "name": "Hamakita"
+        },
+        "25603": {
+          "id": 25603,
+          "name": "Hamamatsu"
+        },
+        "25684": {
+          "id": 25684,
+          "name": "Ito"
+        },
+        "25696": {
+          "id": 25696,
+          "name": "Iwata"
+        },
+        "25710": {
+          "id": 25710,
+          "name": "Kakegawa"
+        },
+        "25727": {
+          "id": 25727,
+          "name": "Kanaya"
+        },
+        "25855": {
+          "id": 25855,
+          "name": "Mishima"
+        },
+        "25875": {
+          "id": 25875,
+          "name": "Mori"
+        },
+        "25944": {
+          "id": 25944,
+          "name": "Numazu"
+        },
+        "25993": {
+          "id": 25993,
+          "name": "Oyama"
+        },
+        "26006": {
+          "id": 26006,
+          "name": "Sagara"
+        },
+        "26043": {
+          "id": 26043,
+          "name": "Shimada"
+        },
+        "26044": {
+          "id": 26044,
+          "name": "Shimizu"
+        },
+        "26046": {
+          "id": 26046,
+          "name": "Shimoda"
+        },
+        "26065": {
+          "id": 26065,
+          "name": "Shizuoka"
+        },
+        "26196": {
+          "id": 26196,
+          "name": "Yaizu"
+        }
+      }
+    },
+    "38": {
+      "code": "38",
+      "name": "Tochigi",
+      "cities": {
+        "25531": {
+          "id": 25531,
+          "name": "Ashikaga"
+        },
+        "25659": {
+          "id": 25659,
+          "name": "Imaichi"
+        },
+        "25721": {
+          "id": 25721,
+          "name": "Kaminokawa"
+        },
+        "25734": {
+          "id": 25734,
+          "name": "Kanuma"
+        },
+        "25736": {
+          "id": 25736,
+          "name": "Karasuyama"
+        },
+        "25813": {
+          "id": 25813,
+          "name": "Kuroiso"
+        },
+        "25835": {
+          "id": 25835,
+          "name": "Mashiko"
+        },
+        "25846": {
+          "id": 25846,
+          "name": "Mibu"
+        },
+        "25872": {
+          "id": 25872,
+          "name": "Moka"
+        },
+        "25880": {
+          "id": 25880,
+          "name": "Motegi"
+        },
+        "25929": {
+          "id": 25929,
+          "name": "Nikko"
+        },
+        "25987": {
+          "id": 25987,
+          "name": "Otawara"
+        },
+        "25994": {
+          "id": 25994,
+          "name": "Oyama"
+        },
+        "26022": {
+          "id": 26022,
+          "name": "Sano"
+        },
+        "26112": {
+          "id": 26112,
+          "name": "Tanuma"
+        },
+        "26127": {
+          "id": 26127,
+          "name": "Tochigi"
+        },
+        "26173": {
+          "id": 26173,
+          "name": "Ujiie"
+        },
+        "26184": {
+          "id": 26184,
+          "name": "Utsunomiya"
+        },
+        "26195": {
+          "id": 26195,
+          "name": "Yaita"
+        }
+      }
+    },
+    "39": {
+      "code": "39",
+      "name": "Tokushima",
+      "cities": {
+        "25522": {
+          "id": 25522,
+          "name": "Anan"
+        },
+        "25656": {
+          "id": 25656,
+          "name": "Ikeda"
+        },
+        "25674": {
+          "id": 25674,
+          "name": "Ishii"
+        },
+        "25725": {
+          "id": 25725,
+          "name": "Kamojima"
+        },
+        "25793": {
+          "id": 25793,
+          "name": "Komatsushima"
+        },
+        "25919": {
+          "id": 25919,
+          "name": "Naruto"
+        },
+        "26136": {
+          "id": 26136,
+          "name": "Tokushima"
+        },
+        "26188": {
+          "id": 26188,
+          "name": "Waki"
+        }
+      }
+    },
+    "40": {
+      "code": "40",
+      "name": "Tokyo",
+      "cities": {
+        "25546": {
+          "id": 25546,
+          "name": "Chofu"
+        },
+        "25555": {
+          "id": 25555,
+          "name": "Fuchu"
+        },
+        "25577": {
+          "id": 25577,
+          "name": "Fussa"
+        },
+        "25593": {
+          "id": 25593,
+          "name": "Hachioji"
+        },
+        "25623": {
+          "id": 25623,
+          "name": "Hino"
+        },
+        "25686": {
+          "id": 25686,
+          "name": "Itsukaichi"
+        },
+        "25781": {
+          "id": 25781,
+          "name": "Kodaira"
+        },
+        "25786": {
+          "id": 25786,
+          "name": "Koganei"
+        },
+        "25789": {
+          "id": 25789,
+          "name": "Kokubunji"
+        },
+        "25790": {
+          "id": 25790,
+          "name": "Komae"
+        },
+        "25807": {
+          "id": 25807,
+          "name": "Kunitachi"
+        },
+        "25822": {
+          "id": 25822,
+          "name": "Machida"
+        },
+        "25856": {
+          "id": 25856,
+          "name": "Mitaka"
+        },
+        "25888": {
+          "id": 25888,
+          "name": "Musashino"
+        },
+        "25974": {
+          "id": 25974,
+          "name": "Ome"
+        },
+        "26083": {
+          "id": 26083,
+          "name": "Tachikawa"
+        },
+        "26111": {
+          "id": 26111,
+          "name": "Tanashi"
+        },
+        "26138": {
+          "id": 26138,
+          "name": "Tokyo"
+        },
+        "26177": {
+          "id": 26177,
+          "name": "Urayasu"
+        }
+      }
+    },
+    "41": {
+      "code": "41",
+      "name": "Tottori",
+      "cities": {
+        "25809": {
+          "id": 25809,
+          "name": "Kurayoshi"
+        },
+        "26012": {
+          "id": 26012,
+          "name": "Sakaiminato"
+        },
+        "26149": {
+          "id": 26149,
+          "name": "Tottori"
+        },
+        "26221": {
+          "id": 26221,
+          "name": "Yonago"
+        }
+      }
+    },
+    "42": {
+      "code": "42",
+      "name": "Toyama",
+      "cities": {
+        "25569": {
+          "id": 25569,
+          "name": "Fukumitsu"
+        },
+        "25621": {
+          "id": 25621,
+          "name": "Himi"
+        },
+        "25719": {
+          "id": 25719,
+          "name": "Kamiichi"
+        },
+        "25800": {
+          "id": 25800,
+          "name": "Kosugi"
+        },
+        "25910": {
+          "id": 25910,
+          "name": "Namerikawa"
+        },
+        "25945": {
+          "id": 25945,
+          "name": "Nyuzen"
+        },
+        "26045": {
+          "id": 26045,
+          "name": "Shimminato"
+        },
+        "26096": {
+          "id": 26096,
+          "name": "Takaoka"
+        },
+        "26150": {
+          "id": 26150,
+          "name": "Toyama"
+        },
+        "26176": {
+          "id": 26176,
+          "name": "Uozu"
+        },
+        "26210": {
+          "id": 26210,
+          "name": "Yatsuo"
+        }
+      }
+    },
+    "43": {
+      "code": "43",
+      "name": "Wakayama",
+      "cities": {
+        "25582": {
+          "id": 25582,
+          "name": "Gobo"
+        },
+        "25609": {
+          "id": 25609,
+          "name": "Hashimoto"
+        },
+        "25687": {
+          "id": 25687,
+          "name": "Iwade"
+        },
+        "25705": {
+          "id": 25705,
+          "name": "Kainan"
+        },
+        "26050": {
+          "id": 26050,
+          "name": "Shingu"
+        },
+        "26110": {
+          "id": 26110,
+          "name": "Tanabe"
+        },
+        "26187": {
+          "id": 26187,
+          "name": "Wakayama"
+        }
+      }
+    },
+    "44": {
+      "code": "44",
+      "name": "Yamagata",
+      "cities": {
+        "25616": {
+          "id": 25616,
+          "name": "Higashine"
+        },
+        "25722": {
+          "id": 25722,
+          "name": "Kaminoyama"
+        },
+        "25892": {
+          "id": 25892,
+          "name": "Nagai"
+        },
+        "25948": {
+          "id": 25948,
+          "name": "Obanazawa"
+        },
+        "26004": {
+          "id": 26004,
+          "name": "Sagae"
+        },
+        "26016": {
+          "id": 26016,
+          "name": "Sakata"
+        },
+        "26052": {
+          "id": 26052,
+          "name": "Shinjo"
+        },
+        "26091": {
+          "id": 26091,
+          "name": "Takahata"
+        },
+        "26121": {
+          "id": 26121,
+          "name": "Tendo"
+        },
+        "26164": {
+          "id": 26164,
+          "name": "Tsuruoka"
+        },
+        "26198": {
+          "id": 26198,
+          "name": "Yamagata"
+        },
+        "26222": {
+          "id": 26222,
+          "name": "Yonezawa"
+        },
+        "26233": {
+          "id": 26233,
+          "name": "Yuza"
+        }
+      }
+    },
+    "45": {
+      "code": "45",
+      "name": "Yamaguchi",
+      "cities": {
+        "25596": {
+          "id": 25596,
+          "name": "Hagi"
+        },
+        "25618": {
+          "id": 25618,
+          "name": "Hikari"
+        },
+        "25636": {
+          "id": 25636,
+          "name": "Hofu"
+        },
+        "25690": {
+          "id": 25690,
+          "name": "Iwakuni"
+        },
+        "25802": {
+          "id": 25802,
+          "name": "Kudamatsu"
+        },
+        "25897": {
+          "id": 25897,
+          "name": "Nagato"
+        },
+        "25958": {
+          "id": 25958,
+          "name": "Ogori"
+        },
+        "25978": {
+          "id": 25978,
+          "name": "Onoda"
+        },
+        "25984": {
+          "id": 25984,
+          "name": "Otake"
+        },
+        "26048": {
+          "id": 26048,
+          "name": "Shimonoseki"
+        },
+        "26137": {
+          "id": 26137,
+          "name": "Tokuyama"
+        },
+        "26168": {
+          "id": 26168,
+          "name": "Ube"
+        },
+        "26200": {
+          "id": 26200,
+          "name": "Yamaguchi"
+        },
+        "26205": {
+          "id": 26205,
+          "name": "Yanai"
+        }
+      }
+    },
+    "46": {
+      "code": "46",
+      "name": "Yamanashi",
+      "cities": {
+        "25553": {
+          "id": 25553,
+          "name": "Enzan"
+        },
+        "25668": {
+          "id": 25668,
+          "name": "Isawa"
+        },
+        "25783": {
+          "id": 25783,
+          "name": "Kofu"
+        },
+        "25931": {
+          "id": 25931,
+          "name": "Nirasaki"
+        },
+        "25990": {
+          "id": 25990,
+          "name": "Otsuki"
+        },
+        "26001": {
+          "id": 26001,
+          "name": "Ryuo"
+        },
+        "26171": {
+          "id": 26171,
+          "name": "Uenohara"
+        }
+      }
+    },
+    "47": {
+      "code": "47",
+      "name": "Okinawa",
+      "cities": {
+        "25539": {
+          "id": 25539,
+          "name": "Chatan"
+        },
+        "25581": {
+          "id": 25581,
+          "name": "Ginowan"
+        },
+        "25590": {
+          "id": 25590,
+          "name": "Gushikawa"
+        },
+        "25595": {
+          "id": 25595,
+          "name": "Haebaru"
+        },
+        "25626": {
+          "id": 25626,
+          "name": "Hirara"
+        },
+        "25672": {
+          "id": 25672,
+          "name": "Ishigaki"
+        },
+        "25677": {
+          "id": 25677,
+          "name": "Ishikawa"
+        },
+        "25685": {
+          "id": 25685,
+          "name": "Itoman"
+        },
+        "25899": {
+          "id": 25899,
+          "name": "Nago"
+        },
+        "25901": {
+          "id": 25901,
+          "name": "Naha"
+        },
+        "25932": {
+          "id": 25932,
+          "name": "Nishihara"
+        },
+        "25969": {
+          "id": 25969,
+          "name": "Okinawa"
+        },
+        "26140": {
+          "id": 26140,
+          "name": "Tomigusuku"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Aichi",
+      "cities": {
+        "25523": {
+          "id": 25523,
+          "name": "Anjo"
+        },
+        "25544": {
+          "id": 25544,
+          "name": "Chiryu"
+        },
+        "25579": {
+          "id": 25579,
+          "name": "Gamagori"
+        },
+        "25605": {
+          "id": 25605,
+          "name": "Handa"
+        },
+        "25615": {
+          "id": 25615,
+          "name": "Hekinan"
+        },
+        "25649": {
+          "id": 25649,
+          "name": "Ichinomiya"
+        },
+        "25663": {
+          "id": 25663,
+          "name": "Inazawa"
+        },
+        "25680": {
+          "id": 25680,
+          "name": "Isshiki"
+        },
+        "25691": {
+          "id": 25691,
+          "name": "Iwakura"
+        },
+        "25730": {
+          "id": 25730,
+          "name": "Kanie"
+        },
+        "25738": {
+          "id": 25738,
+          "name": "Kariya"
+        },
+        "25749": {
+          "id": 25749,
+          "name": "Kasugai"
+        },
+        "25769": {
+          "id": 25769,
+          "name": "Kisogawa"
+        },
+        "25791": {
+          "id": 25791,
+          "name": "Komaki"
+        },
+        "25796": {
+          "id": 25796,
+          "name": "Konan"
+        },
+        "25801": {
+          "id": 25801,
+          "name": "Kozakai"
+        },
+        "25867": {
+          "id": 25867,
+          "name": "Miyoshi"
+        },
+        "25900": {
+          "id": 25900,
+          "name": "Nagoya"
+        },
+        "25935": {
+          "id": 25935,
+          "name": "Nishio"
+        },
+        "25950": {
+          "id": 25950,
+          "name": "Obu"
+        },
+        "25967": {
+          "id": 25967,
+          "name": "Okazaki"
+        },
+        "26035": {
+          "id": 26035,
+          "name": "Seto"
+        },
+        "26053": {
+          "id": 26053,
+          "name": "Shinshiro"
+        },
+        "26068": {
+          "id": 26068,
+          "name": "Sobue"
+        },
+        "26086": {
+          "id": 26086,
+          "name": "Tahara"
+        },
+        "26089": {
+          "id": 26089,
+          "name": "Takahama"
+        },
+        "26105": {
+          "id": 26105,
+          "name": "Taketoyo"
+        },
+        "26134": {
+          "id": 26134,
+          "name": "Tokoname"
+        },
+        "26151": {
+          "id": 26151,
+          "name": "Toyohashi"
+        },
+        "26152": {
+          "id": 26152,
+          "name": "Toyokawa"
+        },
+        "26156": {
+          "id": 26156,
+          "name": "Toyota"
+        },
+        "26165": {
+          "id": 26165,
+          "name": "Tsushima"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Akita",
+      "cities": {
+        "25516": {
+          "id": 25516,
+          "name": "Akita"
+        },
+        "25640": {
+          "id": 25640,
+          "name": "Honjo"
+        },
+        "25761": {
+          "id": 25761,
+          "name": "Kazuno"
+        },
+        "25942": {
+          "id": 25942,
+          "name": "Noshiro"
+        },
+        "25952": {
+          "id": 25952,
+          "name": "Odate"
+        },
+        "25972": {
+          "id": 25972,
+          "name": "Omagari"
+        },
+        "26095": {
+          "id": 26095,
+          "name": "Takanosu"
+        },
+        "26122": {
+          "id": 26122,
+          "name": "Tenno"
+        },
+        "26220": {
+          "id": 26220,
+          "name": "Yokote"
+        },
+        "26232": {
+          "id": 26232,
+          "name": "Yuzawa"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Aomori",
+      "cities": {
+        "25525": {
+          "id": 25525,
+          "name": "Aomori"
+        },
+        "25587": {
+          "id": 25587,
+          "name": "Goshogawara"
+        },
+        "25592": {
+          "id": 25592,
+          "name": "Hachinohe"
+        },
+        "25629": {
+          "id": 25629,
+          "name": "Hirosaki"
+        },
+        "25777": {
+          "id": 25777,
+          "name": "Kizukuri"
+        },
+        "25812": {
+          "id": 25812,
+          "name": "Kuroishi"
+        },
+        "25854": {
+          "id": 25854,
+          "name": "Misawa"
+        },
+        "25889": {
+          "id": 25889,
+          "name": "Mutsu"
+        },
+        "25912": {
+          "id": 25912,
+          "name": "Namioka"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Chiba",
+      "cities": {
+        "25510": {
+          "id": 25510,
+          "name": "Abiko"
+        },
+        "25527": {
+          "id": 25527,
+          "name": "Asahi"
+        },
+        "25540": {
+          "id": 25540,
+          "name": "Chiba"
+        },
+        "25547": {
+          "id": 25547,
+          "name": "Choshi"
+        },
+        "25574": {
+          "id": 25574,
+          "name": "Funabashi"
+        },
+        "25578": {
+          "id": 25578,
+          "name": "Futtsu"
+        },
+        "25608": {
+          "id": 25608,
+          "name": "Hasaki"
+        },
+        "25646": {
+          "id": 25646,
+          "name": "Ichihara"
+        },
+        "25647": {
+          "id": 25647,
+          "name": "Ichikawa"
+        },
+        "25724": {
+          "id": 25724,
+          "name": "Kamogawa"
+        },
+        "25746": {
+          "id": 25746,
+          "name": "Kashiwa"
+        },
+        "25751": {
+          "id": 25751,
+          "name": "Katsuura"
+        },
+        "25764": {
+          "id": 25764,
+          "name": "Kimitsu"
+        },
+        "25767": {
+          "id": 25767,
+          "name": "Kisarazu"
+        },
+        "25839": {
+          "id": 25839,
+          "name": "Matsudo"
+        },
+        "25871": {
+          "id": 25871,
+          "name": "Mobara"
+        },
+        "25916": {
+          "id": 25916,
+          "name": "Narashino"
+        },
+        "25917": {
+          "id": 25917,
+          "name": "Narita"
+        },
+        "25918": {
+          "id": 25918,
+          "name": "Naruto"
+        },
+        "25939": {
+          "id": 25939,
+          "name": "Noda"
+        },
+        "25959": {
+          "id": 25959,
+          "name": "Ohara"
+        },
+        "25975": {
+          "id": 25975,
+          "name": "Omigawa"
+        },
+        "26018": {
+          "id": 26018,
+          "name": "Sakura"
+        },
+        "26028": {
+          "id": 26028,
+          "name": "Sawara"
+        },
+        "26059": {
+          "id": 26059,
+          "name": "Shiroi"
+        },
+        "26062": {
+          "id": 26062,
+          "name": "Shisui"
+        },
+        "26117": {
+          "id": 26117,
+          "name": "Tateyama"
+        },
+        "26130": {
+          "id": 26130,
+          "name": "Togane"
+        },
+        "26147": {
+          "id": 26147,
+          "name": "Toride"
+        },
+        "26194": {
+          "id": 26194,
+          "name": "Yachimata"
+        },
+        "26215": {
+          "id": 26215,
+          "name": "Yokaichiba"
+        },
+        "26227": {
+          "id": 26227,
+          "name": "Yotsukaido"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Ehime",
+      "cities": {
+        "25637": {
+          "id": 25637,
+          "name": "Hojo"
+        },
+        "25658": {
+          "id": 25658,
+          "name": "Imabari"
+        },
+        "25698": {
+          "id": 25698,
+          "name": "Iyo"
+        },
+        "25757": {
+          "id": 25757,
+          "name": "Kawanoe"
+        },
+        "25834": {
+          "id": 25834,
+          "name": "Masaki"
+        },
+        "25843": {
+          "id": 25843,
+          "name": "Matsuyama"
+        },
+        "25926": {
+          "id": 25926,
+          "name": "Niihama"
+        },
+        "25995": {
+          "id": 25995,
+          "name": "Ozu"
+        },
+        "26008": {
+          "id": 26008,
+          "name": "Saijo"
+        },
+        "26125": {
+          "id": 26125,
+          "name": "Tobe"
+        },
+        "26157": {
+          "id": 26157,
+          "name": "Toyo"
+        },
+        "26185": {
+          "id": 26185,
+          "name": "Uwajima"
+        },
+        "26212": {
+          "id": 26212,
+          "name": "Yawatahama"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Fukui",
+      "cities": {
+        "25567": {
+          "id": 25567,
+          "name": "Fukui"
+        },
+        "25752": {
+          "id": 25752,
+          "name": "Katsuyama"
+        },
+        "25833": {
+          "id": 25833,
+          "name": "Maruoka"
+        },
+        "25850": {
+          "id": 25850,
+          "name": "Mikuni"
+        },
+        "25947": {
+          "id": 25947,
+          "name": "Obama"
+        },
+        "25980": {
+          "id": 25980,
+          "name": "Ono"
+        },
+        "26002": {
+          "id": 26002,
+          "name": "Sabae"
+        },
+        "26101": {
+          "id": 26101,
+          "name": "Takefu"
+        },
+        "26162": {
+          "id": 26162,
+          "name": "Tsuruga"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Fukuoka",
+      "cities": {
+        "25520": {
+          "id": 25520,
+          "name": "Amagi"
+        },
+        "25568": {
+          "id": 25568,
+          "name": "Fukuma"
+        },
+        "25570": {
+          "id": 25570,
+          "name": "Fukuoka"
+        },
+        "25653": {
+          "id": 25653,
+          "name": "Iizuka"
+        },
+        "25729": {
+          "id": 25729,
+          "name": "Kanda"
+        },
+        "25758": {
+          "id": 25758,
+          "name": "Kawasaki"
+        },
+        "25773": {
+          "id": 25773,
+          "name": "Kitakyushu"
+        },
+        "25784": {
+          "id": 25784,
+          "name": "Koga"
+        },
+        "25814": {
+          "id": 25814,
+          "name": "Kurume"
+        },
+        "25823": {
+          "id": 25823,
+          "name": "Maebaru"
+        },
+        "25864": {
+          "id": 25864,
+          "name": "Miyata"
+        },
+        "25903": {
+          "id": 25903,
+          "name": "Nakama"
+        },
+        "25909": {
+          "id": 25909,
+          "name": "Nakatsu"
+        },
+        "25940": {
+          "id": 25940,
+          "name": "Nogata"
+        },
+        "25977": {
+          "id": 25977,
+          "name": "Omuta"
+        },
+        "26024": {
+          "id": 26024,
+          "name": "Sasaguri"
+        },
+        "26034": {
+          "id": 26034,
+          "name": "Setaka"
+        },
+        "26049": {
+          "id": 26049,
+          "name": "Shingu"
+        },
+        "26085": {
+          "id": 26085,
+          "name": "Tagawa"
+        },
+        "26113": {
+          "id": 26113,
+          "name": "Tanushimaru"
+        },
+        "26175": {
+          "id": 26175,
+          "name": "Umi"
+        },
+        "26203": {
+          "id": 26203,
+          "name": "Yanagawa"
+        },
+        "26231": {
+          "id": 26231,
+          "name": "Yukuhashi"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Fukushima",
+      "cities": {
+        "25572": {
+          "id": 25572,
+          "name": "Fukushima"
+        },
+        "25575": {
+          "id": 25575,
+          "name": "Funehiki"
+        },
+        "25635": {
+          "id": 25635,
+          "name": "Hobara"
+        },
+        "25662": {
+          "id": 25662,
+          "name": "Inawashiro"
+        },
+        "25676": {
+          "id": 25676,
+          "name": "Ishikawa"
+        },
+        "25689": {
+          "id": 25689,
+          "name": "Iwaki"
+        },
+        "25772": {
+          "id": 25772,
+          "name": "Kitakata"
+        },
+        "25798": {
+          "id": 25798,
+          "name": "Koriyama"
+        },
+        "25848": {
+          "id": 25848,
+          "name": "Miharu"
+        },
+        "25881": {
+          "id": 25881,
+          "name": "Motomiya"
+        },
+        "25911": {
+          "id": 25911,
+          "name": "Namie"
+        },
+        "25924": {
+          "id": 25924,
+          "name": "Nihommatsu"
+        },
+        "26075": {
+          "id": 26075,
+          "name": "Sukagawa"
+        },
+        "26204": {
+          "id": 26204,
+          "name": "Yanagawa"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Gifu",
+      "cities": {
+        "25580": {
+          "id": 25580,
+          "name": "Gifu"
+        },
+        "25583": {
+          "id": 25583,
+          "name": "Godo"
+        },
+        "25666": {
+          "id": 25666,
+          "name": "Inuyama"
+        },
+        "25709": {
+          "id": 25709,
+          "name": "Kakamigahara"
+        },
+        "25740": {
+          "id": 25740,
+          "name": "Kasamatsu"
+        },
+        "25853": {
+          "id": 25853,
+          "name": "Mino"
+        },
+        "25857": {
+          "id": 25857,
+          "name": "Mitake"
+        },
+        "25869": {
+          "id": 25869,
+          "name": "Mizunami"
+        },
+        "25908": {
+          "id": 25908,
+          "name": "Nakatsugawa"
+        },
+        "25955": {
+          "id": 25955,
+          "name": "Ogaki"
+        },
+        "26087": {
+          "id": 26087,
+          "name": "Tajimi"
+        },
+        "26100": {
+          "id": 26100,
+          "name": "Takayama"
+        },
+        "26114": {
+          "id": 26114,
+          "name": "Tarui"
+        },
+        "26133": {
+          "id": 26133,
+          "name": "Toki"
+        }
+      }
+    }
+  }
+}

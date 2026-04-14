@@ -1,1 +1,162 @@
-{"code":"MZ","name":"Mozambique","states":{"10":{"code":"10","name":"Manica","cities":{"29562":{"id":29562,"name":"Chimoio"},"29569":{"id":29569,"name":"Manica"}}},"01":{"code":"01","name":"Cabo Delgado","cities":{"29576":{"id":29576,"name":"Montepuez"},"29579":{"id":29579,"name":"Pemba"}}},"02":{"code":"02","name":"Gaza","cities":{"29561":{"id":29561,"name":"Chibuto"},"29563":{"id":29563,"name":"Chokwe"},"29568":{"id":29568,"name":"Macia"},"29570":{"id":29570,"name":"Manjacaze"},"29582":{"id":29582,"name":"Xai-xai"}}},"03":{"code":"03","name":"Inhambane","cities":{"29566":{"id":29566,"name":"Inhambane"},"29573":{"id":29573,"name":"Maxixe"}}},"04":{"code":"04","name":"Maputo","cities":{"29571":{"id":29571,"name":"Maputo"},"29572":{"id":29572,"name":"Matola"}}},"05":{"code":"05","name":"Sofala","cities":{"29560":{"id":29560,"name":"Beira"},"29565":{"id":29565,"name":"Dondo"}}},"06":{"code":"06","name":"Nampula","cities":{"29559":{"id":29559,"name":"Angoche"},"29574":{"id":29574,"name":"Mocambique"},"29577":{"id":29577,"name":"Nacala"},"29578":{"id":29578,"name":"Nampula"}}},"07":{"code":"07","name":"Niassa","cities":{"29564":{"id":29564,"name":"Cuamba"},"29567":{"id":29567,"name":"Lichinga"}}},"08":{"code":"08","name":"Tete","cities":{"29581":{"id":29581,"name":"Tete"}}},"09":{"code":"09","name":"Zambezia","cities":{"29575":{"id":29575,"name":"Mocuba"},"29580":{"id":29580,"name":"Quelimane"}}}}}
+{
+  "code": "MZ",
+  "name": "Mozambique",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Manica",
+      "cities": {
+        "29562": {
+          "id": 29562,
+          "name": "Chimoio"
+        },
+        "29569": {
+          "id": 29569,
+          "name": "Manica"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Cabo Delgado",
+      "cities": {
+        "29576": {
+          "id": 29576,
+          "name": "Montepuez"
+        },
+        "29579": {
+          "id": 29579,
+          "name": "Pemba"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Gaza",
+      "cities": {
+        "29561": {
+          "id": 29561,
+          "name": "Chibuto"
+        },
+        "29563": {
+          "id": 29563,
+          "name": "Chokwe"
+        },
+        "29568": {
+          "id": 29568,
+          "name": "Macia"
+        },
+        "29570": {
+          "id": 29570,
+          "name": "Manjacaze"
+        },
+        "29582": {
+          "id": 29582,
+          "name": "Xai-xai"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Inhambane",
+      "cities": {
+        "29566": {
+          "id": 29566,
+          "name": "Inhambane"
+        },
+        "29573": {
+          "id": 29573,
+          "name": "Maxixe"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Maputo",
+      "cities": {
+        "29571": {
+          "id": 29571,
+          "name": "Maputo"
+        },
+        "29572": {
+          "id": 29572,
+          "name": "Matola"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Sofala",
+      "cities": {
+        "29560": {
+          "id": 29560,
+          "name": "Beira"
+        },
+        "29565": {
+          "id": 29565,
+          "name": "Dondo"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Nampula",
+      "cities": {
+        "29559": {
+          "id": 29559,
+          "name": "Angoche"
+        },
+        "29574": {
+          "id": 29574,
+          "name": "Mocambique"
+        },
+        "29577": {
+          "id": 29577,
+          "name": "Nacala"
+        },
+        "29578": {
+          "id": 29578,
+          "name": "Nampula"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Niassa",
+      "cities": {
+        "29564": {
+          "id": 29564,
+          "name": "Cuamba"
+        },
+        "29567": {
+          "id": 29567,
+          "name": "Lichinga"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Tete",
+      "cities": {
+        "29581": {
+          "id": 29581,
+          "name": "Tete"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Zambezia",
+      "cities": {
+        "29575": {
+          "id": 29575,
+          "name": "Mocuba"
+        },
+        "29580": {
+          "id": 29580,
+          "name": "Quelimane"
+        }
+      }
+    }
+  }
+}

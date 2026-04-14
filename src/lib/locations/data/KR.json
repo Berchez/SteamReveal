@@ -1,1 +1,91 @@
-{"code":"KR","name":"Korea, Republic of","states":{"10":{"code":"10","name":"Pusan-jikhalsi","cities":{}},"11":{"code":"11","name":"Seoul-t'ukpyolsi","cities":{"26400":{"id":26400,"name":"Seoul"}}},"12":{"code":"12","name":"Inch'on-jikhalsi","cities":{}},"13":{"code":"13","name":"Kyonggi-do","cities":{}},"14":{"code":"14","name":"Kyongsang-bukto","cities":{}},"15":{"code":"15","name":"Taegu-jikhalsi","cities":{}},"16":{"code":"16","name":"Cholla-namdo","cities":{}},"17":{"code":"17","name":"Ch'ungch'ong-namdo","cities":{}},"18":{"code":"18","name":"Kwangju-jikhalsi","cities":{}},"19":{"code":"19","name":"Taejon-jikhalsi","cities":{}},"20":{"code":"20","name":"Kyongsang-namdo","cities":{}},"21":{"code":"21","name":"Ulsan-gwangyoksi","cities":{}},"01":{"code":"01","name":"Cheju-do","cities":{}},"03":{"code":"03","name":"Cholla-bukto","cities":{}},"05":{"code":"05","name":"Ch'ungch'ong-bukto","cities":{}},"06":{"code":"06","name":"Kangwon-do","cities":{}}}}
+{
+  "code": "KR",
+  "name": "Korea, Republic of",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Pusan-jikhalsi",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Seoul-t'ukpyolsi",
+      "cities": {
+        "26400": {
+          "id": 26400,
+          "name": "Seoul"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Inch'on-jikhalsi",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Kyonggi-do",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Kyongsang-bukto",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "Taegu-jikhalsi",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "Cholla-namdo",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Ch'ungch'ong-namdo",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Kwangju-jikhalsi",
+      "cities": {}
+    },
+    "19": {
+      "code": "19",
+      "name": "Taejon-jikhalsi",
+      "cities": {}
+    },
+    "20": {
+      "code": "20",
+      "name": "Kyongsang-namdo",
+      "cities": {}
+    },
+    "21": {
+      "code": "21",
+      "name": "Ulsan-gwangyoksi",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Cheju-do",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Cholla-bukto",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Ch'ungch'ong-bukto",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Kangwon-do",
+      "cities": {}
+    }
+  }
+}

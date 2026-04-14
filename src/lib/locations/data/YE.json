@@ -1,1 +1,100 @@
-{"code":"YE","name":"Yemen","states":{"10":{"code":"10","name":"Al Mahwit","cities":{}},"11":{"code":"11","name":"Dhamar","cities":{}},"14":{"code":"14","name":"Ma'rib","cities":{}},"15":{"code":"15","name":"Sa","cities":{}},"16":{"code":"16","name":"San","cities":{"46675":{"id":46675,"name":"Sayyan"}}},"20":{"code":"20","name":"Al Bayda'","cities":{}},"21":{"code":"21","name":"Al Jawf","cities":{}},"22":{"code":"22","name":"Hajjah","cities":{}},"23":{"code":"23","name":"Ibb","cities":{}},"24":{"code":"24","name":"Lahij","cities":{}},"25":{"code":"25","name":"Ta","cities":{}},"01":{"code":"01","name":"Abyan","cities":{}},"03":{"code":"03","name":"Al Mahrah","cities":{}},"04":{"code":"04","name":"Hadramawt","cities":{}},"05":{"code":"05","name":"Shabwah","cities":{}},"08":{"code":"08","name":"Al Hudaydah","cities":{"46671":{"id":46671,"name":"Bajil"},"46677":{"id":46677,"name":"Zabid"}}}}}
+{
+  "code": "YE",
+  "name": "Yemen",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Al Mahwit",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Dhamar",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Ma'rib",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "Sa",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "San",
+      "cities": {
+        "46675": {
+          "id": 46675,
+          "name": "Sayyan"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Al Bayda'",
+      "cities": {}
+    },
+    "21": {
+      "code": "21",
+      "name": "Al Jawf",
+      "cities": {}
+    },
+    "22": {
+      "code": "22",
+      "name": "Hajjah",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Ibb",
+      "cities": {}
+    },
+    "24": {
+      "code": "24",
+      "name": "Lahij",
+      "cities": {}
+    },
+    "25": {
+      "code": "25",
+      "name": "Ta",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Abyan",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Al Mahrah",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Hadramawt",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Shabwah",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Al Hudaydah",
+      "cities": {
+        "46671": {
+          "id": 46671,
+          "name": "Bajil"
+        },
+        "46677": {
+          "id": 46677,
+          "name": "Zabid"
+        }
+      }
+    }
+  }
+}

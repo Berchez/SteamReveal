@@ -1,1 +1,577 @@
-{"code":"SE","name":"Sweden","states":{"10":{"code":"10","name":"Dalarnas Lan","cities":{"43678":{"id":43678,"name":"Avesta"},"43684":{"id":43684,"name":"Borlange"},"43691":{"id":43691,"name":"Falun"},"43723":{"id":43723,"name":"Ludvika"}}},"11":{"code":"11","name":"Kristianstads Lan","cities":{}},"12":{"code":"12","name":"Kronobergs Lan","cities":{"43722":{"id":43722,"name":"Ljungby"},"43775":{"id":43775,"name":"Vaxjo"}}},"13":{"code":"13","name":"Malmohus Lan","cities":{}},"14":{"code":"14","name":"Norrbottens Lan","cities":{"43680":{"id":43680,"name":"Boden"},"43709":{"id":43709,"name":"Kiruna"},"43724":{"id":43724,"name":"Lulea"},"43743":{"id":43743,"name":"Pitea"}}},"15":{"code":"15","name":"Orebro Lan","cities":{"43704":{"id":43704,"name":"Karlskoga"},"43713":{"id":43713,"name":"Kumla"},"43738":{"id":43738,"name":"Orebro"}}},"16":{"code":"16","name":"Ostergotlands Lan","cities":{"43692":{"id":43692,"name":"Finspang"},"43721":{"id":43721,"name":"Linkoping"},"43729":{"id":43729,"name":"Mjolby"},"43731":{"id":43731,"name":"Motala"},"43733":{"id":43733,"name":"Norrkoping"}}},"17":{"code":"17","name":"Skaraborgs Lan","cities":{}},"18":{"code":"18","name":"Sodermanlands Lan","cities":{"43686":{"id":43686,"name":"Eskilstuna"},"43707":{"id":43707,"name":"Katrineholm"},"43736":{"id":43736,"name":"Nykoping"},"43742":{"id":43742,"name":"Oxelosund"},"43755":{"id":43755,"name":"Strangnas"}}},"21":{"code":"21","name":"Uppsala Lan","cities":{"43679":{"id":43679,"name":"Balsta"},"43685":{"id":43685,"name":"Enkoping"},"43766":{"id":43766,"name":"Uppsala"},"43767":{"id":43767,"name":"Uppsala"}}},"22":{"code":"22","name":"Varmlands Lan","cities":{"43677":{"id":43677,"name":"Arvika"},"43706":{"id":43706,"name":"Karlstad"},"43712":{"id":43712,"name":"Kristinehamn"},"43749":{"id":43749,"name":"Skoghall"}}},"23":{"code":"23","name":"Vasterbottens Lan","cities":{"43748":{"id":43748,"name":"Skelleftea"},"43764":{"id":43764,"name":"Umea"}}},"24":{"code":"24","name":"Vasternorrlands Lan","cities":{"43696":{"id":43696,"name":"Harnosand"},"43739":{"id":43739,"name":"Ornskoldsvik"},"43756":{"id":43756,"name":"Sundsvall"},"43758":{"id":43758,"name":"Timra"}}},"25":{"code":"25","name":"Vastmanlands Lan","cities":{"43688":{"id":43688,"name":"Fagersta"},"43710":{"id":43710,"name":"Koping"},"43745":{"id":43745,"name":"Sala"},"43772":{"id":43772,"name":"Vasteras"}}},"26":{"code":"26","name":"Stockholms Lan","cities":{"43674":{"id":43674,"name":"Akersberga"},"43682":{"id":43682,"name":"Boo"},"43718":{"id":43718,"name":"Lidingo"},"43728":{"id":43728,"name":"Marsta"},"43734":{"id":43734,"name":"Norrtalje"},"43737":{"id":43737,"name":"Nynashamn"},"43752":{"id":43752,"name":"Sodertalje"},"43754":{"id":43754,"name":"Stockholm"},"43757":{"id":43757,"name":"Taby"},"43762":{"id":43762,"name":"Tumba"},"43765":{"id":43765,"name":"Upplands-vasby"},"43768":{"id":43768,"name":"Vallentuna"},"43773":{"id":43773,"name":"Vasterhaninge"}}},"27":{"code":"27","name":"Skane Lan","cities":{"43676":{"id":43676,"name":"Angelholm"},"43687":{"id":43687,"name":"Eslov"},"43697":{"id":43697,"name":"Hassleholm"},"43698":{"id":43698,"name":"Helsingborg"},"43699":{"id":43699,"name":"Hoganas"},"43711":{"id":43711,"name":"Kristianstad"},"43716":{"id":43716,"name":"Landskrona"},"43725":{"id":43725,"name":"Lund"},"43726":{"id":43726,"name":"Malmo"},"43753":{"id":43753,"name":"Staffanstorp"},"43760":{"id":43760,"name":"Trelleborg"},"43778":{"id":43778,"name":"Ystad"}}},"28":{"code":"28","name":"Vastra Gotaland","cities":{"43675":{"id":43675,"name":"Alingsas"},"43683":{"id":43683,"name":"Boras"},"43690":{"id":43690,"name":"Falkoping"},"43694":{"id":43694,"name":"Goteborg"},"43708":{"id":43708,"name":"Kinna"},"43714":{"id":43714,"name":"Kungalv"},"43717":{"id":43717,"name":"Lerum"},"43719":{"id":43719,"name":"Lidkoping"},"43727":{"id":43727,"name":"Mariestad"},"43730":{"id":43730,"name":"Molnlycke"},"43747":{"id":43747,"name":"Skara"},"43750":{"id":43750,"name":"Skovde"},"43761":{"id":43761,"name":"Trollhattan"},"43763":{"id":43763,"name":"Uddevalla"},"43769":{"id":43769,"name":"Vanersborg"}}},"01":{"code":"01","name":"Alvsborgs Lan","cities":{}},"02":{"code":"02","name":"Blekinge Lan","cities":{"43703":{"id":43703,"name":"Karlshamn"},"43705":{"id":43705,"name":"Karlskrona"},"43744":{"id":43744,"name":"Ronneby"}}},"03":{"code":"03","name":"Gavleborgs Lan","cities":{"43681":{"id":43681,"name":"Bollnas"},"43693":{"id":43693,"name":"Gavle"},"43700":{"id":43700,"name":"Hudiksvall"},"43746":{"id":43746,"name":"Sandviken"},"43751":{"id":43751,"name":"Soderhamn"}}},"04":{"code":"04","name":"Goteborgs och Bohus Lan","cities":{}},"05":{"code":"05","name":"Gotlands Lan","cities":{"43777":{"id":43777,"name":"Visby"}}},"06":{"code":"06","name":"Hallands Lan","cities":{"43689":{"id":43689,"name":"Falkenberg"},"43695":{"id":43695,"name":"Halmstad"},"43715":{"id":43715,"name":"Kungsbacka"},"43720":{"id":43720,"name":"Lindome"},"43770":{"id":43770,"name":"Varberg"}}},"07":{"code":"07","name":"Jamtlands Lan","cities":{"43741":{"id":43741,"name":"Ostersund"}}},"08":{"code":"08","name":"Jonkopings Lan","cities":{"43701":{"id":43701,"name":"Jonkoping"},"43732":{"id":43732,"name":"Nassjo"},"43759":{"id":43759,"name":"Tranas"},"43771":{"id":43771,"name":"Varnamo"},"43776":{"id":43776,"name":"Vetlanda"}}},"09":{"code":"09","name":"Kalmar Lan","cities":{"43702":{"id":43702,"name":"Kalmar"},"43735":{"id":43735,"name":"Nybro"},"43740":{"id":43740,"name":"Oskarshamn"},"43774":{"id":43774,"name":"Vastervik"}}}}}
+{
+  "code": "SE",
+  "name": "Sweden",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Dalarnas Lan",
+      "cities": {
+        "43678": {
+          "id": 43678,
+          "name": "Avesta"
+        },
+        "43684": {
+          "id": 43684,
+          "name": "Borlange"
+        },
+        "43691": {
+          "id": 43691,
+          "name": "Falun"
+        },
+        "43723": {
+          "id": 43723,
+          "name": "Ludvika"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Kristianstads Lan",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Kronobergs Lan",
+      "cities": {
+        "43722": {
+          "id": 43722,
+          "name": "Ljungby"
+        },
+        "43775": {
+          "id": 43775,
+          "name": "Vaxjo"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Malmohus Lan",
+      "cities": {}
+    },
+    "14": {
+      "code": "14",
+      "name": "Norrbottens Lan",
+      "cities": {
+        "43680": {
+          "id": 43680,
+          "name": "Boden"
+        },
+        "43709": {
+          "id": 43709,
+          "name": "Kiruna"
+        },
+        "43724": {
+          "id": 43724,
+          "name": "Lulea"
+        },
+        "43743": {
+          "id": 43743,
+          "name": "Pitea"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Orebro Lan",
+      "cities": {
+        "43704": {
+          "id": 43704,
+          "name": "Karlskoga"
+        },
+        "43713": {
+          "id": 43713,
+          "name": "Kumla"
+        },
+        "43738": {
+          "id": 43738,
+          "name": "Orebro"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Ostergotlands Lan",
+      "cities": {
+        "43692": {
+          "id": 43692,
+          "name": "Finspang"
+        },
+        "43721": {
+          "id": 43721,
+          "name": "Linkoping"
+        },
+        "43729": {
+          "id": 43729,
+          "name": "Mjolby"
+        },
+        "43731": {
+          "id": 43731,
+          "name": "Motala"
+        },
+        "43733": {
+          "id": 43733,
+          "name": "Norrkoping"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Skaraborgs Lan",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Sodermanlands Lan",
+      "cities": {
+        "43686": {
+          "id": 43686,
+          "name": "Eskilstuna"
+        },
+        "43707": {
+          "id": 43707,
+          "name": "Katrineholm"
+        },
+        "43736": {
+          "id": 43736,
+          "name": "Nykoping"
+        },
+        "43742": {
+          "id": 43742,
+          "name": "Oxelosund"
+        },
+        "43755": {
+          "id": 43755,
+          "name": "Strangnas"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Uppsala Lan",
+      "cities": {
+        "43679": {
+          "id": 43679,
+          "name": "Balsta"
+        },
+        "43685": {
+          "id": 43685,
+          "name": "Enkoping"
+        },
+        "43766": {
+          "id": 43766,
+          "name": "Uppsala"
+        },
+        "43767": {
+          "id": 43767,
+          "name": "Uppsala"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Varmlands Lan",
+      "cities": {
+        "43677": {
+          "id": 43677,
+          "name": "Arvika"
+        },
+        "43706": {
+          "id": 43706,
+          "name": "Karlstad"
+        },
+        "43712": {
+          "id": 43712,
+          "name": "Kristinehamn"
+        },
+        "43749": {
+          "id": 43749,
+          "name": "Skoghall"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Vasterbottens Lan",
+      "cities": {
+        "43748": {
+          "id": 43748,
+          "name": "Skelleftea"
+        },
+        "43764": {
+          "id": 43764,
+          "name": "Umea"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Vasternorrlands Lan",
+      "cities": {
+        "43696": {
+          "id": 43696,
+          "name": "Harnosand"
+        },
+        "43739": {
+          "id": 43739,
+          "name": "Ornskoldsvik"
+        },
+        "43756": {
+          "id": 43756,
+          "name": "Sundsvall"
+        },
+        "43758": {
+          "id": 43758,
+          "name": "Timra"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Vastmanlands Lan",
+      "cities": {
+        "43688": {
+          "id": 43688,
+          "name": "Fagersta"
+        },
+        "43710": {
+          "id": 43710,
+          "name": "Koping"
+        },
+        "43745": {
+          "id": 43745,
+          "name": "Sala"
+        },
+        "43772": {
+          "id": 43772,
+          "name": "Vasteras"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Stockholms Lan",
+      "cities": {
+        "43674": {
+          "id": 43674,
+          "name": "Akersberga"
+        },
+        "43682": {
+          "id": 43682,
+          "name": "Boo"
+        },
+        "43718": {
+          "id": 43718,
+          "name": "Lidingo"
+        },
+        "43728": {
+          "id": 43728,
+          "name": "Marsta"
+        },
+        "43734": {
+          "id": 43734,
+          "name": "Norrtalje"
+        },
+        "43737": {
+          "id": 43737,
+          "name": "Nynashamn"
+        },
+        "43752": {
+          "id": 43752,
+          "name": "Sodertalje"
+        },
+        "43754": {
+          "id": 43754,
+          "name": "Stockholm"
+        },
+        "43757": {
+          "id": 43757,
+          "name": "Taby"
+        },
+        "43762": {
+          "id": 43762,
+          "name": "Tumba"
+        },
+        "43765": {
+          "id": 43765,
+          "name": "Upplands-vasby"
+        },
+        "43768": {
+          "id": 43768,
+          "name": "Vallentuna"
+        },
+        "43773": {
+          "id": 43773,
+          "name": "Vasterhaninge"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Skane Lan",
+      "cities": {
+        "43676": {
+          "id": 43676,
+          "name": "Angelholm"
+        },
+        "43687": {
+          "id": 43687,
+          "name": "Eslov"
+        },
+        "43697": {
+          "id": 43697,
+          "name": "Hassleholm"
+        },
+        "43698": {
+          "id": 43698,
+          "name": "Helsingborg"
+        },
+        "43699": {
+          "id": 43699,
+          "name": "Hoganas"
+        },
+        "43711": {
+          "id": 43711,
+          "name": "Kristianstad"
+        },
+        "43716": {
+          "id": 43716,
+          "name": "Landskrona"
+        },
+        "43725": {
+          "id": 43725,
+          "name": "Lund"
+        },
+        "43726": {
+          "id": 43726,
+          "name": "Malmo"
+        },
+        "43753": {
+          "id": 43753,
+          "name": "Staffanstorp"
+        },
+        "43760": {
+          "id": 43760,
+          "name": "Trelleborg"
+        },
+        "43778": {
+          "id": 43778,
+          "name": "Ystad"
+        }
+      }
+    },
+    "28": {
+      "code": "28",
+      "name": "Vastra Gotaland",
+      "cities": {
+        "43675": {
+          "id": 43675,
+          "name": "Alingsas"
+        },
+        "43683": {
+          "id": 43683,
+          "name": "Boras"
+        },
+        "43690": {
+          "id": 43690,
+          "name": "Falkoping"
+        },
+        "43694": {
+          "id": 43694,
+          "name": "Goteborg"
+        },
+        "43708": {
+          "id": 43708,
+          "name": "Kinna"
+        },
+        "43714": {
+          "id": 43714,
+          "name": "Kungalv"
+        },
+        "43717": {
+          "id": 43717,
+          "name": "Lerum"
+        },
+        "43719": {
+          "id": 43719,
+          "name": "Lidkoping"
+        },
+        "43727": {
+          "id": 43727,
+          "name": "Mariestad"
+        },
+        "43730": {
+          "id": 43730,
+          "name": "Molnlycke"
+        },
+        "43747": {
+          "id": 43747,
+          "name": "Skara"
+        },
+        "43750": {
+          "id": 43750,
+          "name": "Skovde"
+        },
+        "43761": {
+          "id": 43761,
+          "name": "Trollhattan"
+        },
+        "43763": {
+          "id": 43763,
+          "name": "Uddevalla"
+        },
+        "43769": {
+          "id": 43769,
+          "name": "Vanersborg"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Alvsborgs Lan",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Blekinge Lan",
+      "cities": {
+        "43703": {
+          "id": 43703,
+          "name": "Karlshamn"
+        },
+        "43705": {
+          "id": 43705,
+          "name": "Karlskrona"
+        },
+        "43744": {
+          "id": 43744,
+          "name": "Ronneby"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Gavleborgs Lan",
+      "cities": {
+        "43681": {
+          "id": 43681,
+          "name": "Bollnas"
+        },
+        "43693": {
+          "id": 43693,
+          "name": "Gavle"
+        },
+        "43700": {
+          "id": 43700,
+          "name": "Hudiksvall"
+        },
+        "43746": {
+          "id": 43746,
+          "name": "Sandviken"
+        },
+        "43751": {
+          "id": 43751,
+          "name": "Soderhamn"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Goteborgs och Bohus Lan",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Gotlands Lan",
+      "cities": {
+        "43777": {
+          "id": 43777,
+          "name": "Visby"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Hallands Lan",
+      "cities": {
+        "43689": {
+          "id": 43689,
+          "name": "Falkenberg"
+        },
+        "43695": {
+          "id": 43695,
+          "name": "Halmstad"
+        },
+        "43715": {
+          "id": 43715,
+          "name": "Kungsbacka"
+        },
+        "43720": {
+          "id": 43720,
+          "name": "Lindome"
+        },
+        "43770": {
+          "id": 43770,
+          "name": "Varberg"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Jamtlands Lan",
+      "cities": {
+        "43741": {
+          "id": 43741,
+          "name": "Ostersund"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Jonkopings Lan",
+      "cities": {
+        "43701": {
+          "id": 43701,
+          "name": "Jonkoping"
+        },
+        "43732": {
+          "id": 43732,
+          "name": "Nassjo"
+        },
+        "43759": {
+          "id": 43759,
+          "name": "Tranas"
+        },
+        "43771": {
+          "id": 43771,
+          "name": "Varnamo"
+        },
+        "43776": {
+          "id": 43776,
+          "name": "Vetlanda"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Kalmar Lan",
+      "cities": {
+        "43702": {
+          "id": 43702,
+          "name": "Kalmar"
+        },
+        "43735": {
+          "id": 43735,
+          "name": "Nybro"
+        },
+        "43740": {
+          "id": 43740,
+          "name": "Oskarshamn"
+        },
+        "43774": {
+          "id": 43774,
+          "name": "Vastervik"
+        }
+      }
+    }
+  }
+}

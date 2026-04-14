@@ -1,1 +1,498 @@
-{"code":"SV","name":"El Salvador","states":{"10":{"code":"10","name":"San Salvador","cities":{"44171":{"id":44171,"name":"Aguilares"},"44176":{"id":44176,"name":"Apopa"},"44179":{"id":44179,"name":"Ayutuxtepeque"},"44196":{"id":44196,"name":"Cuscatancingo"},"44197":{"id":44197,"name":"Delgado"},"44199":{"id":44199,"name":"El Paisnal"},"44205":{"id":44205,"name":"Guazapa"},"44206":{"id":44206,"name":"Ilopango"},"44218":{"id":44218,"name":"Mejicanos"},"44232":{"id":44232,"name":"Panchimalco"},"44236":{"id":44236,"name":"Rosario De Mora"},"44242":{"id":44242,"name":"San Marcos"},"44247":{"id":44247,"name":"San Salvador"},"44254":{"id":44254,"name":"Santo Tomas"},"44261":{"id":44261,"name":"Soyapango"},"44267":{"id":44267,"name":"Tonacatepeque"}}},"11":{"code":"11","name":"Santa Ana","cities":{"44183":{"id":44183,"name":"Chalchuapa"},"44189":{"id":44189,"name":"Coatepeque"},"44198":{"id":44198,"name":"El Congo"},"44219":{"id":44219,"name":"Metapan"},"44249":{"id":44249,"name":"Santa Ana"},"44266":{"id":44266,"name":"Texistepeque"}}},"12":{"code":"12","name":"San Vicente","cities":{"44175":{"id":44175,"name":"Apastepeque"},"44248":{"id":44248,"name":"San Sebastian"},"44255":{"id":44255,"name":"San Vicente"}}},"13":{"code":"13","name":"Sonsonate","cities":{"44170":{"id":44170,"name":"Acajutla"},"44177":{"id":44177,"name":"Armenia"},"44208":{"id":44208,"name":"Izalco"},"44211":{"id":44211,"name":"Juayua"},"44221":{"id":44221,"name":"Nahuizalco"},"44239":{"id":44239,"name":"San Antonio Del Monte"},"44259":{"id":44259,"name":"Sonsonate"},"44260":{"id":44260,"name":"Sonzacate"}}},"14":{"code":"14","name":"Usulutan","cities":{"44180":{"id":44180,"name":"Berlin"},"44191":{"id":44191,"name":"Colon"},"44192":{"id":44192,"name":"Concepcion Batres"},"44209":{"id":44209,"name":"Jiquilisco"},"44212":{"id":44212,"name":"Jucuapa"},"44213":{"id":44213,"name":"Jucuaran"},"44231":{"id":44231,"name":"Ozatlan"},"44234":{"id":44234,"name":"Puerto El Triunfo"},"44237":{"id":44237,"name":"San Agustin"},"44250":{"id":44250,"name":"Santa Elena"},"44252":{"id":44252,"name":"Santiago De Maria"},"44268":{"id":44268,"name":"Usulutan"}}},"01":{"code":"01","name":"Ahuachapan","cities":{"44172":{"id":44172,"name":"Ahuachapan"},"44178":{"id":44178,"name":"Atiquizaya"},"44193":{"id":44193,"name":"Concepcion De Ataco"},"44204":{"id":44204,"name":"Guaymango"},"44214":{"id":44214,"name":"Jujutla"},"44240":{"id":44240,"name":"San Francisco Menendez"},"44263":{"id":44263,"name":"Tacuba"}}},"02":{"code":"02","name":"Cabanas","cities":{"44256":{"id":44256,"name":"Sensuntepeque"},"44269":{"id":44269,"name":"Victoria"}}},"03":{"code":"03","name":"Chalatenango","cities":{"44182":{"id":44182,"name":"Chalatenango"},"44224":{"id":44224,"name":"Nueva Concepcion"},"44241":{"id":44241,"name":"San Francisco Morazan"}}},"04":{"code":"04","name":"Cuscatlan","cities":{"44190":{"id":44190,"name":"Cojutepeque"},"44243":{"id":44243,"name":"San Martin"},"44244":{"id":44244,"name":"San Martin"},"44262":{"id":44262,"name":"Suchitoto"},"44264":{"id":44264,"name":"Tecoluca"},"44265":{"id":44265,"name":"Tenancingo"}}},"05":{"code":"05","name":"La Libertad","cities":{"44174":{"id":44174,"name":"Antiguo Cuscatlan"},"44187":{"id":44187,"name":"Ciudad Arce"},"44215":{"id":44215,"name":"La Libertad"},"44222":{"id":44222,"name":"Nejapa"},"44223":{"id":44223,"name":"Nejapa"},"44227":{"id":44227,"name":"Nueva San Salvador"},"44228":{"id":44228,"name":"Nuevo Cuscatlan"},"44230":{"id":44230,"name":"Opico"},"44235":{"id":44235,"name":"Quezaltepeque"},"44245":{"id":44245,"name":"San Pablo Tacachico"},"44271":{"id":44271,"name":"Zaragoza"}}},"06":{"code":"06","name":"La Paz","cities":{"44200":{"id":44200,"name":"El Rosario"},"44229":{"id":44229,"name":"Olocuilta"},"44246":{"id":44246,"name":"San Pedro Masahuat"},"44253":{"id":44253,"name":"Santiago Nonualco"},"44270":{"id":44270,"name":"Zacatecoluca"}}},"07":{"code":"07","name":"La Union","cities":{"44173":{"id":44173,"name":"Anamoros"},"44194":{"id":44194,"name":"Conchagua"},"44207":{"id":44207,"name":"Intipuca"},"44216":{"id":44216,"name":"La Union"},"44225":{"id":44225,"name":"Nueva Esparta"},"44233":{"id":44233,"name":"Pasaquina"},"44238":{"id":44238,"name":"San Alejo"},"44251":{"id":44251,"name":"Santa Rosa De Lima"}}},"08":{"code":"08","name":"Morazan","cities":{"44181":{"id":44181,"name":"Cacaopera"},"44195":{"id":44195,"name":"Corinto"},"44202":{"id":44202,"name":"Gotera"},"44203":{"id":44203,"name":"Guatajiagua"},"44210":{"id":44210,"name":"Jocoro"},"44258":{"id":44258,"name":"Sociedad"}}},"09":{"code":"09","name":"San Miguel","cities":{"44184":{"id":44184,"name":"Chapeltique"},"44185":{"id":44185,"name":"Chinameca"},"44186":{"id":44186,"name":"Chirilagua"},"44188":{"id":44188,"name":"Ciudad Barrios"},"44201":{"id":44201,"name":"El Transito"},"44217":{"id":44217,"name":"Lolotique"},"44220":{"id":44220,"name":"Moncagua"},"44226":{"id":44226,"name":"Nueva Guadalupe"},"44257":{"id":44257,"name":"Sesori"}}}}}
+{
+  "code": "SV",
+  "name": "El Salvador",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "San Salvador",
+      "cities": {
+        "44171": {
+          "id": 44171,
+          "name": "Aguilares"
+        },
+        "44176": {
+          "id": 44176,
+          "name": "Apopa"
+        },
+        "44179": {
+          "id": 44179,
+          "name": "Ayutuxtepeque"
+        },
+        "44196": {
+          "id": 44196,
+          "name": "Cuscatancingo"
+        },
+        "44197": {
+          "id": 44197,
+          "name": "Delgado"
+        },
+        "44199": {
+          "id": 44199,
+          "name": "El Paisnal"
+        },
+        "44205": {
+          "id": 44205,
+          "name": "Guazapa"
+        },
+        "44206": {
+          "id": 44206,
+          "name": "Ilopango"
+        },
+        "44218": {
+          "id": 44218,
+          "name": "Mejicanos"
+        },
+        "44232": {
+          "id": 44232,
+          "name": "Panchimalco"
+        },
+        "44236": {
+          "id": 44236,
+          "name": "Rosario De Mora"
+        },
+        "44242": {
+          "id": 44242,
+          "name": "San Marcos"
+        },
+        "44247": {
+          "id": 44247,
+          "name": "San Salvador"
+        },
+        "44254": {
+          "id": 44254,
+          "name": "Santo Tomas"
+        },
+        "44261": {
+          "id": 44261,
+          "name": "Soyapango"
+        },
+        "44267": {
+          "id": 44267,
+          "name": "Tonacatepeque"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Santa Ana",
+      "cities": {
+        "44183": {
+          "id": 44183,
+          "name": "Chalchuapa"
+        },
+        "44189": {
+          "id": 44189,
+          "name": "Coatepeque"
+        },
+        "44198": {
+          "id": 44198,
+          "name": "El Congo"
+        },
+        "44219": {
+          "id": 44219,
+          "name": "Metapan"
+        },
+        "44249": {
+          "id": 44249,
+          "name": "Santa Ana"
+        },
+        "44266": {
+          "id": 44266,
+          "name": "Texistepeque"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "San Vicente",
+      "cities": {
+        "44175": {
+          "id": 44175,
+          "name": "Apastepeque"
+        },
+        "44248": {
+          "id": 44248,
+          "name": "San Sebastian"
+        },
+        "44255": {
+          "id": 44255,
+          "name": "San Vicente"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Sonsonate",
+      "cities": {
+        "44170": {
+          "id": 44170,
+          "name": "Acajutla"
+        },
+        "44177": {
+          "id": 44177,
+          "name": "Armenia"
+        },
+        "44208": {
+          "id": 44208,
+          "name": "Izalco"
+        },
+        "44211": {
+          "id": 44211,
+          "name": "Juayua"
+        },
+        "44221": {
+          "id": 44221,
+          "name": "Nahuizalco"
+        },
+        "44239": {
+          "id": 44239,
+          "name": "San Antonio Del Monte"
+        },
+        "44259": {
+          "id": 44259,
+          "name": "Sonsonate"
+        },
+        "44260": {
+          "id": 44260,
+          "name": "Sonzacate"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Usulutan",
+      "cities": {
+        "44180": {
+          "id": 44180,
+          "name": "Berlin"
+        },
+        "44191": {
+          "id": 44191,
+          "name": "Colon"
+        },
+        "44192": {
+          "id": 44192,
+          "name": "Concepcion Batres"
+        },
+        "44209": {
+          "id": 44209,
+          "name": "Jiquilisco"
+        },
+        "44212": {
+          "id": 44212,
+          "name": "Jucuapa"
+        },
+        "44213": {
+          "id": 44213,
+          "name": "Jucuaran"
+        },
+        "44231": {
+          "id": 44231,
+          "name": "Ozatlan"
+        },
+        "44234": {
+          "id": 44234,
+          "name": "Puerto El Triunfo"
+        },
+        "44237": {
+          "id": 44237,
+          "name": "San Agustin"
+        },
+        "44250": {
+          "id": 44250,
+          "name": "Santa Elena"
+        },
+        "44252": {
+          "id": 44252,
+          "name": "Santiago De Maria"
+        },
+        "44268": {
+          "id": 44268,
+          "name": "Usulutan"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Ahuachapan",
+      "cities": {
+        "44172": {
+          "id": 44172,
+          "name": "Ahuachapan"
+        },
+        "44178": {
+          "id": 44178,
+          "name": "Atiquizaya"
+        },
+        "44193": {
+          "id": 44193,
+          "name": "Concepcion De Ataco"
+        },
+        "44204": {
+          "id": 44204,
+          "name": "Guaymango"
+        },
+        "44214": {
+          "id": 44214,
+          "name": "Jujutla"
+        },
+        "44240": {
+          "id": 44240,
+          "name": "San Francisco Menendez"
+        },
+        "44263": {
+          "id": 44263,
+          "name": "Tacuba"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Cabanas",
+      "cities": {
+        "44256": {
+          "id": 44256,
+          "name": "Sensuntepeque"
+        },
+        "44269": {
+          "id": 44269,
+          "name": "Victoria"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Chalatenango",
+      "cities": {
+        "44182": {
+          "id": 44182,
+          "name": "Chalatenango"
+        },
+        "44224": {
+          "id": 44224,
+          "name": "Nueva Concepcion"
+        },
+        "44241": {
+          "id": 44241,
+          "name": "San Francisco Morazan"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Cuscatlan",
+      "cities": {
+        "44190": {
+          "id": 44190,
+          "name": "Cojutepeque"
+        },
+        "44243": {
+          "id": 44243,
+          "name": "San Martin"
+        },
+        "44244": {
+          "id": 44244,
+          "name": "San Martin"
+        },
+        "44262": {
+          "id": 44262,
+          "name": "Suchitoto"
+        },
+        "44264": {
+          "id": 44264,
+          "name": "Tecoluca"
+        },
+        "44265": {
+          "id": 44265,
+          "name": "Tenancingo"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "La Libertad",
+      "cities": {
+        "44174": {
+          "id": 44174,
+          "name": "Antiguo Cuscatlan"
+        },
+        "44187": {
+          "id": 44187,
+          "name": "Ciudad Arce"
+        },
+        "44215": {
+          "id": 44215,
+          "name": "La Libertad"
+        },
+        "44222": {
+          "id": 44222,
+          "name": "Nejapa"
+        },
+        "44223": {
+          "id": 44223,
+          "name": "Nejapa"
+        },
+        "44227": {
+          "id": 44227,
+          "name": "Nueva San Salvador"
+        },
+        "44228": {
+          "id": 44228,
+          "name": "Nuevo Cuscatlan"
+        },
+        "44230": {
+          "id": 44230,
+          "name": "Opico"
+        },
+        "44235": {
+          "id": 44235,
+          "name": "Quezaltepeque"
+        },
+        "44245": {
+          "id": 44245,
+          "name": "San Pablo Tacachico"
+        },
+        "44271": {
+          "id": 44271,
+          "name": "Zaragoza"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "La Paz",
+      "cities": {
+        "44200": {
+          "id": 44200,
+          "name": "El Rosario"
+        },
+        "44229": {
+          "id": 44229,
+          "name": "Olocuilta"
+        },
+        "44246": {
+          "id": 44246,
+          "name": "San Pedro Masahuat"
+        },
+        "44253": {
+          "id": 44253,
+          "name": "Santiago Nonualco"
+        },
+        "44270": {
+          "id": 44270,
+          "name": "Zacatecoluca"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "La Union",
+      "cities": {
+        "44173": {
+          "id": 44173,
+          "name": "Anamoros"
+        },
+        "44194": {
+          "id": 44194,
+          "name": "Conchagua"
+        },
+        "44207": {
+          "id": 44207,
+          "name": "Intipuca"
+        },
+        "44216": {
+          "id": 44216,
+          "name": "La Union"
+        },
+        "44225": {
+          "id": 44225,
+          "name": "Nueva Esparta"
+        },
+        "44233": {
+          "id": 44233,
+          "name": "Pasaquina"
+        },
+        "44238": {
+          "id": 44238,
+          "name": "San Alejo"
+        },
+        "44251": {
+          "id": 44251,
+          "name": "Santa Rosa De Lima"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Morazan",
+      "cities": {
+        "44181": {
+          "id": 44181,
+          "name": "Cacaopera"
+        },
+        "44195": {
+          "id": 44195,
+          "name": "Corinto"
+        },
+        "44202": {
+          "id": 44202,
+          "name": "Gotera"
+        },
+        "44203": {
+          "id": 44203,
+          "name": "Guatajiagua"
+        },
+        "44210": {
+          "id": 44210,
+          "name": "Jocoro"
+        },
+        "44258": {
+          "id": 44258,
+          "name": "Sociedad"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "San Miguel",
+      "cities": {
+        "44184": {
+          "id": 44184,
+          "name": "Chapeltique"
+        },
+        "44185": {
+          "id": 44185,
+          "name": "Chinameca"
+        },
+        "44186": {
+          "id": 44186,
+          "name": "Chirilagua"
+        },
+        "44188": {
+          "id": 44188,
+          "name": "Ciudad Barrios"
+        },
+        "44201": {
+          "id": 44201,
+          "name": "El Transito"
+        },
+        "44217": {
+          "id": 44217,
+          "name": "Lolotique"
+        },
+        "44220": {
+          "id": 44220,
+          "name": "Moncagua"
+        },
+        "44226": {
+          "id": 44226,
+          "name": "Nueva Guadalupe"
+        },
+        "44257": {
+          "id": 44257,
+          "name": "Sesori"
+        }
+      }
+    }
+  }
+}

@@ -1,1 +1,402 @@
-{"code":"DO","name":"Dominican Republic","states":{"10":{"code":"10","name":"La Altagracia","cities":{"14288":{"id":14288,"name":"Higuey"}}},"11":{"code":"11","name":"Elias Pina","cities":{"14278":{"id":14278,"name":"Comendador"}}},"12":{"code":"12","name":"La Romana","cities":{"14292":{"id":14292,"name":"La Romana"}}},"14":{"code":"14","name":"Maria Trinidad Sanchez","cities":{"14301":{"id":14301,"name":"Nagua"}}},"15":{"code":"15","name":"Monte Cristi","cities":{"14299":{"id":14299,"name":"Monte Cristi"},"14324":{"id":14324,"name":"Villa Vazquez"}}},"16":{"code":"16","name":"Pedernales","cities":{"14303":{"id":14303,"name":"Pedernales"}}},"17":{"code":"17","name":"Peravia","cities":{"14273":{"id":14273,"name":"Bani"},"14314":{"id":14314,"name":"San Jose De Ocoa"}}},"18":{"code":"18","name":"Puerto Plata","cities":{"14296":{"id":14296,"name":"Maimon"},"14305":{"id":14305,"name":"Puerto Plata"},"14319":{"id":14319,"name":"Sosua"}}},"19":{"code":"19","name":"Salcedo","cities":{"14308":{"id":14308,"name":"Salcedo"}}},"20":{"code":"20","name":"Samana","cities":{"14309":{"id":14309,"name":"Samana"},"14310":{"id":14310,"name":"Sanchez"}}},"21":{"code":"21","name":"Sanchez Ramirez","cities":{"14280":{"id":14280,"name":"Cotui"},"14286":{"id":14286,"name":"Fantino"}}},"23":{"code":"23","name":"San Juan","cities":{"14294":{"id":14294,"name":"Las Matas De Farfan"},"14315":{"id":14315,"name":"San Juan De La Maguana"}}},"24":{"code":"24","name":"San Pedro De Macoris","cities":{"14306":{"id":14306,"name":"Quisqueya"},"14316":{"id":14316,"name":"San Pedro De Macoris"}}},"25":{"code":"25","name":"Santiago","cities":{"14317":{"id":14317,"name":"Santiago"},"14321":{"id":14321,"name":"Tamboril"},"14323":{"id":14323,"name":"Villa Bisono"}}},"26":{"code":"26","name":"Santiago Rodriguez","cities":{"14313":{"id":14313,"name":"San Ignacio De Sabaneta"}}},"27":{"code":"27","name":"Valverde","cities":{"14285":{"id":14285,"name":"Esperanza"},"14297":{"id":14297,"name":"Mao"}}},"28":{"code":"28","name":"El Seibo","cities":{"14284":{"id":14284,"name":"El Seibo"}}},"29":{"code":"29","name":"Hato Mayor","cities":{"14287":{"id":14287,"name":"Hato Mayor"}}},"30":{"code":"30","name":"La Vega","cities":{"14279":{"id":14279,"name":"Constanza"},"14289":{"id":14289,"name":"Jarabacoa"},"14291":{"id":14291,"name":"La Mata"},"14295":{"id":14295,"name":"La Vega"}}},"31":{"code":"31","name":"Monsenor Nouel","cities":{"14276":{"id":14276,"name":"Bonao"}}},"32":{"code":"32","name":"Monte Plata","cities":{"14275":{"id":14275,"name":"Bayaguana"},"14300":{"id":14300,"name":"Monte Plata"},"14307":{"id":14307,"name":"Sabana Grande De Boya"}}},"33":{"code":"33","name":"San Cristobal","cities":{"14272":{"id":14272,"name":"Bajos De Haina"},"14311":{"id":14311,"name":"San Cristobal"},"14322":{"id":14322,"name":"Villa Altagracia"}}},"01":{"code":"01","name":"Azua","cities":{"14271":{"id":14271,"name":"Azua"}}},"02":{"code":"02","name":"Baoruco","cities":{"14302":{"id":14302,"name":"Neiba"},"14320":{"id":14320,"name":"Tamayo"}}},"03":{"code":"03","name":"Barahona","cities":{"14274":{"id":14274,"name":"Barahona"},"14277":{"id":14277,"name":"Cabral"},"14283":{"id":14283,"name":"El Penon"}}},"04":{"code":"04","name":"Dajabon","cities":{"14281":{"id":14281,"name":"Dajabon"}}},"05":{"code":"05","name":"Distrito Nacional","cities":{"14318":{"id":14318,"name":"Santo Domingo"}}},"06":{"code":"06","name":"Duarte","cities":{"14293":{"id":14293,"name":"Las Guaranas"},"14304":{"id":14304,"name":"Pimentel"},"14312":{"id":14312,"name":"San Francisco De Macoris"}}},"08":{"code":"08","name":"Espaillat","cities":{"14298":{"id":14298,"name":"Moca"}}},"09":{"code":"09","name":"Independencia","cities":{"14282":{"id":14282,"name":"Duverge"},"14290":{"id":14290,"name":"Jimani"}}}}}
+{
+  "code": "DO",
+  "name": "Dominican Republic",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "La Altagracia",
+      "cities": {
+        "14288": {
+          "id": 14288,
+          "name": "Higuey"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Elias Pina",
+      "cities": {
+        "14278": {
+          "id": 14278,
+          "name": "Comendador"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "La Romana",
+      "cities": {
+        "14292": {
+          "id": 14292,
+          "name": "La Romana"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Maria Trinidad Sanchez",
+      "cities": {
+        "14301": {
+          "id": 14301,
+          "name": "Nagua"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Monte Cristi",
+      "cities": {
+        "14299": {
+          "id": 14299,
+          "name": "Monte Cristi"
+        },
+        "14324": {
+          "id": 14324,
+          "name": "Villa Vazquez"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Pedernales",
+      "cities": {
+        "14303": {
+          "id": 14303,
+          "name": "Pedernales"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Peravia",
+      "cities": {
+        "14273": {
+          "id": 14273,
+          "name": "Bani"
+        },
+        "14314": {
+          "id": 14314,
+          "name": "San Jose De Ocoa"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Puerto Plata",
+      "cities": {
+        "14296": {
+          "id": 14296,
+          "name": "Maimon"
+        },
+        "14305": {
+          "id": 14305,
+          "name": "Puerto Plata"
+        },
+        "14319": {
+          "id": 14319,
+          "name": "Sosua"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Salcedo",
+      "cities": {
+        "14308": {
+          "id": 14308,
+          "name": "Salcedo"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Samana",
+      "cities": {
+        "14309": {
+          "id": 14309,
+          "name": "Samana"
+        },
+        "14310": {
+          "id": 14310,
+          "name": "Sanchez"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Sanchez Ramirez",
+      "cities": {
+        "14280": {
+          "id": 14280,
+          "name": "Cotui"
+        },
+        "14286": {
+          "id": 14286,
+          "name": "Fantino"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "San Juan",
+      "cities": {
+        "14294": {
+          "id": 14294,
+          "name": "Las Matas De Farfan"
+        },
+        "14315": {
+          "id": 14315,
+          "name": "San Juan De La Maguana"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "San Pedro De Macoris",
+      "cities": {
+        "14306": {
+          "id": 14306,
+          "name": "Quisqueya"
+        },
+        "14316": {
+          "id": 14316,
+          "name": "San Pedro De Macoris"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "Santiago",
+      "cities": {
+        "14317": {
+          "id": 14317,
+          "name": "Santiago"
+        },
+        "14321": {
+          "id": 14321,
+          "name": "Tamboril"
+        },
+        "14323": {
+          "id": 14323,
+          "name": "Villa Bisono"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Santiago Rodriguez",
+      "cities": {
+        "14313": {
+          "id": 14313,
+          "name": "San Ignacio De Sabaneta"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Valverde",
+      "cities": {
+        "14285": {
+          "id": 14285,
+          "name": "Esperanza"
+        },
+        "14297": {
+          "id": 14297,
+          "name": "Mao"
+        }
+      }
+    },
+    "28": {
+      "code": "28",
+      "name": "El Seibo",
+      "cities": {
+        "14284": {
+          "id": 14284,
+          "name": "El Seibo"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Hato Mayor",
+      "cities": {
+        "14287": {
+          "id": 14287,
+          "name": "Hato Mayor"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "La Vega",
+      "cities": {
+        "14279": {
+          "id": 14279,
+          "name": "Constanza"
+        },
+        "14289": {
+          "id": 14289,
+          "name": "Jarabacoa"
+        },
+        "14291": {
+          "id": 14291,
+          "name": "La Mata"
+        },
+        "14295": {
+          "id": 14295,
+          "name": "La Vega"
+        }
+      }
+    },
+    "31": {
+      "code": "31",
+      "name": "Monsenor Nouel",
+      "cities": {
+        "14276": {
+          "id": 14276,
+          "name": "Bonao"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Monte Plata",
+      "cities": {
+        "14275": {
+          "id": 14275,
+          "name": "Bayaguana"
+        },
+        "14300": {
+          "id": 14300,
+          "name": "Monte Plata"
+        },
+        "14307": {
+          "id": 14307,
+          "name": "Sabana Grande De Boya"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "San Cristobal",
+      "cities": {
+        "14272": {
+          "id": 14272,
+          "name": "Bajos De Haina"
+        },
+        "14311": {
+          "id": 14311,
+          "name": "San Cristobal"
+        },
+        "14322": {
+          "id": 14322,
+          "name": "Villa Altagracia"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Azua",
+      "cities": {
+        "14271": {
+          "id": 14271,
+          "name": "Azua"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Baoruco",
+      "cities": {
+        "14302": {
+          "id": 14302,
+          "name": "Neiba"
+        },
+        "14320": {
+          "id": 14320,
+          "name": "Tamayo"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Barahona",
+      "cities": {
+        "14274": {
+          "id": 14274,
+          "name": "Barahona"
+        },
+        "14277": {
+          "id": 14277,
+          "name": "Cabral"
+        },
+        "14283": {
+          "id": 14283,
+          "name": "El Penon"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Dajabon",
+      "cities": {
+        "14281": {
+          "id": 14281,
+          "name": "Dajabon"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Distrito Nacional",
+      "cities": {
+        "14318": {
+          "id": 14318,
+          "name": "Santo Domingo"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Duarte",
+      "cities": {
+        "14293": {
+          "id": 14293,
+          "name": "Las Guaranas"
+        },
+        "14304": {
+          "id": 14304,
+          "name": "Pimentel"
+        },
+        "14312": {
+          "id": 14312,
+          "name": "San Francisco De Macoris"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Espaillat",
+      "cities": {
+        "14298": {
+          "id": 14298,
+          "name": "Moca"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Independencia",
+      "cities": {
+        "14282": {
+          "id": 14282,
+          "name": "Duverge"
+        },
+        "14290": {
+          "id": 14290,
+          "name": "Jimani"
+        }
+      }
+    }
+  }
+}

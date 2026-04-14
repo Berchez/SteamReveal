@@ -1,1 +1,44 @@
-{"code":"KW","name":"Kuwait","states":{"01":{"code":"01","name":"Al Ahmadi","cities":{}},"02":{"code":"02","name":"Al Kuwayt","cities":{"26401":{"id":26401,"name":"Bayan"},"26403":{"id":26403,"name":"Hawalli"},"26404":{"id":26404,"name":"Kayfan"}}},"03":{"code":"03","name":"Hawalli","cities":{}},"05":{"code":"05","name":"Al Jahra","cities":{"26402":{"id":26402,"name":"Doha"}}}}}
+{
+  "code": "KW",
+  "name": "Kuwait",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Al Ahmadi",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Al Kuwayt",
+      "cities": {
+        "26401": {
+          "id": 26401,
+          "name": "Bayan"
+        },
+        "26403": {
+          "id": 26403,
+          "name": "Hawalli"
+        },
+        "26404": {
+          "id": 26404,
+          "name": "Kayfan"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Hawalli",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Al Jahra",
+      "cities": {
+        "26402": {
+          "id": 26402,
+          "name": "Doha"
+        }
+      }
+    }
+  }
+}

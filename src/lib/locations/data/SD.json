@@ -1,1 +1,182 @@
-{"code":"SD","name":"Sudan","states":{"27":{"code":"27","name":"Al Wusta","cities":{"43633":{"id":43633,"name":"Galgani"},"43640":{"id":43640,"name":"Kinanah"},"43641":{"id":43641,"name":"Kusti"},"43645":{"id":43645,"name":"Marabba"},"43653":{"id":43653,"name":"Sinnar"},"43654":{"id":43654,"name":"Tabat"},"43656":{"id":43656,"name":"Tambul"},"43658":{"id":43658,"name":"Tandalti"},"43663":{"id":43663,"name":"Umm Jarr"}}},"28":{"code":"28","name":"Al Istiwa'iyah","cities":{"43647":{"id":43647,"name":"Maridi"},"43657":{"id":43657,"name":"Tambura"},"43661":{"id":43661,"name":"Torit"},"43672":{"id":43672,"name":"Yei"}}},"29":{"code":"29","name":"Al Khartum","cities":{"43639":{"id":43639,"name":"Khartoum"},"43662":{"id":43662,"name":"Umm Durman"}}},"30":{"code":"30","name":"Ash Shamaliyah","cities":{"43630":{"id":43630,"name":"Barbar"},"43646":{"id":43646,"name":"Marawi"}}},"31":{"code":"31","name":"Ash Sharqiyah","cities":{"43632":{"id":43632,"name":"Doka"},"43659":{"id":43659,"name":"Tawkar"},"43669":{"id":43669,"name":"Wagar"}}},"32":{"code":"32","name":"Bahr al Ghazal","cities":{"43634":{"id":43634,"name":"Gogrial"},"43649":{"id":43649,"name":"Raga"},"43660":{"id":43660,"name":"Tonj"},"43673":{"id":43673,"name":"Yirol"}}},"33":{"code":"33","name":"Darfur","cities":{"43642":{"id":43642,"name":"Kutum"},"43664":{"id":43664,"name":"Umm Kaddadah"}}},"34":{"code":"34","name":"Kurdufan","cities":{"43626":{"id":43626,"name":"Abu Jubayhah"},"43627":{"id":43627,"name":"Abu Zabad"},"43628":{"id":43628,"name":"Babanusah"},"43629":{"id":43629,"name":"Bara"},"43655":{"id":43655,"name":"Talawdi"},"43665":{"id":43665,"name":"Umm Ruwabah"}}}}}
+{
+  "code": "SD",
+  "name": "Sudan",
+  "states": {
+    "27": {
+      "code": "27",
+      "name": "Al Wusta",
+      "cities": {
+        "43633": {
+          "id": 43633,
+          "name": "Galgani"
+        },
+        "43640": {
+          "id": 43640,
+          "name": "Kinanah"
+        },
+        "43641": {
+          "id": 43641,
+          "name": "Kusti"
+        },
+        "43645": {
+          "id": 43645,
+          "name": "Marabba"
+        },
+        "43653": {
+          "id": 43653,
+          "name": "Sinnar"
+        },
+        "43654": {
+          "id": 43654,
+          "name": "Tabat"
+        },
+        "43656": {
+          "id": 43656,
+          "name": "Tambul"
+        },
+        "43658": {
+          "id": 43658,
+          "name": "Tandalti"
+        },
+        "43663": {
+          "id": 43663,
+          "name": "Umm Jarr"
+        }
+      }
+    },
+    "28": {
+      "code": "28",
+      "name": "Al Istiwa'iyah",
+      "cities": {
+        "43647": {
+          "id": 43647,
+          "name": "Maridi"
+        },
+        "43657": {
+          "id": 43657,
+          "name": "Tambura"
+        },
+        "43661": {
+          "id": 43661,
+          "name": "Torit"
+        },
+        "43672": {
+          "id": 43672,
+          "name": "Yei"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Al Khartum",
+      "cities": {
+        "43639": {
+          "id": 43639,
+          "name": "Khartoum"
+        },
+        "43662": {
+          "id": 43662,
+          "name": "Umm Durman"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Ash Shamaliyah",
+      "cities": {
+        "43630": {
+          "id": 43630,
+          "name": "Barbar"
+        },
+        "43646": {
+          "id": 43646,
+          "name": "Marawi"
+        }
+      }
+    },
+    "31": {
+      "code": "31",
+      "name": "Ash Sharqiyah",
+      "cities": {
+        "43632": {
+          "id": 43632,
+          "name": "Doka"
+        },
+        "43659": {
+          "id": 43659,
+          "name": "Tawkar"
+        },
+        "43669": {
+          "id": 43669,
+          "name": "Wagar"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Bahr al Ghazal",
+      "cities": {
+        "43634": {
+          "id": 43634,
+          "name": "Gogrial"
+        },
+        "43649": {
+          "id": 43649,
+          "name": "Raga"
+        },
+        "43660": {
+          "id": 43660,
+          "name": "Tonj"
+        },
+        "43673": {
+          "id": 43673,
+          "name": "Yirol"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "Darfur",
+      "cities": {
+        "43642": {
+          "id": 43642,
+          "name": "Kutum"
+        },
+        "43664": {
+          "id": 43664,
+          "name": "Umm Kaddadah"
+        }
+      }
+    },
+    "34": {
+      "code": "34",
+      "name": "Kurdufan",
+      "cities": {
+        "43626": {
+          "id": 43626,
+          "name": "Abu Jubayhah"
+        },
+        "43627": {
+          "id": 43627,
+          "name": "Abu Zabad"
+        },
+        "43628": {
+          "id": 43628,
+          "name": "Babanusah"
+        },
+        "43629": {
+          "id": 43629,
+          "name": "Bara"
+        },
+        "43655": {
+          "id": 43655,
+          "name": "Talawdi"
+        },
+        "43665": {
+          "id": 43665,
+          "name": "Umm Ruwabah"
+        }
+      }
+    }
+  }
+}

@@ -1,1 +1,292 @@
-{"code":"BW","name":"Botswana","states":{"10":{"code":"10","name":"Southern","cities":{"9173":{"id":9173,"name":"Dutlwe"},"9184":{"id":9184,"name":"Kanye"},"9186":{"id":9186,"name":"Khakhea"},"9215":{"id":9215,"name":"Moshupa"},"9230":{"id":9230,"name":"Sekoma"}}},"01":{"code":"01","name":"Central","cities":{"9171":{"id":9171,"name":"Bonwapitse"},"9182":{"id":9182,"name":"Kalamare"},"9192":{"id":9192,"name":"Letlhakane"},"9195":{"id":9195,"name":"Machaneng"},"9196":{"id":9196,"name":"Mahalapye"},"9202":{"id":9202,"name":"Maunatlala"},"9206":{"id":9206,"name":"Mogapi"},"9207":{"id":9207,"name":"Mogapinyana"},"9209":{"id":9209,"name":"Moiyabana"},"9210":{"id":9210,"name":"Mokobeng"},"9221":{"id":9221,"name":"Palapye"},"9224":{"id":9224,"name":"Pilikwe"},"9226":{"id":9226,"name":"Ratholo"},"9231":{"id":9231,"name":"Serowe"},"9233":{"id":9233,"name":"Tamasane"}}},"02":{"code":"02","name":"Chobe","cities":{}},"03":{"code":"03","name":"Ghanzi","cities":{"9172":{"id":9172,"name":"Dekar"},"9177":{"id":9177,"name":"Ghanzi"},"9199":{"id":9199,"name":"Manyana"}}},"04":{"code":"04","name":"Kgalagadi","cities":{"9170":{"id":9170,"name":"Bokspits"},"9237":{"id":9237,"name":"Tsabong"},"9240":{"id":9240,"name":"Werda"}}},"05":{"code":"05","name":"Kgatleng","cities":{"9191":{"id":9191,"name":"Lephepe"},"9205":{"id":9205,"name":"Mochudi"},"9223":{"id":9223,"name":"Pilane"}}},"06":{"code":"06","name":"Kweneng","cities":{"9167":{"id":9167,"name":"Boatlaname"},"9169":{"id":9169,"name":"Bokaa"},"9175":{"id":9175,"name":"Gabane"},"9187":{"id":9187,"name":"Khudumelapye"},"9193":{"id":9193,"name":"Letlhakeng"},"9208":{"id":9208,"name":"Mogoditshane"},"9211":{"id":9211,"name":"Molepolole"},"9217":{"id":9217,"name":"Nkoyaphiri"},"9234":{"id":9234,"name":"Thamaga"}}},"07":{"code":"07","name":"Ngamiland","cities":{}},"08":{"code":"08","name":"North-East","cities":{"9168":{"id":9168,"name":"Bobonong"},"9174":{"id":9174,"name":"Francistown"},"9181":{"id":9181,"name":"Kalakamati"},"9188":{"id":9188,"name":"Kobojango"},"9198":{"id":9198,"name":"Makaleng"},"9200":{"id":9200,"name":"Masunga"},"9201":{"id":9201,"name":"Mathathane"},"9214":{"id":9214,"name":"Mosetse"},"9227":{"id":9227,"name":"Sebina"},"9228":{"id":9228,"name":"Sefophe"},"9235":{"id":9235,"name":"Tobane"},"9236":{"id":9236,"name":"Tonota"}}},"09":{"code":"09","name":"South-East","cities":{"9176":{"id":9176,"name":"Gaborone"},"9189":{"id":9189,"name":"Kopong"},"9194":{"id":9194,"name":"Lobatse"},"9204":{"id":9204,"name":"Mmathubudukwane"},"9212":{"id":9212,"name":"Mookane"},"9220":{"id":9220,"name":"Otse"},"9225":{"id":9225,"name":"Ramotswa"}}}}}
+{
+  "code": "BW",
+  "name": "Botswana",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Southern",
+      "cities": {
+        "9173": {
+          "id": 9173,
+          "name": "Dutlwe"
+        },
+        "9184": {
+          "id": 9184,
+          "name": "Kanye"
+        },
+        "9186": {
+          "id": 9186,
+          "name": "Khakhea"
+        },
+        "9215": {
+          "id": 9215,
+          "name": "Moshupa"
+        },
+        "9230": {
+          "id": 9230,
+          "name": "Sekoma"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Central",
+      "cities": {
+        "9171": {
+          "id": 9171,
+          "name": "Bonwapitse"
+        },
+        "9182": {
+          "id": 9182,
+          "name": "Kalamare"
+        },
+        "9192": {
+          "id": 9192,
+          "name": "Letlhakane"
+        },
+        "9195": {
+          "id": 9195,
+          "name": "Machaneng"
+        },
+        "9196": {
+          "id": 9196,
+          "name": "Mahalapye"
+        },
+        "9202": {
+          "id": 9202,
+          "name": "Maunatlala"
+        },
+        "9206": {
+          "id": 9206,
+          "name": "Mogapi"
+        },
+        "9207": {
+          "id": 9207,
+          "name": "Mogapinyana"
+        },
+        "9209": {
+          "id": 9209,
+          "name": "Moiyabana"
+        },
+        "9210": {
+          "id": 9210,
+          "name": "Mokobeng"
+        },
+        "9221": {
+          "id": 9221,
+          "name": "Palapye"
+        },
+        "9224": {
+          "id": 9224,
+          "name": "Pilikwe"
+        },
+        "9226": {
+          "id": 9226,
+          "name": "Ratholo"
+        },
+        "9231": {
+          "id": 9231,
+          "name": "Serowe"
+        },
+        "9233": {
+          "id": 9233,
+          "name": "Tamasane"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Chobe",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Ghanzi",
+      "cities": {
+        "9172": {
+          "id": 9172,
+          "name": "Dekar"
+        },
+        "9177": {
+          "id": 9177,
+          "name": "Ghanzi"
+        },
+        "9199": {
+          "id": 9199,
+          "name": "Manyana"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Kgalagadi",
+      "cities": {
+        "9170": {
+          "id": 9170,
+          "name": "Bokspits"
+        },
+        "9237": {
+          "id": 9237,
+          "name": "Tsabong"
+        },
+        "9240": {
+          "id": 9240,
+          "name": "Werda"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Kgatleng",
+      "cities": {
+        "9191": {
+          "id": 9191,
+          "name": "Lephepe"
+        },
+        "9205": {
+          "id": 9205,
+          "name": "Mochudi"
+        },
+        "9223": {
+          "id": 9223,
+          "name": "Pilane"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Kweneng",
+      "cities": {
+        "9167": {
+          "id": 9167,
+          "name": "Boatlaname"
+        },
+        "9169": {
+          "id": 9169,
+          "name": "Bokaa"
+        },
+        "9175": {
+          "id": 9175,
+          "name": "Gabane"
+        },
+        "9187": {
+          "id": 9187,
+          "name": "Khudumelapye"
+        },
+        "9193": {
+          "id": 9193,
+          "name": "Letlhakeng"
+        },
+        "9208": {
+          "id": 9208,
+          "name": "Mogoditshane"
+        },
+        "9211": {
+          "id": 9211,
+          "name": "Molepolole"
+        },
+        "9217": {
+          "id": 9217,
+          "name": "Nkoyaphiri"
+        },
+        "9234": {
+          "id": 9234,
+          "name": "Thamaga"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Ngamiland",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "North-East",
+      "cities": {
+        "9168": {
+          "id": 9168,
+          "name": "Bobonong"
+        },
+        "9174": {
+          "id": 9174,
+          "name": "Francistown"
+        },
+        "9181": {
+          "id": 9181,
+          "name": "Kalakamati"
+        },
+        "9188": {
+          "id": 9188,
+          "name": "Kobojango"
+        },
+        "9198": {
+          "id": 9198,
+          "name": "Makaleng"
+        },
+        "9200": {
+          "id": 9200,
+          "name": "Masunga"
+        },
+        "9201": {
+          "id": 9201,
+          "name": "Mathathane"
+        },
+        "9214": {
+          "id": 9214,
+          "name": "Mosetse"
+        },
+        "9227": {
+          "id": 9227,
+          "name": "Sebina"
+        },
+        "9228": {
+          "id": 9228,
+          "name": "Sefophe"
+        },
+        "9235": {
+          "id": 9235,
+          "name": "Tobane"
+        },
+        "9236": {
+          "id": 9236,
+          "name": "Tonota"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "South-East",
+      "cities": {
+        "9176": {
+          "id": 9176,
+          "name": "Gaborone"
+        },
+        "9189": {
+          "id": 9189,
+          "name": "Kopong"
+        },
+        "9194": {
+          "id": 9194,
+          "name": "Lobatse"
+        },
+        "9204": {
+          "id": 9204,
+          "name": "Mmathubudukwane"
+        },
+        "9212": {
+          "id": 9212,
+          "name": "Mookane"
+        },
+        "9220": {
+          "id": 9220,
+          "name": "Otse"
+        },
+        "9225": {
+          "id": 9225,
+          "name": "Ramotswa"
+        }
+      }
+    }
+  }
+}

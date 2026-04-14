@@ -1,1 +1,547 @@
-{"code":"VE","name":"Venezuela","states":{"11":{"code":"11","name":"Falcon","cities":{"46393":{"id":46393,"name":"Coro"},"46433":{"id":46433,"name":"Punta Cardon"},"46434":{"id":46434,"name":"Punto Fijo"}}},"12":{"code":"12","name":"Guarico","cities":{"46366":{"id":46366,"name":"Altagracia De Orituco"},"46378":{"id":46378,"name":"Calabozo"},"46445":{"id":46445,"name":"San Juan De Los Morros"},"46462":{"id":46462,"name":"Zaraza"}}},"13":{"code":"13","name":"Lara","cities":{"46373":{"id":46373,"name":"Barquisimeto"},"46376":{"id":46376,"name":"Cabudare"},"46382":{"id":46382,"name":"Carora"},"46401":{"id":46401,"name":"El Tocuyo"},"46417":{"id":46417,"name":"Los Rastrojos"},"46435":{"id":46435,"name":"Quibor"}}},"14":{"code":"14","name":"Merida","cities":{"46396":{"id":46396,"name":"Ejido"},"46402":{"id":46402,"name":"El Vigia"}}},"15":{"code":"15","name":"Miranda","cities":{"46374":{"id":46374,"name":"Baruta"},"46383":{"id":46383,"name":"Carrizal"},"46386":{"id":46386,"name":"Caucaguita"},"46387":{"id":46387,"name":"Chacao"},"46388":{"id":46388,"name":"Charallave"},"46394":{"id":46394,"name":"Cua"},"46397":{"id":46397,"name":"El Cafetal"},"46398":{"id":46398,"name":"El Hatillo"},"46406":{"id":46406,"name":"Guarenas"},"46408":{"id":46408,"name":"Guatire"},"46411":{"id":46411,"name":"La Dolorita"},"46416":{"id":46416,"name":"Los Dos Caminos"},"46418":{"id":46418,"name":"Los Teques"},"46427":{"id":46427,"name":"Ocumare Del Tuy"},"46429":{"id":46429,"name":"Petare"},"46448":{"id":46448,"name":"Santa Teresa"}}},"16":{"code":"16","name":"Monagas","cities":{"46424":{"id":46424,"name":"Maturin"}}},"17":{"code":"17","name":"Nueva Esparta","cities":{"46410":{"id":46410,"name":"La Asuncion"},"46430":{"id":46430,"name":"Porlamar"}}},"18":{"code":"18","name":"Portuguesa","cities":{"46365":{"id":46365,"name":"Acarigua"},"46368":{"id":46368,"name":"Araure"},"46405":{"id":46405,"name":"Guanare"},"46458":{"id":46458,"name":"Villa Bruzual"}}},"19":{"code":"19","name":"Sucre","cities":{"46384":{"id":46384,"name":"Carupano"},"46395":{"id":46395,"name":"Cumana"}}},"20":{"code":"20","name":"Tachira","cities":{"46412":{"id":46412,"name":"La Fria"},"46436":{"id":46436,"name":"Rubio"},"46437":{"id":46437,"name":"San Antonio Del Tachira"},"46440":{"id":46440,"name":"San Cristobal"},"46444":{"id":46444,"name":"San Juan De Colon"},"46450":{"id":46450,"name":"Tariba"}}},"21":{"code":"21","name":"Trujillo","cities":{"46452":{"id":46452,"name":"Trujillo"},"46457":{"id":46457,"name":"Valera"}}},"22":{"code":"22","name":"Yaracuy","cities":{"46389":{"id":46389,"name":"Chivacoa"},"46426":{"id":46426,"name":"Nirgua"},"46441":{"id":46441,"name":"San Felipe"},"46461":{"id":46461,"name":"Yaritagua"}}},"23":{"code":"23","name":"Zulia","cities":{"46369":{"id":46369,"name":"Bachaquero"},"46375":{"id":46375,"name":"Cabimas"},"46392":{"id":46392,"name":"Ciudad Ojeda"},"46414":{"id":46414,"name":"Lagunillas"},"46419":{"id":46419,"name":"Machiques"},"46421":{"id":46421,"name":"Maracaibo"},"46438":{"id":46438,"name":"San Carlos Del Zulia"},"46447":{"id":46447,"name":"Santa Rita"},"46460":{"id":46460,"name":"Villa Del Rosario"}}},"24":{"code":"24","name":"Dependencias Federales","cities":{}},"25":{"code":"25","name":"Distrito Federal","cities":{"46381":{"id":46381,"name":"Caracas"}}},"26":{"code":"26","name":"Vargas","cities":{"46380":{"id":46380,"name":"Caraballeda"},"46385":{"id":46385,"name":"Catia La Mar"},"46413":{"id":46413,"name":"La Guaira"},"46420":{"id":46420,"name":"Maiquetia"}}},"01":{"code":"01","name":"Amazonas","cities":{"46431":{"id":46431,"name":"Puerto Ayacucho"}}},"02":{"code":"02","name":"Anzoategui","cities":{"46367":{"id":46367,"name":"Anaco"},"46370":{"id":46370,"name":"Barcelona"},"46379":{"id":46379,"name":"Cantaura"},"46400":{"id":46400,"name":"El Tigre"},"46443":{"id":46443,"name":"San Jose De Guanipa"}}},"03":{"code":"03","name":"Apure","cities":{"46407":{"id":46407,"name":"Guasdualito"}}},"04":{"code":"04","name":"Aragua","cities":{"46377":{"id":46377,"name":"Cagua"},"46399":{"id":46399,"name":"El Limon"},"46415":{"id":46415,"name":"La Victoria"},"46422":{"id":46422,"name":"Maracay"},"46428":{"id":46428,"name":"Palo Negro"},"46446":{"id":46446,"name":"San Mateo"},"46454":{"id":46454,"name":"Turmero"},"46459":{"id":46459,"name":"Villa De Cura"}}},"05":{"code":"05","name":"Barinas","cities":{"46371":{"id":46371,"name":"Barinas"},"46372":{"id":46372,"name":"Barinitas"}}},"06":{"code":"06","name":"Bolivar","cities":{"46390":{"id":46390,"name":"Ciudad Bolivar"},"46391":{"id":46391,"name":"Ciudad Guayana"},"46455":{"id":46455,"name":"Upata"}}},"07":{"code":"07","name":"Carabobo","cities":{"46403":{"id":46403,"name":"Goaigoaza"},"46404":{"id":46404,"name":"Guacara"},"46409":{"id":46409,"name":"Guigue"},"46423":{"id":46423,"name":"Mariara"},"46425":{"id":46425,"name":"Moron"},"46432":{"id":46432,"name":"Puerto Cabello"},"46442":{"id":46442,"name":"San Joaquin"},"46449":{"id":46449,"name":"Tacarigua"},"46456":{"id":46456,"name":"Valencia"}}},"08":{"code":"08","name":"Cojedes","cities":{"46439":{"id":46439,"name":"San Carlos"},"46451":{"id":46451,"name":"Tinaquillo"}}},"09":{"code":"09","name":"Delta Amacuro","cities":{"46453":{"id":46453,"name":"Tucupita"}}}}}
+{
+  "code": "VE",
+  "name": "Venezuela",
+  "states": {
+    "11": {
+      "code": "11",
+      "name": "Falcon",
+      "cities": {
+        "46393": {
+          "id": 46393,
+          "name": "Coro"
+        },
+        "46433": {
+          "id": 46433,
+          "name": "Punta Cardon"
+        },
+        "46434": {
+          "id": 46434,
+          "name": "Punto Fijo"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Guarico",
+      "cities": {
+        "46366": {
+          "id": 46366,
+          "name": "Altagracia De Orituco"
+        },
+        "46378": {
+          "id": 46378,
+          "name": "Calabozo"
+        },
+        "46445": {
+          "id": 46445,
+          "name": "San Juan De Los Morros"
+        },
+        "46462": {
+          "id": 46462,
+          "name": "Zaraza"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Lara",
+      "cities": {
+        "46373": {
+          "id": 46373,
+          "name": "Barquisimeto"
+        },
+        "46376": {
+          "id": 46376,
+          "name": "Cabudare"
+        },
+        "46382": {
+          "id": 46382,
+          "name": "Carora"
+        },
+        "46401": {
+          "id": 46401,
+          "name": "El Tocuyo"
+        },
+        "46417": {
+          "id": 46417,
+          "name": "Los Rastrojos"
+        },
+        "46435": {
+          "id": 46435,
+          "name": "Quibor"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Merida",
+      "cities": {
+        "46396": {
+          "id": 46396,
+          "name": "Ejido"
+        },
+        "46402": {
+          "id": 46402,
+          "name": "El Vigia"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Miranda",
+      "cities": {
+        "46374": {
+          "id": 46374,
+          "name": "Baruta"
+        },
+        "46383": {
+          "id": 46383,
+          "name": "Carrizal"
+        },
+        "46386": {
+          "id": 46386,
+          "name": "Caucaguita"
+        },
+        "46387": {
+          "id": 46387,
+          "name": "Chacao"
+        },
+        "46388": {
+          "id": 46388,
+          "name": "Charallave"
+        },
+        "46394": {
+          "id": 46394,
+          "name": "Cua"
+        },
+        "46397": {
+          "id": 46397,
+          "name": "El Cafetal"
+        },
+        "46398": {
+          "id": 46398,
+          "name": "El Hatillo"
+        },
+        "46406": {
+          "id": 46406,
+          "name": "Guarenas"
+        },
+        "46408": {
+          "id": 46408,
+          "name": "Guatire"
+        },
+        "46411": {
+          "id": 46411,
+          "name": "La Dolorita"
+        },
+        "46416": {
+          "id": 46416,
+          "name": "Los Dos Caminos"
+        },
+        "46418": {
+          "id": 46418,
+          "name": "Los Teques"
+        },
+        "46427": {
+          "id": 46427,
+          "name": "Ocumare Del Tuy"
+        },
+        "46429": {
+          "id": 46429,
+          "name": "Petare"
+        },
+        "46448": {
+          "id": 46448,
+          "name": "Santa Teresa"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Monagas",
+      "cities": {
+        "46424": {
+          "id": 46424,
+          "name": "Maturin"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Nueva Esparta",
+      "cities": {
+        "46410": {
+          "id": 46410,
+          "name": "La Asuncion"
+        },
+        "46430": {
+          "id": 46430,
+          "name": "Porlamar"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Portuguesa",
+      "cities": {
+        "46365": {
+          "id": 46365,
+          "name": "Acarigua"
+        },
+        "46368": {
+          "id": 46368,
+          "name": "Araure"
+        },
+        "46405": {
+          "id": 46405,
+          "name": "Guanare"
+        },
+        "46458": {
+          "id": 46458,
+          "name": "Villa Bruzual"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Sucre",
+      "cities": {
+        "46384": {
+          "id": 46384,
+          "name": "Carupano"
+        },
+        "46395": {
+          "id": 46395,
+          "name": "Cumana"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Tachira",
+      "cities": {
+        "46412": {
+          "id": 46412,
+          "name": "La Fria"
+        },
+        "46436": {
+          "id": 46436,
+          "name": "Rubio"
+        },
+        "46437": {
+          "id": 46437,
+          "name": "San Antonio Del Tachira"
+        },
+        "46440": {
+          "id": 46440,
+          "name": "San Cristobal"
+        },
+        "46444": {
+          "id": 46444,
+          "name": "San Juan De Colon"
+        },
+        "46450": {
+          "id": 46450,
+          "name": "Tariba"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Trujillo",
+      "cities": {
+        "46452": {
+          "id": 46452,
+          "name": "Trujillo"
+        },
+        "46457": {
+          "id": 46457,
+          "name": "Valera"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Yaracuy",
+      "cities": {
+        "46389": {
+          "id": 46389,
+          "name": "Chivacoa"
+        },
+        "46426": {
+          "id": 46426,
+          "name": "Nirgua"
+        },
+        "46441": {
+          "id": 46441,
+          "name": "San Felipe"
+        },
+        "46461": {
+          "id": 46461,
+          "name": "Yaritagua"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Zulia",
+      "cities": {
+        "46369": {
+          "id": 46369,
+          "name": "Bachaquero"
+        },
+        "46375": {
+          "id": 46375,
+          "name": "Cabimas"
+        },
+        "46392": {
+          "id": 46392,
+          "name": "Ciudad Ojeda"
+        },
+        "46414": {
+          "id": 46414,
+          "name": "Lagunillas"
+        },
+        "46419": {
+          "id": 46419,
+          "name": "Machiques"
+        },
+        "46421": {
+          "id": 46421,
+          "name": "Maracaibo"
+        },
+        "46438": {
+          "id": 46438,
+          "name": "San Carlos Del Zulia"
+        },
+        "46447": {
+          "id": 46447,
+          "name": "Santa Rita"
+        },
+        "46460": {
+          "id": 46460,
+          "name": "Villa Del Rosario"
+        }
+      }
+    },
+    "24": {
+      "code": "24",
+      "name": "Dependencias Federales",
+      "cities": {}
+    },
+    "25": {
+      "code": "25",
+      "name": "Distrito Federal",
+      "cities": {
+        "46381": {
+          "id": 46381,
+          "name": "Caracas"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Vargas",
+      "cities": {
+        "46380": {
+          "id": 46380,
+          "name": "Caraballeda"
+        },
+        "46385": {
+          "id": 46385,
+          "name": "Catia La Mar"
+        },
+        "46413": {
+          "id": 46413,
+          "name": "La Guaira"
+        },
+        "46420": {
+          "id": 46420,
+          "name": "Maiquetia"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Amazonas",
+      "cities": {
+        "46431": {
+          "id": 46431,
+          "name": "Puerto Ayacucho"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Anzoategui",
+      "cities": {
+        "46367": {
+          "id": 46367,
+          "name": "Anaco"
+        },
+        "46370": {
+          "id": 46370,
+          "name": "Barcelona"
+        },
+        "46379": {
+          "id": 46379,
+          "name": "Cantaura"
+        },
+        "46400": {
+          "id": 46400,
+          "name": "El Tigre"
+        },
+        "46443": {
+          "id": 46443,
+          "name": "San Jose De Guanipa"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Apure",
+      "cities": {
+        "46407": {
+          "id": 46407,
+          "name": "Guasdualito"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Aragua",
+      "cities": {
+        "46377": {
+          "id": 46377,
+          "name": "Cagua"
+        },
+        "46399": {
+          "id": 46399,
+          "name": "El Limon"
+        },
+        "46415": {
+          "id": 46415,
+          "name": "La Victoria"
+        },
+        "46422": {
+          "id": 46422,
+          "name": "Maracay"
+        },
+        "46428": {
+          "id": 46428,
+          "name": "Palo Negro"
+        },
+        "46446": {
+          "id": 46446,
+          "name": "San Mateo"
+        },
+        "46454": {
+          "id": 46454,
+          "name": "Turmero"
+        },
+        "46459": {
+          "id": 46459,
+          "name": "Villa De Cura"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Barinas",
+      "cities": {
+        "46371": {
+          "id": 46371,
+          "name": "Barinas"
+        },
+        "46372": {
+          "id": 46372,
+          "name": "Barinitas"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Bolivar",
+      "cities": {
+        "46390": {
+          "id": 46390,
+          "name": "Ciudad Bolivar"
+        },
+        "46391": {
+          "id": 46391,
+          "name": "Ciudad Guayana"
+        },
+        "46455": {
+          "id": 46455,
+          "name": "Upata"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Carabobo",
+      "cities": {
+        "46403": {
+          "id": 46403,
+          "name": "Goaigoaza"
+        },
+        "46404": {
+          "id": 46404,
+          "name": "Guacara"
+        },
+        "46409": {
+          "id": 46409,
+          "name": "Guigue"
+        },
+        "46423": {
+          "id": 46423,
+          "name": "Mariara"
+        },
+        "46425": {
+          "id": 46425,
+          "name": "Moron"
+        },
+        "46432": {
+          "id": 46432,
+          "name": "Puerto Cabello"
+        },
+        "46442": {
+          "id": 46442,
+          "name": "San Joaquin"
+        },
+        "46449": {
+          "id": 46449,
+          "name": "Tacarigua"
+        },
+        "46456": {
+          "id": 46456,
+          "name": "Valencia"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Cojedes",
+      "cities": {
+        "46439": {
+          "id": 46439,
+          "name": "San Carlos"
+        },
+        "46451": {
+          "id": 46451,
+          "name": "Tinaquillo"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Delta Amacuro",
+      "cities": {
+        "46453": {
+          "id": 46453,
+          "name": "Tucupita"
+        }
+      }
+    }
+  }
+}

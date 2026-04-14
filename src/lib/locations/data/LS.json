@@ -1,1 +1,91 @@
-{"code":"LS","name":"Lesotho","states":{"10":{"code":"10","name":"Berea","cities":{"26623":{"id":26623,"name":"Teyateyaneng"}}},"11":{"code":"11","name":"Butha-Buthe","cities":{}},"12":{"code":"12","name":"Leribe","cities":{"26618":{"id":26618,"name":"Hlotse"}}},"13":{"code":"13","name":"Mafeteng","cities":{"26619":{"id":26619,"name":"Mafeteng"}}},"14":{"code":"14","name":"Maseru","cities":{"26620":{"id":26620,"name":"Maseru"}}},"15":{"code":"15","name":"Mohales Hoek","cities":{}},"16":{"code":"16","name":"Mokhotlong","cities":{"26621":{"id":26621,"name":"Mokhotlong"}}},"17":{"code":"17","name":"Qachas Nek","cities":{}},"18":{"code":"18","name":"Quthing","cities":{"26622":{"id":26622,"name":"Quthing"}}},"19":{"code":"19","name":"Thaba-Tseka","cities":{"26624":{"id":26624,"name":"Thaba-tseka"}}}}}
+{
+  "code": "LS",
+  "name": "Lesotho",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Berea",
+      "cities": {
+        "26623": {
+          "id": 26623,
+          "name": "Teyateyaneng"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Butha-Buthe",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Leribe",
+      "cities": {
+        "26618": {
+          "id": 26618,
+          "name": "Hlotse"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Mafeteng",
+      "cities": {
+        "26619": {
+          "id": 26619,
+          "name": "Mafeteng"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Maseru",
+      "cities": {
+        "26620": {
+          "id": 26620,
+          "name": "Maseru"
+        }
+      }
+    },
+    "15": {
+      "code": "15",
+      "name": "Mohales Hoek",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "Mokhotlong",
+      "cities": {
+        "26621": {
+          "id": 26621,
+          "name": "Mokhotlong"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Qachas Nek",
+      "cities": {}
+    },
+    "18": {
+      "code": "18",
+      "name": "Quthing",
+      "cities": {
+        "26622": {
+          "id": 26622,
+          "name": "Quthing"
+        }
+      }
+    },
+    "19": {
+      "code": "19",
+      "name": "Thaba-Tseka",
+      "cities": {
+        "26624": {
+          "id": 26624,
+          "name": "Thaba-tseka"
+        }
+      }
+    }
+  }
+}

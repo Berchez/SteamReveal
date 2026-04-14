@@ -1,1 +1,836 @@
-{"code":"ZA","name":"South Africa","states":{"10":{"code":"10","name":"North-West","cities":{"46706":{"id":46706,"name":"Bloemhof"},"46713":{"id":46713,"name":"Brits"},"46722":{"id":46722,"name":"Christiana"},"46743":{"id":46743,"name":"Fochville"},"46762":{"id":46762,"name":"Jan Kempdorp"},"46767":{"id":46767,"name":"Klerksdorp"},"46772":{"id":46772,"name":"Koster"},"46781":{"id":46781,"name":"Lichtenburg"},"46792":{"id":46792,"name":"Mmabatho"},"46793":{"id":46793,"name":"Mogwase"},"46803":{"id":46803,"name":"Orkney"},"46806":{"id":46806,"name":"Pampierstad"},"46817":{"id":46817,"name":"Potchefstroom"},"46828":{"id":46828,"name":"Rustenburg"},"46843":{"id":46843,"name":"Stilfontein"},"46847":{"id":46847,"name":"Temba"},"46872":{"id":46872,"name":"Vryburg"},"46884":{"id":46884,"name":"Wolmaranstad"},"46887":{"id":46887,"name":"Zeerust"}}},"11":{"code":"11","name":"Western Cape","cities":{"46695":{"id":46695,"name":"Atlantis"},"46711":{"id":46711,"name":"Bredasdorp"},"46717":{"id":46717,"name":"Caledon"},"46719":{"id":46719,"name":"Cape Town"},"46721":{"id":46721,"name":"Ceres"},"46746":{"id":46746,"name":"George"},"46750":{"id":46750,"name":"Grabouw"},"46758":{"id":46758,"name":"Hermanus"},"46768":{"id":46768,"name":"Knysna"},"46785":{"id":46785,"name":"Malmesbury"},"46804":{"id":46804,"name":"Oudtshoorn"},"46805":{"id":46805,"name":"Paarl"},"46813":{"id":46813,"name":"Plettenberg Bay"},"46827":{"id":46827,"name":"Robertson"},"46829":{"id":46829,"name":"Saldanha"},"46836":{"id":46836,"name":"Somerset West"},"46842":{"id":46842,"name":"Stellenbosch"},"46846":{"id":46846,"name":"Swellendam"},"46870":{"id":46870,"name":"Vredendal"},"46885":{"id":46885,"name":"Worcester"}}},"02":{"code":"02","name":"KwaZulu-Natal","cities":{"46697":{"id":46697,"name":"Ballitoville"},"46733":{"id":46733,"name":"Dundee"},"46734":{"id":46734,"name":"Durban"},"46737":{"id":46737,"name":"Ekuvukeni"},"46740":{"id":46740,"name":"Empangeni"},"46742":{"id":46742,"name":"Eshowe"},"46748":{"id":46748,"name":"Glencoe"},"46752":{"id":46752,"name":"Greytown"},"46760":{"id":46760,"name":"Howick"},"46769":{"id":46769,"name":"Kokstad"},"46786":{"id":46786,"name":"Margate"},"46795":{"id":46795,"name":"Mondlo"},"46796":{"id":46796,"name":"Mooi River"},"46797":{"id":46797,"name":"Mpophomeni"},"46799":{"id":46799,"name":"Newcastle"},"46810":{"id":46810,"name":"Pietermaritzburg"},"46816":{"id":46816,"name":"Port Shepstone"},"46824":{"id":46824,"name":"Richards Bay"},"46825":{"id":46825,"name":"Richmond"},"46831":{"id":46831,"name":"Scottsburgh"},"46841":{"id":46841,"name":"Stanger"},"46845":{"id":46845,"name":"Sundumbili"},"46855":{"id":46855,"name":"Ulundi"},"46856":{"id":46856,"name":"Umkomaas"},"46860":{"id":46860,"name":"Utrecht"},"46873":{"id":46873,"name":"Vryheid"}}},"03":{"code":"03","name":"Free State","cities":{"46694":{"id":46694,"name":"Allanridge"},"46703":{"id":46703,"name":"Bethlehem"},"46705":{"id":46705,"name":"Bloemfontein"},"46708":{"id":46708,"name":"Botshabelo"},"46710":{"id":46710,"name":"Brandfort"},"46723":{"id":46723,"name":"Clocolan"},"46730":{"id":46730,"name":"Deneysville"},"46745":{"id":46745,"name":"Frankfort"},"46753":{"id":46753,"name":"Harrismith"},"46755":{"id":46755,"name":"Heilbron"},"46757":{"id":46757,"name":"Hennenman"},"46759":{"id":46759,"name":"Hoopstad"},"46771":{"id":46771,"name":"Koppies"},"46774":{"id":46774,"name":"Kroonstad"},"46778":{"id":46778,"name":"Ladybrand"},"46787":{"id":46787,"name":"Marquard"},"46807":{"id":46807,"name":"Parys"},"46809":{"id":46809,"name":"Phuthaditjhaba"},"46823":{"id":46823,"name":"Reitz"},"46830":{"id":46830,"name":"Sasolburg"},"46833":{"id":46833,"name":"Senekal"},"46849":{"id":46849,"name":"Thaba Nchu"},"46851":{"id":46851,"name":"Theunissen"},"46862":{"id":46862,"name":"Ventersburg"},"46865":{"id":46865,"name":"Viljoenskroon"},"46866":{"id":46866,"name":"Villiers"},"46867":{"id":46867,"name":"Virginia"},"46869":{"id":46869,"name":"Vredefort"},"46871":{"id":46871,"name":"Vrede"},"46876":{"id":46876,"name":"Welkom"},"46877":{"id":46877,"name":"Wesselsbron"},"46881":{"id":46881,"name":"Winburg"},"46886":{"id":46886,"name":"Zastron"}}},"05":{"code":"05","name":"Eastern Cape","cities":{"46691":{"id":46691,"name":"Adelaide"},"46692":{"id":46692,"name":"Alice"},"46693":{"id":46693,"name":"Aliwal North"},"46704":{"id":46704,"name":"Bisho"},"46715":{"id":46715,"name":"Burgersdorp"},"46716":{"id":46716,"name":"Butterworth"},"46725":{"id":46725,"name":"Cradock"},"46731":{"id":46731,"name":"Dordrecht"},"46735":{"id":46735,"name":"East London"},"46738":{"id":46738,"name":"Elliot"},"46744":{"id":46744,"name":"Fort Beaufort"},"46749":{"id":46749,"name":"Graaff-reinet"},"46751":{"id":46751,"name":"Grahamstown"},"46761":{"id":46761,"name":"Ilinge"},"46766":{"id":46766,"name":"Kirkwood"},"46776":{"id":46776,"name":"Kruisfontein"},"46779":{"id":46779,"name":"Lady Frere"},"46789":{"id":46789,"name":"Middelburg"},"46794":{"id":46794,"name":"Molteno"},"46814":{"id":46814,"name":"Port Alfred"},"46815":{"id":46815,"name":"Port Elizabeth"},"46821":{"id":46821,"name":"Queenstown"},"46835":{"id":46835,"name":"Somerset East"},"46844":{"id":46844,"name":"Stutterheim"},"46854":{"id":46854,"name":"Uitenhage"},"46857":{"id":46857,"name":"Umtata"},"46858":{"id":46858,"name":"Umzimvubu"},"46879":{"id":46879,"name":"Whittlesea"},"46880":{"id":46880,"name":"Willowmore"}}},"06":{"code":"06","name":"Gauteng","cities":{"46701":{"id":46701,"name":"Benoni"},"46707":{"id":46707,"name":"Boksburg"},"46709":{"id":46709,"name":"Brakpan"},"46714":{"id":46714,"name":"Bronkhorstspruit"},"46726":{"id":46726,"name":"Cullinan"},"46736":{"id":46736,"name":"Ekangala"},"46754":{"id":46754,"name":"Heidelberg"},"46763":{"id":46763,"name":"Johannesburg"},"46775":{"id":46775,"name":"Krugersdorp"},"46784":{"id":46784,"name":"Mabopane"},"46791":{"id":46791,"name":"Midrand"},"46800":{"id":46800,"name":"Nigel"},"46819":{"id":46819,"name":"Pretoria"},"46822":{"id":46822,"name":"Randfontein"},"46837":{"id":46837,"name":"Soweto"},"46839":{"id":46839,"name":"Springs"},"46848":{"id":46848,"name":"Tembisa"},"46861":{"id":46861,"name":"Vanderbijlpark"},"46863":{"id":46863,"name":"Vereeniging"},"46864":{"id":46864,"name":"Verwoerdburg"},"46878":{"id":46878,"name":"Westonaria"}}},"07":{"code":"07","name":"Mpumalanga","cities":{"46696":{"id":46696,"name":"Balfour"},"46698":{"id":46698,"name":"Barberton"},"46700":{"id":46700,"name":"Belfast"},"46702":{"id":46702,"name":"Bethal"},"46712":{"id":46712,"name":"Breyten"},"46729":{"id":46729,"name":"Delmas"},"46741":{"id":46741,"name":"Ermelo"},"46756":{"id":46756,"name":"Hendrina"},"46770":{"id":46770,"name":"Komatipoort"},"46773":{"id":46773,"name":"Kriel"},"46783":{"id":46783,"name":"Lydenburg"},"46790":{"id":46790,"name":"Middelburg"},"46798":{"id":46798,"name":"Nelspruit"},"46812":{"id":46812,"name":"Piet Retief"},"46832":{"id":46832,"name":"Secunda"},"46834":{"id":46834,"name":"Siyabuswa"},"46840":{"id":46840,"name":"Standerton"},"46868":{"id":46868,"name":"Volksrust"},"46882":{"id":46882,"name":"Witbank"},"46883":{"id":46883,"name":"Witrivier"}}},"08":{"code":"08","name":"Northern Cape","cities":{"46718":{"id":46718,"name":"Calvinia"},"46720":{"id":46720,"name":"Carnarvon"},"46727":{"id":46727,"name":"Danielskuil"},"46764":{"id":46764,"name":"Kathu"},"46765":{"id":46765,"name":"Kimberley"},"46777":{"id":46777,"name":"Kuruman"},"46820":{"id":46820,"name":"Prieska"},"46826":{"id":46826,"name":"Ritchie"},"46838":{"id":46838,"name":"Springbok"},"46859":{"id":46859,"name":"Upington"},"46875":{"id":46875,"name":"Warrenton"}}},"09":{"code":"09","name":"Limpopo","cities":{"46732":{"id":46732,"name":"Duiwelskloof"},"46739":{"id":46739,"name":"Ellisras"},"46747":{"id":46747,"name":"Giyani"},"46780":{"id":46780,"name":"Lebowakgomo"},"46782":{"id":46782,"name":"Louis Trichardt"},"46788":{"id":46788,"name":"Messina"},"46801":{"id":46801,"name":"Nkowakowa"},"46802":{"id":46802,"name":"Nylstroom"},"46808":{"id":46808,"name":"Phalaborwa"},"46811":{"id":46811,"name":"Pietersburg"},"46818":{"id":46818,"name":"Potgietersrus"},"46850":{"id":46850,"name":"Thabazimbi"},"46852":{"id":46852,"name":"Thohoyandou"},"46853":{"id":46853,"name":"Tzaneen"},"46874":{"id":46874,"name":"Warmbad"}}}}}
+{
+  "code": "ZA",
+  "name": "South Africa",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "North-West",
+      "cities": {
+        "46706": {
+          "id": 46706,
+          "name": "Bloemhof"
+        },
+        "46713": {
+          "id": 46713,
+          "name": "Brits"
+        },
+        "46722": {
+          "id": 46722,
+          "name": "Christiana"
+        },
+        "46743": {
+          "id": 46743,
+          "name": "Fochville"
+        },
+        "46762": {
+          "id": 46762,
+          "name": "Jan Kempdorp"
+        },
+        "46767": {
+          "id": 46767,
+          "name": "Klerksdorp"
+        },
+        "46772": {
+          "id": 46772,
+          "name": "Koster"
+        },
+        "46781": {
+          "id": 46781,
+          "name": "Lichtenburg"
+        },
+        "46792": {
+          "id": 46792,
+          "name": "Mmabatho"
+        },
+        "46793": {
+          "id": 46793,
+          "name": "Mogwase"
+        },
+        "46803": {
+          "id": 46803,
+          "name": "Orkney"
+        },
+        "46806": {
+          "id": 46806,
+          "name": "Pampierstad"
+        },
+        "46817": {
+          "id": 46817,
+          "name": "Potchefstroom"
+        },
+        "46828": {
+          "id": 46828,
+          "name": "Rustenburg"
+        },
+        "46843": {
+          "id": 46843,
+          "name": "Stilfontein"
+        },
+        "46847": {
+          "id": 46847,
+          "name": "Temba"
+        },
+        "46872": {
+          "id": 46872,
+          "name": "Vryburg"
+        },
+        "46884": {
+          "id": 46884,
+          "name": "Wolmaranstad"
+        },
+        "46887": {
+          "id": 46887,
+          "name": "Zeerust"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Western Cape",
+      "cities": {
+        "46695": {
+          "id": 46695,
+          "name": "Atlantis"
+        },
+        "46711": {
+          "id": 46711,
+          "name": "Bredasdorp"
+        },
+        "46717": {
+          "id": 46717,
+          "name": "Caledon"
+        },
+        "46719": {
+          "id": 46719,
+          "name": "Cape Town"
+        },
+        "46721": {
+          "id": 46721,
+          "name": "Ceres"
+        },
+        "46746": {
+          "id": 46746,
+          "name": "George"
+        },
+        "46750": {
+          "id": 46750,
+          "name": "Grabouw"
+        },
+        "46758": {
+          "id": 46758,
+          "name": "Hermanus"
+        },
+        "46768": {
+          "id": 46768,
+          "name": "Knysna"
+        },
+        "46785": {
+          "id": 46785,
+          "name": "Malmesbury"
+        },
+        "46804": {
+          "id": 46804,
+          "name": "Oudtshoorn"
+        },
+        "46805": {
+          "id": 46805,
+          "name": "Paarl"
+        },
+        "46813": {
+          "id": 46813,
+          "name": "Plettenberg Bay"
+        },
+        "46827": {
+          "id": 46827,
+          "name": "Robertson"
+        },
+        "46829": {
+          "id": 46829,
+          "name": "Saldanha"
+        },
+        "46836": {
+          "id": 46836,
+          "name": "Somerset West"
+        },
+        "46842": {
+          "id": 46842,
+          "name": "Stellenbosch"
+        },
+        "46846": {
+          "id": 46846,
+          "name": "Swellendam"
+        },
+        "46870": {
+          "id": 46870,
+          "name": "Vredendal"
+        },
+        "46885": {
+          "id": 46885,
+          "name": "Worcester"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "KwaZulu-Natal",
+      "cities": {
+        "46697": {
+          "id": 46697,
+          "name": "Ballitoville"
+        },
+        "46733": {
+          "id": 46733,
+          "name": "Dundee"
+        },
+        "46734": {
+          "id": 46734,
+          "name": "Durban"
+        },
+        "46737": {
+          "id": 46737,
+          "name": "Ekuvukeni"
+        },
+        "46740": {
+          "id": 46740,
+          "name": "Empangeni"
+        },
+        "46742": {
+          "id": 46742,
+          "name": "Eshowe"
+        },
+        "46748": {
+          "id": 46748,
+          "name": "Glencoe"
+        },
+        "46752": {
+          "id": 46752,
+          "name": "Greytown"
+        },
+        "46760": {
+          "id": 46760,
+          "name": "Howick"
+        },
+        "46769": {
+          "id": 46769,
+          "name": "Kokstad"
+        },
+        "46786": {
+          "id": 46786,
+          "name": "Margate"
+        },
+        "46795": {
+          "id": 46795,
+          "name": "Mondlo"
+        },
+        "46796": {
+          "id": 46796,
+          "name": "Mooi River"
+        },
+        "46797": {
+          "id": 46797,
+          "name": "Mpophomeni"
+        },
+        "46799": {
+          "id": 46799,
+          "name": "Newcastle"
+        },
+        "46810": {
+          "id": 46810,
+          "name": "Pietermaritzburg"
+        },
+        "46816": {
+          "id": 46816,
+          "name": "Port Shepstone"
+        },
+        "46824": {
+          "id": 46824,
+          "name": "Richards Bay"
+        },
+        "46825": {
+          "id": 46825,
+          "name": "Richmond"
+        },
+        "46831": {
+          "id": 46831,
+          "name": "Scottsburgh"
+        },
+        "46841": {
+          "id": 46841,
+          "name": "Stanger"
+        },
+        "46845": {
+          "id": 46845,
+          "name": "Sundumbili"
+        },
+        "46855": {
+          "id": 46855,
+          "name": "Ulundi"
+        },
+        "46856": {
+          "id": 46856,
+          "name": "Umkomaas"
+        },
+        "46860": {
+          "id": 46860,
+          "name": "Utrecht"
+        },
+        "46873": {
+          "id": 46873,
+          "name": "Vryheid"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Free State",
+      "cities": {
+        "46694": {
+          "id": 46694,
+          "name": "Allanridge"
+        },
+        "46703": {
+          "id": 46703,
+          "name": "Bethlehem"
+        },
+        "46705": {
+          "id": 46705,
+          "name": "Bloemfontein"
+        },
+        "46708": {
+          "id": 46708,
+          "name": "Botshabelo"
+        },
+        "46710": {
+          "id": 46710,
+          "name": "Brandfort"
+        },
+        "46723": {
+          "id": 46723,
+          "name": "Clocolan"
+        },
+        "46730": {
+          "id": 46730,
+          "name": "Deneysville"
+        },
+        "46745": {
+          "id": 46745,
+          "name": "Frankfort"
+        },
+        "46753": {
+          "id": 46753,
+          "name": "Harrismith"
+        },
+        "46755": {
+          "id": 46755,
+          "name": "Heilbron"
+        },
+        "46757": {
+          "id": 46757,
+          "name": "Hennenman"
+        },
+        "46759": {
+          "id": 46759,
+          "name": "Hoopstad"
+        },
+        "46771": {
+          "id": 46771,
+          "name": "Koppies"
+        },
+        "46774": {
+          "id": 46774,
+          "name": "Kroonstad"
+        },
+        "46778": {
+          "id": 46778,
+          "name": "Ladybrand"
+        },
+        "46787": {
+          "id": 46787,
+          "name": "Marquard"
+        },
+        "46807": {
+          "id": 46807,
+          "name": "Parys"
+        },
+        "46809": {
+          "id": 46809,
+          "name": "Phuthaditjhaba"
+        },
+        "46823": {
+          "id": 46823,
+          "name": "Reitz"
+        },
+        "46830": {
+          "id": 46830,
+          "name": "Sasolburg"
+        },
+        "46833": {
+          "id": 46833,
+          "name": "Senekal"
+        },
+        "46849": {
+          "id": 46849,
+          "name": "Thaba Nchu"
+        },
+        "46851": {
+          "id": 46851,
+          "name": "Theunissen"
+        },
+        "46862": {
+          "id": 46862,
+          "name": "Ventersburg"
+        },
+        "46865": {
+          "id": 46865,
+          "name": "Viljoenskroon"
+        },
+        "46866": {
+          "id": 46866,
+          "name": "Villiers"
+        },
+        "46867": {
+          "id": 46867,
+          "name": "Virginia"
+        },
+        "46869": {
+          "id": 46869,
+          "name": "Vredefort"
+        },
+        "46871": {
+          "id": 46871,
+          "name": "Vrede"
+        },
+        "46876": {
+          "id": 46876,
+          "name": "Welkom"
+        },
+        "46877": {
+          "id": 46877,
+          "name": "Wesselsbron"
+        },
+        "46881": {
+          "id": 46881,
+          "name": "Winburg"
+        },
+        "46886": {
+          "id": 46886,
+          "name": "Zastron"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Eastern Cape",
+      "cities": {
+        "46691": {
+          "id": 46691,
+          "name": "Adelaide"
+        },
+        "46692": {
+          "id": 46692,
+          "name": "Alice"
+        },
+        "46693": {
+          "id": 46693,
+          "name": "Aliwal North"
+        },
+        "46704": {
+          "id": 46704,
+          "name": "Bisho"
+        },
+        "46715": {
+          "id": 46715,
+          "name": "Burgersdorp"
+        },
+        "46716": {
+          "id": 46716,
+          "name": "Butterworth"
+        },
+        "46725": {
+          "id": 46725,
+          "name": "Cradock"
+        },
+        "46731": {
+          "id": 46731,
+          "name": "Dordrecht"
+        },
+        "46735": {
+          "id": 46735,
+          "name": "East London"
+        },
+        "46738": {
+          "id": 46738,
+          "name": "Elliot"
+        },
+        "46744": {
+          "id": 46744,
+          "name": "Fort Beaufort"
+        },
+        "46749": {
+          "id": 46749,
+          "name": "Graaff-reinet"
+        },
+        "46751": {
+          "id": 46751,
+          "name": "Grahamstown"
+        },
+        "46761": {
+          "id": 46761,
+          "name": "Ilinge"
+        },
+        "46766": {
+          "id": 46766,
+          "name": "Kirkwood"
+        },
+        "46776": {
+          "id": 46776,
+          "name": "Kruisfontein"
+        },
+        "46779": {
+          "id": 46779,
+          "name": "Lady Frere"
+        },
+        "46789": {
+          "id": 46789,
+          "name": "Middelburg"
+        },
+        "46794": {
+          "id": 46794,
+          "name": "Molteno"
+        },
+        "46814": {
+          "id": 46814,
+          "name": "Port Alfred"
+        },
+        "46815": {
+          "id": 46815,
+          "name": "Port Elizabeth"
+        },
+        "46821": {
+          "id": 46821,
+          "name": "Queenstown"
+        },
+        "46835": {
+          "id": 46835,
+          "name": "Somerset East"
+        },
+        "46844": {
+          "id": 46844,
+          "name": "Stutterheim"
+        },
+        "46854": {
+          "id": 46854,
+          "name": "Uitenhage"
+        },
+        "46857": {
+          "id": 46857,
+          "name": "Umtata"
+        },
+        "46858": {
+          "id": 46858,
+          "name": "Umzimvubu"
+        },
+        "46879": {
+          "id": 46879,
+          "name": "Whittlesea"
+        },
+        "46880": {
+          "id": 46880,
+          "name": "Willowmore"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Gauteng",
+      "cities": {
+        "46701": {
+          "id": 46701,
+          "name": "Benoni"
+        },
+        "46707": {
+          "id": 46707,
+          "name": "Boksburg"
+        },
+        "46709": {
+          "id": 46709,
+          "name": "Brakpan"
+        },
+        "46714": {
+          "id": 46714,
+          "name": "Bronkhorstspruit"
+        },
+        "46726": {
+          "id": 46726,
+          "name": "Cullinan"
+        },
+        "46736": {
+          "id": 46736,
+          "name": "Ekangala"
+        },
+        "46754": {
+          "id": 46754,
+          "name": "Heidelberg"
+        },
+        "46763": {
+          "id": 46763,
+          "name": "Johannesburg"
+        },
+        "46775": {
+          "id": 46775,
+          "name": "Krugersdorp"
+        },
+        "46784": {
+          "id": 46784,
+          "name": "Mabopane"
+        },
+        "46791": {
+          "id": 46791,
+          "name": "Midrand"
+        },
+        "46800": {
+          "id": 46800,
+          "name": "Nigel"
+        },
+        "46819": {
+          "id": 46819,
+          "name": "Pretoria"
+        },
+        "46822": {
+          "id": 46822,
+          "name": "Randfontein"
+        },
+        "46837": {
+          "id": 46837,
+          "name": "Soweto"
+        },
+        "46839": {
+          "id": 46839,
+          "name": "Springs"
+        },
+        "46848": {
+          "id": 46848,
+          "name": "Tembisa"
+        },
+        "46861": {
+          "id": 46861,
+          "name": "Vanderbijlpark"
+        },
+        "46863": {
+          "id": 46863,
+          "name": "Vereeniging"
+        },
+        "46864": {
+          "id": 46864,
+          "name": "Verwoerdburg"
+        },
+        "46878": {
+          "id": 46878,
+          "name": "Westonaria"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Mpumalanga",
+      "cities": {
+        "46696": {
+          "id": 46696,
+          "name": "Balfour"
+        },
+        "46698": {
+          "id": 46698,
+          "name": "Barberton"
+        },
+        "46700": {
+          "id": 46700,
+          "name": "Belfast"
+        },
+        "46702": {
+          "id": 46702,
+          "name": "Bethal"
+        },
+        "46712": {
+          "id": 46712,
+          "name": "Breyten"
+        },
+        "46729": {
+          "id": 46729,
+          "name": "Delmas"
+        },
+        "46741": {
+          "id": 46741,
+          "name": "Ermelo"
+        },
+        "46756": {
+          "id": 46756,
+          "name": "Hendrina"
+        },
+        "46770": {
+          "id": 46770,
+          "name": "Komatipoort"
+        },
+        "46773": {
+          "id": 46773,
+          "name": "Kriel"
+        },
+        "46783": {
+          "id": 46783,
+          "name": "Lydenburg"
+        },
+        "46790": {
+          "id": 46790,
+          "name": "Middelburg"
+        },
+        "46798": {
+          "id": 46798,
+          "name": "Nelspruit"
+        },
+        "46812": {
+          "id": 46812,
+          "name": "Piet Retief"
+        },
+        "46832": {
+          "id": 46832,
+          "name": "Secunda"
+        },
+        "46834": {
+          "id": 46834,
+          "name": "Siyabuswa"
+        },
+        "46840": {
+          "id": 46840,
+          "name": "Standerton"
+        },
+        "46868": {
+          "id": 46868,
+          "name": "Volksrust"
+        },
+        "46882": {
+          "id": 46882,
+          "name": "Witbank"
+        },
+        "46883": {
+          "id": 46883,
+          "name": "Witrivier"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Northern Cape",
+      "cities": {
+        "46718": {
+          "id": 46718,
+          "name": "Calvinia"
+        },
+        "46720": {
+          "id": 46720,
+          "name": "Carnarvon"
+        },
+        "46727": {
+          "id": 46727,
+          "name": "Danielskuil"
+        },
+        "46764": {
+          "id": 46764,
+          "name": "Kathu"
+        },
+        "46765": {
+          "id": 46765,
+          "name": "Kimberley"
+        },
+        "46777": {
+          "id": 46777,
+          "name": "Kuruman"
+        },
+        "46820": {
+          "id": 46820,
+          "name": "Prieska"
+        },
+        "46826": {
+          "id": 46826,
+          "name": "Ritchie"
+        },
+        "46838": {
+          "id": 46838,
+          "name": "Springbok"
+        },
+        "46859": {
+          "id": 46859,
+          "name": "Upington"
+        },
+        "46875": {
+          "id": 46875,
+          "name": "Warrenton"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Limpopo",
+      "cities": {
+        "46732": {
+          "id": 46732,
+          "name": "Duiwelskloof"
+        },
+        "46739": {
+          "id": 46739,
+          "name": "Ellisras"
+        },
+        "46747": {
+          "id": 46747,
+          "name": "Giyani"
+        },
+        "46780": {
+          "id": 46780,
+          "name": "Lebowakgomo"
+        },
+        "46782": {
+          "id": 46782,
+          "name": "Louis Trichardt"
+        },
+        "46788": {
+          "id": 46788,
+          "name": "Messina"
+        },
+        "46801": {
+          "id": 46801,
+          "name": "Nkowakowa"
+        },
+        "46802": {
+          "id": 46802,
+          "name": "Nylstroom"
+        },
+        "46808": {
+          "id": 46808,
+          "name": "Phalaborwa"
+        },
+        "46811": {
+          "id": 46811,
+          "name": "Pietersburg"
+        },
+        "46818": {
+          "id": 46818,
+          "name": "Potgietersrus"
+        },
+        "46850": {
+          "id": 46850,
+          "name": "Thabazimbi"
+        },
+        "46852": {
+          "id": 46852,
+          "name": "Thohoyandou"
+        },
+        "46853": {
+          "id": 46853,
+          "name": "Tzaneen"
+        },
+        "46874": {
+          "id": 46874,
+          "name": "Warmbad"
+        }
+      }
+    }
+  }
+}

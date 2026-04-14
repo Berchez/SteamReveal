@@ -1,1 +1,650 @@
-{"code":"GE","name":"Georgia","states":{"10":{"code":"10","name":"Aspindzis Raioni","cities":{"17334":{"id":17334,"name":"Aspindza"}}},"11":{"code":"11","name":"Baghdat'is Raioni","cities":{}},"12":{"code":"12","name":"Bolnisis Raioni","cities":{}},"13":{"code":"13","name":"Borjomis Raioni","cities":{"17335":{"id":17335,"name":"Bakuriani"},"17336":{"id":17336,"name":"Bakurianis Andeziti"},"17339":{"id":17339,"name":"Borjomi"},"17387":{"id":17387,"name":"Tsagveri"}}},"14":{"code":"14","name":"Chiat'ura","cities":{}},"15":{"code":"15","name":"Ch'khorotsqus Raioni","cities":{}},"16":{"code":"16","name":"Ch'okhatauris Raioni","cities":{}},"17":{"code":"17","name":"Dedop'listsqaros Raioni","cities":{"17380":{"id":17380,"name":"Signagi"},"17392":{"id":17392,"name":"Tsnori"}}},"18":{"code":"18","name":"Dmanisis Raioni","cities":{}},"19":{"code":"19","name":"Dushet'is Raioni","cities":{"17340":{"id":17340,"name":"Didi Lilo"},"17351":{"id":17351,"name":"Kazbegi"},"17357":{"id":17357,"name":"Kojori"},"17366":{"id":17366,"name":"Marneuli"},"17377":{"id":17377,"name":"Shaumiani"},"17381":{"id":17381,"name":"Sioni"},"17384":{"id":17384,"name":"Tbilisi"},"17391":{"id":17391,"name":"Tskneti"},"17396":{"id":17396,"name":"Zahesi"}}},"20":{"code":"20","name":"Gardabanis Raioni","cities":{}},"21":{"code":"21","name":"Gori","cities":{}},"22":{"code":"22","name":"Goris Raioni","cities":{"17338":{"id":17338,"name":"Bolnisi"},"17346":{"id":17346,"name":"Gori"},"17365":{"id":17365,"name":"Manglisi"}}},"23":{"code":"23","name":"Gurjaanis Raioni","cities":{}},"24":{"code":"24","name":"Javis Raioni","cities":{"17348":{"id":17348,"name":"Java"}}},"25":{"code":"25","name":"K'arelis Raioni","cities":{"17329":{"id":17329,"name":"Agara"},"17358":{"id":17358,"name":"Kornisi"}}},"26":{"code":"26","name":"Kaspis Raioni","cities":{"17350":{"id":17350,"name":"Kaspi"}}},"27":{"code":"27","name":"Kharagaulis Raioni","cities":{"17352":{"id":17352,"name":"Kharagauli"}}},"28":{"code":"28","name":"Khashuris Raioni","cities":{"17353":{"id":17353,"name":"Khashuri"},"17383":{"id":17383,"name":"Surami"}}},"29":{"code":"29","name":"Khobis Raioni","cities":{"17354":{"id":17354,"name":"Khobi"}}},"30":{"code":"30","name":"Khonis Raioni","cities":{}},"31":{"code":"31","name":"K'ut'aisi","cities":{"17347":{"id":17347,"name":"Gurjaani"},"17362":{"id":17362,"name":"Lagodekhi"}}},"32":{"code":"32","name":"Lagodekhis Raioni","cities":{}},"33":{"code":"33","name":"Lanch'khut'is Raioni","cities":{"17363":{"id":17363,"name":"Lentekhi"}}},"34":{"code":"34","name":"Lentekhis Raioni","cities":{}},"35":{"code":"35","name":"Marneulis Raioni","cities":{"17367":{"id":17367,"name":"Martvili"}}},"36":{"code":"36","name":"Martvilis Raioni","cities":{"17368":{"id":17368,"name":"Mestia"}}},"37":{"code":"37","name":"Mestiis Raioni","cities":{}},"38":{"code":"38","name":"Mts'khet'is Raioni","cities":{"17370":{"id":17370,"name":"Ninotsminda"}}},"39":{"code":"39","name":"Ninotsmindis Raioni","cities":{"17360":{"id":17360,"name":"Kvaisi"},"17372":{"id":17372,"name":"Oni"}}},"40":{"code":"40","name":"Onis Raioni","cities":{"17369":{"id":17369,"name":"Naruja"},"17393":{"id":17393,"name":"Ureki"}}},"41":{"code":"41","name":"Ozurget'is Raioni","cities":{}},"42":{"code":"42","name":"P'ot'i","cities":{}},"43":{"code":"43","name":"Qazbegis Raioni","cities":{"17361":{"id":17361,"name":"Kvareli"}}},"44":{"code":"44","name":"Qvarlis Raioni","cities":{}},"45":{"code":"45","name":"Rust'avi","cities":{}},"46":{"code":"46","name":"Sach'kheris Raioni","cities":{}},"47":{"code":"47","name":"Sagarejos Raioni","cities":{"17359":{"id":17359,"name":"Kulashi"},"17375":{"id":17375,"name":"Samtredia"}}},"48":{"code":"48","name":"Samtrediis Raioni","cities":{"17376":{"id":17376,"name":"Senaki"}}},"49":{"code":"49","name":"Senakis Raioni","cities":{}},"50":{"code":"50","name":"Sighnaghis Raioni","cities":{}},"51":{"code":"51","name":"T'bilisi","cities":{}},"52":{"code":"52","name":"T'elavis Raioni","cities":{}},"53":{"code":"53","name":"T'erjolis Raioni","cities":{}},"54":{"code":"54","name":"T'et'ritsqaros Raioni","cities":{}},"55":{"code":"55","name":"T'ianet'is Raioni","cities":{"17385":{"id":17385,"name":"Tkibuli"}}},"56":{"code":"56","name":"Tqibuli","cities":{}},"57":{"code":"57","name":"Ts'ageris Raioni","cities":{"17349":{"id":17349,"name":"Jvari"},"17388":{"id":17388,"name":"Tsalenjikha"}}},"58":{"code":"58","name":"Tsalenjikhis Raioni","cities":{"17337":{"id":17337,"name":"Bediani"},"17342":{"id":17342,"name":"Dmanisi"},"17389":{"id":17389,"name":"Tsalka"}}},"59":{"code":"59","name":"Tsalkis Raioni","cities":{"17390":{"id":17390,"name":"Tskaltubo"}}},"60":{"code":"60","name":"Tsqaltubo","cities":{"17395":{"id":17395,"name":"Vani"}}},"61":{"code":"61","name":"Vanis Raioni","cities":{"17378":{"id":17378,"name":"Shorapani"}}},"62":{"code":"62","name":"Zestap'onis Raioni","cities":{"17397":{"id":17397,"name":"Zugdidi"}}},"63":{"code":"63","name":"Zugdidi","cities":{}},"64":{"code":"64","name":"Zugdidis Raioni","cities":{"17355":{"id":17355,"name":"Khoni"}}},"01":{"code":"01","name":"Abashis Raioni","cities":{"17326":{"id":17326,"name":"Abasha"}}},"02":{"code":"02","name":"Abkhazia","cities":{"17343":{"id":17343,"name":"Gagra"},"17344":{"id":17344,"name":"Gali"},"17371":{"id":17371,"name":"Ochamchira"},"17373":{"id":17373,"name":"Pitsunda"},"17382":{"id":17382,"name":"Sukhumi"},"17386":{"id":17386,"name":"Tkvarcheli"}}},"03":{"code":"03","name":"Adigenis Raioni","cities":{}},"04":{"code":"04","name":"Ajaria","cities":{"17330":{"id":17330,"name":"Akhaldaba"},"17341":{"id":17341,"name":"Dioknisi"},"17356":{"id":17356,"name":"Khulo"},"17364":{"id":17364,"name":"Makhinjauri"},"17379":{"id":17379,"name":"Shuakhevi"}}},"05":{"code":"05","name":"Akhalgoris Raioni","cities":{"17331":{"id":17331,"name":"Akhalgori"}}},"06":{"code":"06","name":"Akhalk'alak'is Raioni","cities":{}},"07":{"code":"07","name":"Akhalts'ikhis Raioni","cities":{"17327":{"id":17327,"name":"Abastumani"},"17328":{"id":17328,"name":"Adigeni"},"17394":{"id":17394,"name":"Vale"}}},"08":{"code":"08","name":"Akhmetis Raioni","cities":{"17332":{"id":17332,"name":"Akhmeta"},"17345":{"id":17345,"name":"Gardabani"},"17374":{"id":17374,"name":"Sagarejo"}}},"09":{"code":"09","name":"Ambrolauris Raioni","cities":{"17333":{"id":17333,"name":"Ambrolauri"}}}}}
+{
+  "code": "GE",
+  "name": "Georgia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Aspindzis Raioni",
+      "cities": {
+        "17334": {
+          "id": 17334,
+          "name": "Aspindza"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Baghdat'is Raioni",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Bolnisis Raioni",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Borjomis Raioni",
+      "cities": {
+        "17335": {
+          "id": 17335,
+          "name": "Bakuriani"
+        },
+        "17336": {
+          "id": 17336,
+          "name": "Bakurianis Andeziti"
+        },
+        "17339": {
+          "id": 17339,
+          "name": "Borjomi"
+        },
+        "17387": {
+          "id": 17387,
+          "name": "Tsagveri"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Chiat'ura",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "Ch'khorotsqus Raioni",
+      "cities": {}
+    },
+    "16": {
+      "code": "16",
+      "name": "Ch'okhatauris Raioni",
+      "cities": {}
+    },
+    "17": {
+      "code": "17",
+      "name": "Dedop'listsqaros Raioni",
+      "cities": {
+        "17380": {
+          "id": 17380,
+          "name": "Signagi"
+        },
+        "17392": {
+          "id": 17392,
+          "name": "Tsnori"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Dmanisis Raioni",
+      "cities": {}
+    },
+    "19": {
+      "code": "19",
+      "name": "Dushet'is Raioni",
+      "cities": {
+        "17340": {
+          "id": 17340,
+          "name": "Didi Lilo"
+        },
+        "17351": {
+          "id": 17351,
+          "name": "Kazbegi"
+        },
+        "17357": {
+          "id": 17357,
+          "name": "Kojori"
+        },
+        "17366": {
+          "id": 17366,
+          "name": "Marneuli"
+        },
+        "17377": {
+          "id": 17377,
+          "name": "Shaumiani"
+        },
+        "17381": {
+          "id": 17381,
+          "name": "Sioni"
+        },
+        "17384": {
+          "id": 17384,
+          "name": "Tbilisi"
+        },
+        "17391": {
+          "id": 17391,
+          "name": "Tskneti"
+        },
+        "17396": {
+          "id": 17396,
+          "name": "Zahesi"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Gardabanis Raioni",
+      "cities": {}
+    },
+    "21": {
+      "code": "21",
+      "name": "Gori",
+      "cities": {}
+    },
+    "22": {
+      "code": "22",
+      "name": "Goris Raioni",
+      "cities": {
+        "17338": {
+          "id": 17338,
+          "name": "Bolnisi"
+        },
+        "17346": {
+          "id": 17346,
+          "name": "Gori"
+        },
+        "17365": {
+          "id": 17365,
+          "name": "Manglisi"
+        }
+      }
+    },
+    "23": {
+      "code": "23",
+      "name": "Gurjaanis Raioni",
+      "cities": {}
+    },
+    "24": {
+      "code": "24",
+      "name": "Javis Raioni",
+      "cities": {
+        "17348": {
+          "id": 17348,
+          "name": "Java"
+        }
+      }
+    },
+    "25": {
+      "code": "25",
+      "name": "K'arelis Raioni",
+      "cities": {
+        "17329": {
+          "id": 17329,
+          "name": "Agara"
+        },
+        "17358": {
+          "id": 17358,
+          "name": "Kornisi"
+        }
+      }
+    },
+    "26": {
+      "code": "26",
+      "name": "Kaspis Raioni",
+      "cities": {
+        "17350": {
+          "id": 17350,
+          "name": "Kaspi"
+        }
+      }
+    },
+    "27": {
+      "code": "27",
+      "name": "Kharagaulis Raioni",
+      "cities": {
+        "17352": {
+          "id": 17352,
+          "name": "Kharagauli"
+        }
+      }
+    },
+    "28": {
+      "code": "28",
+      "name": "Khashuris Raioni",
+      "cities": {
+        "17353": {
+          "id": 17353,
+          "name": "Khashuri"
+        },
+        "17383": {
+          "id": 17383,
+          "name": "Surami"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Khobis Raioni",
+      "cities": {
+        "17354": {
+          "id": 17354,
+          "name": "Khobi"
+        }
+      }
+    },
+    "30": {
+      "code": "30",
+      "name": "Khonis Raioni",
+      "cities": {}
+    },
+    "31": {
+      "code": "31",
+      "name": "K'ut'aisi",
+      "cities": {
+        "17347": {
+          "id": 17347,
+          "name": "Gurjaani"
+        },
+        "17362": {
+          "id": 17362,
+          "name": "Lagodekhi"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Lagodekhis Raioni",
+      "cities": {}
+    },
+    "33": {
+      "code": "33",
+      "name": "Lanch'khut'is Raioni",
+      "cities": {
+        "17363": {
+          "id": 17363,
+          "name": "Lentekhi"
+        }
+      }
+    },
+    "34": {
+      "code": "34",
+      "name": "Lentekhis Raioni",
+      "cities": {}
+    },
+    "35": {
+      "code": "35",
+      "name": "Marneulis Raioni",
+      "cities": {
+        "17367": {
+          "id": 17367,
+          "name": "Martvili"
+        }
+      }
+    },
+    "36": {
+      "code": "36",
+      "name": "Martvilis Raioni",
+      "cities": {
+        "17368": {
+          "id": 17368,
+          "name": "Mestia"
+        }
+      }
+    },
+    "37": {
+      "code": "37",
+      "name": "Mestiis Raioni",
+      "cities": {}
+    },
+    "38": {
+      "code": "38",
+      "name": "Mts'khet'is Raioni",
+      "cities": {
+        "17370": {
+          "id": 17370,
+          "name": "Ninotsminda"
+        }
+      }
+    },
+    "39": {
+      "code": "39",
+      "name": "Ninotsmindis Raioni",
+      "cities": {
+        "17360": {
+          "id": 17360,
+          "name": "Kvaisi"
+        },
+        "17372": {
+          "id": 17372,
+          "name": "Oni"
+        }
+      }
+    },
+    "40": {
+      "code": "40",
+      "name": "Onis Raioni",
+      "cities": {
+        "17369": {
+          "id": 17369,
+          "name": "Naruja"
+        },
+        "17393": {
+          "id": 17393,
+          "name": "Ureki"
+        }
+      }
+    },
+    "41": {
+      "code": "41",
+      "name": "Ozurget'is Raioni",
+      "cities": {}
+    },
+    "42": {
+      "code": "42",
+      "name": "P'ot'i",
+      "cities": {}
+    },
+    "43": {
+      "code": "43",
+      "name": "Qazbegis Raioni",
+      "cities": {
+        "17361": {
+          "id": 17361,
+          "name": "Kvareli"
+        }
+      }
+    },
+    "44": {
+      "code": "44",
+      "name": "Qvarlis Raioni",
+      "cities": {}
+    },
+    "45": {
+      "code": "45",
+      "name": "Rust'avi",
+      "cities": {}
+    },
+    "46": {
+      "code": "46",
+      "name": "Sach'kheris Raioni",
+      "cities": {}
+    },
+    "47": {
+      "code": "47",
+      "name": "Sagarejos Raioni",
+      "cities": {
+        "17359": {
+          "id": 17359,
+          "name": "Kulashi"
+        },
+        "17375": {
+          "id": 17375,
+          "name": "Samtredia"
+        }
+      }
+    },
+    "48": {
+      "code": "48",
+      "name": "Samtrediis Raioni",
+      "cities": {
+        "17376": {
+          "id": 17376,
+          "name": "Senaki"
+        }
+      }
+    },
+    "49": {
+      "code": "49",
+      "name": "Senakis Raioni",
+      "cities": {}
+    },
+    "50": {
+      "code": "50",
+      "name": "Sighnaghis Raioni",
+      "cities": {}
+    },
+    "51": {
+      "code": "51",
+      "name": "T'bilisi",
+      "cities": {}
+    },
+    "52": {
+      "code": "52",
+      "name": "T'elavis Raioni",
+      "cities": {}
+    },
+    "53": {
+      "code": "53",
+      "name": "T'erjolis Raioni",
+      "cities": {}
+    },
+    "54": {
+      "code": "54",
+      "name": "T'et'ritsqaros Raioni",
+      "cities": {}
+    },
+    "55": {
+      "code": "55",
+      "name": "T'ianet'is Raioni",
+      "cities": {
+        "17385": {
+          "id": 17385,
+          "name": "Tkibuli"
+        }
+      }
+    },
+    "56": {
+      "code": "56",
+      "name": "Tqibuli",
+      "cities": {}
+    },
+    "57": {
+      "code": "57",
+      "name": "Ts'ageris Raioni",
+      "cities": {
+        "17349": {
+          "id": 17349,
+          "name": "Jvari"
+        },
+        "17388": {
+          "id": 17388,
+          "name": "Tsalenjikha"
+        }
+      }
+    },
+    "58": {
+      "code": "58",
+      "name": "Tsalenjikhis Raioni",
+      "cities": {
+        "17337": {
+          "id": 17337,
+          "name": "Bediani"
+        },
+        "17342": {
+          "id": 17342,
+          "name": "Dmanisi"
+        },
+        "17389": {
+          "id": 17389,
+          "name": "Tsalka"
+        }
+      }
+    },
+    "59": {
+      "code": "59",
+      "name": "Tsalkis Raioni",
+      "cities": {
+        "17390": {
+          "id": 17390,
+          "name": "Tskaltubo"
+        }
+      }
+    },
+    "60": {
+      "code": "60",
+      "name": "Tsqaltubo",
+      "cities": {
+        "17395": {
+          "id": 17395,
+          "name": "Vani"
+        }
+      }
+    },
+    "61": {
+      "code": "61",
+      "name": "Vanis Raioni",
+      "cities": {
+        "17378": {
+          "id": 17378,
+          "name": "Shorapani"
+        }
+      }
+    },
+    "62": {
+      "code": "62",
+      "name": "Zestap'onis Raioni",
+      "cities": {
+        "17397": {
+          "id": 17397,
+          "name": "Zugdidi"
+        }
+      }
+    },
+    "63": {
+      "code": "63",
+      "name": "Zugdidi",
+      "cities": {}
+    },
+    "64": {
+      "code": "64",
+      "name": "Zugdidis Raioni",
+      "cities": {
+        "17355": {
+          "id": 17355,
+          "name": "Khoni"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Abashis Raioni",
+      "cities": {
+        "17326": {
+          "id": 17326,
+          "name": "Abasha"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Abkhazia",
+      "cities": {
+        "17343": {
+          "id": 17343,
+          "name": "Gagra"
+        },
+        "17344": {
+          "id": 17344,
+          "name": "Gali"
+        },
+        "17371": {
+          "id": 17371,
+          "name": "Ochamchira"
+        },
+        "17373": {
+          "id": 17373,
+          "name": "Pitsunda"
+        },
+        "17382": {
+          "id": 17382,
+          "name": "Sukhumi"
+        },
+        "17386": {
+          "id": 17386,
+          "name": "Tkvarcheli"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Adigenis Raioni",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Ajaria",
+      "cities": {
+        "17330": {
+          "id": 17330,
+          "name": "Akhaldaba"
+        },
+        "17341": {
+          "id": 17341,
+          "name": "Dioknisi"
+        },
+        "17356": {
+          "id": 17356,
+          "name": "Khulo"
+        },
+        "17364": {
+          "id": 17364,
+          "name": "Makhinjauri"
+        },
+        "17379": {
+          "id": 17379,
+          "name": "Shuakhevi"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Akhalgoris Raioni",
+      "cities": {
+        "17331": {
+          "id": 17331,
+          "name": "Akhalgori"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Akhalk'alak'is Raioni",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Akhalts'ikhis Raioni",
+      "cities": {
+        "17327": {
+          "id": 17327,
+          "name": "Abastumani"
+        },
+        "17328": {
+          "id": 17328,
+          "name": "Adigeni"
+        },
+        "17394": {
+          "id": 17394,
+          "name": "Vale"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Akhmetis Raioni",
+      "cities": {
+        "17332": {
+          "id": 17332,
+          "name": "Akhmeta"
+        },
+        "17345": {
+          "id": 17345,
+          "name": "Gardabani"
+        },
+        "17374": {
+          "id": 17374,
+          "name": "Sagarejo"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Ambrolauris Raioni",
+      "cities": {
+        "17333": {
+          "id": 17333,
+          "name": "Ambrolauri"
+        }
+      }
+    }
+  }
+}

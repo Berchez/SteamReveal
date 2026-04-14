@@ -1,1 +1,482 @@
-{"code":"VN","name":"Viet Nam","states":{"11":{"code":"11","name":"Ha Bac","cities":{}},"12":{"code":"12","name":"Hai Hung","cities":{}},"13":{"code":"13","name":"Hai Phong","cities":{"46480":{"id":46480,"name":"Hai Phong"}}},"22":{"code":"22","name":"Lai Chau","cities":{}},"23":{"code":"23","name":"Lam Dong","cities":{}},"24":{"code":"24","name":"Long An","cities":{"46508":{"id":46508,"name":"Tan An"}}},"29":{"code":"29","name":"Quang Nam-Da Nang","cities":{}},"30":{"code":"30","name":"Quang Ninh","cities":{"46473":{"id":46473,"name":"Cam Pha"},"46487":{"id":46487,"name":"Hong Gai"},"46516":{"id":46516,"name":"Uong Bi"}}},"32":{"code":"32","name":"Son La","cities":{"46505":{"id":46505,"name":"Son La"}}},"33":{"code":"33","name":"Tay Ninh","cities":{"46509":{"id":46509,"name":"Tay Ninh"}}},"34":{"code":"34","name":"Thanh Hoa","cities":{"46512":{"id":46512,"name":"Thanh Hoa"}}},"35":{"code":"35","name":"Thai Binh","cities":{"46510":{"id":46510,"name":"Thai Binh"}}},"37":{"code":"37","name":"Tien Giang","cities":{"46494":{"id":46494,"name":"My Tho"}}},"39":{"code":"39","name":"Lang Son","cities":{"46491":{"id":46491,"name":"Lang Son"}}},"43":{"code":"43","name":"An Giang","cities":{"46470":{"id":46470,"name":"Bien Hoa"}}},"44":{"code":"44","name":"Dac Lac","cities":{"46481":{"id":46481,"name":"Hanoi"},"46482":{"id":46482,"name":"Ha Noi"}}},"45":{"code":"45","name":"Dong Nai","cities":{"46521":{"id":46521,"name":"Vung Tau"}}},"46":{"code":"46","name":"Dong Thap","cities":{"46502":{"id":46502,"name":"Qui Nhon"}}},"47":{"code":"47","name":"Kien Giang","cities":{"46498":{"id":46498,"name":"Phan Thiet"}}},"48":{"code":"48","name":"Minh Hai","cities":{"46475":{"id":46475,"name":"Can Tho"}}},"49":{"code":"49","name":"Song Be","cities":{"46500":{"id":46500,"name":"Play Cu"}}},"50":{"code":"50","name":"Vinh Phu","cities":{"46478":{"id":46478,"name":"Ha Giang"}}},"51":{"code":"51","name":"Ha Noi","cities":{"46506":{"id":46506,"name":"Son Tay"}}},"52":{"code":"52","name":"Ho Chi Minh","cities":{"46483":{"id":46483,"name":"Ha Tinh"}}},"53":{"code":"53","name":"Ba Ria-Vung Tau","cities":{"46484":{"id":46484,"name":"Hoa Binh"}}},"54":{"code":"54","name":"Binh Dinh","cities":{"46474":{"id":46474,"name":"Cam Ranh"},"46495":{"id":46495,"name":"Nha Trang"}}},"55":{"code":"55","name":"Binh Thuan","cities":{}},"56":{"code":"56","name":"Can Tho","cities":{"46492":{"id":46492,"name":"Lao Cai"}}},"57":{"code":"57","name":"Gia Lai","cities":{}},"58":{"code":"58","name":"Ha Giang","cities":{"46519":{"id":46519,"name":"Vinh"}}},"59":{"code":"59","name":"Ha Tay","cities":{"46496":{"id":46496,"name":"Ninh Binh"}}},"60":{"code":"60","name":"Ha Tinh","cities":{"46497":{"id":46497,"name":"Phan Rang"}}},"61":{"code":"61","name":"Hoa Binh","cities":{"46515":{"id":46515,"name":"Tuy Hoa"}}},"62":{"code":"62","name":"Khanh Hoa","cities":{}},"63":{"code":"63","name":"Kon Tum","cities":{"46501":{"id":46501,"name":"Quang Ngai"}}},"64":{"code":"64","name":"Lao Cai","cities":{}},"65":{"code":"65","name":"Nam Ha","cities":{"46504":{"id":46504,"name":"Soc Trang"}}},"66":{"code":"66","name":"Nghe An","cities":{"46488":{"id":46488,"name":"Hue"}}},"67":{"code":"67","name":"Ninh Binh","cities":{"46513":{"id":46513,"name":"Tra Vinh"}}},"68":{"code":"68","name":"Ninh Thuan","cities":{"46514":{"id":46514,"name":"Tuyen Quang"}}},"69":{"code":"69","name":"Phu Yen","cities":{}},"70":{"code":"70","name":"Quang Binh","cities":{}},"71":{"code":"71","name":"Quang Ngai","cities":{"46466":{"id":46466,"name":"Bac Giang"}}},"72":{"code":"72","name":"Quang Tri","cities":{"46465":{"id":46465,"name":"Bac Can"}}},"73":{"code":"73","name":"Soc Trang","cities":{"46467":{"id":46467,"name":"Bac Lieu"}}},"74":{"code":"74","name":"Thua Thien","cities":{"46468":{"id":46468,"name":"Bac Ninh"}}},"75":{"code":"75","name":"Tra Vinh","cities":{}},"76":{"code":"76","name":"Tuyen Quang","cities":{"46477":{"id":46477,"name":"Dong Xoai"}}},"77":{"code":"77","name":"Vinh Long","cities":{"46472":{"id":46472,"name":"Ca Mau"}}},"78":{"code":"78","name":"Yen Bai","cities":{}},"02":{"code":"02","name":"Bac Thai","cities":{}},"03":{"code":"03","name":"Ben Tre","cities":{"46469":{"id":46469,"name":"Ben Tre"}}},"05":{"code":"05","name":"Cao Bang","cities":{"46476":{"id":46476,"name":"Cao Bang"}}}}}
+{
+  "code": "VN",
+  "name": "Viet Nam",
+  "states": {
+    "11": {
+      "code": "11",
+      "name": "Ha Bac",
+      "cities": {}
+    },
+    "12": {
+      "code": "12",
+      "name": "Hai Hung",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Hai Phong",
+      "cities": {
+        "46480": {
+          "id": 46480,
+          "name": "Hai Phong"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Lai Chau",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Lam Dong",
+      "cities": {}
+    },
+    "24": {
+      "code": "24",
+      "name": "Long An",
+      "cities": {
+        "46508": {
+          "id": 46508,
+          "name": "Tan An"
+        }
+      }
+    },
+    "29": {
+      "code": "29",
+      "name": "Quang Nam-Da Nang",
+      "cities": {}
+    },
+    "30": {
+      "code": "30",
+      "name": "Quang Ninh",
+      "cities": {
+        "46473": {
+          "id": 46473,
+          "name": "Cam Pha"
+        },
+        "46487": {
+          "id": 46487,
+          "name": "Hong Gai"
+        },
+        "46516": {
+          "id": 46516,
+          "name": "Uong Bi"
+        }
+      }
+    },
+    "32": {
+      "code": "32",
+      "name": "Son La",
+      "cities": {
+        "46505": {
+          "id": 46505,
+          "name": "Son La"
+        }
+      }
+    },
+    "33": {
+      "code": "33",
+      "name": "Tay Ninh",
+      "cities": {
+        "46509": {
+          "id": 46509,
+          "name": "Tay Ninh"
+        }
+      }
+    },
+    "34": {
+      "code": "34",
+      "name": "Thanh Hoa",
+      "cities": {
+        "46512": {
+          "id": 46512,
+          "name": "Thanh Hoa"
+        }
+      }
+    },
+    "35": {
+      "code": "35",
+      "name": "Thai Binh",
+      "cities": {
+        "46510": {
+          "id": 46510,
+          "name": "Thai Binh"
+        }
+      }
+    },
+    "37": {
+      "code": "37",
+      "name": "Tien Giang",
+      "cities": {
+        "46494": {
+          "id": 46494,
+          "name": "My Tho"
+        }
+      }
+    },
+    "39": {
+      "code": "39",
+      "name": "Lang Son",
+      "cities": {
+        "46491": {
+          "id": 46491,
+          "name": "Lang Son"
+        }
+      }
+    },
+    "43": {
+      "code": "43",
+      "name": "An Giang",
+      "cities": {
+        "46470": {
+          "id": 46470,
+          "name": "Bien Hoa"
+        }
+      }
+    },
+    "44": {
+      "code": "44",
+      "name": "Dac Lac",
+      "cities": {
+        "46481": {
+          "id": 46481,
+          "name": "Hanoi"
+        },
+        "46482": {
+          "id": 46482,
+          "name": "Ha Noi"
+        }
+      }
+    },
+    "45": {
+      "code": "45",
+      "name": "Dong Nai",
+      "cities": {
+        "46521": {
+          "id": 46521,
+          "name": "Vung Tau"
+        }
+      }
+    },
+    "46": {
+      "code": "46",
+      "name": "Dong Thap",
+      "cities": {
+        "46502": {
+          "id": 46502,
+          "name": "Qui Nhon"
+        }
+      }
+    },
+    "47": {
+      "code": "47",
+      "name": "Kien Giang",
+      "cities": {
+        "46498": {
+          "id": 46498,
+          "name": "Phan Thiet"
+        }
+      }
+    },
+    "48": {
+      "code": "48",
+      "name": "Minh Hai",
+      "cities": {
+        "46475": {
+          "id": 46475,
+          "name": "Can Tho"
+        }
+      }
+    },
+    "49": {
+      "code": "49",
+      "name": "Song Be",
+      "cities": {
+        "46500": {
+          "id": 46500,
+          "name": "Play Cu"
+        }
+      }
+    },
+    "50": {
+      "code": "50",
+      "name": "Vinh Phu",
+      "cities": {
+        "46478": {
+          "id": 46478,
+          "name": "Ha Giang"
+        }
+      }
+    },
+    "51": {
+      "code": "51",
+      "name": "Ha Noi",
+      "cities": {
+        "46506": {
+          "id": 46506,
+          "name": "Son Tay"
+        }
+      }
+    },
+    "52": {
+      "code": "52",
+      "name": "Ho Chi Minh",
+      "cities": {
+        "46483": {
+          "id": 46483,
+          "name": "Ha Tinh"
+        }
+      }
+    },
+    "53": {
+      "code": "53",
+      "name": "Ba Ria-Vung Tau",
+      "cities": {
+        "46484": {
+          "id": 46484,
+          "name": "Hoa Binh"
+        }
+      }
+    },
+    "54": {
+      "code": "54",
+      "name": "Binh Dinh",
+      "cities": {
+        "46474": {
+          "id": 46474,
+          "name": "Cam Ranh"
+        },
+        "46495": {
+          "id": 46495,
+          "name": "Nha Trang"
+        }
+      }
+    },
+    "55": {
+      "code": "55",
+      "name": "Binh Thuan",
+      "cities": {}
+    },
+    "56": {
+      "code": "56",
+      "name": "Can Tho",
+      "cities": {
+        "46492": {
+          "id": 46492,
+          "name": "Lao Cai"
+        }
+      }
+    },
+    "57": {
+      "code": "57",
+      "name": "Gia Lai",
+      "cities": {}
+    },
+    "58": {
+      "code": "58",
+      "name": "Ha Giang",
+      "cities": {
+        "46519": {
+          "id": 46519,
+          "name": "Vinh"
+        }
+      }
+    },
+    "59": {
+      "code": "59",
+      "name": "Ha Tay",
+      "cities": {
+        "46496": {
+          "id": 46496,
+          "name": "Ninh Binh"
+        }
+      }
+    },
+    "60": {
+      "code": "60",
+      "name": "Ha Tinh",
+      "cities": {
+        "46497": {
+          "id": 46497,
+          "name": "Phan Rang"
+        }
+      }
+    },
+    "61": {
+      "code": "61",
+      "name": "Hoa Binh",
+      "cities": {
+        "46515": {
+          "id": 46515,
+          "name": "Tuy Hoa"
+        }
+      }
+    },
+    "62": {
+      "code": "62",
+      "name": "Khanh Hoa",
+      "cities": {}
+    },
+    "63": {
+      "code": "63",
+      "name": "Kon Tum",
+      "cities": {
+        "46501": {
+          "id": 46501,
+          "name": "Quang Ngai"
+        }
+      }
+    },
+    "64": {
+      "code": "64",
+      "name": "Lao Cai",
+      "cities": {}
+    },
+    "65": {
+      "code": "65",
+      "name": "Nam Ha",
+      "cities": {
+        "46504": {
+          "id": 46504,
+          "name": "Soc Trang"
+        }
+      }
+    },
+    "66": {
+      "code": "66",
+      "name": "Nghe An",
+      "cities": {
+        "46488": {
+          "id": 46488,
+          "name": "Hue"
+        }
+      }
+    },
+    "67": {
+      "code": "67",
+      "name": "Ninh Binh",
+      "cities": {
+        "46513": {
+          "id": 46513,
+          "name": "Tra Vinh"
+        }
+      }
+    },
+    "68": {
+      "code": "68",
+      "name": "Ninh Thuan",
+      "cities": {
+        "46514": {
+          "id": 46514,
+          "name": "Tuyen Quang"
+        }
+      }
+    },
+    "69": {
+      "code": "69",
+      "name": "Phu Yen",
+      "cities": {}
+    },
+    "70": {
+      "code": "70",
+      "name": "Quang Binh",
+      "cities": {}
+    },
+    "71": {
+      "code": "71",
+      "name": "Quang Ngai",
+      "cities": {
+        "46466": {
+          "id": 46466,
+          "name": "Bac Giang"
+        }
+      }
+    },
+    "72": {
+      "code": "72",
+      "name": "Quang Tri",
+      "cities": {
+        "46465": {
+          "id": 46465,
+          "name": "Bac Can"
+        }
+      }
+    },
+    "73": {
+      "code": "73",
+      "name": "Soc Trang",
+      "cities": {
+        "46467": {
+          "id": 46467,
+          "name": "Bac Lieu"
+        }
+      }
+    },
+    "74": {
+      "code": "74",
+      "name": "Thua Thien",
+      "cities": {
+        "46468": {
+          "id": 46468,
+          "name": "Bac Ninh"
+        }
+      }
+    },
+    "75": {
+      "code": "75",
+      "name": "Tra Vinh",
+      "cities": {}
+    },
+    "76": {
+      "code": "76",
+      "name": "Tuyen Quang",
+      "cities": {
+        "46477": {
+          "id": 46477,
+          "name": "Dong Xoai"
+        }
+      }
+    },
+    "77": {
+      "code": "77",
+      "name": "Vinh Long",
+      "cities": {
+        "46472": {
+          "id": 46472,
+          "name": "Ca Mau"
+        }
+      }
+    },
+    "78": {
+      "code": "78",
+      "name": "Yen Bai",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Bac Thai",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Ben Tre",
+      "cities": {
+        "46469": {
+          "id": 46469,
+          "name": "Ben Tre"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Cao Bang",
+      "cities": {
+        "46476": {
+          "id": 46476,
+          "name": "Cao Bang"
+        }
+      }
+    }
+  }
+}

@@ -1,1 +1,160 @@
-{"code":"ZW","name":"Zimbabwe","states":{"10":{"code":"10","name":"Harare","cities":{}},"01":{"code":"01","name":"Manicaland","cities":{}},"02":{"code":"02","name":"Midlands","cities":{}},"03":{"code":"03","name":"Mashonaland Central","cities":{"46957":{"id":46957,"name":"Bindura"},"46974":{"id":46974,"name":"Mount Darwin"}}},"04":{"code":"04","name":"Mashonaland East","cities":{"46959":{"id":46959,"name":"Chegutu"},"46960":{"id":46960,"name":"Chinhoyi"},"46963":{"id":46963,"name":"Chitungwiza"},"46966":{"id":46966,"name":"Harare"},"46968":{"id":46968,"name":"Kadoma"},"46970":{"id":46970,"name":"Karoi"},"46971":{"id":46971,"name":"Kwekwe"},"46972":{"id":46972,"name":"Marondera"},"46975":{"id":46975,"name":"Mutare"},"46976":{"id":46976,"name":"Mutoko"},"46977":{"id":46977,"name":"Mvuma"},"46978":{"id":46978,"name":"Norton"},"46980":{"id":46980,"name":"Rusape"}}},"05":{"code":"05","name":"Mashonaland West","cities":{}},"06":{"code":"06","name":"Matabeleland North","cities":{"46958":{"id":46958,"name":"Bulawayo"},"46964":{"id":46964,"name":"Gwanda"},"46965":{"id":46965,"name":"Gweru"},"46979":{"id":46979,"name":"Redcliffe"}}},"07":{"code":"07","name":"Matabeleland South","cities":{"46956":{"id":46956,"name":"Beitbridge"},"46961":{"id":46961,"name":"Chipinge"},"46962":{"id":46962,"name":"Chiredzi"},"46973":{"id":46973,"name":"Masvingo"},"46981":{"id":46981,"name":"Shurugwi"},"46983":{"id":46983,"name":"Zvishavane"}}},"08":{"code":"08","name":"Masvingo","cities":{}},"09":{"code":"09","name":"Bulawayo","cities":{}}}}
+{
+  "code": "ZW",
+  "name": "Zimbabwe",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Harare",
+      "cities": {}
+    },
+    "01": {
+      "code": "01",
+      "name": "Manicaland",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Midlands",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Mashonaland Central",
+      "cities": {
+        "46957": {
+          "id": 46957,
+          "name": "Bindura"
+        },
+        "46974": {
+          "id": 46974,
+          "name": "Mount Darwin"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Mashonaland East",
+      "cities": {
+        "46959": {
+          "id": 46959,
+          "name": "Chegutu"
+        },
+        "46960": {
+          "id": 46960,
+          "name": "Chinhoyi"
+        },
+        "46963": {
+          "id": 46963,
+          "name": "Chitungwiza"
+        },
+        "46966": {
+          "id": 46966,
+          "name": "Harare"
+        },
+        "46968": {
+          "id": 46968,
+          "name": "Kadoma"
+        },
+        "46970": {
+          "id": 46970,
+          "name": "Karoi"
+        },
+        "46971": {
+          "id": 46971,
+          "name": "Kwekwe"
+        },
+        "46972": {
+          "id": 46972,
+          "name": "Marondera"
+        },
+        "46975": {
+          "id": 46975,
+          "name": "Mutare"
+        },
+        "46976": {
+          "id": 46976,
+          "name": "Mutoko"
+        },
+        "46977": {
+          "id": 46977,
+          "name": "Mvuma"
+        },
+        "46978": {
+          "id": 46978,
+          "name": "Norton"
+        },
+        "46980": {
+          "id": 46980,
+          "name": "Rusape"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Mashonaland West",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Matabeleland North",
+      "cities": {
+        "46958": {
+          "id": 46958,
+          "name": "Bulawayo"
+        },
+        "46964": {
+          "id": 46964,
+          "name": "Gwanda"
+        },
+        "46965": {
+          "id": 46965,
+          "name": "Gweru"
+        },
+        "46979": {
+          "id": 46979,
+          "name": "Redcliffe"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Matabeleland South",
+      "cities": {
+        "46956": {
+          "id": 46956,
+          "name": "Beitbridge"
+        },
+        "46961": {
+          "id": 46961,
+          "name": "Chipinge"
+        },
+        "46962": {
+          "id": 46962,
+          "name": "Chiredzi"
+        },
+        "46973": {
+          "id": 46973,
+          "name": "Masvingo"
+        },
+        "46981": {
+          "id": 46981,
+          "name": "Shurugwi"
+        },
+        "46983": {
+          "id": 46983,
+          "name": "Zvishavane"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Masvingo",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Bulawayo",
+      "cities": {}
+    }
+  }
+}

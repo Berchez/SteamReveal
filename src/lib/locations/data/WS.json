@@ -1,1 +1,56 @@
-{"code":"WS","name":"Samoa","states":{"10":{"code":"10","name":"Tuamasaga","cities":{}},"11":{"code":"11","name":"Vaisigano","cities":{}},"02":{"code":"02","name":"Aiga-i-le-Tai","cities":{}},"03":{"code":"03","name":"Atua","cities":{}},"04":{"code":"04","name":"Fa","cities":{}},"05":{"code":"05","name":"Gaga","cities":{}},"06":{"code":"06","name":"Va","cities":{}},"07":{"code":"07","name":"Gagaifomauga","cities":{}},"08":{"code":"08","name":"Palauli","cities":{}},"09":{"code":"09","name":"Satupa","cities":{}}}}
+{
+  "code": "WS",
+  "name": "Samoa",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Tuamasaga",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Vaisigano",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Aiga-i-le-Tai",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Atua",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Fa",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Gaga",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Va",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Gagaifomauga",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Palauli",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Satupa",
+      "cities": {}
+    }
+  }
+}

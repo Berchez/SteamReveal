@@ -1,1 +1,71 @@
-{"code":"SM","name":"San Marino","states":{"01":{"code":"01","name":"Acquaviva","cities":{"44075":{"id":44075,"name":"Acquaviva"}}},"02":{"code":"02","name":"Chiesanuova","cities":{"44076":{"id":44076,"name":"Chiesanuova"}}},"03":{"code":"03","name":"Domagnano","cities":{}},"04":{"code":"04","name":"Faetano","cities":{}},"05":{"code":"05","name":"Fiorentino","cities":{}},"06":{"code":"06","name":"Borgo Maggiore","cities":{}},"07":{"code":"07","name":"San Marino","cities":{"44077":{"id":44077,"name":"San Marino"}}},"08":{"code":"08","name":"Monte Giardino","cities":{}},"09":{"code":"09","name":"Serravalle","cities":{"44078":{"id":44078,"name":"Serravalle"}}}}}
+{
+  "code": "SM",
+  "name": "San Marino",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Acquaviva",
+      "cities": {
+        "44075": {
+          "id": 44075,
+          "name": "Acquaviva"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Chiesanuova",
+      "cities": {
+        "44076": {
+          "id": 44076,
+          "name": "Chiesanuova"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Domagnano",
+      "cities": {}
+    },
+    "04": {
+      "code": "04",
+      "name": "Faetano",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Fiorentino",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Borgo Maggiore",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "San Marino",
+      "cities": {
+        "44077": {
+          "id": 44077,
+          "name": "San Marino"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Monte Giardino",
+      "cities": {}
+    },
+    "09": {
+      "code": "09",
+      "name": "Serravalle",
+      "cities": {
+        "44078": {
+          "id": 44078,
+          "name": "Serravalle"
+        }
+      }
+    }
+  }
+}

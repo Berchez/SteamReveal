@@ -1,1 +1,389 @@
-{"code":"ET","name":"Ethiopia","states":{"10":{"code":"10","name":"Addis Abeba","cities":{"15337":{"id":15337,"name":"Abomsa"},"15338":{"id":15338,"name":"Addis Abeba"},"15350":{"id":15350,"name":"Awash"},"15361":{"id":15361,"name":"Butajira"},"15363":{"id":15363,"name":"Debre Birhan"},"15364":{"id":15364,"name":"Debre Sina"},"15366":{"id":15366,"name":"Debre Zeyit"},"15375":{"id":15375,"name":"Fiche"},"15378":{"id":15378,"name":"Gebre Guracha"},"15379":{"id":15379,"name":"Gedo"},"15385":{"id":15385,"name":"Giyon"},"15389":{"id":15389,"name":"Guder"},"15390":{"id":15390,"name":"Hagere Hiywet"},"15399":{"id":15399,"name":"Kemise"},"15407":{"id":15407,"name":"Metehara"},"15410":{"id":15410,"name":"Mojo"},"15412":{"id":15412,"name":"Nazret"},"15414":{"id":15414,"name":"Negele"},"15417":{"id":15417,"name":"Sebeta"},"15418":{"id":15418,"name":"Sendafa"},"15422":{"id":15422,"name":"Tulu Bolo"},"15426":{"id":15426,"name":"Wonji"},"15428":{"id":15428,"name":"Ziway"}}},"11":{"code":"11","name":"Southern","cities":{"15344":{"id":15344,"name":"Areka"},"15351":{"id":15351,"name":"Awassa"},"15358":{"id":15358,"name":"Boditi"},"15371":{"id":15371,"name":"Dilla"},"15391":{"id":15391,"name":"Hagere Selam"},"15400":{"id":15400,"name":"Kibre Mengist"},"15404":{"id":15404,"name":"Leku"},"15405":{"id":15405,"name":"Mega"},"15411":{"id":15411,"name":"Moyale"},"15415":{"id":15415,"name":"Negele"},"15419":{"id":15419,"name":"Shakiso"},"15423":{"id":15423,"name":"Wendo"},"15427":{"id":15427,"name":"Yabelo"}}},"12":{"code":"12","name":"Tigray","cities":{"15341":{"id":15341,"name":"Adwa"},"15343":{"id":15343,"name":"Aksum"}}},"13":{"code":"13","name":"Benishangul","cities":{"15348":{"id":15348,"name":"Asosa"},"15369":{"id":15369,"name":"Dembi Dolo"},"15383":{"id":15383,"name":"Gimbi"},"15406":{"id":15406,"name":"Mendi"},"15413":{"id":15413,"name":"Nedjo"},"15420":{"id":15420,"name":"Shambu"}}},"14":{"code":"14","name":"Afar","cities":{"15346":{"id":15346,"name":"Asayita"},"15354":{"id":15354,"name":"Bati"},"15370":{"id":15370,"name":"Dese"},"15374":{"id":15374,"name":"Dubti"},"15398":{"id":15398,"name":"Kembolcha"},"15402":{"id":15402,"name":"Korem"},"15403":{"id":15403,"name":"Lalibela"},"15424":{"id":15424,"name":"Were Ilu"}}},"44":{"code":"44","name":"Adis Abeba","cities":{}},"45":{"code":"45","name":"Afar","cities":{}},"46":{"code":"46","name":"Amara","cities":{}},"47":{"code":"47","name":"Binshangul Gumuz","cities":{}},"48":{"code":"48","name":"Dire Dawa","cities":{}},"49":{"code":"49","name":"Gambela Hizboch","cities":{}},"50":{"code":"50","name":"Hareri Hizb","cities":{}},"51":{"code":"51","name":"Oromiya","cities":{}},"52":{"code":"52","name":"Sumale","cities":{}},"53":{"code":"53","name":"Tigray","cities":{}},"54":{"code":"54","name":"YeDebub Biheroch Bihereseboch na","cities":{}},"02":{"code":"02","name":"Amhara","cities":{"15339":{"id":15339,"name":"Addis Zemen"},"15362":{"id":15362,"name":"Dabat"},"15365":{"id":15365,"name":"Debre Tabor"},"15387":{"id":15387,"name":"Gondar"},"15425":{"id":15425,"name":"Werota"}}},"07":{"code":"07","name":"Somali","cities":{"15347":{"id":15347,"name":"Asbe Teferi"},"15356":{"id":15356,"name":"Bedesa"},"15367":{"id":15367,"name":"Deder"},"15372":{"id":15372,"name":"Dire Dawa"},"15380":{"id":15380,"name":"Gelemso"},"15381":{"id":15381,"name":"Gewane"},"15392":{"id":15392,"name":"Harer"},"15393":{"id":15393,"name":"Hirna"},"15395":{"id":15395,"name":"Jijiga"}}},"08":{"code":"08","name":"Gambella","cities":{"15355":{"id":15355,"name":"Bedele"},"15377":{"id":15377,"name":"Gambela"},"15388":{"id":15388,"name":"Gore"},"15408":{"id":15408,"name":"Metu"}}}}}
+{
+  "code": "ET",
+  "name": "Ethiopia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Addis Abeba",
+      "cities": {
+        "15337": {
+          "id": 15337,
+          "name": "Abomsa"
+        },
+        "15338": {
+          "id": 15338,
+          "name": "Addis Abeba"
+        },
+        "15350": {
+          "id": 15350,
+          "name": "Awash"
+        },
+        "15361": {
+          "id": 15361,
+          "name": "Butajira"
+        },
+        "15363": {
+          "id": 15363,
+          "name": "Debre Birhan"
+        },
+        "15364": {
+          "id": 15364,
+          "name": "Debre Sina"
+        },
+        "15366": {
+          "id": 15366,
+          "name": "Debre Zeyit"
+        },
+        "15375": {
+          "id": 15375,
+          "name": "Fiche"
+        },
+        "15378": {
+          "id": 15378,
+          "name": "Gebre Guracha"
+        },
+        "15379": {
+          "id": 15379,
+          "name": "Gedo"
+        },
+        "15385": {
+          "id": 15385,
+          "name": "Giyon"
+        },
+        "15389": {
+          "id": 15389,
+          "name": "Guder"
+        },
+        "15390": {
+          "id": 15390,
+          "name": "Hagere Hiywet"
+        },
+        "15399": {
+          "id": 15399,
+          "name": "Kemise"
+        },
+        "15407": {
+          "id": 15407,
+          "name": "Metehara"
+        },
+        "15410": {
+          "id": 15410,
+          "name": "Mojo"
+        },
+        "15412": {
+          "id": 15412,
+          "name": "Nazret"
+        },
+        "15414": {
+          "id": 15414,
+          "name": "Negele"
+        },
+        "15417": {
+          "id": 15417,
+          "name": "Sebeta"
+        },
+        "15418": {
+          "id": 15418,
+          "name": "Sendafa"
+        },
+        "15422": {
+          "id": 15422,
+          "name": "Tulu Bolo"
+        },
+        "15426": {
+          "id": 15426,
+          "name": "Wonji"
+        },
+        "15428": {
+          "id": 15428,
+          "name": "Ziway"
+        }
+      }
+    },
+    "11": {
+      "code": "11",
+      "name": "Southern",
+      "cities": {
+        "15344": {
+          "id": 15344,
+          "name": "Areka"
+        },
+        "15351": {
+          "id": 15351,
+          "name": "Awassa"
+        },
+        "15358": {
+          "id": 15358,
+          "name": "Boditi"
+        },
+        "15371": {
+          "id": 15371,
+          "name": "Dilla"
+        },
+        "15391": {
+          "id": 15391,
+          "name": "Hagere Selam"
+        },
+        "15400": {
+          "id": 15400,
+          "name": "Kibre Mengist"
+        },
+        "15404": {
+          "id": 15404,
+          "name": "Leku"
+        },
+        "15405": {
+          "id": 15405,
+          "name": "Mega"
+        },
+        "15411": {
+          "id": 15411,
+          "name": "Moyale"
+        },
+        "15415": {
+          "id": 15415,
+          "name": "Negele"
+        },
+        "15419": {
+          "id": 15419,
+          "name": "Shakiso"
+        },
+        "15423": {
+          "id": 15423,
+          "name": "Wendo"
+        },
+        "15427": {
+          "id": 15427,
+          "name": "Yabelo"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Tigray",
+      "cities": {
+        "15341": {
+          "id": 15341,
+          "name": "Adwa"
+        },
+        "15343": {
+          "id": 15343,
+          "name": "Aksum"
+        }
+      }
+    },
+    "13": {
+      "code": "13",
+      "name": "Benishangul",
+      "cities": {
+        "15348": {
+          "id": 15348,
+          "name": "Asosa"
+        },
+        "15369": {
+          "id": 15369,
+          "name": "Dembi Dolo"
+        },
+        "15383": {
+          "id": 15383,
+          "name": "Gimbi"
+        },
+        "15406": {
+          "id": 15406,
+          "name": "Mendi"
+        },
+        "15413": {
+          "id": 15413,
+          "name": "Nedjo"
+        },
+        "15420": {
+          "id": 15420,
+          "name": "Shambu"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Afar",
+      "cities": {
+        "15346": {
+          "id": 15346,
+          "name": "Asayita"
+        },
+        "15354": {
+          "id": 15354,
+          "name": "Bati"
+        },
+        "15370": {
+          "id": 15370,
+          "name": "Dese"
+        },
+        "15374": {
+          "id": 15374,
+          "name": "Dubti"
+        },
+        "15398": {
+          "id": 15398,
+          "name": "Kembolcha"
+        },
+        "15402": {
+          "id": 15402,
+          "name": "Korem"
+        },
+        "15403": {
+          "id": 15403,
+          "name": "Lalibela"
+        },
+        "15424": {
+          "id": 15424,
+          "name": "Were Ilu"
+        }
+      }
+    },
+    "44": {
+      "code": "44",
+      "name": "Adis Abeba",
+      "cities": {}
+    },
+    "45": {
+      "code": "45",
+      "name": "Afar",
+      "cities": {}
+    },
+    "46": {
+      "code": "46",
+      "name": "Amara",
+      "cities": {}
+    },
+    "47": {
+      "code": "47",
+      "name": "Binshangul Gumuz",
+      "cities": {}
+    },
+    "48": {
+      "code": "48",
+      "name": "Dire Dawa",
+      "cities": {}
+    },
+    "49": {
+      "code": "49",
+      "name": "Gambela Hizboch",
+      "cities": {}
+    },
+    "50": {
+      "code": "50",
+      "name": "Hareri Hizb",
+      "cities": {}
+    },
+    "51": {
+      "code": "51",
+      "name": "Oromiya",
+      "cities": {}
+    },
+    "52": {
+      "code": "52",
+      "name": "Sumale",
+      "cities": {}
+    },
+    "53": {
+      "code": "53",
+      "name": "Tigray",
+      "cities": {}
+    },
+    "54": {
+      "code": "54",
+      "name": "YeDebub Biheroch Bihereseboch na",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Amhara",
+      "cities": {
+        "15339": {
+          "id": 15339,
+          "name": "Addis Zemen"
+        },
+        "15362": {
+          "id": 15362,
+          "name": "Dabat"
+        },
+        "15365": {
+          "id": 15365,
+          "name": "Debre Tabor"
+        },
+        "15387": {
+          "id": 15387,
+          "name": "Gondar"
+        },
+        "15425": {
+          "id": 15425,
+          "name": "Werota"
+        }
+      }
+    },
+    "07": {
+      "code": "07",
+      "name": "Somali",
+      "cities": {
+        "15347": {
+          "id": 15347,
+          "name": "Asbe Teferi"
+        },
+        "15356": {
+          "id": 15356,
+          "name": "Bedesa"
+        },
+        "15367": {
+          "id": 15367,
+          "name": "Deder"
+        },
+        "15372": {
+          "id": 15372,
+          "name": "Dire Dawa"
+        },
+        "15380": {
+          "id": 15380,
+          "name": "Gelemso"
+        },
+        "15381": {
+          "id": 15381,
+          "name": "Gewane"
+        },
+        "15392": {
+          "id": 15392,
+          "name": "Harer"
+        },
+        "15393": {
+          "id": 15393,
+          "name": "Hirna"
+        },
+        "15395": {
+          "id": 15395,
+          "name": "Jijiga"
+        }
+      }
+    },
+    "08": {
+      "code": "08",
+      "name": "Gambella",
+      "cities": {
+        "15355": {
+          "id": 15355,
+          "name": "Bedele"
+        },
+        "15377": {
+          "id": 15377,
+          "name": "Gambela"
+        },
+        "15388": {
+          "id": 15388,
+          "name": "Gore"
+        },
+        "15408": {
+          "id": 15408,
+          "name": "Metu"
+        }
+      }
+    }
+  }
+}

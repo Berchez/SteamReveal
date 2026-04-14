@@ -1,1 +1,180 @@
-{"code":"MN","name":"Mongolia","states":{"10":{"code":"10","name":"Govi-Altay","cities":{}},"11":{"code":"11","name":"Hentiy","cities":{"27527":{"id":27527,"name":"Darhan"},"27532":{"id":27532,"name":"Ondorhaan"}}},"12":{"code":"12","name":"Hovd","cities":{}},"13":{"code":"13","name":"Hovsgol","cities":{"27531":{"id":27531,"name":"Moron"}}},"14":{"code":"14","name":"Omnogovi","cities":{}},"15":{"code":"15","name":"Ovorhangay","cities":{"27529":{"id":27529,"name":"Hovd"}}},"16":{"code":"16","name":"Selenge","cities":{"27533":{"id":27533,"name":"Suhbaatar"}}},"17":{"code":"17","name":"Suhbaatar","cities":{"27525":{"id":27525,"name":"Baruun-urt"}}},"18":{"code":"18","name":"Tov","cities":{}},"19":{"code":"19","name":"Uvs","cities":{"27535":{"id":27535,"name":"Ulaangom"}}},"20":{"code":"20","name":"Ulaanbaatar","cities":{"27534":{"id":27534,"name":"Ulaanbaatar"}}},"21":{"code":"21","name":"Bulgan","cities":{"27526":{"id":27526,"name":"Bulgan"}}},"22":{"code":"22","name":"Erdenet","cities":{}},"23":{"code":"23","name":"Darhan Uul","cities":{}},"24":{"code":"24","name":"Govi-Sumber","cities":{}},"25":{"code":"25","name":"Orhon","cities":{"27528":{"id":27528,"name":"Erdenet"}}},"01":{"code":"01","name":"Arhangay","cities":{}},"02":{"code":"02","name":"Bayanhongor","cities":{}},"03":{"code":"03","name":"Bayan-Olgiy","cities":{}},"05":{"code":"05","name":"Darhan","cities":{}},"06":{"code":"06","name":"Dornod","cities":{}},"07":{"code":"07","name":"Dornogovi","cities":{}},"08":{"code":"08","name":"Dundgovi","cities":{"27530":{"id":27530,"name":"Mandalgovi"}}},"09":{"code":"09","name":"Dzavhan","cities":{}}}}
+{
+  "code": "MN",
+  "name": "Mongolia",
+  "states": {
+    "10": {
+      "code": "10",
+      "name": "Govi-Altay",
+      "cities": {}
+    },
+    "11": {
+      "code": "11",
+      "name": "Hentiy",
+      "cities": {
+        "27527": {
+          "id": 27527,
+          "name": "Darhan"
+        },
+        "27532": {
+          "id": 27532,
+          "name": "Ondorhaan"
+        }
+      }
+    },
+    "12": {
+      "code": "12",
+      "name": "Hovd",
+      "cities": {}
+    },
+    "13": {
+      "code": "13",
+      "name": "Hovsgol",
+      "cities": {
+        "27531": {
+          "id": 27531,
+          "name": "Moron"
+        }
+      }
+    },
+    "14": {
+      "code": "14",
+      "name": "Omnogovi",
+      "cities": {}
+    },
+    "15": {
+      "code": "15",
+      "name": "Ovorhangay",
+      "cities": {
+        "27529": {
+          "id": 27529,
+          "name": "Hovd"
+        }
+      }
+    },
+    "16": {
+      "code": "16",
+      "name": "Selenge",
+      "cities": {
+        "27533": {
+          "id": 27533,
+          "name": "Suhbaatar"
+        }
+      }
+    },
+    "17": {
+      "code": "17",
+      "name": "Suhbaatar",
+      "cities": {
+        "27525": {
+          "id": 27525,
+          "name": "Baruun-urt"
+        }
+      }
+    },
+    "18": {
+      "code": "18",
+      "name": "Tov",
+      "cities": {}
+    },
+    "19": {
+      "code": "19",
+      "name": "Uvs",
+      "cities": {
+        "27535": {
+          "id": 27535,
+          "name": "Ulaangom"
+        }
+      }
+    },
+    "20": {
+      "code": "20",
+      "name": "Ulaanbaatar",
+      "cities": {
+        "27534": {
+          "id": 27534,
+          "name": "Ulaanbaatar"
+        }
+      }
+    },
+    "21": {
+      "code": "21",
+      "name": "Bulgan",
+      "cities": {
+        "27526": {
+          "id": 27526,
+          "name": "Bulgan"
+        }
+      }
+    },
+    "22": {
+      "code": "22",
+      "name": "Erdenet",
+      "cities": {}
+    },
+    "23": {
+      "code": "23",
+      "name": "Darhan Uul",
+      "cities": {}
+    },
+    "24": {
+      "code": "24",
+      "name": "Govi-Sumber",
+      "cities": {}
+    },
+    "25": {
+      "code": "25",
+      "name": "Orhon",
+      "cities": {
+        "27528": {
+          "id": 27528,
+          "name": "Erdenet"
+        }
+      }
+    },
+    "01": {
+      "code": "01",
+      "name": "Arhangay",
+      "cities": {}
+    },
+    "02": {
+      "code": "02",
+      "name": "Bayanhongor",
+      "cities": {}
+    },
+    "03": {
+      "code": "03",
+      "name": "Bayan-Olgiy",
+      "cities": {}
+    },
+    "05": {
+      "code": "05",
+      "name": "Darhan",
+      "cities": {}
+    },
+    "06": {
+      "code": "06",
+      "name": "Dornod",
+      "cities": {}
+    },
+    "07": {
+      "code": "07",
+      "name": "Dornogovi",
+      "cities": {}
+    },
+    "08": {
+      "code": "08",
+      "name": "Dundgovi",
+      "cities": {
+        "27530": {
+          "id": 27530,
+          "name": "Mandalgovi"
+        }
+      }
+    },
+    "09": {
+      "code": "09",
+      "name": "Dzavhan",
+      "cities": {}
+    }
+  }
+}

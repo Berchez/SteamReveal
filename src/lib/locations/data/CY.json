@@ -1,1 +1,130 @@
-{"code":"CY","name":"Cyprus","states":{"01":{"code":"01","name":"Famagusta","cities":{"11836":{"id":11836,"name":"Dipkarpaz"},"11839":{"id":11839,"name":"Gazimagusa"},"11843":{"id":11843,"name":"Iskele"},"11852":{"id":11852,"name":"Paralimni"},"11855":{"id":11855,"name":"Ziyamet"}}},"02":{"code":"02","name":"Kyrenia","cities":{"11841":{"id":11841,"name":"Girne"},"11844":{"id":11844,"name":"Lapithos"}}},"03":{"code":"03","name":"Larnaca","cities":{"11834":{"id":11834,"name":"Aradippou"},"11837":{"id":11837,"name":"Dromolaxia"},"11845":{"id":11845,"name":"Larnaca"},"11848":{"id":11848,"name":"Livadia"}}},"04":{"code":"04","name":"Nicosia","cities":{"11840":{"id":11840,"name":"Geri"},"11842":{"id":11842,"name":"Guzelyurt"},"11846":{"id":11846,"name":"Lefka"},"11849":{"id":11849,"name":"Nicosia"}}},"05":{"code":"05","name":"Limassol","cities":{"11847":{"id":11847,"name":"Lemesos"},"11851":{"id":11851,"name":"Pano Polemidia"},"11854":{"id":11854,"name":"Ypsonas"}}},"06":{"code":"06","name":"Paphos","cities":{"11835":{"id":11835,"name":"Chlorakas"},"11838":{"id":11838,"name":"Empa"},"11850":{"id":11850,"name":"Pafos"},"11853":{"id":11853,"name":"Polis"}}}}}
+{
+  "code": "CY",
+  "name": "Cyprus",
+  "states": {
+    "01": {
+      "code": "01",
+      "name": "Famagusta",
+      "cities": {
+        "11836": {
+          "id": 11836,
+          "name": "Dipkarpaz"
+        },
+        "11839": {
+          "id": 11839,
+          "name": "Gazimagusa"
+        },
+        "11843": {
+          "id": 11843,
+          "name": "Iskele"
+        },
+        "11852": {
+          "id": 11852,
+          "name": "Paralimni"
+        },
+        "11855": {
+          "id": 11855,
+          "name": "Ziyamet"
+        }
+      }
+    },
+    "02": {
+      "code": "02",
+      "name": "Kyrenia",
+      "cities": {
+        "11841": {
+          "id": 11841,
+          "name": "Girne"
+        },
+        "11844": {
+          "id": 11844,
+          "name": "Lapithos"
+        }
+      }
+    },
+    "03": {
+      "code": "03",
+      "name": "Larnaca",
+      "cities": {
+        "11834": {
+          "id": 11834,
+          "name": "Aradippou"
+        },
+        "11837": {
+          "id": 11837,
+          "name": "Dromolaxia"
+        },
+        "11845": {
+          "id": 11845,
+          "name": "Larnaca"
+        },
+        "11848": {
+          "id": 11848,
+          "name": "Livadia"
+        }
+      }
+    },
+    "04": {
+      "code": "04",
+      "name": "Nicosia",
+      "cities": {
+        "11840": {
+          "id": 11840,
+          "name": "Geri"
+        },
+        "11842": {
+          "id": 11842,
+          "name": "Guzelyurt"
+        },
+        "11846": {
+          "id": 11846,
+          "name": "Lefka"
+        },
+        "11849": {
+          "id": 11849,
+          "name": "Nicosia"
+        }
+      }
+    },
+    "05": {
+      "code": "05",
+      "name": "Limassol",
+      "cities": {
+        "11847": {
+          "id": 11847,
+          "name": "Lemesos"
+        },
+        "11851": {
+          "id": 11851,
+          "name": "Pano Polemidia"
+        },
+        "11854": {
+          "id": 11854,
+          "name": "Ypsonas"
+        }
+      }
+    },
+    "06": {
+      "code": "06",
+      "name": "Paphos",
+      "cities": {
+        "11835": {
+          "id": 11835,
+          "name": "Chlorakas"
+        },
+        "11838": {
+          "id": 11838,
+          "name": "Empa"
+        },
+        "11850": {
+          "id": 11850,
+          "name": "Pafos"
+        },
+        "11853": {
+          "id": 11853,
+          "name": "Polis"
+        }
+      }
+    }
+  }
+}
