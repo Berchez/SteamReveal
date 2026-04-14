@@ -1,29 +1,68 @@
 import { cityNameAndScore } from '@/@types/cityNameAndScore';
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
 
+interface CountryData {
+  code: string;
+  name: string;
+  states: Record<
+    string,
+    {
+      code: string;
+      name: string;
+      cities: Record<string, { id: number; name: string }>;
+    }
+  >;
+}
+
+const countryCache: Record<string, CountryData> = {};
+
 export const getLocationDetails = async (
   countryCode?: string,
   stateCode?: string,
   cityID?: string,
 ): Promise<LocationInfoType> => {
-  const { default: listOfLocation } = await import('../../../../location');
+  if (!countryCode) {
+    return { country: undefined, state: undefined, city: undefined };
+  }
 
-  const country = listOfLocation.countries.find((c) => c.code === countryCode);
-  const state = country?.states?.find((s) => s.code === stateCode);
-  const city = state?.cities?.find(
-    (c) => cityID && c.id === parseInt(cityID, 10),
-  );
+  const code = countryCode.toUpperCase();
 
-  return { country, state, city };
+  try {
+    if (!countryCache[code]) {
+      const data = await import(`../../../lib/locations/data/${code}.json`);
+      countryCache[code] = data.default || data;
+    }
+
+    const countryData = countryCache[code];
+    const stateData = stateCode ? countryData.states[stateCode] : undefined;
+    const cityData = stateData && cityID ? stateData.cities[cityID] : undefined;
+
+    return {
+      country: countryData
+        ? { code: countryData.code, name: countryData.name }
+        : undefined,
+      state: stateData
+        ? { code: stateData.code, name: stateData.name }
+        : undefined,
+      city: cityData,
+    };
+  } catch (error) {
+    return { country: undefined, state: undefined, city: undefined };
+  }
 };
 
-export const sortCitiesByScore = (listOfCities: cityNameAndScore) =>
-  Object.entries(listOfCities)
-    .sort((a, b) => b[1] - a[1])
-    .reduce(
-      (acc: cityNameAndScore, [key, value]) => ({ ...acc, [key]: value }),
-      {},
-    );
+export const sortCitiesByScore = (listOfCities: cityNameAndScore) => {
+  const sortedEntries = Object.entries(listOfCities).sort(
+    (a, b) => b[1] - a[1],
+  );
+
+  const acc: cityNameAndScore = {};
+  sortedEntries.forEach(([key, value]) => {
+    acc[key] = value;
+  });
+
+  return acc;
+};
 
 export const getCitiesNames = async (
   citiesScored: cityNameAndScore,
