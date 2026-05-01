@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
     const [
       badCommentsScore,
-      bannedFriendsScore,
+      bannedFriendsResult,
       inventoryScore,
       playTimeScore,
       userLevel,
@@ -55,9 +55,12 @@ export async function POST(req: Request) {
       getCsStats(targetSteamId),
     ]);
 
+    const { score: bannedFriendsScore, bannedFriendsDetails } =
+      bannedFriendsResult;
+
     const csStatsFeaturesArr = csStats
       ? Object.values(csStats).map(clearStat)
-      : [];
+      : Array(9).fill(-1);
 
     const features = [
       badCommentsScore,
@@ -66,7 +69,7 @@ export async function POST(req: Request) {
       playTimeScore,
       userLevel,
       ...csStatsFeaturesArr,
-    ].map((value) => value ?? -1);
+    ].map((value) => (value === null || value === undefined ? -1 : value));
 
     const featureObject = {
       badCommentsScore: features[0],
@@ -75,6 +78,8 @@ export async function POST(req: Request) {
       playTimeScore: features[3],
       userLevel: features[4],
       csStats,
+      analyzedFriendsCount: closeFriends.length,
+      bannedFriendsDetails,
     };
 
     const flaskResponse = await axios.post(
