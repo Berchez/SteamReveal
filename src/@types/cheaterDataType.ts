@@ -21,6 +21,9 @@ export type FeatureObjectType = {
   csStats: CsStats;
   analyzedFriendsCount: number;
   bannedFriendsDetails?: BannedFriendDetail[];
+  accountAge?: number;
+  totalGamesCount?: number;
+  serviceMedalsCount?: number;
 };
 
 export type CheaterDataType = {

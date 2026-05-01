@@ -17,8 +17,8 @@ const getPlayTimeScore = async (target: string) => {
     // Look for the CS2 game object in the array
     const cs2Game = allGamesArr.find((gameObj) => gameObj.game.id === CS2_ID);
 
-    // Return the playtime in minutes or 0 if CS2 is not found
-    return cs2Game?.minutes ?? 0;
+    // Return the playtime in minutes or -1 if CS2 is not found (hidden or not played)
+    return cs2Game?.minutes ?? -1;
   } catch (err) {
     console.error('Error getting CS2 game time:', err);
 
