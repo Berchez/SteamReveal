@@ -235,7 +235,28 @@ const useHome = () => {
         });
 
         const cheaterProbability: CheaterDataType = response?.data;
-        console.log('probability', cheaterProbability);
+        console.log('--- Cheater Probability Analysis ---');
+        console.log('Probability:', cheaterProbability.cheaterProbability);
+        console.log('Features:', cheaterProbability.featureObject);
+
+        if (
+          cheaterProbability.featureObject.bannedFriendsDetails &&
+          cheaterProbability.featureObject.bannedFriendsDetails.length > 0
+        ) {
+          console.group('🚨 Banned Friends Detected:');
+          cheaterProbability.featureObject.bannedFriendsDetails.forEach(
+            (friend) => {
+              console.log(`${friend.nickname} (${friend.steamID})`);
+              console.log(`URL: ${friend.profileUrl}`);
+              console.log(`Bans:`, friend.bans);
+              console.log('---');
+            },
+          );
+          console.groupEnd();
+        } else {
+          console.log('✅ No banned friends found in the analyzed circle.');
+        }
+
         setCheaterData(cheaterProbability);
 
         return cheaterProbability;
