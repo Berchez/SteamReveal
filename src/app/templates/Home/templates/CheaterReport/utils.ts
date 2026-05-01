@@ -23,7 +23,7 @@ const analyzeCheaterData = (
     negativeMsg?: string | (() => string);
     conditionToBeInnocent: (v: number) => boolean;
   }) => {
-    if (value === -1 || Number.isNaN(value) || !value) {
+    if (value === -1 || Number.isNaN(value) || value === undefined || value === null) {
       return; // ignore invalid data
     }
 
@@ -65,7 +65,9 @@ const analyzeCheaterData = (
   // Banned friends
   addReason({
     value: featureObject.bannedFriendsScore,
-    positiveMsg: translator('cleanFriends'),
+    positiveMsg: translator('cleanFriends', {
+      count: featureObject.analyzedFriendsCount,
+    }),
     negativeMsg: translator('bannedFriends'),
     conditionToBeInnocent: (v) => v === 0,
   });

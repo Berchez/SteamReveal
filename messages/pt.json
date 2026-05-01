@@ -47,7 +47,7 @@
     "lowInventory": "Inventário baixo (itens de valor reduzido)",
     "valuableInventory": "Inventário valioso (sinal de jogador estabelecido)",
     "bannedFriends": "Possui amigos banidos na Steam (sinal suspeito)",
-    "cleanFriends": "Nenhum amigo banido (rede social limpa)",
+    "cleanFriends": "Nenhum amigo banido (todos os {count} amigos analisados estão limpos)",
     "badComments": "Recebeu comentários negativos (feedback da comunidade)",
     "noBadComments": "Nenhum comentário negativo (boa reputação)",
     "highWinrate": "Taxa de vitória acima de {winrate}% (performance alta)",
