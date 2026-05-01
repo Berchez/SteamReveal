@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-import SteamAPI from 'steamapi';
+import SteamAPI, { UserSummary } from 'steamapi';
 import getSteamApiKey from '@/lib/getSteamApiKey';
 import getBadCommentsScore from './utils/badCommentsMethod';
 import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
 import getPlayTimeScore from './utils/playTimeMethod';
 import getCsStats from './utils/csStats';
-import clearStat from './utils/clearCsStats';
+import { clearStat, getAccountAge } from './utils/utils';
 
 export const revalidate = 0;
 const steam = new SteamAPI(getSteamApiKey() ?? '');
@@ -46,6 +46,8 @@ export async function POST(req: Request) {
       playTimeScore,
       userLevel,
       csStats,
+      userSummary,
+      ownedGames,
     ] = await Promise.all([
       getBadCommentsScore(targetSteamId),
       getBannedFriendsScore(closeFriends),
@@ -53,10 +55,16 @@ export async function POST(req: Request) {
       getPlayTimeScore(targetSteamId),
       steam.getUserLevel(targetSteamId),
       getCsStats(targetSteamId),
+      steam.getUserSummary(targetSteamId),
+      steam.getUserOwnedGames(targetSteamId),
     ]);
 
     const { score: bannedFriendsScore, bannedFriendsDetails } =
       bannedFriendsResult;
+
+    const accountAge = getAccountAge(userSummary as UserSummary);
+
+    const totalGamesCount = Array.isArray(ownedGames) ? ownedGames.length : 0;
 
     const csStatsFeaturesArr = csStats
       ? Object.values(csStats).map(clearStat)
@@ -80,6 +88,8 @@ export async function POST(req: Request) {
       csStats,
       analyzedFriendsCount: closeFriends.length,
       bannedFriendsDetails,
+      accountAge,
+      totalGamesCount,
     };
 
     const flaskResponse = await axios.post(

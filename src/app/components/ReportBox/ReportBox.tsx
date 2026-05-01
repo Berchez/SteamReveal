@@ -14,14 +14,18 @@ interface ReportBoxProps {
 
 const borderColorClasses = {
   red: 'border-red-500',
+  orange: 'border-orange-500',
   yellow: 'border-yellow-500',
   green: 'border-green-500',
+  'dark-green': 'border-emerald-600',
 };
 
 const textColorClasses = {
   red: 'text-red-400',
+  orange: 'text-orange-400',
   yellow: 'text-yellow-400',
   green: 'text-green-400',
+  'dark-green': 'text-emerald-400',
 };
 
 function ReportBox({

@@ -64,7 +64,17 @@
     "innocentDescription": "This player shows normal/standard profile signs:",
     "isUserCheaterCS2": "Is {nickname} a cheater in CS2?",
     "normalKD": "Normal K/D ratio ({kd})",
-    "highKD": "High K/D ratio ({kd}, unusually strong performance)"
+    "highKD": "High K/D ratio ({kd}, unusually strong performance)",
+    "veryTrustedTitle": "Very Trusted Profile",
+    "veryTrustedDescription": "This profile shows exceptional signs of legitimacy and investment:",
+    "highlySuspectTitle": "Highly Suspect!",
+    "highlySuspectDescription": "Critical warning: Multiple high-risk factors detected:",
+    "oldAccount": "Veteran account ({age} years old)",
+    "newAccount": "Recent account ({age} years old, common for smurfs/cheaters)",
+    "highSteamLevel": "High Steam level (Level {level}, sign of investment)",
+    "lowSteamLevel": "Low Steam level (Level {level}, typical of disposable accounts)",
+    "manyGames": "Large library ({count} games owned)",
+    "fewGames": "Small library ({count} games, possible secondary account)"
   },
   "SupportedFormatsSection": {
     "steamID64Desc": "Unique 64-bit Steam ID.",
