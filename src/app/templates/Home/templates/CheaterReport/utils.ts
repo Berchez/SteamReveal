@@ -1,6 +1,6 @@
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { ReportOutcomeKey, ReportOutcomes } from '@/@types/cheaterReportTypes';
-import clearStat from '@/app/api/getCheaterProbability/utils/clearCsStats';
+import { clearStat } from '@/app/api/getCheaterProbability/utils/utils';
 import { useTranslations } from 'next-intl';
 
 const analyzeCheaterData = (
@@ -40,7 +40,9 @@ const analyzeCheaterData = (
           typeof positiveMsg === 'function' ? positiveMsg() : positiveMsg,
         );
       }
-    } else if (conditionToBeSuspect ? conditionToBeSuspect(value) : negativeMsg) {
+    } else if (
+      conditionToBeSuspect ? conditionToBeSuspect(value) : negativeMsg
+    ) {
       // If conditionToBeSuspect is provided, it must be true to add negativeMsg.
       // If NOT provided, it defaults to the old behavior (adding negativeMsg if not innocent).
       if (negativeMsg) {
