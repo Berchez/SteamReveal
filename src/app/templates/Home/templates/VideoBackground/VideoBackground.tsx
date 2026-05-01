@@ -12,9 +12,11 @@ function VideoBackground() {
       loop
       autoPlay
       muted
+      playsInline
       className="object-cover w-screen h-screen fixed top-0 left-0 z-0 brightness-90"
       poster="/images/background.webp"
     >
+      <source src="/videos/short-bg.webm" type="video/webm" />
       <source src="/videos/short-bg.mp4" type="video/mp4" />
     </video>
   );
