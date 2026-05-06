@@ -1,7 +1,6 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FEEDBACK_RESEND_EMAIL = process.env.FEEDBACK_RESEND_EMAIL ?? '';
 
 function escapeHtml(unsafe: string) {
   return unsafe
@@ -19,6 +18,8 @@ async function sendFeedbackEmail(data: {
   language: string;
   userAgent: string;
 }) {
+  const FEEDBACK_RESEND_EMAIL = process.env.FEEDBACK_RESEND_EMAIL ?? '';
+
   if (!FEEDBACK_RESEND_EMAIL) {
     throw new Error('Missing FEEDBACK_RESEND_EMAIL env var');
   }

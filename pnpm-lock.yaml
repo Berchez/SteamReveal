@@ -97,6 +97,9 @@ devDependencies:
   eslint-plugin-prettier:
     specifier: ^5.2.1
     version: 5.2.3(eslint-config-prettier@9.1.0)(eslint@8.57.1)(prettier@3.5.1)
+  husky:
+    specifier: ^9.1.7
+    version: 9.1.7
   jest:
     specifier: ^29.7.0
     version: 29.7.0(@types/node@20.17.19)(ts-node@10.9.2)
@@ -3417,6 +3420,12 @@ packages:
   /human-signals@2.1.0:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
+    dev: true
+
+  /husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
+    hasBin: true
     dev: true
 
   /iconv-lite@0.6.3:

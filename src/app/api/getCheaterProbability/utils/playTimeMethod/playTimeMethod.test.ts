@@ -22,12 +22,12 @@ describe('getPlayTimeScore', () => {
     expect(mockGetUserOwnedGames).toHaveBeenCalledWith('123456789');
   });
 
-  it('returns 0 if CS2 not found', async () => {
+  it('returns -1 if CS2 not found', async () => {
     mockGetUserOwnedGames.mockResolvedValue([
       { game: { id: 570 }, minutes: 500 },
     ]);
     const result = await getPlayTimeScore('123456789');
-    expect(result).toBe(0);
+    expect(result).toBe(-1);
   });
 
   it('returns -1 if response is not an array', async () => {
