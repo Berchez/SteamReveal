@@ -1,8 +1,8 @@
 import { useTranslations } from 'next-intl';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { UserSummary } from 'steamapi';
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
-import HomeContext from '@/app/templates/Home/context';
 import { getLocationDetails } from '@/app/templates/Home/homeUtils';
 
 function UserCard({
@@ -22,7 +22,6 @@ function UserCard({
 
   const translator = useTranslations('UserCard');
 
-  const context = useContext(HomeContext);
 
   const defaultLocationInfoType = useMemo(
     () => ({
@@ -71,15 +70,12 @@ function UserCard({
             height={itsTargetUser ? 120 : 60}
           />
           {!itsTargetUser && (
-            <button
-              onClick={() =>
-                context?.updateQueryParam('player', friend.steamID ?? '')
-              }
-              type="button"
+            <Link
+              href={`/?player=${friend.steamID ?? ''}`}
               className="w-[60px] py-1 mt-2 text-purple-400 font-semibold text-sm rounded-full border border-purple-800 bg-purple-600 bg-opacity-10 hover:bg-opacity-20"
             >
               {translator('searchFriend')}
-            </button>
+            </Link>
           )}
         </div>
       )}
