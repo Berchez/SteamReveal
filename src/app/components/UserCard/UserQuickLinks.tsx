@@ -35,16 +35,14 @@ const staticQuickLinks: QuickLink[] = [
   {
     title: 'CSStats',
     icon: '📊',
-    iconUrl:
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOd6S7y-5ftqzuy8ICDFloDWHRYCGkgeCggiOqaylbmnMGbebOTVMas1u5&s=10',
+    iconUrl: 'https://i.imgur.com/C9IPIKx.jpeg',
     getUrl: (steamId: string) => `https://csstats.gg/player/${steamId}`,
     color: 'from-purple-700 to-purple-500',
   },
   {
     title: 'CSRep',
     icon: '📈',
-    iconUrl:
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgf7Omi-kFi8i94p4aapJcRMPNld11IEDHMDSdCUcxPw&s=10',
+    iconUrl: 'https://i.imgur.com/AW0Vys9.jpeg',
     getUrl: (steamId: string) => `https://csrep.gg/player/${steamId}`,
     color: 'from-purple-700 to-purple-500',
   },
