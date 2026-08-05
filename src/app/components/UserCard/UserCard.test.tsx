@@ -14,6 +14,8 @@ jest.mock('../../templates/Home/homeUtils', () => ({
   getLocationDetails: jest.fn(),
 }));
 
+global.fetch = jest.fn();
+
 describe('UserCard Component', () => {
   const mockTranslator = (key: string) => {
     const translations: { [key: string]: string } = {
@@ -51,11 +53,16 @@ describe('UserCard Component', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
     (useTranslations as jest.Mock).mockReturnValue(mockTranslator);
     (getLocationDetails as jest.Mock).mockResolvedValue({
       city: { name: 'San Francisco' },
       state: { name: 'California' },
       country: { name: 'United States' },
+    });
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
     });
   });
 
@@ -106,5 +113,33 @@ describe('UserCard Component', () => {
         name: /https:\/\/steamcommunity.com\/id\/user123/i,
       }),
     ).toBeInTheDocument();
+  });
+
+  it('renders QuickLinks when itsTargetUser is true', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        faceitLink: 'https://www.faceit.com/en/players/test-player',
+      }),
+    });
+
+    await act(async () => {
+      render(<UserCard friend={mockFriend} itsTargetUser={true} />);
+    });
+
+    expect(screen.getByTitle('SteamID.uk')).toBeInTheDocument();
+    expect(screen.getByTitle('GamersClub')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByTitle('Faceit')).toBeInTheDocument();
+    });
+
+    const faceitLink = screen.getByTitle('Faceit') as HTMLAnchorElement;
+    await waitFor(() => {
+      expect(faceitLink).toHaveAttribute(
+        'href',
+        'https://www.faceit.com/en/players/test-player',
+      );
+    });
   });
 });

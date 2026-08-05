@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { UserSummary } from 'steamapi';
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
 import { getLocationDetails } from '@/app/templates/Home/homeUtils';
+import UserQuickLinks from './UserQuickLinks';
 
 function UserCard({
   friend,
@@ -21,7 +22,6 @@ function UserCard({
   const { countryCode, stateCode, cityID } = friend;
 
   const translator = useTranslations('UserCard');
-
 
   const defaultLocationInfoType = useMemo(
     () => ({
@@ -61,7 +61,7 @@ function UserCard({
       key={friend.steamID}
     >
       {friend.avatar.medium && (
-        <div>
+        <div className="flex flex-col items-center">
           <img
             src={itsTargetUser ? friend.avatar.large : friend.avatar.medium}
             className={`${itsTargetUser ? 'w-36' : ''} rounded-lg`}
@@ -77,6 +77,13 @@ function UserCard({
             >
               {translator('searchFriend')}
             </Link>
+          )}
+
+          {/* Quick links under avatar for the target user */}
+          {itsTargetUser && friend.steamID && (
+            <div className="mt-3 w-full flex justify-center">
+              <UserQuickLinks steamId={friend.steamID} />
+            </div>
           )}
         </div>
       )}
@@ -129,7 +136,7 @@ function UserCard({
               href={friend.url}
               target="_blank"
               rel="noreferrer"
-              className="text-blue-500 hover:text-blue-600 hover:underline"
+              className="text-blue-500 hover:text-blue-600 hover:underline break-all [overflow-wrap:anywhere]"
             >
               {friend.url}
             </a>
