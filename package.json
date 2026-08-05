@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "patch-package",
-    "test": "jest",
+    "test": "cross-env NODE_ENV=test jest",
     "prepare": "husky"
   },
   "engines": {
@@ -50,6 +50,7 @@
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "cross-env": "^7.0.3",
     "patch-package": "^8.0.0",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
