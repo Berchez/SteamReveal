@@ -14,6 +14,10 @@ jest.mock('../../templates/Home/homeUtils', () => ({
   getLocationDetails: jest.fn(),
 }));
 
+jest.mock('@vercel/analytics', () => ({
+  track: jest.fn(),
+}));
+
 global.fetch = jest.fn();
 
 describe('UserCard Component', () => {

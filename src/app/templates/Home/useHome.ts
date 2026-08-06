@@ -11,6 +11,8 @@ import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { isLoadingType } from '@/@types/isLoadingType';
 import useSupportMe from '@/app/components/SupportMe/useSupportMe';
+import { track } from '@vercel/analytics';
+
 import {
   getLocationDetails,
   getCitiesNames,
@@ -226,11 +228,16 @@ const useHome = () => {
       if (isLoading.friendsCards) {
         return null;
       }
+      const target = targetInfoJson?.profileInfo?.steamID;
+
       try {
         handleShowSupportMe(3);
         setIsLoading((prev) => ({ ...prev, cheaterReport: true }));
+
+        track('cheater_probability_requested', { target: target ?? '' });
+
         const response = await axios.post('/api/getCheaterProbability', {
-          target: targetInfoJson?.profileInfo?.steamID,
+          target,
           closeFriends: closeFriendsJson ?? [],
         });
 

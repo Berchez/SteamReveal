@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { track } from '@vercel/analytics';
 import useFaceitLink from './useFaceitLink';
 import quickLinks from './data';
 
@@ -75,7 +76,11 @@ export default function UserQuickLinks({ steamId }: UserQuickLinksProps) {
               aria-label={link.title}
               aria-disabled={isDisabled}
               onClick={(e) => {
-                if (isDisabled) e.preventDefault();
+                if (isDisabled) {
+                  e.preventDefault();
+                  return;
+                }
+                track('quick_link_click', { site: link.id });
               }}
               // `group` enables the tooltip below to appear on hover.
               className={`group relative flex items-center justify-center ${
