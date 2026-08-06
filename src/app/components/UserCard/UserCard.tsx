@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { UserSummary } from 'steamapi';
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
 import { getLocationDetails } from '@/app/templates/Home/homeUtils';
-import UserQuickLinks from './UserQuickLinks';
+import UserQuickLinks from '../UserQuickLinks';
 
 function UserCard({
   friend,

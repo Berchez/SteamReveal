@@ -127,14 +127,20 @@ describe('UserCard Component', () => {
       render(<UserCard friend={mockFriend} itsTargetUser={true} />);
     });
 
-    expect(screen.getByTitle('SteamID.uk')).toBeInTheDocument();
-    expect(screen.getByTitle('GamersClub')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'SteamID.uk' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'GamersClub' }),
+    ).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByTitle('Faceit')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Faceit' })).toBeInTheDocument();
     });
 
-    const faceitLink = screen.getByTitle('Faceit') as HTMLAnchorElement;
+    const faceitLink = screen.getByRole('link', {
+      name: 'Faceit',
+    }) as HTMLAnchorElement;
     await waitFor(() => {
       expect(faceitLink).toHaveAttribute(
         'href',
