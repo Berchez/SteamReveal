@@ -10,6 +10,11 @@ const createJestConfig = nextJest({
 const config: Config = {
   coverageProvider: 'v8',
   testEnvironment: 'jsdom',
+  moduleNameMapper: {
+    '^@vercel/analytics$': '<rootDir>/__mocks__/@vercel/analytics.js',
+    '^@vercel/analytics/react$': '<rootDir>/__mocks__/@vercel/analytics-react.js',
+    '^@vercel/speed-insights/next$': '<rootDir>/__mocks__/@vercel/speed-insights-next.js',
+  },
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 };

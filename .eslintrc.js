@@ -39,6 +39,7 @@ module.exports = {
     'nu-undef': 'off',
     'react/jsx-filename-extension': 'off',
     'import/extensions': 'off',
+    'import/no-unresolved': 'off',
     camelcase: 'off',
     'react/require-default-props': 'off',
     'react/prop-types': 'off',

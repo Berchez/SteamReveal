@@ -5,6 +5,14 @@ import { UserSummary } from 'steamapi';
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
 import { getLocationDetails } from '@/app/templates/Home/homeUtils';
 import UserQuickLinks from '../UserQuickLinks';
+import useGamersClubName from '../UserQuickLinks/useGamersClubName';
+
+// Avatar and flag image sizes differ depending on whether this card represents
+// the searched target user or one of their friends.
+const SIZE_CONFIG = {
+  target: { avatarSize: 120, flagWidth: 40, flagHeight: 28, flagRes: 'w40' },
+  friend: { avatarSize: 60, flagWidth: 20, flagHeight: 14, flagRes: 'w20' },
+} as const;
 
 function UserCard({
   friend,
@@ -19,9 +27,14 @@ function UserCard({
   itsTargetUser: boolean;
   bottomChildren?: React.ReactNode;
 }) {
-  const { countryCode, stateCode, cityID } = friend;
+  const { countryCode, stateCode, cityID, steamID } = friend;
 
   const translator = useTranslations('UserCard');
+  const { name: gcName, isLoading: isLoadingGcName } = useGamersClubName(
+    steamID ?? '',
+  );
+
+  const sizes = itsTargetUser ? SIZE_CONFIG.target : SIZE_CONFIG.friend;
 
   const defaultLocationInfoType = useMemo(
     () => ({
@@ -51,6 +64,9 @@ function UserCard({
   const glassmorphism =
     'bg-purple-900 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-20 border border-gray-100/50';
 
+  const gcNameClassName =
+    'font-bold bg-[linear-gradient(90deg,#ff3b30,#ff9500,#ffcc00,#34c759,#00c7be,#30b0c7,#5856d6,#af52de)] bg-[length:200%_auto] bg-clip-text text-transparent animate-gradient-spin';
+
   return (
     <div
       className={`gap-4 flex md:flex-row flex-col items-center justify-center text-white p-4 ${
@@ -58,7 +74,6 @@ function UserCard({
           ? 'text-lg md:w-[90%] w-full self-center'
           : 'text-base w-full mt-8'
       } ${glassmorphism}`}
-      key={friend.steamID}
     >
       {friend.avatar.medium && (
         <div className="flex flex-col items-center">
@@ -66,8 +81,8 @@ function UserCard({
             src={itsTargetUser ? friend.avatar.large : friend.avatar.medium}
             className={`${itsTargetUser ? 'w-36' : ''} rounded-lg`}
             alt={`Avatar of the user ${friend.nickname}`}
-            width={itsTargetUser ? 120 : 60}
-            height={itsTargetUser ? 120 : 60}
+            width={sizes.avatarSize}
+            height={sizes.avatarSize}
           />
           {!itsTargetUser && (
             <Link
@@ -97,22 +112,43 @@ function UserCard({
             {translator('nickname')}: {friend.nickname}
           </p>
         )}
-        {friend.realName && (
-          <p>
-            {translator('realName')}: {friend.realName}
+        {(friend.realName || gcName || isLoadingGcName) && (
+          <p className="flex items-center flex-wrap gap-x-2">
+            <span>
+              {translator('realName')}:{' '}
+              {friend.realName ||
+                (isLoadingGcName ? (
+                  <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
+                ) : (
+                  <span className={gcNameClassName}>{gcName}</span>
+                ))}
+            </span>
+
+            {friend.realName && (gcName || isLoadingGcName) && (
+              <>
+                <span className="text-gray-400 text-sm" aria-hidden="true">
+                  |
+                </span>
+
+                {isLoadingGcName ? (
+                  <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
+                ) : (
+                  <span className={gcNameClassName}>{gcName}</span>
+                )}
+              </>
+            )}
           </p>
         )}
+
         <div className="flex gap-x-2 items-center">
           {friend.countryCode && (
             <div className="flex items-center gap-x-1 w-full">
               <img
-                src={`https://flagcdn.com/${
-                  itsTargetUser ? 'w40' : 'w20'
-                }/${friend.countryCode.toLowerCase()}.png`}
+                src={`https://flagcdn.com/${sizes.flagRes}/${friend.countryCode.toLowerCase()}.png`}
                 className="w-max h-max"
                 alt={`country flag (${friend.countryCode}) of the user ${friend.nickname}`}
-                width={itsTargetUser ? 40 : 20}
-                height={itsTargetUser ? 28 : 14}
+                width={sizes.flagWidth}
+                height={sizes.flagHeight}
               />
 
               {isLoadingLocationDetails && (
@@ -124,9 +160,9 @@ function UserCard({
             </div>
           )}
         </div>
-        {probability && (
+        {typeof probability === 'number' && (
           <p className="">
-            {translator('probability')}: {probability?.toFixed(2)}%
+            {translator('probability')}: {probability.toFixed(2)}%
           </p>
         )}
         {friend.url && (
@@ -142,7 +178,7 @@ function UserCard({
             </a>
           </p>
         )}
-        {count && (
+        {typeof count === 'number' && (
           <p>
             {translator('reliability')}: {count}
           </p>

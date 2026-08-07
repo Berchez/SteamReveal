@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import UserCard from './UserCard';
 import { UserSummary } from 'steamapi';
 import { getLocationDetails } from '@/app/templates/Home/homeUtils';
+import useGamersClubName from '../UserQuickLinks/useGamersClubName';
 
 jest.mock('next-intl', () => ({
   useTranslations: jest.fn(),
@@ -14,8 +15,9 @@ jest.mock('../../templates/Home/homeUtils', () => ({
   getLocationDetails: jest.fn(),
 }));
 
-jest.mock('@vercel/analytics', () => ({
-  track: jest.fn(),
+jest.mock('../UserQuickLinks/useGamersClubName', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 global.fetch = jest.fn();
@@ -63,6 +65,11 @@ describe('UserCard Component', () => {
       city: { name: 'San Francisco' },
       state: { name: 'California' },
       country: { name: 'United States' },
+    });
+    (useGamersClubName as jest.Mock).mockReturnValue({
+      name: null,
+      isLoading: false,
+      error: null,
     });
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
