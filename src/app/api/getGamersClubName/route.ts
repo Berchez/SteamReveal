@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import scrapeGamersClubName from './utils/scrapeGamersClubName';
-import applyRateLimit from './utils/rateLimit';
 import getErrorMessage from './utils/getErrorMessage';
 
 export const revalidate = 0;
@@ -17,9 +16,6 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
-
-    // Serialize requests to GamersClub to avoid tripping their rate limit
-    await applyRateLimit();
 
     let gcName: string | null = null;
     const scraperUrl = process.env.GAMERSCLUB_SCRAPER_URL;

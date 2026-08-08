@@ -7,7 +7,7 @@
  * through, defeating the purpose.
  */
 
-const MIN_DELAY_MS = 2000; // Minimum delay between consecutive requests
+const MIN_DELAY_MS = 1000; // Minimum delay between consecutive requests
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {

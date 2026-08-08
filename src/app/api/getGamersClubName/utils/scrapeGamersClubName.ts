@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import getErrorMessage from './getErrorMessage';
+import applyRateLimit from './rateLimit';
 
 const BASE_URL = 'https://gamersclub.com.br';
 
@@ -36,6 +37,8 @@ const resolvePlayerUrl = async (
   const searchUrl = `${BASE_URL}/buscar?busca=${encodeURIComponent(steamProfileUrl)}`;
 
   console.debug(`[GamersClub] Searching player at ${searchUrl}`);
+
+  await applyRateLimit();
 
   try {
     // Request with maxRedirects: 0 to capture the redirect instead of following it
@@ -110,6 +113,8 @@ const scrapeGamersClubName = async (
     }
 
     console.debug(`[GamersClub] Fetching profile from ${playerUrl}`);
+
+    await applyRateLimit();
 
     const profileResponse = await axios.get(playerUrl, {
       timeout: 10000,
