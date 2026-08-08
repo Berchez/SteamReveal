@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import axios from 'axios';
 import scrapeGamersClubName from './utils/scrapeGamersClubName';
 import applyRateLimit from './utils/rateLimit';
 import getErrorMessage from './utils/getErrorMessage';
@@ -20,7 +21,38 @@ export async function POST(req: Request) {
     // Serialize requests to GamersClub to avoid tripping their rate limit
     await applyRateLimit();
 
-    const gcName = await scrapeGamersClubName(steamId);
+    let gcName: string | null = null;
+    const scraperUrl = process.env.GAMERSCLUB_SCRAPER_URL;
+
+    if (scraperUrl) {
+      console.log(
+        `[GamersClub] Redirecting scrape request for Steam ID ${steamId} to external proxy: ${scraperUrl}`,
+      );
+      try {
+        const cleanedUrl = scraperUrl.replace(/\/$/, '');
+        const targetUrl = `${cleanedUrl}/api/gamersclub/${steamId}`;
+        const response = await axios.get(targetUrl, {
+          timeout: 15000,
+        });
+
+        if (response.status === 200 && response.data) {
+          gcName = response.data.name;
+        } else {
+          console.warn(
+            `[GamersClub] External proxy returned unexpected status: ${response.status}`,
+          );
+          gcName = await scrapeGamersClubName(steamId);
+        }
+      } catch (error) {
+        console.error(
+          `[GamersClub] External proxy failed for Steam ID ${steamId}:`,
+          getErrorMessage(error),
+        );
+        gcName = await scrapeGamersClubName(steamId);
+      }
+    } else {
+      gcName = await scrapeGamersClubName(steamId);
+    }
 
     return NextResponse.json({ steamId, gcName }, { status: 200 });
   } catch (error) {
