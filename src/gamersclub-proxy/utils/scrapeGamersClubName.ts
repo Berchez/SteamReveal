@@ -117,7 +117,7 @@ const scrapeGamersClubName = async (
     await applyRateLimit();
 
     const profileResponse = await axios.get(playerUrl, {
-      timeout: 10000,
+      timeout: 30000,
       headers: {
         'User-Agent': PROFILE_USER_AGENT,
         Accept:

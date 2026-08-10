@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
-import scrapeGamersClubName from '../app/api/getGamersClubName/utils/scrapeGamersClubName';
+import scrapeGamersClubName from './utils/scrapeGamersClubName';
 
 /**
  * Custom environment variable loader for standalone execution.

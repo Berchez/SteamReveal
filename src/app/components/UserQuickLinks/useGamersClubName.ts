@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocale } from 'next-intl';
 
 interface GamersClubNameResponse {
   steamId: string;
@@ -12,16 +13,19 @@ interface UseGamersClubNameState {
 }
 
 const useGamersClubName = (steamId: string): UseGamersClubNameState => {
+  const locale = useLocale();
   const [name, setName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const gcFeatureEnabled = localStorage.getItem('gcFeatureEnabled') === 'true';
-
   useEffect(() => {
-    // Skip the request entirely for an empty Steam ID instead of firing a
-    // request that the API will just reject with a 400.
-    if (!steamId || !gcFeatureEnabled) {
+    const country = document.body.getAttribute('data-country');
+    const isPT = locale?.toLowerCase().startsWith('pt');
+    const isBrazil = country === 'BR' || isPT;
+
+    // Skip the request entirely for an empty Steam ID, if the feature is disabled,
+    // or if the user is not in Brazil/using PT locale.
+    if (!steamId || !isBrazil) {
       setName(null);
       setError(null);
       setIsLoading(false);

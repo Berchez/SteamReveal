@@ -68,7 +68,6 @@ function FeedbackButton() {
       {/* Open button */}
       <button
         onClick={() => {
-          localStorage.setItem('gcFeatureEnabled', 'true');
           setError(null);
           setOpen(true);
         }}
