@@ -1,47 +1,71 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-import getErrorMessage from '../getGamersClubName/utils/getErrorMessage';
+
+/**
+ * Forwards a finished search to the local GamersClub/analytics proxy
+ * (reached through the same Cloudflare Tunnel documented in
+ * GAMERSCLUB_PROXY.md, via LOCAL_PROXY_URL), which appends it to
+ * analytics.html.
+ *
+ * Path: src/app/api/recordAnalytics/route.ts
+ */
 
 export const revalidate = 0;
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { profile, friends } = body;
+const { LOCAL_PROXY_URL } = process.env;
 
-    if (!profile || typeof profile.steamId !== 'string') {
+const EIGHT_SECONDS_IN_MS = 8 * 1000;
+
+export async function POST(req: Request) {
+  if (req.method !== 'POST') {
+    return NextResponse.json(
+      { message: 'Method not allowed.' },
+      { status: 405 },
+    );
+  }
+
+  let body;
+  try {
+    body = await req.json();
+
+    const { profile } = body ?? {};
+
+    if (!profile || !profile.steamId) {
       return NextResponse.json(
-        { message: 'Invalid or missing profile.steamId' },
+        { message: 'Invalid request body.' },
         { status: 400 },
       );
     }
 
-    const scraperUrl = process.env.LOCAL_PROXY_URL;
-
-    if (scraperUrl) {
-      try {
-        const cleanedUrl = scraperUrl.replace(/\/$/, '');
-        await axios.post(
-          `${cleanedUrl}/api/analytics/record`,
-          { profile, friends: Array.isArray(friends) ? friends : [] },
-          { timeout: 8000 },
-        );
-      } catch (error) {
-        console.error(
-          `[Analytics] Failed to reach local proxy for Steam ID ${profile.steamId}:`,
-          getErrorMessage(error),
-        );
-      }
+    if (!LOCAL_PROXY_URL) {
+      // Analytics is best-effort: without the local proxy/tunnel running
+      // (e.g. local dev) we just skip recording instead of failing the search.
+      return NextResponse.json({ id: null, skipped: true }, { status: 200 });
     }
 
-    // Always 200: analytics is best-effort, the caller shouldn't retry or surface an error.
-    return NextResponse.json({ ok: true }, { status: 200 });
-  } catch (error) {
-    const message = getErrorMessage(error);
-    console.error(`recordAnalytics - Internal server error: ${message}`, error);
+    const proxyResponse = await axios.post(
+      `${LOCAL_PROXY_URL}/api/analytics/record`,
+      body,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: EIGHT_SECONDS_IN_MS,
+      },
+    );
 
+    const { id } = proxyResponse.data;
+
+    // `id` lets the client attach a cheater-probability score to this same
+    // search later, via /api/recordAnalytics/cheater.
+    return NextResponse.json({ id: id ?? null }, { status: 200 });
+  } catch (error) {
+    console.error(
+      `recordAnalytics - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
+      error,
+    );
     return NextResponse.json(
-      { message: `Internal server error: ${message}` },
+      { message: 'Internal server error while recording analytics.' },
       { status: 500 },
     );
   }

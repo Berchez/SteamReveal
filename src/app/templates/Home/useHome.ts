@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
@@ -80,12 +80,47 @@ const getCloseFriendsCore = async (id: string) => {
   return closeFriendsWithProbability;
 };
 
+// ---- Analytics helpers -------------------------------------------------
+
+/** Rough mobile/desktop split, purely for the analytics dashboard's device breakdown. */
+const getRequesterDevice = (): 'mobile' | 'desktop' | null => {
+  if (typeof navigator === 'undefined') {
+    return null;
+  }
+  return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
+    ? 'mobile'
+    : 'desktop';
+};
+
+/** Same attribute the GamersClub name lookup already relies on (set by middleware). */
+const getRequesterCountry = (): string | null => {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+  return document.body.getAttribute('data-country');
+};
+
+type AnalyticsMeta = {
+  requesterLocale: string | null;
+  requesterCountry: string | null;
+  device: 'mobile' | 'desktop' | null;
+  durationMs: number | null;
+};
+
+/**
+ * Records a finished search to analytics.html (via /api/recordAnalytics ->
+ * local proxy). Returns the created record's id so a cheater-probability
+ * score can be attached to this exact search later, or null if recording
+ * failed/was skipped — callers should treat that as "no id, don't attach".
+ */
 const recordAnalytics = async (
   targetInfo: UserSummary | undefined,
   closeFriends: closeFriendsDataIWant[] | undefined,
-) => {
+  possibleLocation: locationDataIWant[] | undefined,
+  meta: AnalyticsMeta,
+): Promise<string | null> => {
   if (!targetInfo?.steamID) {
-    return;
+    return null;
   }
 
   let targetGcName: string | null = null;
@@ -99,27 +134,46 @@ const recordAnalytics = async (
   }
 
   try {
-    await axios.post('/api/recordAnalytics', {
+    const { data } = await axios.post('/api/recordAnalytics', {
       profile: {
         steamId: targetInfo.steamID,
         steamUrl: targetInfo.profileURL ?? null,
         nickname: targetInfo.nickname ?? null,
         gcName: targetGcName,
+        countryCode: targetInfo.countryCode ?? null,
+        stateCode: targetInfo.stateCode ?? null,
+        cityId: targetInfo.cityID ?? null,
       },
       friends: (closeFriends ?? []).map((f) => ({
         steamId: f.friend.steamID,
         nickname: f.friend.nickname ?? null,
         gcName: null,
+        mutualCount: f.count ?? null,
+        probability: f.probability ?? null,
+        countryCode: f.friend.countryCode ?? null,
       })),
+      locationGuess: (possibleLocation ?? []).slice(0, 3).map((l) => ({
+        location: l.location,
+        probability: l.probability,
+      })),
+      requesterLocale: meta.requesterLocale,
+      requesterCountry: meta.requesterCountry,
+      device: meta.device,
+      durationMs: meta.durationMs,
     });
+
+    return data?.id ?? null;
   } catch (e) {
+    // Best effort, ignore failures — analytics should never block the UI.
     console.error('[Analytics] Failed to record search:', e);
+    return null;
   }
 };
 
 const useHome = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
 
   const { showSponsorMe, handleShowSponsorMe, onCloseSponsorMe } =
     useSponsorMe();
@@ -135,6 +189,10 @@ const useHome = () => {
 
   const targetValue = useRef<string | null>();
   const translator = useTranslations('ServerMessages');
+
+  // Id of the most recently recorded search, so a cheater-probability score
+  // computed afterwards can be attached to the right entry in analytics.html.
+  const lastSearchIdRef = useRef<string | null>(null);
 
   const [closeFriendsJson, setCloseFriendsJson] = useState<
     closeFriendsDataIWant[] | undefined
@@ -261,6 +319,7 @@ const useHome = () => {
     setPossibleLocationJson(undefined);
     setTargetInfoJson(undefined);
     setCheaterData(undefined);
+    lastSearchIdRef.current = null;
   };
 
   const getCheaterProbability: () => Promise<CheaterDataType | null> =
@@ -306,6 +365,26 @@ const useHome = () => {
 
         setCheaterData(cheaterProbability);
 
+        // Attach this score to the search that was already recorded, so the
+        // dashboard can show cheater-probability insights without every
+        // search needing to compute one. Fire-and-forget: never block the UI.
+        if (lastSearchIdRef.current) {
+          axios
+            .post('/api/recordAnalytics/cheater', {
+              searchId: lastSearchIdRef.current,
+              score: cheaterProbability.cheaterProbability,
+              bannedFriendsCount:
+                cheaterProbability.featureObject.bannedFriendsDetails?.length ??
+                0,
+            })
+            .catch((e) => {
+              console.error(
+                '[Analytics] Failed to attach cheater probability:',
+                e,
+              );
+            });
+        }
+
         return cheaterProbability;
       } catch (e) {
         toast.error('Failed to calculate cheater probability');
@@ -321,11 +400,25 @@ const useHome = () => {
     handleShowSupportMe(1);
     resetJsons();
 
+    const startedAt = Date.now();
+
     const targetInfo = await getUserInfoJson(value);
     const closeFriends = await getCloseFriendsJson(value);
-    getPossibleLocation(closeFriends);
+    const possibleLocation = await getPossibleLocation(closeFriends);
 
-    recordAnalytics(targetInfo, closeFriends);
+    const searchId = await recordAnalytics(
+      targetInfo,
+      closeFriends,
+      possibleLocation,
+      {
+        requesterLocale: locale ?? null,
+        requesterCountry: getRequesterCountry(),
+        device: getRequesterDevice(),
+        durationMs: Date.now() - startedAt,
+      },
+    );
+
+    lastSearchIdRef.current = searchId;
   };
 
   useEffect(() => {
