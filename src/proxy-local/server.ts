@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import scrapeGamersClubName from './utils/scrapeGamersClubName';
+import recordSearch from './utils/analytics';
 
 /**
  * Custom environment variable loader for standalone execution.
@@ -36,7 +37,7 @@ function loadEnv(): void {
 loadEnv();
 
 const app = express();
-const PORT = process.env.GAMERSCLUB_PROXY_PORT || process.env.PORT || '3001';
+const PORT = process.env.LOCAL_PROXY_PORT || process.env.PORT || '3001';
 
 app.use(express.json());
 
@@ -50,7 +51,7 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
 
   try {
     console.log(
-      `[GamersClub Proxy] Scraping GamersClub name for Steam ID: ${steamId}`,
+      `[Local Proxy] Scraping GamersClub name for Steam ID: ${steamId}`,
     );
     const name = await scrapeGamersClubName(steamId);
 
@@ -60,7 +61,7 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error(
-      `[GamersClub Proxy] Scraping error for Steam ID ${steamId}:`,
+      `[Local Proxy] Scraping error for Steam ID ${steamId}:`,
       error,
     );
     let errorMessage = '';
@@ -76,6 +77,35 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
   }
 });
 
+// Endpoint: POST /api/analytics/record
+// Called by the deployed site (via the same tunnel used for LOCAL_PROXY_URL)
+// every time a search finishes. Writes to the local analytics.html — this is why
+// it has to live on this local server rather than on Vercel.
+app.post('/api/analytics/record', async (req: Request, res: Response) => {
+  const { profile, friends } = req.body ?? {};
+
+  if (!profile || !profile.steamId) {
+    return res.status(400).json({ error: 'Invalid or missing profile' });
+  }
+
+  try {
+    await recordSearch({ profile, friends: Array.isArray(friends) ? friends : [] });
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error('[Analytics] Failed to record search:', error);
+    let errorMessage = '';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else {
+      errorMessage = String(error);
+    }
+    return res.status(500).json({
+      error: 'Failed to record search',
+      details: errorMessage,
+    });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
@@ -83,9 +113,12 @@ app.get('/health', (_req: Request, res: Response) => {
 
 app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(
-    `[GamersClub Proxy] Standalone server running on http://localhost:${PORT}`,
+    `[Local Proxy] Standalone server running on http://localhost:${PORT}`,
   );
   console.log(
-    `[GamersClub Proxy] Endpoint active: GET /api/gamersclub/:steamId`,
+    `[Local Proxy] Endpoint active: GET /api/gamersclub/:steamId`,
+  );
+  console.log(
+    `[Local Proxy] Endpoint active: POST /api/analytics/record`,
   );
 });

@@ -1,13 +1,13 @@
 /**
- * Serializes outgoing requests to GamersClub with a minimum delay between them.
+ * Serializes outgoing requests to external services with a minimum delay between them.
  *
- * The delay is global (not per Steam ID) because GamersClub's rate limiting
- * applies to the shared session/cookie, not to individual players. Throttling
- * per Steam ID would let unlimited concurrent requests for different players
- * through, defeating the purpose.
+ * The delay is global (not per Steam ID) because rate limiting often
+ * applies to the shared session/cookie or IP address. Throttling
+ * per Steam ID would let unlimited concurrent requests through,
+ * potentially getting the proxy blocked.
  */
 
-const MIN_DELAY_MS = 1000; // Minimum delay between consecutive requests
+const MIN_DELAY_MS = 2000; // Minimum delay between consecutive requests
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {

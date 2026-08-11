@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     }
 
     let gcName: string | null = null;
-    const scraperUrl = process.env.GAMERSCLUB_SCRAPER_URL;
+    const scraperUrl = process.env.LOCAL_PROXY_URL;
 
     if (scraperUrl) {
       try {
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         }
       } catch (error) {
         console.error(
-          `[GamersClub] External proxy failed for Steam ID ${steamId}:`,
+          `[Local Proxy] External proxy failed for Steam ID ${steamId}:`,
           getErrorMessage(error),
         );
       }

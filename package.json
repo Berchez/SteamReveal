@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "pnpm test && next build",
     "start": "next start",
-    "start:gamersclub-proxy": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" src/gamersclub-proxy/server.ts",
+    "start:proxy-local": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" src/proxy-local/server.ts",
     "lint": "next lint",
     "postinstall": "patch-package",
     "test": "cross-env NODE_ENV=test jest",

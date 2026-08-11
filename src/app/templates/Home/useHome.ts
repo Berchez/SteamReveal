@@ -12,6 +12,7 @@ import { CheaterDataType } from '@/@types/cheaterDataType';
 import { isLoadingType } from '@/@types/isLoadingType';
 import useSupportMe from '@/app/components/SupportMe/useSupportMe';
 import { track } from '@vercel/analytics';
+import { UserSummary } from 'steamapi';
 
 import {
   getLocationDetails,
@@ -77,6 +78,43 @@ const getCloseFriendsCore = async (id: string) => {
   );
 
   return closeFriendsWithProbability;
+};
+
+const recordAnalytics = async (
+  targetInfo: UserSummary | undefined,
+  closeFriends: closeFriendsDataIWant[] | undefined,
+) => {
+  if (!targetInfo?.steamID) {
+    return;
+  }
+
+  let targetGcName: string | null = null;
+  try {
+    const { data } = await axios.post('/api/getGamersClubName', {
+      steamId: targetInfo.steamID,
+    });
+    targetGcName = data.gcName;
+  } catch (e) {
+    // Best effort, ignore failures
+  }
+
+  try {
+    await axios.post('/api/recordAnalytics', {
+      profile: {
+        steamId: targetInfo.steamID,
+        steamUrl: targetInfo.profileURL ?? null,
+        nickname: targetInfo.nickname ?? null,
+        gcName: targetGcName,
+      },
+      friends: (closeFriends ?? []).map((f) => ({
+        steamId: f.friend.steamID,
+        nickname: f.friend.nickname ?? null,
+        gcName: null,
+      })),
+    });
+  } catch (e) {
+    console.error('[Analytics] Failed to record search:', e);
+  }
 };
 
 const useHome = () => {
@@ -190,6 +228,8 @@ const useHome = () => {
       });
 
       updateQueryParam('player', targetInfo.steamID);
+
+      return targetInfo;
     } catch (e) {
       toast.error(translator('invalidPlayer'));
       console.error(e);
@@ -281,9 +321,11 @@ const useHome = () => {
     handleShowSupportMe(1);
     resetJsons();
 
-    await getUserInfoJson(value);
+    const targetInfo = await getUserInfoJson(value);
     const closeFriends = await getCloseFriendsJson(value);
     getPossibleLocation(closeFriends);
+
+    recordAnalytics(targetInfo, closeFriends);
   };
 
   useEffect(() => {
