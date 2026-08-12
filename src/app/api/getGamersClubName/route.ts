@@ -24,7 +24,7 @@ export async function POST(req: Request) {
         const cleanedUrl = scraperUrl.replace(/\/$/, '');
         const targetUrl = `${cleanedUrl}/api/gamersclub/${steamId}`;
         const response = await axios.get(targetUrl, {
-          timeout: 30000,
+          timeout: 60000,
         });
 
         if (response.status === 200 && response.data) {

@@ -134,7 +134,7 @@ const recordAnalytics = async (
   }
 
   try {
-    const { data } = await axios.post('/api/recordAnalytics', {
+    const payload = {
       profile: {
         steamId: targetInfo.steamID,
         steamUrl: targetInfo.profileURL ?? null,
@@ -160,7 +160,9 @@ const recordAnalytics = async (
       requesterCountry: meta.requesterCountry,
       device: meta.device,
       durationMs: meta.durationMs,
-    });
+    };
+
+    const { data } = await axios.post('/api/recordAnalytics', payload);
 
     return data?.id ?? null;
   } catch (e) {
@@ -370,7 +372,7 @@ const useHome = () => {
         // search needing to compute one. Fire-and-forget: never block the UI.
         if (lastSearchIdRef.current) {
           axios
-            .post('/api/recordAnalytics/cheater', {
+            .post('/api/recordAnalyticsCheater', {
               searchId: lastSearchIdRef.current,
               score: cheaterProbability.cheaterProbability,
               bannedFriendsCount:
