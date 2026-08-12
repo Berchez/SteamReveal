@@ -8,6 +8,7 @@ import { Roboto, Inknut_Antiqua } from 'next/font/google';
 import React from 'react';
 import { headers } from 'next/headers';
 import Script from 'next/script';
+import { LOCALE_PATHS } from '../../locales';
 
 const roboto = Roboto({
   subsets: ['latin'],
@@ -35,8 +36,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://steam-reveal.vercel.app/en',
     languages: {
-      'en-US': '/en',
-      'pt-BR': '/pt',
+      'en-US': LOCALE_PATHS.en,
+      'pt-BR': LOCALE_PATHS.pt,
+      'ru-RU': LOCALE_PATHS.ru,
     },
   },
   keywords: [

@@ -28,7 +28,7 @@ This repository is divided into parts:
 - **Social Graph Analysis (General Steam):** Maps the top 20 "Close Friends" based on mutual connection weight rather than just a simple friends list.
 - **AI Cheater Probability (CS Exclusive):** Calculates the likelihood of a user being a cheater using a machine learning model that analyzes profile comments sentiment, friend ban proximity, account investment, and specific **Counter-Strike** stats.
 - **User-Friendly Interface:** Developed with React and Framer Motion to ensure a fluid, modern, and responsive experience.
-- **Multilingual Support:** Full support for English and Portuguese via `next-intl`.
+- **Multilingual Support:** Full support for English, Portuguese, and Russian via `next-intl`.
 
 To access it, click on the link: [SteamReveal](https://steam-reveal.vercel.app/)
 
