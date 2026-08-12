@@ -2,6 +2,10 @@
   "General": {
     "search": "Search"
   },
+  "LanguageSwitcher": {
+    "toggleMenu": "Toggle language menu",
+    "selectLanguage": "Select Language"
+  },
   "Default": {
     "websiteDescription": "SteamReveal is a comprehensive intelligence platform tailored for the gaming community. Our platform offers a suite of tools and features designed to help gamers collect, analyze, and leverage intelligence from diverse sources across the web, all in one convenient location."
   },

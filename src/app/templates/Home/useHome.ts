@@ -5,7 +5,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from '@/navigation';
 import { cityNameAndScore } from '@/@types/cityNameAndScore';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import { CheaterDataType } from '@/@types/cheaterDataType';
@@ -19,6 +20,11 @@ import {
   getCitiesNames,
   sortCitiesByScore,
 } from './homeUtils';
+import {
+  getCachedSearch,
+  setCachedSearch,
+  updateCachedSearchById,
+} from './homeCache';
 
 export async function fetchSteamId(target: string) {
   const response = await axios.get('/api/getSteamId', {
@@ -174,6 +180,7 @@ const recordAnalytics = async (
 
 const useHome = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const locale = useLocale();
 
@@ -183,10 +190,17 @@ const useHome = () => {
   const { showSupportMe, handleShowSupportMe, onCloseSupportMe } =
     useSupportMe();
 
+  // Uses the next-intl-aware router/pathname so the locale prefix and any
+  // existing query params survive the update (a plain `?${...}` string
+  // href doesn't reliably resolve against the current locale-prefixed
+  // path here).
   const updateQueryParam = (key: string, value: string) => {
     const currentParams = new URLSearchParams(searchParams.toString());
     currentParams.set(key, value);
-    router.replace(`?${currentParams.toString()}`);
+    router.replace(
+      { pathname, query: Object.fromEntries(currentParams.entries()) },
+      { scroll: false },
+    );
   };
 
   const targetValue = useRef<string | null>();
@@ -282,14 +296,16 @@ const useHome = () => {
         targetInfo.cityID,
       );
 
-      setTargetInfoJson({
+      const newTargetInfoJson: targetInfoJsonType = {
         profileInfo: targetInfo,
         targetLocationInfo: locationInfo,
-      });
+      };
+
+      setTargetInfoJson(newTargetInfoJson);
 
       updateQueryParam('player', targetInfo.steamID);
 
-      return targetInfo;
+      return newTargetInfoJson;
     } catch (e) {
       toast.error(translator('invalidPlayer'));
       console.error(e);
@@ -367,6 +383,14 @@ const useHome = () => {
 
         setCheaterData(cheaterProbability);
 
+        // NOTE: reuses the `target` resolved at the top of this function —
+        // previously this was redeclared here, which shadowed the outer
+        // `target` instead of causing an error, but was confusing and
+        // pointless since both are the same value.
+        if (target) {
+          updateCachedSearchById(target, { cheaterData: cheaterProbability });
+        }
+
         // Attach this score to the search that was already recorded, so the
         // dashboard can show cheater-probability insights without every
         // search needing to compute one. Fire-and-forget: never block the UI.
@@ -398,18 +422,45 @@ const useHome = () => {
     };
 
   const handleGetInfoClick = async (value: string) => {
+    const cached = getCachedSearch(value);
+    if (cached) {
+      // Still surface the sponsor/support prompts on a cache-hit — they
+      // gate on their own internal cooldown, and skipping them here would
+      // mean a repeated search never shows them. `resetJsons()` isn't
+      // needed since every piece of state it would clear gets overwritten
+      // by the cached values right below anyway.
+      handleShowSponsorMe();
+      handleShowSupportMe(1);
+
+      setTargetInfoJson(cached.targetInfoJson);
+      setCloseFriendsJson(cached.closeFriendsJson);
+      setPossibleLocationJson(cached.possibleLocationJson);
+      setCheaterData(cached.cheaterData);
+      lastSearchIdRef.current = cached.searchId ?? null;
+
+      const cachedSteamId = cached.targetInfoJson?.profileInfo?.steamID;
+      // Only touch the URL if it's actually out of sync — the common case
+      // (e.g. a cache hit from switching locale with the same player) has
+      // urlPlayer already pointing at this steamId, so skip the no-op replace.
+      if (cachedSteamId && cachedSteamId !== urlPlayer) {
+        updateQueryParam('player', cachedSteamId);
+      }
+
+      return;
+    }
+
     handleShowSponsorMe();
     handleShowSupportMe(1);
     resetJsons();
 
     const startedAt = Date.now();
 
-    const targetInfo = await getUserInfoJson(value);
+    const newTargetInfoJson = await getUserInfoJson(value);
     const closeFriends = await getCloseFriendsJson(value);
     const possibleLocation = await getPossibleLocation(closeFriends);
 
     const searchId = await recordAnalytics(
-      targetInfo,
+      newTargetInfoJson.profileInfo,
       closeFriends,
       possibleLocation,
       {
@@ -421,6 +472,15 @@ const useHome = () => {
     );
 
     lastSearchIdRef.current = searchId;
+
+    // Keyed by the resolved SteamID64 (canonical), with `value` (whatever
+    // the user typed) stored as an alias pointing at it — see homeCache.ts.
+    setCachedSearch(value, newTargetInfoJson.profileInfo.steamID, {
+      targetInfoJson: newTargetInfoJson,
+      closeFriendsJson: closeFriends,
+      possibleLocationJson: possibleLocation,
+      searchId,
+    });
   };
 
   useEffect(() => {
@@ -428,7 +488,7 @@ const useHome = () => {
       return;
     }
     handleGetInfoClick(urlPlayer);
-  }, [urlPlayer, searchParams]);
+  }, [urlPlayer]);
 
   const onChangeTarget = (value: string) => {
     targetValue.current = value;

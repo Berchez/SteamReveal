@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import SponsorMe from '@/app/components/SponsorMe';
 import SupportMe from '@/app/components/SupportMe';
+import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
 import useHome from './useHome';
 import VideoBackground from './templates/VideoBackground';
@@ -67,6 +68,10 @@ export default function Home() {
         )}
 
         {hasNoDataYet && <WelcomeText />}
+
+        <div className="fixed top-4 right-4 z-50">
+          <LanguageSwitcher />
+        </div>
 
         <div
           className={`flow-root h-full w-full min-h-screen bg-no-repeat bg-cover py-8 px-4 md:p-12 text-white z-20 ${
