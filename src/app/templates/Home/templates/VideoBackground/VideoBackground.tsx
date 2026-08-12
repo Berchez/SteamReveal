@@ -4,12 +4,17 @@ import React from 'react';
 function VideoBackground() {
   const env = process.env.NODE_ENV;
   if (env === 'development') {
-    return <Image src="/images/background.webp" alt="background" fill />;
+    return (
+      <div className="fixed inset-0 z-0">
+        <Image src="/images/background.webp" alt="background" fill priority />
+      </div>
+    );
   }
 
   return (
     <video
       loop
+      preload="metadata"
       autoPlay
       muted
       playsInline
