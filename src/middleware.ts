@@ -1,10 +1,6 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest } from 'next/server';
-import {
-  DEFAULT_LOCALE,
-  LOCALE_ROUTE_PATTERN,
-  SUPPORTED_LOCALES,
-} from './locales';
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './locales';
 
 export default function middleware(request: NextRequest) {
   const localeMiddleware = createMiddleware({
@@ -26,6 +22,9 @@ export default function middleware(request: NextRequest) {
   return response;
 }
 
+// IMPORTANT: Next.js expects literal strings in config.matcher. Avoid template
+// literals with runtime expressions here to prevent the "Unsupported template
+// literal" error during build.
 export const config = {
-  matcher: ['/', `/${LOCALE_ROUTE_PATTERN}/:path*`],
+  matcher: ['/', '/(en|pt|ru)/:path*'],
 };

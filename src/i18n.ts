@@ -4,11 +4,16 @@ import { getRequestConfig } from 'next-intl/server';
 import { SUPPORTED_LOCALES, type SupportedLocale } from './locales';
 
 export default getRequestConfig(async ({ locale }) => {
-  if (!SUPPORTED_LOCALES.includes(locale as SupportedLocale)) {
+  const requested = locale as SupportedLocale;
+  if (!SUPPORTED_LOCALES.includes(requested)) {
     notFound();
   }
 
+  // Return both `locale` and `messages` to satisfy next-intl expectations.
+  const messages = (await import(`../messages/${requested}.json`)).default;
+
   return {
-    messages: (await import(`../messages/${locale}.json`)).default,
+    locale: requested,
+    messages,
   };
 });
