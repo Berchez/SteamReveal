@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Serializes outgoing requests to external services with a minimum delay between them.
  *
  * The delay is global (not per Steam ID) because rate limiting often
@@ -7,7 +7,7 @@
  * potentially getting the proxy blocked.
  */
 
-const MIN_DELAY_MS = 2000; // Minimum delay between consecutive requests
+let minDelayMs = 2000; // Minimum delay between consecutive requests (configurable for tests)
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {
@@ -19,16 +19,25 @@ let queue: Promise<void> = Promise.resolve();
 
 /**
  * Queues the caller behind any in-flight requests and waits until at least
- * MIN_DELAY_MS has passed since the last request went out.
+ * minDelayMs has passed since the last request went out.
  */
 const applyRateLimit = (): Promise<void> => {
   queue = queue.then(async () => {
     const elapsed = Date.now() - lastRequestTime;
-    const delay = Math.max(0, MIN_DELAY_MS - elapsed);
+    const delay = Math.max(0, minDelayMs - elapsed);
     if (delay > 0) await sleep(delay);
     lastRequestTime = Date.now();
   });
   return queue;
 };
 
+// Helpers for tests and fine-tuning in runtime
+export const setMinDelay = (ms: number) => {
+  minDelayMs = ms;
+};
+export const getLastRequestTime = () => lastRequestTime;
+export const resetRateLimiter = () => {
+  lastRequestTime = 0;
+  queue = Promise.resolve();
+};
 export default applyRateLimit;
