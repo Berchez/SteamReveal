@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import getErrorMessage from './getErrorMessage';
-import applyRateLimit from './rateLimit';
+import withRetry from './withRetry';
 
 const BASE_URL = 'https://gamersclub.com.br';
 
@@ -26,8 +26,31 @@ const getSessionCookie = (): string => {
 };
 
 /**
+ * Decides whether a failed request is worth retrying.
+ * - 429 / 5xx: transient, upstream is overloaded or hiccuping -> retry.
+ * - No response at all (timeout, network error, DNS failure): also
+ *   transient -> retry.
+ * - Any other 4xx (401/403/404/...): a definitive rejection that a retry
+ *   won't fix (bad cookie, endpoint doesn't exist, etc) -> don't waste
+ *   attempts and time on it.
+ */
+const isRetryableAxiosError = (err: unknown): boolean => {
+  if (!axios.isAxiosError(err)) return true;
+  const status = err.response?.status;
+  if (status === undefined) return true;
+  return status === 429 || status >= 500;
+};
+
+/**
  * Resolves the GamersClub player page URL for a given Steam ID.
  * The /buscar endpoint responds with a 307 redirect to /player/{id}.
+ *
+ * `validateStatus` is set to also accept 307 as a "valid" response instead
+ * of the axios default (2xx only). A 307 here is the expected "player
+ * found" outcome for this endpoint, not an error condition — letting axios
+ * throw for it would make withRetry treat a successful search as a failure
+ * (retrying it pointlessly) and would prevent reportSuccess() from ever
+ * firing for the common case, since it only runs on the non-throwing path.
  */
 const resolvePlayerUrl = async (
   steamId: string,
@@ -38,39 +61,41 @@ const resolvePlayerUrl = async (
 
   console.debug(`[GamersClub] Searching player at ${searchUrl}`);
 
-  await applyRateLimit();
+  const response = await withRetry(
+    () =>
+      axios.get(searchUrl, {
+        maxRedirects: 0,
+        timeout: 10000,
+        headers: {
+          'User-Agent': SEARCH_USER_AGENT,
+          Cookie: cookie,
+        },
+        validateStatus: (status) =>
+          (status >= 200 && status < 300) || status === 307,
+      }),
+    { shouldRetry: isRetryableAxiosError },
+  );
 
-  try {
-    // Request with maxRedirects: 0 to capture the redirect instead of following it
-    await axios.get(searchUrl, {
-      maxRedirects: 0,
-      timeout: 10000,
-      headers: {
-        'User-Agent': SEARCH_USER_AGENT,
-        Cookie: cookie,
-      },
-    });
+  const { status } = response;
+  const location = response.headers?.location;
+
+  console.debug(
+    `[GamersClub] Search response status: ${status}, Location: ${location}`,
+  );
+
+  if (status === 307 && location) {
+    return location.startsWith('http') ? location : `${BASE_URL}${location}`;
+  }
+
+  if (status >= 200 && status < 300) {
     // A 2xx response here means no redirect happened, i.e. no player was found
     return null;
-  } catch (axiosError) {
-    if (!axios.isAxiosError(axiosError)) throw axiosError;
-
-    const status = axiosError.response?.status;
-    const location = axiosError.response?.headers?.location;
-
-    console.debug(
-      `[GamersClub] Search response status: ${status}, Location: ${location}`,
-    );
-
-    if (status === 307 && location) {
-      return location.startsWith('http') ? location : `${BASE_URL}${location}`;
-    }
-
-    console.warn(
-      `GamersClub: Unexpected response status ${status} for Steam ID ${steamId}. Location: ${location}`,
-    );
-    return null;
   }
+
+  console.warn(
+    `GamersClub: Unexpected response status ${status} for Steam ID ${steamId}.`,
+  );
+  return null;
 };
 
 /**
@@ -114,18 +139,20 @@ const scrapeGamersClubName = async (
 
     console.debug(`[GamersClub] Fetching profile from ${playerUrl}`);
 
-    await applyRateLimit();
-
-    const profileResponse = await axios.get(playerUrl, {
-      timeout: 60000,
-      headers: {
-        'User-Agent': PROFILE_USER_AGENT,
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-        Cookie: cookie,
-      },
-    });
+    const profileResponse = await withRetry(
+      () =>
+        axios.get(playerUrl, {
+          timeout: 60000,
+          headers: {
+            'User-Agent': PROFILE_USER_AGENT,
+            Accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+            Cookie: cookie,
+          },
+        }),
+      { shouldRetry: isRetryableAxiosError },
+    );
 
     console.debug(
       `[GamersClub] Profile page status: ${profileResponse.status}`,
