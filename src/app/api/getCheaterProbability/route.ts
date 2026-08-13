@@ -5,7 +5,7 @@ import getSteamApiKey from '@/lib/getSteamApiKey';
 import getBadCommentsScore from './utils/badCommentsMethod';
 import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
-import getPlayTimeScore from './utils/playTimeMethod';
+import getGameLibraryStats from './utils/gameLibraryStatsMethod';
 import getCsStats from './utils/csStats';
 import { clearStat, getAccountAge } from './utils/utils';
 
@@ -43,28 +43,26 @@ export async function POST(req: Request) {
       badCommentsScore,
       bannedFriendsResult,
       inventoryScore,
-      playTimeScore,
+      gameLibraryStats,
       userLevel,
       csStats,
       userSummary,
-      ownedGames,
     ] = await Promise.all([
       getBadCommentsScore(targetSteamId),
       getBannedFriendsScore(closeFriends),
       getInventoryScore(targetSteamId),
-      getPlayTimeScore(targetSteamId),
+      getGameLibraryStats(targetSteamId),
       steam.getUserLevel(targetSteamId),
       getCsStats(targetSteamId),
       steam.getUserSummary(targetSteamId),
-      steam.getUserOwnedGames(targetSteamId),
     ]);
+
+    const { playTime: playTimeScore, totalGamesCount } = gameLibraryStats;
 
     const { score: bannedFriendsScore, bannedFriendsDetails } =
       bannedFriendsResult;
 
     const accountAge = getAccountAge(userSummary as UserSummary);
-
-    const totalGamesCount = Array.isArray(ownedGames) ? ownedGames.length : 0;
 
     const csStatsFeaturesArr = csStats
       ? Object.values(csStats).map(clearStat)

@@ -1,4 +1,4 @@
-import getPlayTimeScore from './index';
+import getGameLibraryStats from './index';
 
 // SteamAPI mock
 const mockGetUserOwnedGames = jest.fn();
@@ -10,15 +10,15 @@ jest.mock('steamapi', () => {
   }));
 });
 
-describe('getPlayTimeScore', () => {
+describe('getGameLibraryStats', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('returns CS2 minutes if CS2 exists', async () => {
     mockGetUserOwnedGames.mockResolvedValue([
       { game: { id: 730 }, minutes: 1200 },
     ]);
-    const result = await getPlayTimeScore('123456789');
-    expect(result).toBe(1200);
+    const result = await getGameLibraryStats('123456789');
+    expect(result).toEqual({ playTime: 1200, totalGamesCount: 1 });
     expect(mockGetUserOwnedGames).toHaveBeenCalledWith('123456789');
   });
 
@@ -26,8 +26,8 @@ describe('getPlayTimeScore', () => {
     mockGetUserOwnedGames.mockResolvedValue([
       { game: { id: 570 }, minutes: 500 },
     ]);
-    const result = await getPlayTimeScore('123456789');
-    expect(result).toBe(-1);
+    const result = await getGameLibraryStats('123456789');
+    expect(result).toEqual({ playTime: -1, totalGamesCount: 1 });
   });
 
   it('returns -1 if response is not an array', async () => {
@@ -35,8 +35,8 @@ describe('getPlayTimeScore', () => {
       .spyOn(console, 'warn')
       .mockImplementation(() => {});
     mockGetUserOwnedGames.mockResolvedValue({ invalid: 'data' } as any);
-    const result = await getPlayTimeScore('123456789');
-    expect(result).toBe(-1);
+    const result = await getGameLibraryStats('123456789');
+    expect(result).toEqual({ playTime: -1, totalGamesCount: -1 });
     expect(consoleWarnSpy).toHaveBeenCalled();
     consoleWarnSpy.mockRestore();
   });
@@ -46,8 +46,8 @@ describe('getPlayTimeScore', () => {
       .spyOn(console, 'error')
       .mockImplementation(() => {});
     mockGetUserOwnedGames.mockRejectedValue(new Error('API error'));
-    const result = await getPlayTimeScore('123456789');
-    expect(result).toBe(-1);
+    const result = await getGameLibraryStats('123456789');
+    expect(result).toEqual({ playTime: -1, totalGamesCount: -1 });
     expect(consoleErrorSpy).toHaveBeenCalled();
     consoleErrorSpy.mockRestore();
   });

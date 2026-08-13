@@ -61,8 +61,7 @@ const quickLinks: QuickLink[] = [
     id: 'clash-inventory',
     title: 'Inventory',
     icon: '📦',
-    iconUrl:
-      'https://play-lh.googleusercontent.com/VP6nRWGNvdq1c1CxPO14pWkqPqe4LMro1Q2jwNoXnps1Wj7Sp6ALKjYz7JuQHyccVkc',
+    iconUrl: 'https://i.imgur.com/x31txKn.png',
     getUrl: (steamId) =>
       `https://inventory.clash.gg/users/${encodeURIComponent(steamId)}`,
   },

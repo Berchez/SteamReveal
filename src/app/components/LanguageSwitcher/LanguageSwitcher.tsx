@@ -78,14 +78,14 @@ export default function LanguageSwitcher() {
       <button
         type="button"
         onClick={toggleDropdown}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white transition-colors duration-200 focus:outline-none ring-2 ring-purple-900 focus:ring-purple-500"
+        className="flex items-center gap-1 px-2 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white transition-colors duration-200 focus:outline-none ring-2 ring-purple-900 focus:ring-purple-500"
         aria-label={t('toggleMenu')}
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-controls={MENU_ID}
       >
-        <span className="text-lg">{LANGUAGE_FLAGS[currentLocale]}</span>
-        <span className="text-sm font-medium hidden sm:inline">
+        <span className="text-sm">{LANGUAGE_FLAGS[currentLocale]}</span>
+        <span className="text-xs font-medium hidden sm:inline">
           {LANGUAGE_NAMES[currentLocale]}
         </span>
         <svg
