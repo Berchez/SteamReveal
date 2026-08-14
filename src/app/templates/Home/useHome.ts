@@ -106,6 +106,35 @@ const getRequesterCountry = (): string | null => {
   return document.body.getAttribute('data-country');
 };
 
+const ANALYTICS_SKIP_PASSWORD_KEY = 'analytics_skip_password';
+
+/**
+ * Reads the (optional) analytics skip password from localStorage and turns
+ * it into request headers for the recordAnalytics* endpoints. Returns
+ * `undefined` when there's no `window` (SSR), no password stored, or when
+ * localStorage throws (e.g. some private-browsing modes) — in all of those
+ * cases the request should just go out without the skip header.
+ *
+ * Exported (in addition to the default hook) so it can be unit tested on
+ * its own, without pulling in the rest of useHome's dependencies.
+ */
+export const getAnalyticsSkipHeaders = ():
+  | Record<string, string>
+  | undefined => {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  try {
+    const skipPassword = localStorage.getItem(ANALYTICS_SKIP_PASSWORD_KEY);
+    return skipPassword
+      ? { 'x-analytics-skip-password': skipPassword }
+      : undefined;
+  } catch (e) {
+    return undefined;
+  }
+};
+
 type AnalyticsMeta = {
   requesterLocale: string | null;
   requesterCountry: string | null;
@@ -168,7 +197,17 @@ const recordAnalytics = async (
       durationMs: meta.durationMs,
     };
 
-    const { data } = await axios.post('/api/recordAnalytics', payload);
+    const { data } = await axios.post('/api/recordAnalytics', payload, {
+      headers: getAnalyticsSkipHeaders(),
+    });
+
+    // When the request was skipped (e.g. dev/testing via the skip
+    // password), there's no real record on the other end — don't return
+    // a fake id, or it'll be forwarded as `searchId` to
+    // /api/recordAnalyticsCheater later.
+    if (data?.skipped) {
+      return null;
+    }
 
     return data?.id ?? null;
   } catch (e) {
@@ -396,13 +435,19 @@ const useHome = () => {
         // search needing to compute one. Fire-and-forget: never block the UI.
         if (lastSearchIdRef.current) {
           axios
-            .post('/api/recordAnalyticsCheater', {
-              searchId: lastSearchIdRef.current,
-              score: cheaterProbability.cheaterProbability,
-              bannedFriendsCount:
-                cheaterProbability.featureObject.bannedFriendsDetails?.length ??
-                0,
-            })
+            .post(
+              '/api/recordAnalyticsCheater',
+              {
+                searchId: lastSearchIdRef.current,
+                score: cheaterProbability.cheaterProbability,
+                bannedFriendsCount:
+                  cheaterProbability.featureObject.bannedFriendsDetails
+                    ?.length ?? 0,
+              },
+              {
+                headers: getAnalyticsSkipHeaders(),
+              },
+            )
             .catch((e) => {
               console.error(
                 '[Analytics] Failed to attach cheater probability:',

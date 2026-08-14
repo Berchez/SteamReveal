@@ -26,6 +26,12 @@ export async function POST(req: Request) {
 
   let body;
   try {
+    const { ANALYTICS_SKIP_PASSWORD } = process.env;
+    const skipHeader = req.headers.get('x-analytics-skip-password');
+    if (ANALYTICS_SKIP_PASSWORD && skipHeader === ANALYTICS_SKIP_PASSWORD) {
+      return NextResponse.json({ skipped: true }, { status: 200 });
+    }
+
     body = await req.json();
 
     const { searchId, score } = body ?? {};

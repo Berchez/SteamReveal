@@ -26,6 +26,14 @@ export async function POST(req: Request) {
 
   let body;
   try {
+    const { ANALYTICS_SKIP_PASSWORD } = process.env;
+    const skipHeader = req.headers.get('x-analytics-skip-password');
+    if (ANALYTICS_SKIP_PASSWORD && skipHeader === ANALYTICS_SKIP_PASSWORD) {
+      // Keep the same shape as the "no LOCAL_PROXY_URL" skip below —
+      // `id: null` so callers never mistake a skip for a real record id.
+      return NextResponse.json({ id: null, skipped: true }, { status: 200 });
+    }
+
     body = await req.json();
 
     const { profile } = body ?? {};
