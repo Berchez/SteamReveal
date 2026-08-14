@@ -6,10 +6,8 @@ import { getCachedGcName, setCachedGcName } from './gcNameCache';
 
 const BASE_URL = 'https://gamersclub.com.br';
 
-const SEARCH_USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36';
-const PROFILE_USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
+const GAMERSCLUB_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.108 Safari/537.36';
 
 /**
  * Reads the GamersClub session cookie from the environment instead of a
@@ -79,7 +77,7 @@ const resolvePlayerUrl = async (
         maxRedirects: 0,
         timeout: 10000,
         headers: {
-          'User-Agent': SEARCH_USER_AGENT,
+          'User-Agent': GAMERSCLUB_USER_AGENT,
           Cookie: cookie,
         },
         validateStatus: (status) =>
@@ -182,7 +180,7 @@ const scrapeGamersClubName = async (
         axios.get(playerUrl, {
           timeout: 60000,
           headers: {
-            'User-Agent': PROFILE_USER_AGENT,
+            'User-Agent': GAMERSCLUB_USER_AGENT,
             Accept:
               'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
             'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
