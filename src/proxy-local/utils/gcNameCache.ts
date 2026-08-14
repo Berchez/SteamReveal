@@ -19,7 +19,7 @@ import path from 'path';
 // move to something that doesn't depend on __dirname (e.g. an absolute
 // path from process.cwd() or an env var), or dev/prod will silently read
 // and write two different cache files.
-const CACHE_FILE = path.resolve(__dirname, 'gcNameCache.json');
+const CACHE_FILE = path.resolve(__dirname, 'gcNameCache.data.json');
 const TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
 
 type CacheEntry = {
