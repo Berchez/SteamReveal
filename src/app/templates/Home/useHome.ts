@@ -172,7 +172,7 @@ const recordAnalytics = async (
     const payload = {
       profile: {
         steamId: targetInfo.steamID,
-        steamUrl: targetInfo.profileURL ?? null,
+        steamUrl: targetInfo.url ?? null,
         nickname: targetInfo.nickname ?? null,
         gcName: targetGcName,
         countryCode: targetInfo.countryCode ?? null,
