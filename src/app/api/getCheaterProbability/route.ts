@@ -6,7 +6,10 @@ import getBadCommentsScore from './utils/badCommentsMethod';
 import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
 import getGameLibraryStats from './utils/gameLibraryStatsMethod';
-import getCsStats from './utils/csStats';
+import getCsStats, {
+  CS_STATS_FIELD_ORDER,
+  assertCsStatsShape,
+} from './utils/csStats';
 import { clearStat, getAccountAge } from './utils/utils';
 
 export const revalidate = 0;
@@ -64,9 +67,18 @@ export async function POST(req: Request) {
 
     const accountAge = getAccountAge(userSummary as UserSummary);
 
+    // Built by explicit field name (CS_STATS_FIELD_ORDER), not
+    // Object.values(csStats) — see utils/csStats/index.ts for why. If
+    // getCsStats() ever returns an unexpected shape, assertCsStatsShape
+    // throws here (→ 500, logged below) instead of silently sending the
+    // model a misaligned feature vector.
+    if (csStats) {
+      assertCsStatsShape(csStats);
+    }
+
     const csStatsFeaturesArr = csStats
-      ? Object.values(csStats).map(clearStat)
-      : Array(9).fill(-1);
+      ? CS_STATS_FIELD_ORDER.map((key) => clearStat(csStats[key]))
+      : Array(CS_STATS_FIELD_ORDER.length).fill(-1);
 
     const features = [
       badCommentsScore,
