@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import getErrorMessage from './getErrorMessage';
 import withRetry from './withRetry';
+import { getCachedGcName, setCachedGcName } from './gcNameCache';
 
 const BASE_URL = 'https://gamersclub.com.br';
 
@@ -42,6 +43,17 @@ const isRetryableAxiosError = (err: unknown): boolean => {
 };
 
 /**
+ * Outcome of resolvePlayerUrl, explicit about *why* there's no URL — this
+ * matters for caching. Only 'not_found' is a confirmed, GamersClub-told-us
+ * outcome; 'unknown' means we genuinely couldn't tell (unexpected status
+ * that slipped past validateStatus) and must NOT be cached as a miss.
+ */
+type PlayerLookupResult =
+  | { status: 'found'; url: string }
+  | { status: 'not_found' }
+  | { status: 'unknown' };
+
+/**
  * Resolves the GamersClub player page URL for a given Steam ID.
  * The /buscar endpoint responds with a 307 redirect to /player/{id}.
  *
@@ -55,7 +67,7 @@ const isRetryableAxiosError = (err: unknown): boolean => {
 const resolvePlayerUrl = async (
   steamId: string,
   cookie: string,
-): Promise<string | null> => {
+): Promise<PlayerLookupResult> => {
   const steamProfileUrl = `https://steamcommunity.com/profiles/${steamId}/`;
   const searchUrl = `${BASE_URL}/buscar?busca=${encodeURIComponent(steamProfileUrl)}`;
 
@@ -84,18 +96,26 @@ const resolvePlayerUrl = async (
   );
 
   if (status === 307 && location) {
-    return location.startsWith('http') ? location : `${BASE_URL}${location}`;
+    const url = location.startsWith('http')
+      ? location
+      : `${BASE_URL}${location}`;
+    return { status: 'found', url };
   }
 
   if (status >= 200 && status < 300) {
-    // A 2xx response here means no redirect happened, i.e. no player was found
-    return null;
+    // A 2xx response here means no redirect happened — GamersClub itself
+    // is telling us there's no player for this Steam ID. This is the ONLY
+    // branch that represents a confirmed "not found", safe to cache.
+    return { status: 'not_found' };
   }
 
+  // Shouldn't normally happen given validateStatus above, but guards
+  // against an unexpected status slipping through. Deliberately NOT
+  // treated as 'not_found' — we don't actually know that here.
   console.warn(
     `GamersClub: Unexpected response status ${status} for Steam ID ${steamId}.`,
   );
-  return null;
+  return { status: 'unknown' };
 };
 
 /**
@@ -128,14 +148,32 @@ const extractNameFromProfile = (html: string): string | null => {
 const scrapeGamersClubName = async (
   steamId: string,
 ): Promise<string | null> => {
+  const cached = getCachedGcName(steamId);
+  if (cached) {
+    console.debug(
+      `[GamersClub] Cache hit for Steam ID ${steamId}: ${cached.name ?? '(not found)'}`,
+    );
+    return cached.name;
+  }
+
   try {
     const cookie = getSessionCookie();
-    const playerUrl = await resolvePlayerUrl(steamId, cookie);
+    const lookup = await resolvePlayerUrl(steamId, cookie);
 
-    if (!playerUrl) {
+    if (lookup.status === 'not_found') {
       console.warn(`GamersClub: No player URL found for Steam ID ${steamId}`);
+      // Confirmed by GamersClub itself — safe to cache as a miss.
+      setCachedGcName(steamId, null);
       return null;
     }
+
+    if (lookup.status === 'unknown') {
+      // We couldn't determine the outcome — return null for this call but
+      // deliberately don't cache it, so the next lookup gets a fresh try.
+      return null;
+    }
+
+    const { url: playerUrl } = lookup;
 
     console.debug(`[GamersClub] Fetching profile from ${playerUrl}`);
 
@@ -161,13 +199,20 @@ const scrapeGamersClubName = async (
     const name = extractNameFromProfile(profileResponse.data);
 
     if (!name) {
+      // The profile page loaded fine but the expected "Nome" field wasn't
+      // found. This is ambiguous — could be a genuinely empty field, or
+      // GamersClub having changed their HTML structure — so it's NOT
+      // cached, to avoid baking a scraper breakage into a 90-day "miss".
       console.warn(`GamersClub: Name field not found for Steam ID ${steamId}`);
-    } else {
-      console.debug(`[GamersClub] Successfully extracted name: ${name}`);
+      return null;
     }
 
+    console.debug(`[GamersClub] Successfully extracted name: ${name}`);
+    setCachedGcName(steamId, name);
     return name;
   } catch (error) {
+    // Network errors, timeouts, missing cookie, non-retryable 4xx, etc.
+    // None of these are a confirmed outcome, so nothing gets cached here.
     console.error(
       `GamersClub scraping error for Steam ID ${steamId}:`,
       getErrorMessage(error),
