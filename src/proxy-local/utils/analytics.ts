@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { buildAnalyticsHtml } from './analyticsDashboardTemplate';
 
 /**
  * "Database" for Steam Friend Finder analytics.
@@ -22,6 +23,27 @@ import path from 'path';
  *     gcName: f.gcName ?? null,
  *   })),
  * });
+ *
+ * ---------------------------------------------------------------------
+ * On analytics.html's HTML/CSS/JS "shell" vs. its data
+ * ---------------------------------------------------------------------
+ * analyticsDashboardTemplate.ts is the ONLY source of truth for the
+ * dashboard's markup, styling, and client-side behavior.
+ * writeEntries() below always regenerates the ENTIRE analytics.html shell
+ * from that template on every write — not just when the file happens to
+ * be missing. Hand-editing analytics.html's HTML/CSS/JS directly no
+ * longer has any lasting effect: the next recordSearch() or
+ * attachCheaterProbability() call silently overwrites it. If you want to
+ * change the dashboard, edit analyticsDashboardTemplate.ts (and see the
+ * warning at the top of that file about how to do that safely).
+ *
+ * readEntries() (below), in contrast, deliberately does NOT care which
+ * shell version is currently on disk — it only ever looks for the
+ * <script id="db"> markers and parses whatever JSON is between them.
+ * That's what makes it safe to keep improving the template over time:
+ * old analytics.html files (written by an older template version, or
+ * even hand-edited) still have their DATA read correctly; only the shell
+ * around that data gets replaced on the next write.
  */
 
 const DB_HTML_PATH = path.resolve(__dirname, 'analytics.html');
@@ -84,23 +106,35 @@ export interface SearchRecord {
 type NewSearchInput = Omit<SearchRecord, 'id' | 'searchedAt' | 'cheater'>;
 
 /**
- * Reads the JSON block embedded in the HTML and returns the
- * existing entries.
+ * Reads just the JSON entries embedded in analytics.html on disk — the
+ * <script id="db"> block. The surrounding HTML/CSS/JS shell is
+ * intentionally ignored here (see the module doc comment above); only
+ * writeEntries() decides what that shell looks like, and it always uses
+ * analyticsDashboardTemplate.ts.
+ *
+ * Returns an empty array (not an error) if analytics.html doesn't exist
+ * yet - first run, or the file was deleted/moved. Any
+ * other read failure (permissions, I/O error...) still throws, since
+ * that's not what this fallback is for.
  */
-const readEntries = async (): Promise<{
-  html: string;
-  entries: SearchRecord[];
-  startIdx: number;
-  endIdx: number;
-}> => {
+const readEntries = async (): Promise<SearchRecord[]> => {
   let html: string;
 
   try {
     html = await fs.readFile(DB_HTML_PATH, 'utf-8');
   } catch (error) {
-    throw new Error(
-      `analytics.html not found at ${DB_HTML_PATH}. Make sure the generated file (with the <script id="db"> block) exists at this path before calling recordSearch().`,
+    const isMissing = (error as { code?: string })?.code === 'ENOENT';
+
+    if (!isMissing) {
+      throw new Error(
+        `Failed to read analytics.html at ${DB_HTML_PATH}: ${(error as Error).message}`,
+      );
+    }
+
+    console.warn(
+      `[Analytics] analytics.html not found at ${DB_HTML_PATH} — starting from an empty history. A fresh dashboard (from analyticsDashboardTemplate.ts) will be written on the next recordSearch()/attachCheaterProbability() call.`,
     );
+    return [];
   }
 
   const startIdx = html.indexOf(START_TAG);
@@ -121,38 +155,28 @@ const readEntries = async (): Promise<{
 
   const rawJson = html.slice(jsonStart, endIdx).trim() || '[]';
 
-  let entries: SearchRecord[];
-
   try {
-    entries = JSON.parse(rawJson);
+    return JSON.parse(rawJson);
   } catch (error) {
     throw new Error(
       'The data block in analytics.html contains invalid JSON — make sure no one manually edited the file incorrectly.',
     );
   }
-
-  return { html, entries, startIdx: jsonStart, endIdx };
 };
 
 /**
- * Rewrites analytics.html by replacing only the JSON block.
- * It first writes to a temporary file and then renames it
- * to avoid corrupting the file if the process crashes
- * during the write.
+ * Rewrites analytics.html FROM SCRATCH: the dashboard shell always comes
+ * from analyticsDashboardTemplate.ts, wrapped around the given entries —
+ * see the module doc comment above for why. It first writes to a
+ * temporary file and then renames it to avoid corrupting the file if the
+ * process crashes during the write.
  */
-const writeEntries = async (
-  html: string,
-  jsonStart: number,
-  jsonEnd: number,
-  entries: SearchRecord[],
-): Promise<void> => {
+const writeEntries = async (entries: SearchRecord[]): Promise<void> => {
   // Escape "<" to prevent a malicious nickname/URL from prematurely
   // closing the <script> tag (e.g., a gcName containing "</script>").
   const serialized = JSON.stringify(entries, null, 2).replace(/</g, '\\u003c');
 
-  const newHtml = `${html.slice(0, jsonStart)}
-${serialized}
-${html.slice(jsonEnd)}`;
+  const newHtml = buildAnalyticsHtml(serialized);
 
   const tmpPath = `${DB_HTML_PATH}.tmp`;
 
@@ -178,7 +202,7 @@ let writeQueue: Promise<void> = Promise.resolve();
  */
 export const recordSearch = (input: NewSearchInput): Promise<SearchRecord> => {
   const task = writeQueue.then(async () => {
-    const { html, entries, startIdx, endIdx } = await readEntries();
+    const entries = await readEntries();
 
     const record: SearchRecord = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -189,7 +213,7 @@ export const recordSearch = (input: NewSearchInput): Promise<SearchRecord> => {
 
     entries.push(record);
 
-    await writeEntries(html, startIdx, endIdx, entries);
+    await writeEntries(entries);
 
     return record;
   });
@@ -214,7 +238,7 @@ export const attachCheaterProbability = (
   cheater: CheaterProbabilityRecord,
 ): Promise<boolean> => {
   const task = writeQueue.then(async () => {
-    const { html, entries, startIdx, endIdx } = await readEntries();
+    const entries = await readEntries();
 
     const idx = entries.findIndex((e) => e.id === searchId);
 
@@ -224,7 +248,7 @@ export const attachCheaterProbability = (
 
     entries[idx] = { ...entries[idx], cheater };
 
-    await writeEntries(html, startIdx, endIdx, entries);
+    await writeEntries(entries);
 
     return true;
   });
