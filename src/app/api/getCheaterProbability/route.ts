@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 import SteamAPI, { UserSummary } from 'steamapi';
 import getSteamApiKey from '@/lib/getSteamApiKey';
+import MAX_CLOSE_FRIENDS from '@/lib/closeFriendsLimits';
+import { isValidCloseFriendItem } from './utils/validateCloseFriends';
 import getBadCommentsScore from './utils/badCommentsMethod';
 import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
@@ -33,7 +35,39 @@ export async function POST(req: Request) {
 
     const { closeFriends, target } = body;
 
-    if (!Array.isArray(closeFriends) || !target) {
+    // Reject oversized/malformed payloads before touching Steam API at
+    // all.
+    //
+    // Note: getBannedFriendsScore makes ONE batched call to
+    // steam.getUserBans(steamIDs) with the whole array — not one Steam
+    // API call per item as originally assumed. The size cap below still
+    // matters (it bounds that single call's payload and every per-item
+    // computation that follows), but it does NOT by itself neutralize
+    // the sharper abuse vector: a single well-formed item with an
+    // unbounded `count` can blow up calcBansWeight's
+    // `3 ** (bansSum * count)` to Infinity. That is capped separately in
+    // isValidCloseFriendItem (see MAX_FRIEND_COUNT there) — the length
+    // check here and the per-item shape/bounds check below are both
+    // required, neither is sufficient alone.
+    //
+    // `target` must be a non-empty string — a truthy-but-wrong-typed
+    // value (object/array) would otherwise be passed straight to
+    // steam.resolve(target).
+    if (
+      !Array.isArray(closeFriends) ||
+      typeof target !== 'string' ||
+      target.length === 0 ||
+      closeFriends.length > MAX_CLOSE_FRIENDS
+    ) {
+      return NextResponse.json(
+        { message: 'Invalid request body.' },
+        { status: 400 },
+      );
+    }
+
+    // Reject malformed items (bad steamID, bad/unbounded count) before
+    // they reach getBannedFriendsScore / calcBansWeight downstream.
+    if (!closeFriends.every(isValidCloseFriendItem)) {
       return NextResponse.json(
         { message: 'Invalid request body.' },
         { status: 400 },

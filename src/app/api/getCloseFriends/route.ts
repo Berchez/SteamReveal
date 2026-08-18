@@ -1,6 +1,7 @@
 import getSteamApiKey from '@/lib/getSteamApiKey';
 import { NextResponse } from 'next/server';
 import SteamAPI from 'steamapi';
+import MAX_CLOSE_FRIENDS from '@/lib/closeFriendsLimits';
 
 export const revalidate = 0;
 
@@ -56,24 +57,50 @@ const getCloseFriends = async (target: string) => {
 
   closeFriendsOfTheTarget.sort((a, b) => b.count - a.count);
 
-  const twentyClosestFriends = closeFriendsOfTheTarget.slice(0, 20);
+  // MAX_CLOSE_FRIENDS is shared with /api/getCheaterProbability's request
+  // validation (see Ticket 8, @/lib/closeFriendsLimits). This is the
+  // place that actually decides how many close friends the product
+  // considers; that other route just caps what it'll accept back from
+  // the client at the same number. Change it in one place, both stay in
+  // sync.
+  const closestFriends = closeFriendsOfTheTarget.slice(0, MAX_CLOSE_FRIENDS);
 
-  const steamIDs = twentyClosestFriends.map((friend) => friend.steamID);
+  const steamIDs = closestFriends.map((friend) => friend.steamID);
 
   const summaries = await steam.getUserSummary(steamIDs);
   const summariesArray = Array.isArray(summaries) ? summaries : [summaries];
 
-  const twentyClosestFriendsWithSummary = twentyClosestFriends.map((friend) => {
+  // Only keep entries whose Steam summary actually resolved. A friend can
+  // fail to resolve (private profile, deleted account, a transient gap in
+  // the Steam API's response) — this used to ship as `friend: null`,
+  // which silently violated closeFriendsDataIWant's type
+  // (`friend: UserSummary`, declared non-nullable) and left every
+  // downstream consumer — e.g. getBannedFriendsScore's
+  // `friendData.friend.nickname` — one bad Steam response away from a
+  // null-dereference crash. Dropping unresolvable friends here keeps the
+  // type honest end to end, at the cost of occasionally returning fewer
+  // than MAX_CLOSE_FRIENDS entries — an accurate reflection of reality
+  // (there's no usable data for that friend), not a bug.
+  const closestFriendsWithSummary = closestFriends.reduce<
+    Array<{ friend: (typeof summariesArray)[number]; count: number }>
+  >((acc, friend) => {
     const summary = summariesArray.find(
       (sum) => sum.steamID === friend.steamID,
     );
-    return {
-      friend: summary || null,
-      count: friend.count,
-    };
-  });
+    if (summary) {
+      acc.push({ friend: summary, count: friend.count });
+    }
+    return acc;
+  }, []);
 
-  return twentyClosestFriendsWithSummary;
+  const droppedCount = closestFriends.length - closestFriendsWithSummary.length;
+  if (droppedCount > 0) {
+    console.warn(
+      `getCloseFriends - ${droppedCount} close friend(s) of ${target} had no resolvable Steam summary and were dropped.`,
+    );
+  }
+
+  return closestFriendsWithSummary;
 };
 
 export async function POST(req: Request) {
