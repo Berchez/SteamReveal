@@ -1,9 +1,10 @@
 import React, { useContext } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'react-toastify';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
 import dynamic from 'next/dynamic';
 import SearchInput from '../SearchInput';
-import HomeContext from '../../context';
+import { HomeDataContext, HomeActionsContext } from '../../context';
 import { fetchSteamId } from '../../useHome';
 
 const UserCard = dynamic(() => import('@/app/components/UserCard'));
@@ -27,8 +28,33 @@ function MyUserSection({
   className,
 }: MyUserSectionProps) {
   const translator = useTranslations('Index');
+  const serverMessagesTranslator = useTranslations('ServerMessages');
 
-  const context = useContext(HomeContext);
+  const data = useContext(HomeDataContext);
+  const actions = useContext(HomeActionsContext);
+
+  const handleResolvedSearch = (steamId: string) => {
+    if (!steamId) {
+      toast.error(serverMessagesTranslator('invalidPlayer'));
+      return;
+    }
+    actions?.navigateToPlayer(steamId);
+  };
+
+  const handleSearch = () => {
+    const value = (targetValue.current ?? '').trim();
+
+    if (!value) {
+      toast.error(serverMessagesTranslator('invalidPlayer'));
+      return;
+    }
+
+    fetchSteamId(value)
+      .then(handleResolvedSearch)
+      .catch(() => {
+        toast.error(serverMessagesTranslator('invalidPlayer'));
+      });
+  };
 
   return (
     <div className={`flex flex-col w-full mx-auto gap-y-8 ${className}`}>
@@ -42,22 +68,16 @@ function MyUserSection({
           if (e.key !== 'Enter') {
             return;
           }
-          fetchSteamId(targetValue.current ?? '').then((steamId) =>
-            context?.updateQueryParam('player', steamId),
-          );
+          handleSearch();
         }}
-        onSearch={() =>
-          fetchSteamId(targetValue.current ?? '').then((steamId) =>
-            context?.updateQueryParam('player', steamId),
-          )
-        }
+        onSearch={handleSearch}
       />
       {targetInfoJson ? (
         <UserCard
           friend={targetInfoJson.profileInfo}
           itsTargetUser
           bottomChildren={
-            !context?.isLoading.friendsCards && (
+            !data?.isLoading.friendsCards && (
               <div className="relative rounded-xl p-[1px] w-fit inline-flex items-center justify-center group">
                 <div
                   className="absolute inset-0 rounded-xl bg-[length:200%_200%] animate-gradient-spin"
@@ -67,7 +87,7 @@ function MyUserSection({
                   }}
                 />
                 <button
-                  onClick={() => context?.getCheaterProbability()}
+                  onClick={() => actions?.getCheaterProbability()}
                   className="relative z-10 px-4 py-2 text-sm font-medium text-white rounded-xl bg-[#1c0029d7] backdrop-blur-md border border-transparent group-hover:shadow-[0_0_20px_rgba(255,100,249,0.5)] transition duration-200"
                   type="button"
                 >

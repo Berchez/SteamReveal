@@ -1,9 +1,11 @@
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Link } from '@/navigation';
 import { UserSummary } from 'steamapi';
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
 import { getLocationDetails } from '@/app/templates/Home/homeUtils';
+import NAVIGATION_OWNED_PARAMS from '@/app/templates/Home/navigationParams';
 import UserQuickLinks from '../UserQuickLinks';
 import useGamersClubName from '../UserQuickLinks/useGamersClubName';
 
@@ -35,6 +37,19 @@ function UserCard({
   );
 
   const sizes = itsTargetUser ? SIZE_CONFIG.target : SIZE_CONFIG.friend;
+
+  const searchParams = useSearchParams();
+  const friendHref = useMemo(() => {
+    if (!friend.steamID) {
+      return undefined;
+    }
+
+    const params = new URLSearchParams(searchParams?.toString() ?? '');
+    NAVIGATION_OWNED_PARAMS.forEach((key) => params.delete(key));
+    const query = params.toString();
+    const path = `/player/${encodeURIComponent(friend.steamID)}`;
+    return query ? `${path}?${query}` : path;
+  }, [friend.steamID, searchParams]);
 
   const defaultLocationInfoType = useMemo(
     () => ({
@@ -84,9 +99,9 @@ function UserCard({
             width={sizes.avatarSize}
             height={sizes.avatarSize}
           />
-          {!itsTargetUser && (
+          {!itsTargetUser && friendHref && (
             <Link
-              href={`/?player=${friend.steamID ?? ''}`}
+              href={friendHref}
               className="inline-flex items-center justify-center w-[60px] py-1 mt-2 text-purple-400 font-semibold text-sm rounded-full border border-purple-800 bg-purple-600 bg-opacity-10 hover:bg-opacity-20"
               aria-label={translator('searchFriend')}
             >
