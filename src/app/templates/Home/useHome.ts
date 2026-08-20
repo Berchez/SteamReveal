@@ -225,6 +225,21 @@ const useHome = () => {
     [searchParams],
   );
 
+  const urlPlayer = routeParams?.steamId;
+  const initialCache = urlPlayer ? getCachedSearch(urlPlayer) : undefined;
+
+  const lastSearchIdRef = useRef<string | null>(initialCache?.searchId ?? null);
+  const runIdCounterRef = useRef(0);
+
+  // Identifies which "profile session" is currently active. Every effect
+  // or callback that writes async-resolved state to React state must check
+  // this before writing — otherwise a slow request for a profile the user
+  // has already navigated away from can clobber state that belongs to the
+  // profile now on screen. This isn't limited to the initial fetch: any
+  // async action tied to "the profile currently being viewed" (location
+  // guessing, cheater probability, etc) needs to respect the same guard.
+  const activeRunRef = useRef<number | null>(null);
+
   // Reserves a new run id and marks it as the active one *synchronously* —
   // this is what makes any async work belonging to a previous run get
   // rejected by the `activeRunRef.current !== runId` guards below, even if
@@ -232,7 +247,7 @@ const useHome = () => {
   // even started (e.g. user searches A, then immediately searches B before
   // A's request comes back).
   const reserveNewRun = useCallback(() => {
-    runIdCounterRef.current = 1;
+    runIdCounterRef.current += 1;
     activeRunRef.current = runIdCounterRef.current;
     return runIdCounterRef.current;
   }, []);
@@ -268,22 +283,8 @@ const useHome = () => {
     router.replace(buildPlayerHref(steamId), { scroll: false });
   };
 
-  const urlPlayer = routeParams?.steamId;
-  const initialCache = urlPlayer ? getCachedSearch(urlPlayer) : undefined;
-
   const targetValue = useRef<string | null>();
   const translator = useTranslations('ServerMessages');
-
-  const lastSearchIdRef = useRef<string | null>(initialCache?.searchId ?? null);
-  const runIdCounterRef = useRef(0);
-  // Identifies which "profile session" is currently active. Every effect
-  // or callback that writes async-resolved state to React state must check
-  // this before writing — otherwise a slow request for a profile the user
-  // has already navigated away from can clobber state that belongs to the
-  // profile now on screen. This isn't limited to the initial fetch: any
-  // async action tied to "the profile currently being viewed" (location
-  // guessing, cheater probability, etc) needs to respect the same guard.
-  const activeRunRef = useRef<number | null>(null);
 
   const [closeFriendsJson, setCloseFriendsJson] = useState<
     closeFriendsDataIWant[] | undefined
