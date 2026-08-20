@@ -8,6 +8,7 @@ import { Roboto, Inknut_Antiqua } from 'next/font/google';
 import React from 'react';
 import { headers } from 'next/headers';
 import Script from 'next/script';
+import HomeProvider from '@/app/templates/Home/HomeProvider';
 import { LOCALE_PATHS } from '../../locales';
 
 const roboto = Roboto({
@@ -97,10 +98,11 @@ export default function RootLayout({
         />
         <link rel="preload" as="image" href="/images/background.webp" />
       </head>
-
       <body data-country={country}>
         <NextIntlClientProvider messages={messages}>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <HomeProvider>{children}</HomeProvider>
+          </ToastProvider>
         </NextIntlClientProvider>
         <Analytics />
         <SpeedInsights />
