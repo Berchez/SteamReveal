@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import UserCard from './UserCard';
 import { UserSummary } from 'steamapi';
 import { getLocationDetails } from '@/app/templates/Home/homeUtils';
@@ -20,6 +21,35 @@ jest.mock('../UserQuickLinks/useGamersClubName', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('next/navigation', () => ({
+  useSearchParams: jest.fn(),
+}));
+
+// The real `@/navigation` Link is next-intl locale-aware and expects a
+// surrounding provider we don't want to set up for these tests — a plain
+// anchor is enough to assert the computed `href`.
+// IMPORTANT: mocking '@/navigation' directly does NOT intercept the real
+// import inside UserCard.tsx in this project — the alias gets rewritten to
+// its real resolved path before Jest ever sees the alias string, so a mock
+// registered under either the alias or a guessed relative path may not
+// match. `@/navigation.ts` itself is built on top of next-intl's
+// `createNavigation` (from the plain, unaliased `next-intl/navigation`
+// package) — mocking that package instead guarantees interception
+// regardless of where `@/navigation.ts` actually lives on disk.
+jest.mock('next-intl/navigation', () => ({
+  createNavigation: () => ({
+    Link: ({ href, children, ...rest }: any) => (
+      <a href={href} {...rest}>
+        {children}
+      </a>
+    ),
+    redirect: jest.fn(),
+    usePathname: jest.fn(),
+    useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
+    getPathname: jest.fn(),
+  }),
+}));
+
 global.fetch = jest.fn();
 
 describe('UserCard Component', () => {
@@ -30,6 +60,7 @@ describe('UserCard Component', () => {
       probability: 'Probability',
       url: 'Url',
       reliability: 'Reliability',
+      searchFriend: 'Search friend',
     };
     return translations[key];
   };
@@ -75,6 +106,9 @@ describe('UserCard Component', () => {
       ok: true,
       json: async () => ({}),
     });
+    // Default for the target-user tests below, which don't care about the
+    // search-friend link — the Case 6 describe block overrides this per test.
+    (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams(''));
   });
 
   it('renders the user avatar, nickname, and real name', async () => {
@@ -157,6 +191,60 @@ describe('UserCard Component', () => {
         'href',
         'https://www.faceit.com/en/players/test-player',
       );
+    });
+  });
+
+  // ---------------------------------------------------------------------
+  // Case 6: "search friend" link — query param preservation + safe fallback
+  // ---------------------------------------------------------------------
+  describe('search friend link (Case 6)', () => {
+    it('strips navigation-owned params but preserves the rest of the query string', async () => {
+      (useSearchParams as jest.Mock).mockReturnValue(
+        new URLSearchParams('utm_source=campaign&player=old'),
+      );
+
+      await act(async () => {
+        render(<UserCard friend={mockFriend} itsTargetUser={false} />);
+      });
+
+      const link = screen.getByRole('link', { name: 'Search friend' });
+      expect(link).toHaveAttribute('href', '/player/12345?utm_source=campaign');
+    });
+
+    it('falls back to a clean path when there are no extra query params', async () => {
+      (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams(''));
+
+      await act(async () => {
+        render(<UserCard friend={mockFriend} itsTargetUser={false} />);
+      });
+
+      const link = screen.getByRole('link', { name: 'Search friend' });
+      expect(link).toHaveAttribute('href', '/player/12345');
+    });
+
+    it('does not throw and falls back to the plain path when useSearchParams returns null', async () => {
+      (useSearchParams as jest.Mock).mockReturnValue(null);
+
+      await act(async () => {
+        expect(() =>
+          render(<UserCard friend={mockFriend} itsTargetUser={false} />),
+        ).not.toThrow();
+      });
+
+      const link = screen.getByRole('link', { name: 'Search friend' });
+      expect(link).toHaveAttribute('href', '/player/12345');
+    });
+
+    it('does not render the search-friend link for the target user card', async () => {
+      (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams(''));
+
+      await act(async () => {
+        render(<UserCard friend={mockFriend} itsTargetUser />);
+      });
+
+      expect(
+        screen.queryByRole('link', { name: 'Search friend' }),
+      ).not.toBeInTheDocument();
     });
   });
 });
