@@ -1,12 +1,12 @@
 import axios from 'axios';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useLocale, useTranslations } from 'next-intl';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
-import { useSearchParams } from 'next/navigation';
-import { usePathname, useRouter } from '@/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useRouter } from '@/navigation';
 import { cityNameAndScore } from '@/@types/cityNameAndScore';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import { CheaterDataType } from '@/@types/cheaterDataType';
@@ -20,11 +20,14 @@ import {
   getCitiesNames,
   sortCitiesByScore,
 } from './homeUtils';
+
 import {
   getCachedSearch,
   setCachedSearch,
   updateCachedSearchById,
 } from './homeCache';
+
+import NAVIGATION_OWNED_PARAMS from './navigationParams';
 
 export async function fetchSteamId(target: string) {
   const response = await axios.get('/api/getSteamId', {
@@ -88,7 +91,6 @@ const getCloseFriendsCore = async (id: string) => {
 
 // ---- Analytics helpers -------------------------------------------------
 
-/** Rough mobile/desktop split, purely for the analytics dashboard's device breakdown. */
 const getRequesterDevice = (): 'mobile' | 'desktop' | null => {
   if (typeof navigator === 'undefined') {
     return null;
@@ -98,7 +100,6 @@ const getRequesterDevice = (): 'mobile' | 'desktop' | null => {
     : 'desktop';
 };
 
-/** Same attribute the GamersClub name lookup already relies on (set by middleware). */
 const getRequesterCountry = (): string | null => {
   if (typeof document === 'undefined') {
     return null;
@@ -108,16 +109,6 @@ const getRequesterCountry = (): string | null => {
 
 const ANALYTICS_SKIP_PASSWORD_KEY = 'analytics_skip_password';
 
-/**
- * Reads the (optional) analytics skip password from localStorage and turns
- * it into request headers for the recordAnalytics* endpoints. Returns
- * `undefined` when there's no `window` (SSR), no password stored, or when
- * localStorage throws (e.g. some private-browsing modes) — in all of those
- * cases the request should just go out without the skip header.
- *
- * Exported (in addition to the default hook) so it can be unit tested on
- * its own, without pulling in the rest of useHome's dependencies.
- */
 export const getAnalyticsSkipHeaders = ():
   | Record<string, string>
   | undefined => {
@@ -142,12 +133,6 @@ type AnalyticsMeta = {
   durationMs: number | null;
 };
 
-/**
- * Records a finished search to analytics.html (via /api/recordAnalytics ->
- * local proxy). Returns the created record's id so a cheater-probability
- * score can be attached to this exact search later, or null if recording
- * failed/was skipped — callers should treat that as "no id, don't attach".
- */
 const recordAnalytics = async (
   targetInfo: UserSummary | undefined,
   closeFriends: closeFriendsDataIWant[] | undefined,
@@ -201,17 +186,12 @@ const recordAnalytics = async (
       headers: getAnalyticsSkipHeaders(),
     });
 
-    // When the request was skipped (e.g. dev/testing via the skip
-    // password), there's no real record on the other end — don't return
-    // a fake id, or it'll be forwarded as `searchId` to
-    // /api/recordAnalyticsCheater later.
     if (data?.skipped) {
       return null;
     }
 
     return data?.id ?? null;
   } catch (e) {
-    // Best effort, ignore failures — analytics should never block the UI.
     console.error('[Analytics] Failed to record search:', e);
     return null;
   }
@@ -219,7 +199,7 @@ const recordAnalytics = async (
 
 const useHome = () => {
   const router = useRouter();
-  const pathname = usePathname();
+  const routeParams = useParams<{ steamId?: string }>();
   const searchParams = useSearchParams();
   const locale = useLocale();
 
@@ -229,33 +209,89 @@ const useHome = () => {
   const { showSupportMe, handleShowSupportMe, onCloseSupportMe } =
     useSupportMe();
 
-  // Uses the next-intl-aware router/pathname so the locale prefix and any
-  // existing query params survive the update (a plain `?${...}` string
-  // href doesn't reliably resolve against the current locale-prefixed
-  // path here).
-  const updateQueryParam = (key: string, value: string) => {
-    const currentParams = new URLSearchParams(searchParams.toString());
-    currentParams.set(key, value);
-    router.replace(
-      { pathname, query: Object.fromEntries(currentParams.entries()) },
-      { scroll: false },
-    );
+  // Builds `/player/<id>` while preserving any *other* query params
+  // already on the URL (utm_*, referral tags, feature flags, etc) — the
+  // old `updateQueryParam` did this by construction (it merged into
+  // existing params); the string-template version introduced when the
+  // route moved to `/player/[steamId]` silently dropped them.
+  const buildPlayerHref = useCallback(
+    (steamId: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      NAVIGATION_OWNED_PARAMS.forEach((key) => params.delete(key));
+      const query = params.toString();
+      const path = `/player/${encodeURIComponent(steamId)}`;
+      return query ? `${path}?${query}` : path;
+    },
+    [searchParams],
+  );
+
+  // Reserves a new run id and marks it as the active one *synchronously* —
+  // this is what makes any async work belonging to a previous run get
+  // rejected by the `activeRunRef.current !== runId` guards below, even if
+  // that older run's promise resolves before this new run's own fetch has
+  // even started (e.g. user searches A, then immediately searches B before
+  // A's request comes back).
+  const reserveNewRun = useCallback(() => {
+    runIdCounterRef.current = 1;
+    activeRunRef.current = runIdCounterRef.current;
+    return runIdCounterRef.current;
+  }, []);
+
+  // User-initiated navigation (explicit search/click) — pushes a new
+  // history entry. Wrapped in useCallback so it has a stable identity
+  // across renders; HomeProvider relies on that to avoid re-rendering
+  // every consumer of HomeActionsContext on every unrelated state change.
+  const navigateToPlayer = useCallback(
+    (steamId: string) => {
+      // Invalidate whatever run is currently in flight *before* the URL
+      // even changes — router.push() itself is async/deferred, so without
+      // this a slow-resolving previous search can still win the race and
+      // paint over the profile the user just navigated to.
+      reserveNewRun();
+      router.push(buildPlayerHref(steamId), { scroll: false });
+    },
+    [router, buildPlayerHref, reserveNewRun],
+  );
+
+  // Holds the steamId of the *most recent* internal URL sync (see
+  // `syncPlayerUrl` below), so the effect that watches `urlPlayer` can tell
+  // "the URL changed because we resolved a vanity name mid-run" apart from
+  // "the URL changed because of a real navigation (user action, back/
+  // forward, direct link)".
+  const syncedUrlPlayerRef = useRef<string | null>(null);
+
+  // Silently keeps the URL in sync with state resolved internally.
+  // Uses replace so these internal syncs never pollute browser history —
+  // only navigateToPlayer (explicit user action) should do that.
+  const syncPlayerUrl = (steamId: string) => {
+    syncedUrlPlayerRef.current = steamId;
+    router.replace(buildPlayerHref(steamId), { scroll: false });
   };
+
+  const urlPlayer = routeParams?.steamId;
+  const initialCache = urlPlayer ? getCachedSearch(urlPlayer) : undefined;
 
   const targetValue = useRef<string | null>();
   const translator = useTranslations('ServerMessages');
 
-  // Id of the most recently recorded search, so a cheater-probability score
-  // computed afterwards can be attached to the right entry in analytics.html.
-  const lastSearchIdRef = useRef<string | null>(null);
+  const lastSearchIdRef = useRef<string | null>(initialCache?.searchId ?? null);
+  const runIdCounterRef = useRef(0);
+  // Identifies which "profile session" is currently active. Every effect
+  // or callback that writes async-resolved state to React state must check
+  // this before writing — otherwise a slow request for a profile the user
+  // has already navigated away from can clobber state that belongs to the
+  // profile now on screen. This isn't limited to the initial fetch: any
+  // async action tied to "the profile currently being viewed" (location
+  // guessing, cheater probability, etc) needs to respect the same guard.
+  const activeRunRef = useRef<number | null>(null);
 
   const [closeFriendsJson, setCloseFriendsJson] = useState<
     closeFriendsDataIWant[] | undefined
-  >();
+  >(initialCache?.closeFriendsJson);
 
   const [possibleLocationJson, setPossibleLocationJson] = useState<
     locationDataIWant[] | undefined
-  >();
+  >(initialCache?.possibleLocationJson);
 
   const [isLoading, setIsLoading] = useState<isLoadingType>({
     myCard: false,
@@ -263,14 +299,17 @@ const useHome = () => {
     cheaterReport: false,
   });
 
-  const [cheaterData, setCheaterData] = useState<CheaterDataType>();
+  const [cheaterData, setCheaterData] = useState<CheaterDataType | undefined>(
+    initialCache?.cheaterData,
+  );
 
-  const urlPlayer = searchParams.get('player');
-
-  const [targetInfoJson, setTargetInfoJson] = useState<targetInfoJsonType>();
+  const [targetInfoJson, setTargetInfoJson] = useState<
+    targetInfoJsonType | undefined
+  >(initialCache?.targetInfoJson);
 
   const getPossibleLocation = async (
     closeFriendsOfTheTarget: closeFriendsDataIWant[],
+    runId: number,
   ) => {
     const closeFriendsWithCities = closeFriendsOfTheTarget.filter(
       (f: closeFriendsDataIWant) => f.friend.cityID !== undefined,
@@ -315,12 +354,14 @@ const useHome = () => {
       };
     });
 
-    setPossibleLocationJson(withProbability);
+    if (activeRunRef.current === runId) {
+      setPossibleLocationJson(withProbability);
+    }
 
     return withProbability;
   };
 
-  const getUserInfoJson = async (value: string) => {
+  const getUserInfoJson = async (value: string, runId: number) => {
     try {
       setIsLoading((prev) => ({ ...prev, myCard: true }));
       const { data } = await axios.post('/api/getUserInfo', {
@@ -340,34 +381,50 @@ const useHome = () => {
         targetLocationInfo: locationInfo,
       };
 
+      if (activeRunRef.current !== runId) {
+        return newTargetInfoJson;
+      }
+
       setTargetInfoJson(newTargetInfoJson);
 
-      updateQueryParam('player', targetInfo.steamID);
+      if (targetInfo.steamID !== urlPlayer) {
+        syncPlayerUrl(targetInfo.steamID);
+      }
 
       return newTargetInfoJson;
     } catch (e) {
-      toast.error(translator('invalidPlayer'));
+      if (activeRunRef.current === runId) {
+        toast.error(translator('invalidPlayer'));
+      }
       console.error(e);
       throw e;
     } finally {
-      setIsLoading((prev) => ({ ...prev, myCard: false }));
+      if (activeRunRef.current === runId) {
+        setIsLoading((prev) => ({ ...prev, myCard: false }));
+      }
     }
   };
 
-  const getCloseFriendsJson = async (value: string) => {
+  const getCloseFriendsJson = async (value: string, runId: number) => {
     try {
       setIsLoading((prev) => ({ ...prev, friendsCards: true }));
       const closeFriendsWithProbability = await getCloseFriendsCore(value);
 
-      setCloseFriendsJson(closeFriendsWithProbability);
+      if (activeRunRef.current === runId) {
+        setCloseFriendsJson(closeFriendsWithProbability);
+      }
 
       return closeFriendsWithProbability;
     } catch (e) {
-      toast.error(translator('friendsNotPublic'));
+      if (activeRunRef.current === runId) {
+        toast.error(translator('friendsNotPublic'));
+      }
       console.error(e);
       throw e;
     } finally {
-      setIsLoading((prev) => ({ ...prev, friendsCards: false }));
+      if (activeRunRef.current === runId) {
+        setIsLoading((prev) => ({ ...prev, friendsCards: false }));
+      }
     }
   };
 
@@ -380,11 +437,12 @@ const useHome = () => {
   };
 
   const getCheaterProbability: () => Promise<CheaterDataType | null> =
-    async () => {
+    useCallback(async () => {
       if (isLoading.friendsCards) {
         return null;
       }
       const target = targetInfoJson?.profileInfo?.steamID;
+      const runId = activeRunRef.current;
 
       try {
         handleShowSupportMe(3);
@@ -420,19 +478,18 @@ const useHome = () => {
           console.log('✅ No banned friends found in the analyzed circle.');
         }
 
+        if (activeRunRef.current !== runId) {
+          // User already navigated to a different profile — don't apply
+          // this result to state, but still return it to the caller.
+          return cheaterProbability;
+        }
+
         setCheaterData(cheaterProbability);
 
-        // NOTE: reuses the `target` resolved at the top of this function —
-        // previously this was redeclared here, which shadowed the outer
-        // `target` instead of causing an error, but was confusing and
-        // pointless since both are the same value.
         if (target) {
           updateCachedSearchById(target, { cheaterData: cheaterProbability });
         }
 
-        // Attach this score to the search that was already recorded, so the
-        // dashboard can show cheater-probability insights without every
-        // search needing to compute one. Fire-and-forget: never block the UI.
         if (lastSearchIdRef.current) {
           axios
             .post(
@@ -458,22 +515,29 @@ const useHome = () => {
 
         return cheaterProbability;
       } catch (e) {
-        toast.error('Failed to calculate cheater probability');
+        if (activeRunRef.current === runId) {
+          toast.error('Failed to calculate cheater probability');
+        }
         console.error('getCheaterProbability error:', e);
         return null;
       } finally {
-        setIsLoading((prev) => ({ ...prev, cheaterReport: false }));
+        if (activeRunRef.current === runId) {
+          setIsLoading((prev) => ({ ...prev, cheaterReport: false }));
+        }
       }
-    };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+      isLoading.friendsCards,
+      targetInfoJson,
+      closeFriendsJson,
+      handleShowSupportMe,
+    ]);
 
   const handleGetInfoClick = async (value: string) => {
+    const runId = reserveNewRun();
+
     const cached = getCachedSearch(value);
     if (cached) {
-      // Still surface the sponsor/support prompts on a cache-hit — they
-      // gate on their own internal cooldown, and skipping them here would
-      // mean a repeated search never shows them. `resetJsons()` isn't
-      // needed since every piece of state it would clear gets overwritten
-      // by the cached values right below anyway.
       handleShowSponsorMe();
       handleShowSupportMe(1);
 
@@ -484,11 +548,8 @@ const useHome = () => {
       lastSearchIdRef.current = cached.searchId ?? null;
 
       const cachedSteamId = cached.targetInfoJson?.profileInfo?.steamID;
-      // Only touch the URL if it's actually out of sync — the common case
-      // (e.g. a cache hit from switching locale with the same player) has
-      // urlPlayer already pointing at this steamId, so skip the no-op replace.
       if (cachedSteamId && cachedSteamId !== urlPlayer) {
-        updateQueryParam('player', cachedSteamId);
+        syncPlayerUrl(cachedSteamId);
       }
 
       return;
@@ -500,44 +561,100 @@ const useHome = () => {
 
     const startedAt = Date.now();
 
-    const newTargetInfoJson = await getUserInfoJson(value);
-    const closeFriends = await getCloseFriendsJson(value);
-    const possibleLocation = await getPossibleLocation(closeFriends);
+    try {
+      const newTargetInfoJson = await getUserInfoJson(value, runId);
 
-    const searchId = await recordAnalytics(
-      newTargetInfoJson.profileInfo,
-      closeFriends,
-      possibleLocation,
-      {
-        requesterLocale: locale ?? null,
-        requesterCountry: getRequesterCountry(),
-        device: getRequesterDevice(),
-        durationMs: Date.now() - startedAt,
-      },
-    );
+      if (activeRunRef.current !== runId) {
+        return;
+      }
 
-    lastSearchIdRef.current = searchId;
+      const closeFriends = await getCloseFriendsJson(value, runId);
 
-    // Keyed by the resolved SteamID64 (canonical), with `value` (whatever
-    // the user typed) stored as an alias pointing at it — see homeCache.ts.
-    setCachedSearch(value, newTargetInfoJson.profileInfo.steamID, {
-      targetInfoJson: newTargetInfoJson,
-      closeFriendsJson: closeFriends,
-      possibleLocationJson: possibleLocation,
-      searchId,
-    });
+      if (activeRunRef.current !== runId) {
+        return;
+      }
+
+      let possibleLocation: locationDataIWant[] | undefined;
+      let searchId: string | null = null;
+
+      const cacheSearch = () => {
+        setCachedSearch(value, newTargetInfoJson.profileInfo.steamID, {
+          targetInfoJson: newTargetInfoJson,
+          closeFriendsJson: closeFriends,
+          possibleLocationJson: possibleLocation ?? [],
+          searchId,
+        });
+      };
+
+      try {
+        possibleLocation = await getPossibleLocation(closeFriends, runId);
+      } catch (e) {
+        if (activeRunRef.current === runId) {
+          toast.error(translator('invalidPlayer'));
+        }
+        console.error('getPossibleLocation error:', e);
+
+        if (activeRunRef.current === runId) {
+          cacheSearch();
+        }
+        return;
+      }
+
+      if (activeRunRef.current !== runId) {
+        return;
+      }
+
+      try {
+        searchId = await recordAnalytics(
+          newTargetInfoJson.profileInfo,
+          closeFriends,
+          possibleLocation,
+          {
+            requesterLocale: locale ?? null,
+            requesterCountry: getRequesterCountry(),
+            device: getRequesterDevice(),
+            durationMs: Date.now() - startedAt,
+          },
+        );
+      } catch (e) {
+        console.error('recordAnalytics error:', e);
+        searchId = null;
+      }
+
+      if (activeRunRef.current !== runId) {
+        return;
+      }
+
+      lastSearchIdRef.current = searchId;
+
+      cacheSearch();
+    } catch (e) {
+      // getUserInfoJson/getCloseFriendsJson already show their own toasts
+    }
   };
 
   useEffect(() => {
     if (!urlPlayer) {
+      syncedUrlPlayerRef.current = null;
+
+      reserveNewRun();
+
+      resetJsons();
       return;
     }
+
+    if (syncedUrlPlayerRef.current === urlPlayer) {
+      syncedUrlPlayerRef.current = null;
+      return;
+    }
+
     handleGetInfoClick(urlPlayer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlPlayer]);
 
-  const onChangeTarget = (value: string) => {
+  const onChangeTarget = useCallback((value: string) => {
     targetValue.current = value;
-  };
+  }, []);
 
   const hasNoDataYet = !targetInfoJson && !isLoading.myCard;
 
@@ -547,14 +664,13 @@ const useHome = () => {
     targetValue,
     possibleLocationJson,
     targetInfoJson,
-    getLocationDetails,
     isLoading,
     hasNoDataYet,
     showSponsorMe,
     onCloseSponsorMe,
     cheaterData,
     getCheaterProbability,
-    updateQueryParam,
+    navigateToPlayer,
     showSupportMe,
     onCloseSupportMe,
   };
