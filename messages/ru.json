@@ -149,5 +149,13 @@
       "description": "Отправьте свой отзыв, чтобы помочь улучшить SteamReveal!",
       "button": "Отправить отзыв"
     }
+  },
+  "Metadata": {
+    "Player": {
+      "title": "Анализ профиля Steam игрока {nickname}",
+      "description": "Посмотрите публичные данные Steam игрока {nickname}, возможное местоположение и анализ друзей на SteamReveal.",
+      "fallbackTitle": "SteamReveal - Анализ профилей Steam",
+      "fallbackDescription": "SteamReveal — это OSINT-инструмент для игрового сообщества. Анализируйте профили Steam, находите реальных друзей и определяйте местоположение игроков с помощью публичных данных."
+    }
   }
 }

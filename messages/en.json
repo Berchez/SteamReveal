@@ -149,5 +149,13 @@
       "description": "Send your feedback to help improve SteamReveal!",
       "button": "Send Feedback"
     }
+  },
+  "Metadata": {
+    "Player": {
+      "title": "Analyze {nickname}'s Steam Profile",
+      "description": "See {nickname}'s public Steam data, possible location and friends analysis on SteamReveal.",
+      "fallbackTitle": "SteamReveal - Analyze Steam Profiles",
+      "fallbackDescription": "SteamReveal is an OSINT tool designed for the Steam community. Analyze Steam profiles, discover real friends, and locate players using public data."
+    }
   }
 }

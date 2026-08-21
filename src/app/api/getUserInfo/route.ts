@@ -24,6 +24,13 @@ export async function POST(req: Request) {
 
       const targetInfo = await steam.getUserSummary(targetSteamId);
 
+      if (!targetInfo) {
+        return NextResponse.json(
+          { message: 'Invalid target. ', target },
+          { status: 500 },
+        );
+      }
+
       return NextResponse.json({ targetInfo }, { status: 200 });
     } catch (error) {
       console.error(
