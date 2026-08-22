@@ -114,6 +114,30 @@ describe('scrapeGamersClubName', () => {
     });
   });
 
+  describe('allowScrape parameter', () => {
+    it('returns the name if in cache even when allowScrape is false', async () => {
+      mockedGetCachedGcName.mockReturnValue({
+        name: 'Cached Player',
+        cachedAt: Date.now(),
+      });
+
+      const name = await scrapeGamersClubName(STEAM_ID, false);
+
+      expect(name).toBe('Cached Player');
+      expect(mockedAxios.get).not.toHaveBeenCalled();
+    });
+
+    it('returns null and does NOT call axios when allowScrape is false and not in cache', async () => {
+      mockedGetCachedGcName.mockReturnValue(null);
+
+      const name = await scrapeGamersClubName(STEAM_ID, false);
+
+      expect(name).toBeNull();
+      expect(mockedAxios.get).not.toHaveBeenCalled();
+      expect(mockedSetCachedGcName).not.toHaveBeenCalled();
+    });
+  });
+
   it('returns null without calling axios when the session cookie env var is missing', async () => {
     delete process.env.GAMERSCLUB_SESSION_COOKIE;
 

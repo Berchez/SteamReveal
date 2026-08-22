@@ -44,6 +44,7 @@ app.use(express.json());
 // Endpoint: GET /api/gamersclub/:steamId
 app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
   const { steamId } = req.params;
+  const allowScrape = req.query.allowScrape !== 'false';
 
   if (!steamId || Array.isArray(steamId)) {
     return res.status(400).json({ error: 'Invalid steamId parameter' });
@@ -51,9 +52,9 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
 
   try {
     console.log(
-      `[Local Proxy] Scraping GamersClub name for Steam ID: ${steamId}`,
+      `[Local Proxy] Fetching GamersClub name for Steam ID: ${steamId} (allowScrape: ${allowScrape})`,
     );
-    const name = await scrapeGamersClubName(steamId);
+    const name = await scrapeGamersClubName(steamId, allowScrape);
 
     return res.status(200).json({
       steamId,

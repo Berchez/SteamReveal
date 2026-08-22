@@ -8,7 +8,7 @@ export const revalidate = 0;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { steamId } = body;
+    const { steamId, allowScrape } = body;
 
     if (!steamId || typeof steamId !== 'string') {
       return errorResponse(
@@ -24,7 +24,12 @@ export async function POST(req: Request) {
     if (scraperUrl) {
       try {
         const cleanedUrl = scraperUrl.replace(/\/$/, '');
-        const targetUrl = `${cleanedUrl}/api/gamersclub/${encodeURIComponent(steamId)}`;
+        const queryParams = new URLSearchParams();
+        if (typeof allowScrape === 'boolean') {
+          queryParams.append('allowScrape', String(allowScrape));
+        }
+        const queryString = queryParams.toString();
+        const targetUrl = `${cleanedUrl}/api/gamersclub/${encodeURIComponent(steamId)}${queryString ? `?${queryString}` : ''}`;
         const response = await axios.get(targetUrl, {
           timeout: 60000,
         });

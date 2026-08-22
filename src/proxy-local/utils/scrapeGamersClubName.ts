@@ -141,10 +141,12 @@ const extractNameFromProfile = (html: string): string | null => {
 /**
  * Fetches and scrapes the public name from a GamersClub profile.
  * @param steamId - The Steam ID (can be in any format)
+ * @param allowScrape - Whether to perform a fresh scrape if not in cache
  * @returns The player's public name or null if not found
  */
 const scrapeGamersClubName = async (
   steamId: string,
+  allowScrape = true,
 ): Promise<string | null> => {
   const cached = getCachedGcName(steamId);
   if (cached) {
@@ -152,6 +154,13 @@ const scrapeGamersClubName = async (
       `[GamersClub] Cache hit for Steam ID ${steamId}: ${cached.name ?? '(not found)'}`,
     );
     return cached.name;
+  }
+
+  if (!allowScrape) {
+    console.debug(
+      `[GamersClub] Cache miss for Steam ID ${steamId} and scraping is disabled.`,
+    );
+    return null;
   }
 
   try {

@@ -23,9 +23,8 @@ const useGamersClubName = (steamId: string): UseGamersClubNameState => {
     const isPT = locale?.toLowerCase().startsWith('pt');
     const isBrazil = country === 'BR' || isPT;
 
-    // Skip the request entirely for an empty Steam ID, if the feature is disabled,
-    // or if the user is not in Brazil/using PT locale.
-    if (!steamId || !isBrazil) {
+    // Skip the request entirely for an empty Steam ID or if the feature is disabled.
+    if (!steamId) {
       setName(null);
       setError(null);
       setIsLoading(false);
@@ -39,7 +38,7 @@ const useGamersClubName = (steamId: string): UseGamersClubNameState => {
     fetch('/api/getGamersClubName', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ steamId }),
+      body: JSON.stringify({ steamId, allowScrape: isBrazil }),
     })
       .then((res) =>
         res.ok
