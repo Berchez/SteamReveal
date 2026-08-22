@@ -23,7 +23,7 @@ const useGamersClubName = (steamId: string): UseGamersClubNameState => {
     const isPT = locale?.toLowerCase().startsWith('pt');
     const isBrazil = country === 'BR' || isPT;
 
-    // Skip the request entirely for an empty Steam ID or if the feature is disabled.
+    // Skip the request entirely for an empty Steam ID.
     if (!steamId) {
       setName(null);
       setError(null);
@@ -32,8 +32,15 @@ const useGamersClubName = (steamId: string): UseGamersClubNameState => {
     }
 
     let cancelled = false;
-    setIsLoading(true);
     setError(null);
+
+    // Only show a loading state for Brazil/PT locale users. For everyone else
+    // the request still runs (to pick up a cached GC name for BR profiles
+    // viewed from abroad), but since the vast majority will resolve to null,
+    // we avoid a visible loading flicker by not toggling isLoading for them.
+    if (isBrazil) {
+      setIsLoading(true);
+    }
 
     fetch('/api/getGamersClubName', {
       method: 'POST',
