@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-import getErrorMessage from './utils/getErrorMessage';
+import { errorResponse } from '@/lib/apiError';
+import logRouteError from '@/lib/logRouteError';
 
 export const revalidate = 0;
 
@@ -10,9 +11,10 @@ export async function POST(req: Request) {
     const { steamId } = body;
 
     if (!steamId || typeof steamId !== 'string') {
-      return NextResponse.json(
-        { message: 'Invalid or missing steamId parameter' },
-        { status: 400 },
+      return errorResponse(
+        'Invalid or missing steamId parameter',
+        400,
+        'INVALID_REQUEST',
       );
     }
 
@@ -22,7 +24,7 @@ export async function POST(req: Request) {
     if (scraperUrl) {
       try {
         const cleanedUrl = scraperUrl.replace(/\/$/, '');
-        const targetUrl = `${cleanedUrl}/api/gamersclub/${steamId}`;
+        const targetUrl = `${cleanedUrl}/api/gamersclub/${encodeURIComponent(steamId)}`;
         const response = await axios.get(targetUrl, {
           timeout: 60000,
         });
@@ -31,24 +33,18 @@ export async function POST(req: Request) {
           gcName = response.data.name;
         }
       } catch (error) {
-        console.error(
-          `[Local Proxy] External proxy failed for Steam ID ${steamId}:`,
-          getErrorMessage(error),
-        );
+        logRouteError('getGamersClubName [local proxy]', error, { steamId });
       }
     }
 
     return NextResponse.json({ steamId, gcName }, { status: 200 });
   } catch (error) {
-    const message = getErrorMessage(error);
-    console.error(
-      `getGamersClubName - Internal server error: ${message}`,
-      error,
-    );
+    if (error instanceof SyntaxError) {
+      logRouteError('getGamersClubName', error);
+      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
+    }
 
-    return NextResponse.json(
-      { message: `Internal server error: ${message}` },
-      { status: 500 },
-    );
+    logRouteError('getGamersClubName', error);
+    return errorResponse('Internal server error.', 500, 'INTERNAL_ERROR');
   }
 }

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
+import { errorResponse } from '@/lib/apiError';
+import timingSafeEqualStrings from '@/lib/timingSafeEqualStrings';
+import logRouteError from '@/lib/logRouteError';
 
 /**
  * Attaches a cheater-probability score to a search that was already
@@ -18,17 +21,18 @@ const EIGHT_SECONDS_IN_MS = 8 * 1000;
 
 export async function POST(req: Request) {
   if (req.method !== 'POST') {
-    return NextResponse.json(
-      { message: 'Method not allowed.' },
-      { status: 405 },
-    );
+    return errorResponse('Method not allowed.', 405, 'METHOD_NOT_ALLOWED');
   }
 
   let body;
   try {
     const { ANALYTICS_SKIP_PASSWORD } = process.env;
     const skipHeader = req.headers.get('x-analytics-skip-password');
-    if (ANALYTICS_SKIP_PASSWORD && skipHeader === ANALYTICS_SKIP_PASSWORD) {
+    if (
+      ANALYTICS_SKIP_PASSWORD &&
+      skipHeader !== null &&
+      timingSafeEqualStrings(skipHeader, ANALYTICS_SKIP_PASSWORD)
+    ) {
       return NextResponse.json({ skipped: true }, { status: 200 });
     }
 
@@ -37,10 +41,7 @@ export async function POST(req: Request) {
     const { searchId, score } = body ?? {};
 
     if (!searchId || typeof score !== 'number') {
-      return NextResponse.json(
-        { message: 'Invalid request body.' },
-        { status: 400 },
-      );
+      return errorResponse('Invalid request body.', 400, 'INVALID_REQUEST');
     }
 
     if (!LOCAL_PROXY_URL) {
@@ -56,16 +57,16 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
-    console.error(
-      `recordAnalytics/cheater - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
-      error,
-    );
-    return NextResponse.json(
-      {
-        message:
-          'Internal server error while updating the cheater probability.',
-      },
-      { status: 500 },
+    if (error instanceof SyntaxError) {
+      logRouteError('recordAnalytics/cheater', error);
+      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
+    }
+
+    logRouteError('recordAnalytics/cheater', error, { body });
+    return errorResponse(
+      'Internal server error while updating the cheater probability.',
+      500,
+      'INTERNAL_ERROR',
     );
   }
 }

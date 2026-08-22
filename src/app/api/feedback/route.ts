@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server';
+import { errorResponse } from '@/lib/apiError';
+import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
+import logRouteError from '@/lib/logRouteError';
 import sendFeedbackEmail from './utils';
 
 export const revalidate = 0;
@@ -13,69 +16,45 @@ type FeedbackBody = {
   userAgent?: string;
 };
 
-const RATE_LIMIT_WINDOW = 120_000; // 2 min
+const RATE_LIMIT_WINDOW_MS = 120_000; // 2 min
 const RATE_LIMIT_MAX = 3;
-
-const rateLimitMap = new Map<
-  string,
-  { count: number; firstRequestAt: number }
->();
-
-function isRateLimited(ip: string) {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-
-  if (!entry) {
-    rateLimitMap.set(ip, { count: 1, firstRequestAt: now });
-    return false;
-  }
-
-  if (now - entry.firstRequestAt > RATE_LIMIT_WINDOW) {
-    rateLimitMap.set(ip, { count: 1, firstRequestAt: now });
-    return false;
-  }
-
-  entry.count += 1;
-  return entry.count > RATE_LIMIT_MAX;
-}
+const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
 
 export async function POST(req: Request) {
+  // Standardized order: method check -> rate limit -> parse/validate ->
+  // business logic. Rate limit moved before body validation (was after)
+  // so it matches getUserInfo/getCloseFriends/getSteamId/
+  // getCheaterProbability — every request now consumes rate-limit quota
+  // regardless of whether the body turns out to be valid, same as those
+  // routes.
+  if (req.method !== 'POST') {
+    return errorResponse('Method not allowed.', 405, 'METHOD_NOT_ALLOWED');
+  }
+
+  const ip = getRequestIp(req);
+  if (rateLimiter.isRateLimited(ip)) {
+    return errorResponse(
+      'Too many requests. Try again later.',
+      429,
+      'RATE_LIMITED',
+    );
+  }
+
   try {
     const body = (await req.json()) as FeedbackBody;
     const { message, type, page, language, userAgent } = body;
 
     if (!message || typeof message !== 'string' || !message.trim()) {
-      return NextResponse.json(
-        { message: 'Invalid message.' },
-        { status: 400 },
-      );
+      return errorResponse('Invalid message.', 400, 'INVALID_REQUEST');
     }
 
     // Limit slightly below UI max to account for multi-byte characters (e.g. emojis)
     if (message.length > 2000) {
-      return NextResponse.json(
-        { message: 'Message too long.' },
-        { status: 413 },
-      );
+      return errorResponse('Message too long.', 413, 'INVALID_REQUEST');
     }
 
     if (!['bug', 'suggestion', 'other'].includes(type)) {
-      return NextResponse.json(
-        { message: 'Invalid feedback type.' },
-        { status: 400 },
-      );
-    }
-
-    const ip =
-      req.headers.get('x-real-ip') ??
-      req.headers.get('x-forwarded-for')?.split(',')[0] ??
-      'unknown';
-
-    if (isRateLimited(ip)) {
-      return NextResponse.json(
-        { message: 'Too many requests. Try again later.' },
-        { status: 429 },
-      );
+      return errorResponse('Invalid feedback type.', 400, 'INVALID_REQUEST');
     }
 
     try {
@@ -87,11 +66,11 @@ export async function POST(req: Request) {
         userAgent: userAgent ?? 'unknown',
       });
     } catch (providerError) {
-      console.error('Email provider error:', providerError);
-
-      return NextResponse.json(
-        { message: 'Failed to send feedback email.' },
-        { status: 502 },
+      logRouteError('feedback', providerError, { type, page });
+      return errorResponse(
+        'Failed to send feedback email.',
+        502,
+        'UPSTREAM_ERROR',
       );
     }
 
@@ -100,14 +79,12 @@ export async function POST(req: Request) {
       { status: 200 },
     );
   } catch (error) {
-    console.error(
-      `feedback - Internal server error: ${(error as Error).message}`,
-      error,
-    );
+    if (error instanceof SyntaxError) {
+      logRouteError('feedback', error);
+      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
+    }
 
-    return NextResponse.json(
-      { message: 'Internal server error.' },
-      { status: 500 },
-    );
+    logRouteError('feedback', error);
+    return errorResponse('Internal server error.', 500, 'INTERNAL_ERROR');
   }
 }

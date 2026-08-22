@@ -1,6 +1,5 @@
 import { POST } from './route';
 import { NextResponse } from 'next/server';
-import SteamAPI from 'steamapi';
 
 // Mock SteamAPI
 const mockResolve = jest.fn();
@@ -22,30 +21,37 @@ jest.mock('next/server', () => ({
   },
 }));
 
+// The route now calls getRequestIp(req) before doing anything else (item
+// 10 of the ticket), so every req mock needs a real Headers instance —
+// without it, req.headers.get(...) throws before validation even runs.
+const makeReq = (body: unknown, ip = '1.2.3.4') =>
+  ({
+    method: 'POST',
+    json: jest.fn().mockResolvedValue(body),
+    headers: new Headers({ 'x-real-ip': ip }),
+  }) as any;
+
 describe('POST /api/getUserInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('returns 500 if target is missing', async () => {
-    const req = {
-      method: 'POST',
-      json: jest.fn().mockResolvedValue({}),
-    } as any;
+  it('returns 400 if target is missing', async () => {
+    // Was asserting 500 here — that was Bug #1 from the ticket (invalid
+    // client input incorrectly reported as a server error). The route now
+    // correctly returns 400 with the standardized error shape.
+    const req = makeReq({});
 
     const res = await POST(req);
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(400);
     expect(NextResponse.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Invalid target. ' }),
-      { status: 500 },
+      { error: { message: 'Invalid target.', code: 'INVALID_REQUEST' } },
+      { status: 400 },
     );
   });
 
   it('returns targetInfo on success', async () => {
-    const req = {
-      method: 'POST',
-      json: jest.fn().mockResolvedValue({ target: 'test-user' }),
-    } as any;
+    const req = makeReq({ target: 'test-user' });
 
     mockResolve.mockResolvedValue('12345');
     mockGetUserSummary.mockResolvedValue({ nickname: 'TestUser' });
@@ -61,14 +67,46 @@ describe('POST /api/getUserInfo', () => {
   });
 
   it('returns 500 if SteamAPI fails', async () => {
-    const req = {
-      method: 'POST',
-      json: jest.fn().mockResolvedValue({ target: 'test-user' }),
-    } as any;
+    const req = makeReq({ target: 'test-user' });
 
     mockResolve.mockRejectedValue(new Error('Steam Error'));
 
     const res = await POST(req);
     expect(res.status).toBe(500);
+    expect(NextResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: 'INTERNAL_ERROR' }),
+      }),
+      { status: 500 },
+    );
+  });
+});
+
+describe('POST /api/getUserInfo — error classification', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 400 INVALID_REQUEST when steam.resolve throws "Invalid format"', async () => {
+    const req = makeReq({ target: 'lixo_invalido' });
+    mockResolve.mockRejectedValue(new TypeError('Invalid format'));
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    expect(NextResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: 'INVALID_REQUEST' }),
+      }),
+      { status: 400 },
+    );
+  });
+
+  it('returns 400 INVALID_REQUEST when targetInfo comes back falsy', async () => {
+    const req = makeReq({ target: 'test-user' });
+    mockResolve.mockResolvedValue('12345');
+    mockGetUserSummary.mockResolvedValue(null);
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
   });
 });

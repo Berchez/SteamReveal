@@ -1,19 +1,24 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
+import { errorResponse } from '@/lib/apiError';
+import logRouteError from '@/lib/logRouteError';
 
 export const revalidate = 0;
 
 const { FACEIT_API_KEY } = process.env;
+
+const STEAM64_ID_REGEX = /^\d{17}$/;
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const steamID = searchParams.get('steamID');
 
-    if (!steamID || typeof steamID !== 'string') {
-      return NextResponse.json(
-        { message: 'steamID is required', steamID },
-        { status: 400 },
+    if (!steamID || !STEAM64_ID_REGEX.test(steamID)) {
+      return errorResponse(
+        'steamID is required and must be a valid Steam64 ID.',
+        400,
+        'INVALID_REQUEST',
       );
     }
 
@@ -28,16 +33,18 @@ export async function GET(req: Request) {
     });
 
     if (response.status === 404) {
-      return NextResponse.json(
-        { error: 'Perfil FACEIT não encontrado para esse SteamID' },
-        { status: 404 },
+      return errorResponse(
+        'Perfil FACEIT não encontrado para esse SteamID',
+        404,
+        'NOT_FOUND',
       );
     }
 
     if (response.status >= 400) {
-      return NextResponse.json(
-        { error: 'Erro ao consultar a API da FACEIT', status: response.status },
-        { status: 502 },
+      return errorResponse(
+        'Erro ao consultar a API da FACEIT',
+        502,
+        'UPSTREAM_ERROR',
       );
     }
 
@@ -51,14 +58,12 @@ export async function GET(req: Request) {
       { status: 200 },
     );
   } catch (error) {
-    console.error(
-      `getFaceitLink - Internal server Error: ${(error as Error).message}`,
-      error,
-    );
+    if (error instanceof SyntaxError) {
+      logRouteError('getFaceitLink', error);
+      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
+    }
 
-    return NextResponse.json(
-      { message: `Internal server error: ${(error as Error).message}` },
-      { status: 500 },
-    );
+    logRouteError('getFaceitLink', error);
+    return errorResponse('Internal server error.', 500, 'INTERNAL_ERROR');
   }
 }

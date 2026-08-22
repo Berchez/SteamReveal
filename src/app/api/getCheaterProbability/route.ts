@@ -3,6 +3,14 @@ import axios from 'axios';
 import SteamAPI, { UserSummary } from 'steamapi';
 import getSteamApiKey from '@/lib/getSteamApiKey';
 import MAX_CLOSE_FRIENDS from '@/lib/closeFriendsLimits';
+import isValidTargetParam from '@/lib/isValidTargetParam';
+import { errorResponse } from '@/lib/apiError';
+import withTimeout, { SteamCallTimeoutError } from '@/lib/withTimeout';
+import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
+import logRouteError from '@/lib/logRouteError';
+import isSteamResolveFormatError from '@/lib/isSteamResolveFormatError';
+import isSteamUnauthorizedError from '@/lib/isSteamUnauthorizedError';
+
 import { isValidCloseFriendItem } from './utils/validateCloseFriends';
 import getBadCommentsScore from './utils/badCommentsMethod';
 import getBannedFriendsScore from './utils/bannedFriendsMethod';
@@ -15,17 +23,40 @@ import getCsStats, {
 import { clearStat, getAccountAge } from './utils/utils';
 
 export const revalidate = 0;
-const steam = new SteamAPI(getSteamApiKey() ?? '');
+
+const steamApiKey = getSteamApiKey();
+if (!steamApiKey) {
+  console.error(
+    'getCheaterProbability - STEAM_API_KEY is missing at module init. Every request to this route will fail until it is set.',
+  );
+}
+const steam = new SteamAPI(steamApiKey ?? '');
 
 const { CHEATER_AI_API_BASE } = process.env;
 
 const FIVE_MINS_IN_MS = 5 * 60 * 1000;
+const STEAM_CALL_TIMEOUT_MS = 8000;
+
+// This is the most expensive route in the project (multiple Steam calls +
+// scraping + a call to the ML inference service), so it gets a tighter
+// window/lower ceiling than the plain lookup routes.
+const RATE_LIMIT_WINDOW_MS = 30_000;
+const RATE_LIMIT_MAX = 5;
+const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
 
 export async function POST(req: Request) {
+  // Standardized order across all routes: method check -> rate limit ->
+  // parse body -> validate -> business logic.
   if (req.method !== 'POST') {
-    return NextResponse.json(
-      { message: 'Method not allowed.' },
-      { status: 405 },
+    return errorResponse('Method not allowed.', 405, 'METHOD_NOT_ALLOWED');
+  }
+
+  const ip = getRequestIp(req);
+  if (rateLimiter.isRateLimited(ip)) {
+    return errorResponse(
+      'Too many requests. Try again later.',
+      429,
+      'RATE_LIMITED',
     );
   }
 
@@ -49,32 +80,25 @@ export async function POST(req: Request) {
     // isValidCloseFriendItem (see MAX_FRIEND_COUNT there) — the length
     // check here and the per-item shape/bounds check below are both
     // required, neither is sufficient alone.
-    //
-    // `target` must be a non-empty string — a truthy-but-wrong-typed
-    // value (object/array) would otherwise be passed straight to
-    // steam.resolve(target).
     if (
       !Array.isArray(closeFriends) ||
-      typeof target !== 'string' ||
-      target.length === 0 ||
+      !isValidTargetParam(target) ||
       closeFriends.length > MAX_CLOSE_FRIENDS
     ) {
-      return NextResponse.json(
-        { message: 'Invalid request body.' },
-        { status: 400 },
-      );
+      return errorResponse('Invalid request body.', 400, 'INVALID_REQUEST');
     }
 
     // Reject malformed items (bad steamID, bad/unbounded count) before
     // they reach getBannedFriendsScore / calcBansWeight downstream.
     if (!closeFriends.every(isValidCloseFriendItem)) {
-      return NextResponse.json(
-        { message: 'Invalid request body.' },
-        { status: 400 },
-      );
+      return errorResponse('Invalid request body.', 400, 'INVALID_REQUEST');
     }
 
-    const targetSteamId = await steam.resolve(target);
+    const targetSteamId = await withTimeout(
+      steam.resolve(target),
+      'getCheaterProbability: steam.resolve',
+      STEAM_CALL_TIMEOUT_MS,
+    );
 
     const [
       badCommentsScore,
@@ -89,9 +113,17 @@ export async function POST(req: Request) {
       getBannedFriendsScore(closeFriends),
       getInventoryScore(targetSteamId),
       getGameLibraryStats(targetSteamId),
-      steam.getUserLevel(targetSteamId),
+      withTimeout(
+        steam.getUserLevel(targetSteamId),
+        'getCheaterProbability: steam.getUserLevel',
+        STEAM_CALL_TIMEOUT_MS,
+      ),
       getCsStats(targetSteamId),
-      steam.getUserSummary(targetSteamId),
+      withTimeout(
+        steam.getUserSummary(targetSteamId),
+        'getCheaterProbability: steam.getUserSummary',
+        STEAM_CALL_TIMEOUT_MS,
+      ),
     ]);
 
     const { playTime: playTimeScore, totalGamesCount } = gameLibraryStats;
@@ -154,13 +186,42 @@ export async function POST(req: Request) {
       { status: 200 },
     );
   } catch (error) {
-    console.error(
-      `getCheaterProbability - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
-      error,
-    );
-    return NextResponse.json(
-      { message: 'Internal server error while querying the prediction model.' },
-      { status: 500 },
+    if (isSteamUnauthorizedError(error)) {
+      console.warn(
+        `getCheaterProbability - target's data is private: ${req.url}`,
+        error,
+      );
+      return errorResponse(
+        "Target's friends list is private or inaccessible.",
+        400,
+        'INVALID_REQUEST',
+      );
+    }
+
+    if (error instanceof SyntaxError) {
+      logRouteError('getCheaterProbability', error);
+      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
+    }
+
+    if (error instanceof SteamCallTimeoutError) {
+      logRouteError('getCheaterProbability', error, { body });
+      return errorResponse(
+        'Steam API request timed out. Please try again.',
+        504,
+        'TIMEOUT',
+      );
+    }
+
+    if (isSteamResolveFormatError(error)) {
+      logRouteError('getCheaterProbability', error, { target: req.url });
+      return errorResponse('Invalid target format.', 400, 'INVALID_REQUEST');
+    }
+
+    logRouteError('getCheaterProbability', error, { body });
+    return errorResponse(
+      'Internal server error while querying the prediction model.',
+      500,
+      'INTERNAL_ERROR',
     );
   }
 }

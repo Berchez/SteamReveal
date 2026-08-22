@@ -24,6 +24,25 @@ jest.mock('steamapi', () =>
 jest.mock('../../../lib/getSteamApiKey');
 jest.mocked(getSteamApiKey).mockReturnValue('fake-steam-api-key');
 
+// This suite is about Ticket 8 request validation, not rate limiting (that
+// has its own coverage in src/lib/rateLimit.test.ts and in
+// feedback/route.test.ts). Without this mock, every test in this file
+// shares the same rate-limit bucket (all requests here hit the same
+// 'unknown' IP, since none of them set x-real-ip/x-forwarded-for), and this
+// route's limit is intentionally tight (5 req / 30s — the most expensive
+// route in the project). That made the 6th/7th test in the file flake with
+// 429 instead of the status they were actually asserting. Mocking the rate
+// limiter out keeps this suite focused on the thing it's testing.
+//
+// Uses a relative path (not the `@/lib/...` alias) — matching the
+// convention already used for getSteamApiKey above. jest.mock's path
+// resolution happens ahead of the alias mapping that regular imports get,
+// and the alias isn't picked up here in this project's jest config.
+jest.mock('../../../lib/rateLimit', () => ({
+  createRateLimiter: () => ({ isRateLimited: () => false }),
+  getRequestIp: () => 'test-ip',
+}));
+
 // Isolate this route's validation logic from its heavier collaborators —
 // none of them should ever run for a request that fails validation, and
 // asserting that is the whole point of the 400 tests below.

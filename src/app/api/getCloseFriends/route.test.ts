@@ -4,6 +4,7 @@
 
 import MAX_CLOSE_FRIENDS from '@/lib/closeFriendsLimits';
 import getSteamApiKey from '@/lib/getSteamApiKey';
+import { SteamCallTimeoutError } from '@/lib/withTimeout';
 
 export {};
 
@@ -194,5 +195,111 @@ describe('POST /api/getCloseFriends — dropping unresolvable friends', () => {
     expect(res.status).toBe(200);
     expect(capturedSteamIdsRequested).toHaveLength(MAX_CLOSE_FRIENDS);
     expect(data.closeFriends).toHaveLength(MAX_CLOSE_FRIENDS);
+  });
+});
+
+describe('POST /api/getCloseFriends — error classification on getUserFriends(target)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockResolve.mockResolvedValue('76561198000000000');
+  });
+
+  // REGRESSION CHECK (see review item P1): getCloseFriends()'s internal
+  // try/catch wraps ANY error from steam.getUserFriends(target) — including
+  // a SteamCallTimeoutError from the withTimeout wrapper — into a plain
+  // `new Error(...)`. That strips the type information the outer catch
+  // relies on (`error instanceof SteamCallTimeoutError`), so a real
+  // timeout on this specific call is misreported as a generic 500 instead
+  // of the 504 TIMEOUT the route is supposed to return.
+  //
+  // This test currently FAILS against the unmodified route and should
+  // pass once the inner catch re-throws SteamCallTimeoutError as-is
+  // instead of wrapping it.
+  it('propagates a timeout on getUserFriends(target) as 504, not 500', async () => {
+    mockGetUserFriends.mockImplementation((id: string) => {
+      if (id === '76561198000000000') {
+        return Promise.reject(
+          new SteamCallTimeoutError(
+            'getCloseFriends: steam.getUserFriends(target)',
+            8000,
+          ),
+        );
+      }
+      return Promise.resolve([]);
+    });
+
+    const res = await POST(makeRequest({ target: 'somevanityurl' }));
+    const data = await res.json();
+
+    expect(res.status).toBe(504);
+    expect(data.error.code).toBe('TIMEOUT');
+  });
+
+  it('still maps an "Unauthorized" failure on getUserFriends(target) to 400 (works today, but by string-matching accident, not by type)', async () => {
+    mockGetUserFriends.mockImplementation((id: string) => {
+      if (id === '76561198000000000') {
+        return Promise.reject(new Error('Unauthorized'));
+      }
+      return Promise.resolve([]);
+    });
+
+    const res = await POST(makeRequest({ target: 'somevanityurl' }));
+    const data = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(data.error.code).toBe('INVALID_REQUEST');
+  });
+});
+
+describe('POST /api/getCloseFriends — rate limiting', () => {
+  it('returns 429 once the configured max requests/window is exceeded', async () => {
+    jest.resetModules();
+
+    jest.doMock('../../../lib/rateLimit', () =>
+      jest.requireActual('../../../lib/rateLimit'),
+    );
+
+    jest.doMock('../../../lib/getSteamApiKey', () => ({
+      __esModule: true,
+      default: () => 'fake-steam-api-key',
+    }));
+    jest.doMock('steamapi', () =>
+      jest.fn().mockImplementation(() => ({
+        getUserFriends: jest.fn().mockResolvedValue([]),
+        getUserSummary: jest.fn().mockResolvedValue([]),
+        resolve: jest.fn().mockResolvedValue('76561198000000000'),
+      })),
+    );
+
+    const { POST: RealPOST } = require('./route') as typeof import('./route');
+
+    const req = () =>
+      new Request('http://localhost/api/getCloseFriends', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-real-ip': '203.0.113.42',
+        },
+        body: JSON.stringify({ target: 'somevanityurl' }),
+      });
+
+    // RATE_LIMIT_MAX for this route is 10/60s.
+    let lastRes: Response | undefined;
+    for (let i = 0; i < 11; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      lastRes = await RealPOST(req());
+    }
+
+    expect(lastRes?.status).toBe(429);
+    const data = await lastRes?.json();
+    expect(data.error.code).toBe('RATE_LIMITED');
+
+    jest.dontMock('../../../lib/getSteamApiKey');
+    jest.dontMock('steamapi');
+
+    jest.doMock('../../../lib/rateLimit', () => ({
+      createRateLimiter: () => ({ isRateLimited: () => false }),
+      getRequestIp: () => 'test-ip',
+    }));
   });
 });

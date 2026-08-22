@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
+import { errorResponse } from '@/lib/apiError';
+import timingSafeEqualStrings from '@/lib/timingSafeEqualStrings';
+import logRouteError from '@/lib/logRouteError';
 
 /**
  * Forwards a finished search to the local GamersClub/analytics proxy
@@ -18,17 +21,18 @@ const EIGHT_SECONDS_IN_MS = 8 * 1000;
 
 export async function POST(req: Request) {
   if (req.method !== 'POST') {
-    return NextResponse.json(
-      { message: 'Method not allowed.' },
-      { status: 405 },
-    );
+    return errorResponse('Method not allowed.', 405, 'METHOD_NOT_ALLOWED');
   }
 
   let body;
   try {
     const { ANALYTICS_SKIP_PASSWORD } = process.env;
     const skipHeader = req.headers.get('x-analytics-skip-password');
-    if (ANALYTICS_SKIP_PASSWORD && skipHeader === ANALYTICS_SKIP_PASSWORD) {
+    if (
+      ANALYTICS_SKIP_PASSWORD &&
+      skipHeader !== null &&
+      timingSafeEqualStrings(skipHeader, ANALYTICS_SKIP_PASSWORD)
+    ) {
       // Keep the same shape as the "no LOCAL_PROXY_URL" skip below —
       // `id: null` so callers never mistake a skip for a real record id.
       return NextResponse.json({ id: null, skipped: true }, { status: 200 });
@@ -39,10 +43,7 @@ export async function POST(req: Request) {
     const { profile } = body ?? {};
 
     if (!profile || !profile.steamId) {
-      return NextResponse.json(
-        { message: 'Invalid request body.' },
-        { status: 400 },
-      );
+      return errorResponse('Invalid request body.', 400, 'INVALID_REQUEST');
     }
 
     if (!LOCAL_PROXY_URL) {
@@ -68,13 +69,16 @@ export async function POST(req: Request) {
     // search later, via /api/recordAnalytics/cheater.
     return NextResponse.json({ id: id ?? null }, { status: 200 });
   } catch (error) {
-    console.error(
-      `recordAnalytics - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
-      error,
-    );
-    return NextResponse.json(
-      { message: 'Internal server error while recording analytics.' },
-      { status: 500 },
+    if (error instanceof SyntaxError) {
+      logRouteError('recordAnalytics', error);
+      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
+    }
+
+    logRouteError('recordAnalytics', error, { body });
+    return errorResponse(
+      'Internal server error while recording analytics.',
+      500,
+      'INTERNAL_ERROR',
     );
   }
 }

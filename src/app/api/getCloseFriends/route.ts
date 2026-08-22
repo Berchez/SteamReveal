@@ -2,8 +2,29 @@ import getSteamApiKey from '@/lib/getSteamApiKey';
 import { NextResponse } from 'next/server';
 import SteamAPI from 'steamapi';
 import MAX_CLOSE_FRIENDS from '@/lib/closeFriendsLimits';
+import isValidTargetParam from '@/lib/isValidTargetParam';
+import { errorResponse } from '@/lib/apiError';
+import withTimeout, { SteamCallTimeoutError } from '@/lib/withTimeout';
+import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
+import logRouteError from '@/lib/logRouteError';
+import isSteamResolveFormatError from '@/lib/isSteamResolveFormatError';
+import isSteamUnauthorizedError from '@/lib/isSteamUnauthorizedError';
 
 export const revalidate = 0;
+
+const steamApiKey = getSteamApiKey();
+if (!steamApiKey) {
+  console.error(
+    'getCloseFriends - STEAM_API_KEY is missing at module init. Every request to this route will fail until it is set.',
+  );
+}
+const steam = new SteamAPI(steamApiKey ?? '');
+
+const STEAM_CALL_TIMEOUT_MS = 8000;
+
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 10;
+const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
 
 type UserFriend = {
   steamID: string;
@@ -11,17 +32,22 @@ type UserFriend = {
   relationship: string;
 };
 
-const steam = new SteamAPI(getSteamApiKey() ?? '');
-
 const getFriendsOfFriends = async (friendList: Array<UserFriend>) => {
   const friendsOfFriends: Array<UserFriend> = [];
   await Promise.all(
     friendList.map(async (friend: UserFriend) => {
       try {
-        const list = await steam.getUserFriends(friend.steamID);
+        const list = await withTimeout(
+          steam.getUserFriends(friend.steamID),
+          `getCloseFriends: steam.getUserFriends(${friend.steamID})`,
+          STEAM_CALL_TIMEOUT_MS,
+        );
         friendsOfFriends.push(...list);
       } catch (error) {
-        console.log('');
+        console.warn(
+          `getCloseFriends - failed to get friends of friend ${friend.steamID}:`,
+          error,
+        );
       }
     }),
   );
@@ -32,8 +58,17 @@ const getFriendsOfFriends = async (friendList: Array<UserFriend>) => {
 const getCloseFriends = async (target: string) => {
   let friendsOfTheTarget: UserFriend[];
   try {
-    friendsOfTheTarget = (await steam.getUserFriends(target)).slice(0, 100);
+    friendsOfTheTarget = (
+      await withTimeout(
+        steam.getUserFriends(target),
+        'getCloseFriends: steam.getUserFriends(target)',
+        STEAM_CALL_TIMEOUT_MS,
+      )
+    ).slice(0, 100);
   } catch (err) {
+    if (err instanceof SteamCallTimeoutError) {
+      throw err;
+    }
     throw new Error(
       `GettingFriends: Error getting friends of target: ${target}. ${err}`,
     );
@@ -58,16 +93,19 @@ const getCloseFriends = async (target: string) => {
   closeFriendsOfTheTarget.sort((a, b) => b.count - a.count);
 
   // MAX_CLOSE_FRIENDS is shared with /api/getCheaterProbability's request
-  // validation (see Ticket 8, @/lib/closeFriendsLimits). This is the
-  // place that actually decides how many close friends the product
-  // considers; that other route just caps what it'll accept back from
-  // the client at the same number. Change it in one place, both stay in
-  // sync.
+  // validation (see @/lib/closeFriendsLimits). This is the place that
+  // actually decides how many close friends the product considers; that
+  // other route just caps what it'll accept back from the client at the
+  // same number. Change it in one place, both stay in sync.
   const closestFriends = closeFriendsOfTheTarget.slice(0, MAX_CLOSE_FRIENDS);
 
   const steamIDs = closestFriends.map((friend) => friend.steamID);
 
-  const summaries = await steam.getUserSummary(steamIDs);
+  const summaries = await withTimeout(
+    steam.getUserSummary(steamIDs),
+    'getCloseFriends: steam.getUserSummary(closestFriends)',
+    STEAM_CALL_TIMEOUT_MS,
+  );
   const summariesArray = Array.isArray(summaries) ? summaries : [summaries];
 
   // Only keep entries whose Steam summary actually resolved. A friend can
@@ -104,37 +142,72 @@ const getCloseFriends = async (target: string) => {
 };
 
 export async function POST(req: Request) {
-  if (req.method === 'POST') {
-    let body;
-    try {
-      body = await req.json();
-      const { target } = body;
+  if (req.method !== 'POST') {
+    return errorResponse('Method not allowed.', 405, 'METHOD_NOT_ALLOWED');
+  }
 
-      if (!target || target === '' || typeof target !== 'string') {
-        return NextResponse.json(
-          { message: 'Target inválido. ', target },
-          { status: 400 },
-        );
-      }
+  const ip = getRequestIp(req);
+  if (rateLimiter.isRateLimited(ip)) {
+    return errorResponse(
+      'Too many requests. Try again later.',
+      429,
+      'RATE_LIMITED',
+    );
+  }
 
-      const targetSteamId = await steam.resolve(target);
-      const targetCloseFriends = await getCloseFriends(targetSteamId);
+  let body;
+  try {
+    body = await req.json();
+    const { target } = body;
 
-      return NextResponse.json(
-        { closeFriends: targetCloseFriends },
-        { status: 200 },
-      );
-    } catch (error) {
-      console.error(
-        `getCloseFriends - Internal server Error: ${(error as Error).message}. It was fetching with these params: ${JSON.stringify(body)}`,
+    if (!isValidTargetParam(target)) {
+      return errorResponse('Invalid target.', 400, 'INVALID_REQUEST');
+    }
+
+    const targetSteamId = await withTimeout(
+      steam.resolve(target),
+      'getCloseFriends: steam.resolve',
+      STEAM_CALL_TIMEOUT_MS,
+    );
+    const targetCloseFriends = await getCloseFriends(targetSteamId);
+
+    return NextResponse.json(
+      { closeFriends: targetCloseFriends },
+      { status: 200 },
+    );
+  } catch (error) {
+    if (isSteamUnauthorizedError(error)) {
+      console.warn(
+        `getCloseFriends - target's data is private: ${req.url}`,
         error,
       );
-      return NextResponse.json(
-        { message: `Internal server Error: ${(error as Error).message}` },
-        { status: 500 },
+      return errorResponse(
+        "Target's friends list is private or inaccessible.",
+        400,
+        'INVALID_REQUEST',
       );
     }
-  } else {
-    return NextResponse.json({ message: 'Method not allowed.' });
+
+    if (error instanceof SyntaxError) {
+      logRouteError('getCloseFriends', error);
+      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
+    }
+
+    if (error instanceof SteamCallTimeoutError) {
+      logRouteError('getCloseFriends', error, { body });
+      return errorResponse(
+        'Steam API request timed out. Please try again.',
+        504,
+        'TIMEOUT',
+      );
+    }
+
+    if (isSteamResolveFormatError(error)) {
+      logRouteError('getCloseFriends', error, { target: req.url });
+      return errorResponse('Invalid target format.', 400, 'INVALID_REQUEST');
+    }
+
+    logRouteError('getCloseFriends', error, { body });
+    return errorResponse('Internal server error.', 500, 'INTERNAL_ERROR');
   }
 }
