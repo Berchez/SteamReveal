@@ -7,13 +7,18 @@ import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useRouter } from '@/navigation';
-import { cityNameAndScore } from '@/@types/cityNameAndScore';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { isLoadingType } from '@/@types/isLoadingType';
 import useSupportMe from '@/app/components/SupportMe/useSupportMe';
 import { track } from '@vercel/analytics';
 import { UserSummary } from 'steamapi';
+
+import {
+  computeCloseFriendsProbability,
+  computeCityScores,
+  computeLocationProbabilities,
+} from './probabilityMath';
 
 import {
   getLocationDetails,
@@ -40,53 +45,13 @@ export async function fetchSteamId(target: string) {
 }
 
 const getCloseFriendsCore = async (id: string) => {
-  const response = await axios.post('/api/getCloseFriends', {
+  const {
+    data: { closeFriends },
+  } = await axios.post('/api/getCloseFriends', {
     target: id,
   });
 
-  const {
-    data: { closeFriends },
-  } = response;
-
-  let totalCountOf5ClosestFriends = 0;
-  for (let i = 0; i < 5; i += 1) {
-    totalCountOf5ClosestFriends += closeFriends[i].count;
-  }
-
-  const meanOf5ClosestFriendsCount = totalCountOf5ClosestFriends / 5;
-
-  const biggestCountValue = closeFriends[0].count;
-  const reasonableNumberToBeAGoodGuess = 50;
-
-  const closeFriendsWithProbability = closeFriends.map(
-    (f: closeFriendsDataIWant) => {
-      const meanProbabilityMethod =
-        f.count / (meanOf5ClosestFriendsCount * 1.5) > 1
-          ? 1
-          : f.count / (meanOf5ClosestFriendsCount * 1.5);
-
-      const biggestCountMethod = f.count / biggestCountValue;
-
-      const constantMethod =
-        f.count / reasonableNumberToBeAGoodGuess > 1
-          ? 1
-          : f.count / reasonableNumberToBeAGoodGuess;
-
-      const probabilityFloat =
-        (meanProbabilityMethod * 2 + biggestCountMethod * 2 + constantMethod) /
-        5;
-
-      const probabilityPercentage = probabilityFloat * 100;
-
-      return {
-        friend: f.friend,
-        count: f.count,
-        probability: probabilityPercentage,
-      };
-    },
-  );
-
-  return closeFriendsWithProbability;
+  return computeCloseFriendsProbability(closeFriends);
 };
 
 // ---- Analytics helpers -------------------------------------------------
@@ -312,48 +277,11 @@ const useHome = () => {
     closeFriendsOfTheTarget: closeFriendsDataIWant[],
     runId: number,
   ) => {
-    const closeFriendsWithCities = closeFriendsOfTheTarget.filter(
-      (f: closeFriendsDataIWant) => f.friend.cityID !== undefined,
+    const citiesScored = sortCitiesByScore(
+      computeCityScores(closeFriendsOfTheTarget),
     );
-
-    let citiesScored: cityNameAndScore = {};
-    closeFriendsWithCities.forEach((f: closeFriendsDataIWant) => {
-      const cityKey = `${f.friend.countryCode}/${f.friend.stateCode}/${f.friend.cityID}`;
-
-      citiesScored[cityKey] = citiesScored[cityKey]
-        ? citiesScored[cityKey] * f.count
-        : f.count;
-    });
-
-    citiesScored = sortCitiesByScore(citiesScored);
-
     const citiesScoredWithNames = await getCitiesNames(citiesScored);
-
-    let totalCountOfScores = 0;
-    citiesScoredWithNames.forEach((c) => {
-      totalCountOfScores += c.count;
-    });
-
-    const reasonableNumberToBeAGoodGuess = 100;
-
-    const withProbability = citiesScoredWithNames.map((c) => {
-      const totalCountMethod =
-        totalCountOfScores === 0 ? 0 : c.count / totalCountOfScores;
-
-      const constantMethod =
-        c.count > reasonableNumberToBeAGoodGuess
-          ? 1
-          : c.count / reasonableNumberToBeAGoodGuess;
-
-      const probabilityFloat = (totalCountMethod * 2 + constantMethod) / 3;
-      const probabilityPercentage = probabilityFloat * 100;
-
-      return {
-        location: c.location,
-        count: c.count,
-        probability: probabilityPercentage,
-      };
-    });
+    const withProbability = computeLocationProbabilities(citiesScoredWithNames);
 
     if (activeRunRef.current === runId) {
       setPossibleLocationJson(withProbability);
