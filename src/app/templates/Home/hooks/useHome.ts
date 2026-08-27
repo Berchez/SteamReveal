@@ -2,14 +2,12 @@ import axios from 'axios';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import useSupportMe from '@/app/components/SupportMe/useSupportMe';
 
-import { useRunGuard } from './useRunGuard';
-import usePlayerUrlSync from './usePlayerUrlSync';
-import useHomeSearch from './useHomeSearch';
-import useCheaterProbability from './useCheaterProbability';
+import { useRunGuard } from './run-guard/useRunGuard';
+import usePlayerUrlSync from './url-sync/usePlayerUrlSync';
+import useHomeSearch from './search/useHomeSearch';
+import useCheaterProbability from './cheater-risk/useCheaterProbability';
 
-// Re-exported to keep `import { getAnalyticsSkipHeaders } from './useHome'`
-// working without changes (used in useHome.analytics.test.ts).
-export { getAnalyticsSkipHeaders } from './homeAnalyticsUtils';
+export { getAnalyticsSkipHeaders } from '../shared/analytics/homeAnalyticsUtils';
 
 export async function fetchSteamId(target: string) {
   const response = await axios.get('/api/getSteamId', {

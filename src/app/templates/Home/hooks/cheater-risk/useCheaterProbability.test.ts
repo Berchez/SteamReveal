@@ -3,14 +3,14 @@ import axios from 'axios';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
 import { act, renderHook } from '@testing-library/react';
 
-import { updateCachedSearchById } from './homeCache';
+import { updateCachedSearchById } from '../../shared/cache/homeCache';
 import useCheaterProbability from './useCheaterProbability';
-import { useRunGuard } from './useRunGuard';
+import { useRunGuard } from '../run-guard/useRunGuard';
 
 jest.mock('axios');
 jest.mock('react-toastify', () => ({ toast: { error: jest.fn() } }));
 jest.mock('@vercel/analytics', () => ({ track: jest.fn() }));
-jest.mock('./homeCache', () => ({ updateCachedSearchById: jest.fn() }));
+jest.mock('../../shared/cache/homeCache', () => ({ updateCachedSearchById: jest.fn() }));
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 

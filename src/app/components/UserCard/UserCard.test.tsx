@@ -5,14 +5,14 @@ import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import UserCard from './UserCard';
 import { UserSummary } from 'steamapi';
-import { getLocationDetails } from '@/app/templates/Home/homeUtils';
 import useGamersClubName from '../UserQuickLinks/useGamersClubName';
+import { getLocationDetails } from '@/app/templates/Home/hooks/search/homeUtils';
 
 jest.mock('next-intl', () => ({
   useTranslations: jest.fn(),
 }));
 
-jest.mock('../../templates/Home/homeUtils', () => ({
+jest.mock('../../templates/Home/hooks/search/homeUtils', () => ({
   getLocationDetails: jest.fn(),
 }));
 

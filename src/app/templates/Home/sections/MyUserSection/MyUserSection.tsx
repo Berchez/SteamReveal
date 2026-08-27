@@ -5,7 +5,7 @@ import targetInfoJsonType from '@/@types/targetInfoJsonType';
 import dynamic from 'next/dynamic';
 import SearchInput from '../SearchInput';
 import { HomeDataContext, HomeActionsContext } from '../../context';
-import { fetchSteamId } from '../../useHome';
+import { fetchSteamId } from '../../hooks/useHome';
 
 const UserCard = dynamic(() => import('@/app/components/UserCard'));
 const UserCardSkeleton = dynamic(

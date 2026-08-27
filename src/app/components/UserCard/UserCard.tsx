@@ -1,11 +1,13 @@
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Link } from '@/navigation';
 import { UserSummary } from 'steamapi';
+
+import NAVIGATION_OWNED_PARAMS from '@/app/templates/Home/hooks/url-sync/navigationParams';
+import { getLocationDetails } from '@/app/templates/Home/hooks/search/homeUtils';
+import { Link } from '@/navigation';
+
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
-import { getLocationDetails } from '@/app/templates/Home/homeUtils';
-import NAVIGATION_OWNED_PARAMS from '@/app/templates/Home/navigationParams';
 import UserQuickLinks from '../UserQuickLinks';
 import useGamersClubName from '../UserQuickLinks/useGamersClubName';
 

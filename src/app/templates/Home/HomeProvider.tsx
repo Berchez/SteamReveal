@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { HomeDataContext, HomeActionsContext } from './context';
-import useHome from './useHome';
+import useHome from './hooks/useHome';
 
 export default function HomeProvider({
   children,

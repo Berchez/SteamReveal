@@ -8,11 +8,11 @@ import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
 import { isLoadingType } from '@/@types/isLoadingType';
 
-import { updateCachedSearchById } from './homeCache';
+import { updateCachedSearchById } from '../../shared/cache/homeCache';
 
-import { getAnalyticsSkipHeaders } from './homeAnalyticsUtils';
+import { getAnalyticsSkipHeaders } from '../../shared/analytics/homeAnalyticsUtils';
 
-import type { RunGuard } from './useRunGuard';
+import type { RunGuard } from '../run-guard/useRunGuard';
 
 interface UseCheaterProbabilityParams {
   runGuard: RunGuard;

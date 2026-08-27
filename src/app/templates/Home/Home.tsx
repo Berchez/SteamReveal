@@ -7,15 +7,15 @@ import SupportMe from '@/app/components/SupportMe';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
 import { HomeDataContext, HomeActionsContext } from './context';
-import VideoBackground from './templates/VideoBackground';
-import MyUserSection from './templates/MyUserSection';
-import WelcomeText from './WelcomeText';
-import PostHeroSections from './PostHeroSections';
-import CheaterReport from './templates/CheaterReport';
-import SupportedFormatsSection from './templates/SupportedFormatsSection';
+import VideoBackground from './sections/VideoBackground';
+import MyUserSection from './sections/MyUserSection';
+import WelcomeText from './sections/WelcomeText';
+import PostHeroSections from './sections/PostHeroSections';
+import CheaterReport from './sections/CheaterReport';
+import SupportedFormatsSection from './sections/SupportedFormatsSection';
 
-const LocationSection = dynamic(() => import('./templates/LocationSection'));
-const FriendsSection = dynamic(() => import('./templates/FriendsSection'));
+const LocationSection = dynamic(() => import('./sections/LocationSection'));
+const FriendsSection = dynamic(() => import('./sections/FriendsSection'));
 
 export default function Home() {
   const data = useContext(HomeDataContext);

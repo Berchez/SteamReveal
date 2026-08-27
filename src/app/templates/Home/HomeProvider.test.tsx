@@ -3,11 +3,11 @@ import { render, screen, act, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import HomeProvider from './HomeProvider';
 import { HomeActionsContext, HomeDataContext } from './context';
-import useHome from './useHome';
+import useHome from './hooks/useHome';
 
 // HomeProvider imports useHome with a relative specifier ('./useHome'), so
 // the mock path must match exactly for Jest to intercept it.
-jest.mock('./useHome');
+jest.mock('./hooks/useHome');
 
 const mockUseHome = useHome as jest.Mock;
 

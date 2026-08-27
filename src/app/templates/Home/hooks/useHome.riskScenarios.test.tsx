@@ -8,8 +8,8 @@ import {
   getCitiesNames,
   getLocationDetails,
   sortCitiesByScore,
-} from './homeUtils';
-import { getCachedSearch, setCachedSearch } from './homeCache';
+} from './search/homeUtils';
+import { getCachedSearch, setCachedSearch } from '../shared/cache/homeCache';
 import useHome from './useHome';
 
 // ===========================================================================
@@ -61,12 +61,12 @@ jest.mock('next-intl/navigation', () => ({
   }),
 }));
 
-jest.mock('../../components/SponsorMe/useSponsorMe', () => ({
+jest.mock('../../../components/SponsorMe/useSponsorMe', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock('../../components/SupportMe/useSupportMe', () => ({
+jest.mock('../../../components/SupportMe/useSupportMe', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -75,13 +75,13 @@ jest.mock('@vercel/analytics', () => ({
   track: jest.fn(),
 }));
 
-jest.mock('./homeUtils', () => ({
+jest.mock('./search/homeUtils', () => ({
   getLocationDetails: jest.fn(),
   getCitiesNames: jest.fn(),
   sortCitiesByScore: jest.fn(),
 }));
 
-jest.mock('./homeCache', () => ({
+jest.mock('../shared/cache/homeCache', () => ({
   getCachedSearch: jest.fn(),
   setCachedSearch: jest.fn(),
   updateCachedSearchById: jest.fn(),

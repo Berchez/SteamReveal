@@ -21,15 +21,15 @@ import {
   sortCitiesByScore,
 } from './homeUtils';
 
-import { getCachedSearch, setCachedSearch } from './homeCache';
+import { getCachedSearch, setCachedSearch } from '../../shared/cache/homeCache';
 
 import {
   recordAnalytics,
   getRequesterDevice,
   getRequesterCountry,
-} from './homeAnalyticsUtils';
+} from '../../shared/analytics/homeAnalyticsUtils';
 
-import type { RunGuard } from './useRunGuard';
+import type { RunGuard } from '../run-guard/useRunGuard';
 
 const getCloseFriendsCore = async (id: string) => {
   const {

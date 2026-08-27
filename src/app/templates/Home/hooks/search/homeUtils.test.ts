@@ -4,7 +4,7 @@ import {
   getRequesterDevice,
   getRequesterCountry,
   recordAnalytics,
-} from './homeAnalyticsUtils';
+} from '../../shared/analytics/homeAnalyticsUtils';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
