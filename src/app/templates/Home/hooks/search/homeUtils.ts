@@ -29,7 +29,9 @@ export const getLocationDetails = async (
 
   try {
     if (!countryCache[code]) {
-      const data = await import(`../../../lib/locations/data/${code}.json`);
+      const data = await import(
+        `../../../../../lib/locations/data/${code}.json`
+      );
       countryCache[code] = data.default || data;
     }
 
