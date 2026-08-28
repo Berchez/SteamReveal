@@ -10,7 +10,8 @@
     "lint": "next lint",
     "postinstall": "patch-package",
     "test": "cross-env NODE_ENV=test jest",
-    "prepare": "husky"
+    "prepare": "husky",
+    "tunnel:dev": "node scripts/start-tunnel.cjs"
   },
   "engines": {
     "node": "22.x"
@@ -20,7 +21,7 @@
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
     "@vercel/analytics": "^1.2.2",
-    "@vercel/speed-insights": "^1.0.12",
+    "@vercel/speed-insights": "^1.2.0",
     "axios": "^1.6.7",
     "cheerio": "^1.1.0",
     "express": "^5.2.1",
