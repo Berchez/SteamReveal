@@ -1,16 +1,14 @@
 import React, { useContext } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
+
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
-import dynamic from 'next/dynamic';
+import UserCard from '@/app/components/UserCard';
+import UserCardSkeleton from '@/app/components/UserCard/UserCardSkeleton';
+
 import SearchInput from '../SearchInput';
 import { HomeDataContext, HomeActionsContext } from '../../context';
 import { fetchSteamId } from '../../hooks/useHome';
-
-const UserCard = dynamic(() => import('@/app/components/UserCard'));
-const UserCardSkeleton = dynamic(
-  () => import('@/app/components/UserCard/UserCardSkeleton'),
-);
 
 type MyUserSectionProps = {
   targetInfoJson: targetInfoJsonType;
