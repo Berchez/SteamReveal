@@ -24,12 +24,19 @@ function UserCard({
   probability,
   itsTargetUser,
   bottomChildren,
+  preloadedLocationInfo,
 }: {
   friend: UserSummary;
   count?: number;
   probability?: number;
   itsTargetUser: boolean;
   bottomChildren?: React.ReactNode;
+  // When the caller already resolved the location (e.g. useHomeSearch does
+  // this for the target user before this component ever mounts), pass it
+  // here to skip the internal fetch entirely. Prevents a redundant
+  // getLocationDetails call and its own loading flicker. Friend cards don't
+  // have this pre-resolved, so they keep fetching internally as before.
+  preloadedLocationInfo?: LocationInfoType;
 }) {
   const { countryCode, stateCode, cityID, steamID } = friend;
 
@@ -62,19 +69,32 @@ function UserCard({
     [],
   );
 
-  const [isLoadingLocationDetails, setIsLoadingLocationDetails] =
-    useState(true);
+  const [isLoadingLocationDetails, setIsLoadingLocationDetails] = useState(
+    !preloadedLocationInfo,
+  );
 
   const [locationDetails, setLocationDetails] = useState<LocationInfoType>(
-    defaultLocationInfoType,
+    preloadedLocationInfo ?? defaultLocationInfoType,
   );
 
   useEffect(() => {
+    if (preloadedLocationInfo) {
+      setLocationDetails(preloadedLocationInfo);
+      setIsLoadingLocationDetails(false);
+      return;
+    }
+
     setIsLoadingLocationDetails(true);
     getLocationDetails(countryCode, stateCode, cityID)
       .then((res) => setLocationDetails(res || defaultLocationInfoType))
       .finally(() => setIsLoadingLocationDetails(false));
-  }, [cityID, countryCode, defaultLocationInfoType, stateCode]);
+  }, [
+    cityID,
+    countryCode,
+    defaultLocationInfoType,
+    stateCode,
+    preloadedLocationInfo,
+  ]);
 
   const { city, state, country } = locationDetails;
 
@@ -105,7 +125,7 @@ function UserCard({
             <Link
               href={friendHref}
               className="inline-flex items-center justify-center w-[60px] py-1 mt-2 text-purple-400 font-semibold text-sm rounded-full border border-purple-800 bg-purple-600 bg-opacity-10 hover:bg-opacity-20"
-              aria-label={translator('searchFriend')}
+              aria-label={`${translator('searchFriend')} ${friend.nickname}`}
             >
               {translator('searchFriend')}
             </Link>
@@ -129,33 +149,44 @@ function UserCard({
             {translator('nickname')}: {friend.nickname}
           </p>
         )}
-        {(friend.realName || gcName || isLoadingGcName) && (
-          <p className="flex items-center flex-wrap gap-x-2">
-            <span>
-              {translator('realName')}:{' '}
-              {friend.realName ||
-                (isLoadingGcName ? (
-                  <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
-                ) : (
-                  <span className={gcNameClassName}>{gcName}</span>
-                ))}
-            </span>
+        {/*
+          Always mounted (fixed min-height) instead of conditionally
+          rendered. Since gcName resolves to null for the vast majority of
+          profiles, conditionally mounting/unmounting this <p> was pushing
+          everything below it up/down on nearly every search — the single
+          biggest contributor to this page's CLS. The inner content still
+          only renders when there's something to show; only the container's
+          reserved space is now stable.
+        */}
+        <p className="flex items-center flex-wrap gap-x-2 min-h-[1.5rem]">
+          {(friend.realName || gcName || isLoadingGcName) && (
+            <>
+              <span>
+                {translator('realName')}:{' '}
+                {friend.realName ||
+                  (isLoadingGcName ? (
+                    <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
+                  ) : (
+                    <span className={gcNameClassName}>{gcName}</span>
+                  ))}
+              </span>
 
-            {friend.realName && (gcName || isLoadingGcName) && (
-              <>
-                <span className="text-gray-400 text-sm" aria-hidden="true">
-                  |
-                </span>
+              {friend.realName && (gcName || isLoadingGcName) && (
+                <>
+                  <span className="text-gray-400 text-sm" aria-hidden="true">
+                    |
+                  </span>
 
-                {isLoadingGcName ? (
-                  <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
-                ) : (
-                  <span className={gcNameClassName}>{gcName}</span>
-                )}
-              </>
-            )}
-          </p>
-        )}
+                  {isLoadingGcName ? (
+                    <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
+                  ) : (
+                    <span className={gcNameClassName}>{gcName}</span>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </p>
 
         <div className="flex gap-x-2 items-center">
           {friend.countryCode && (

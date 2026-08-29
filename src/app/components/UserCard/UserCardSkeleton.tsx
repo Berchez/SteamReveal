@@ -15,7 +15,13 @@ function UserCardSkeleton({ itsTargetUser }: { itsTargetUser: boolean }) {
       <div className="animate-pulse">
         <div
           className={`rounded-lg bg-gray-500 ${
-            itsTargetUser ? 'w-36 h-36' : 'w-20 h-20'
+            // itsTargetUser: real avatar renders at 144x144 (Tailwind's
+            // w-36 class overrides the width/height attrs; height auto-
+            // scales via aspect-ratio since it's a square image).
+            // !itsTargetUser: real avatar has no width-class override, so
+            // it renders at the raw attribute size (60x60) — the skeleton
+            // must match that exactly, not an arbitrary Tailwind step.
+            itsTargetUser ? 'w-36 h-36' : 'w-[60px] h-[60px]'
           }`}
         />
       </div>

@@ -197,6 +197,14 @@ describe('UserCard Component', () => {
   // ---------------------------------------------------------------------
   // Case 6: "search friend" link — query param preservation + safe fallback
   // ---------------------------------------------------------------------
+  //
+  // NOTE: the link's accessible name is "Search friend {nickname}" (the
+  // aria-label interpolates friend.nickname so screen readers can tell
+  // multiple friend cards' links apart). We match with a regex here instead
+  // of the literal translated string, so these tests keep passing if the
+  // mock nickname or the exact label format changes later — we only care
+  // that it's *the* search-friend link, and assert behavior (href) rather
+  // than the full label text.
   describe('search friend link (Case 6)', () => {
     it('strips navigation-owned params but preserves the rest of the query string', async () => {
       (useSearchParams as jest.Mock).mockReturnValue(
@@ -207,7 +215,7 @@ describe('UserCard Component', () => {
         render(<UserCard friend={mockFriend} itsTargetUser={false} />);
       });
 
-      const link = screen.getByRole('link', { name: 'Search friend' });
+      const link = screen.getByRole('link', { name: /Search friend/i });
       expect(link).toHaveAttribute('href', '/player/12345?utm_source=campaign');
     });
 
@@ -218,7 +226,7 @@ describe('UserCard Component', () => {
         render(<UserCard friend={mockFriend} itsTargetUser={false} />);
       });
 
-      const link = screen.getByRole('link', { name: 'Search friend' });
+      const link = screen.getByRole('link', { name: /Search friend/i });
       expect(link).toHaveAttribute('href', '/player/12345');
     });
 
@@ -231,7 +239,7 @@ describe('UserCard Component', () => {
         ).not.toThrow();
       });
 
-      const link = screen.getByRole('link', { name: 'Search friend' });
+      const link = screen.getByRole('link', { name: /Search friend/i });
       expect(link).toHaveAttribute('href', '/player/12345');
     });
 
@@ -243,7 +251,7 @@ describe('UserCard Component', () => {
       });
 
       expect(
-        screen.queryByRole('link', { name: 'Search friend' }),
+        screen.queryByRole('link', { name: /Search friend/i }),
       ).not.toBeInTheDocument();
     });
   });

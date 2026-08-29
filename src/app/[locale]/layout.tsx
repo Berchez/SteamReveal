@@ -84,18 +84,12 @@ export default function RootLayout({
         />
 
         <meta name="google-adsense-account" content="ca-pub-3301991262958911" />
+
         <meta
           name="google-site-verification"
           content="9bnJzty2EA0iUCoFwiGESzR8VCUnDc33ChIgwb3oj1o"
         />
 
-        {/* Performance quick wins: preconnect fonts + preload LCP poster */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
         <link rel="preload" as="image" href="/images/background.webp" />
       </head>
       <body data-country={country}>

@@ -25,7 +25,7 @@ function SearchInput({
       <button
         type="button"
         onClick={onSearch}
-        className="absolute right-2 top-1/2 -translate-y-1/2 h-9 px-4 rounded-full bg-purple-500 hover:bg-purple-600/90 text-white flex items-center gap-2 text-xs md:text-sm"
+        className="absolute right-2 top-1/2 -translate-y-1/2 h-9 px-4 rounded-full bg-purple-600 hover:bg-purple-700/90 text-white font-semibold flex items-center gap-2 text-xs md:text-sm"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

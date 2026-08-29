@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Image from 'next/image';
 import { track } from '@vercel/analytics';
 import useFaceitLink from './useFaceitLink';
 import quickLinks from './data';
@@ -23,16 +24,17 @@ function QuickLinkIcon({
 
   if (iconUrl && !imgFailed) {
     return (
-      <img
+      <Image
         src={iconUrl}
         alt={`${title} icon`}
+        fill
+        sizes="50px"
         loading="lazy"
         onError={() => setImgFailed(true)}
-        className="rounded-full w-full h-full object-cover"
+        className="rounded-full object-cover"
       />
     );
   }
-
   return (
     <span className="rounded-full w-full h-full flex items-center justify-center text-sm bg-gray-800 text-white">
       {icon}
@@ -83,7 +85,11 @@ export default function UserQuickLinks({ steamId }: UserQuickLinksProps) {
                 track('quick_link_click', { site: link.id });
               }}
               // `group` enables the tooltip below to appear on hover.
-              className={`group relative flex items-center justify-center ${
+              // `aspect-square` locks height to the grid column's width —
+              // required for the `fill` Image below to have a non-zero
+              // parent to fill (fill uses position:absolute internally,
+              // which collapses to 0 height without this).
+              className={`group relative flex items-center justify-center aspect-square ${
                 isDisabled ? 'opacity-50 pointer-events-none' : ''
               }`}
               tabIndex={isDisabled ? -1 : undefined}
