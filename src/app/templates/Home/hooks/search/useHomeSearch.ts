@@ -91,9 +91,26 @@ const useHomeSearch = ({
   const [possibleLocationJson, setPossibleLocationJson] =
     useState<PossibleLocationJsonState>(initialCache?.possibleLocationJson);
 
+  // If the URL already names a player and we have no cached result to show
+  // immediately, a fetch is about to kick off synchronously in the effect
+  // below (handleGetInfoClick -> getUserInfoJson -> getCloseFriendsJson).
+  // Starting `isLoading` at `false` and only flipping it to `true` once
+  // that effect runs meant the very first paint computed `hasNoDataYet` as
+  // `true` (see Home.tsx) — mounting the empty-state hero
+  // (WelcomeText/SupportedFormatsSection/PostHeroSections) and the
+  // absolute/centered layout, only to unmount/reposition everything one
+  // frame later when the effect set isLoading.myCard. Same story for
+  // LocationSection, which renders `null` while `isLoading.friendsCards`
+  // is false and `possibleLocationJson` is undefined, then pops in with a
+  // skeleton once it flips. Both were significant, avoidable CLS sources
+  // on every non-cached player-page load. Seeding the initial state here
+  // means the first render already reflects "we're loading this player",
+  // so the skeletons render from paint #1 and nothing has to unmount.
+  const startsLoading = Boolean(urlPlayer) && !initialCache;
+
   const [isLoading, setIsLoading] = useState<isLoadingType>({
-    myCard: false,
-    friendsCards: false,
+    myCard: startsLoading,
+    friendsCards: startsLoading,
     cheaterReport: false,
   });
 
