@@ -9,7 +9,7 @@ type FriendsSectionProps = {
   isLoading: boolean;
 };
 
-const skeletonUUIDs = Array.from({ length: 5 }, () => crypto.randomUUID());
+const skeletonUUIDs = Array.from({ length: 20 }, () => crypto.randomUUID());
 
 function FriendsSection({ closeFriendsJson, isLoading }: FriendsSectionProps) {
   const translator = useTranslations('Index');
