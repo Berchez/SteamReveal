@@ -38,7 +38,14 @@ function LocationSection({
           }}
         />
       ) : (
-        <LocationCardSkeleton />
+        <LocationCardSkeleton
+          providedLocation={{
+            cityName: targetInfoJson?.targetLocationInfo?.city?.name,
+            stateName: targetInfoJson?.targetLocationInfo?.state?.name,
+            countryName: targetInfoJson?.targetLocationInfo?.country?.name,
+            countryCode: targetInfoJson?.targetLocationInfo?.country?.code,
+          }}
+        />
       )}
     </div>
   );
