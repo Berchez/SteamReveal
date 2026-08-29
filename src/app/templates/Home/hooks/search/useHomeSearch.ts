@@ -214,12 +214,27 @@ const useHomeSearch = ({
     }
   };
 
-  const resetJsons = () => {
+  const resetJsons = (startLoading = false) => {
     setCloseFriendsJson(undefined);
     setPossibleLocationJson(undefined);
     setTargetInfoJson(undefined);
     setCheaterData(undefined);
     lastSearchIdRef.current = null;
+    if (startLoading) {
+      // Only when a new profile search is actually starting (see call site
+      // in handleGetInfoClick). The other call site — clearing state
+      // because urlPlayer became undefined, i.e. user navigated back to
+      // the home/welcome screen — must NOT force isLoading true here,
+      // since nothing will ever flip it back to false (no fetch is
+      // starting), which would permanently hide the welcome hero via
+      // hasNoDataYet in Home.tsx.
+      setIsLoading((prev) => ({
+        ...prev,
+        myCard: true,
+        friendsCards: true,
+        cheaterReport: false,
+      }));
+    }
   };
 
   const handleGetInfoClick = async (value: string) => {
@@ -250,7 +265,7 @@ const useHomeSearch = ({
     handleShowSponsorMe();
     handleShowSupportMe(1);
 
-    resetJsons();
+    resetJsons(true);
 
     const startedAt = Date.now();
 
