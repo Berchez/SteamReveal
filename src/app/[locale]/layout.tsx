@@ -1,15 +1,24 @@
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import './globals.css';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
-import { Analytics } from '@vercel/analytics/react';
 import ToastProvider from '@/toast.provider';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Roboto, Inknut_Antiqua } from 'next/font/google';
 import React from 'react';
 import { headers } from 'next/headers';
 import Script from 'next/script';
 import HomeProvider from '@/app/templates/Home/HomeProvider';
 import { LOCALE_PATHS } from '../../locales';
+
+const VercelAnalytics = dynamic(
+  () => import('@vercel/analytics/react').then((mod) => mod.Analytics),
+  { ssr: false, loading: () => null },
+);
+
+const VercelSpeedInsights = dynamic(
+  () => import('@vercel/speed-insights/next').then((mod) => mod.SpeedInsights),
+  { ssr: false, loading: () => null },
+);
 
 const roboto = Roboto({
   subsets: ['latin'],
@@ -78,7 +87,7 @@ export default function RootLayout({
         {/* Google AdSense */}
         <Script
           async
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3301991262958911"
           crossOrigin="anonymous"
         />
@@ -98,8 +107,8 @@ export default function RootLayout({
             <HomeProvider>{children}</HomeProvider>
           </ToastProvider>
         </NextIntlClientProvider>
-        <Analytics />
-        <SpeedInsights />
+        <VercelAnalytics />
+        <VercelSpeedInsights />
       </body>
     </html>
   );

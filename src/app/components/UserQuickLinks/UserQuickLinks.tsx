@@ -29,7 +29,6 @@ function QuickLinkIcon({
         alt={`${title} icon`}
         fill
         sizes="50px"
-        loading="lazy"
         onError={() => setImgFailed(true)}
         className="rounded-full object-cover"
       />
