@@ -2,10 +2,9 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from '@/navigation';
-import { useLocale } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@/locales';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
   en: 'English',

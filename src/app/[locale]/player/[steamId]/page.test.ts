@@ -1,15 +1,16 @@
 // src/app/[locale]/player/[steamId]/page.test.ts
+import { UserSummary } from 'steamapi';
 import { generateMetadata } from './page';
+import getPlayerProfile from '@/lib/getPlayerProfile';
 
-const mockResolve = jest.fn();
-const mockGetUserSummary = jest.fn();
+const mockGetPlayerProfile = getPlayerProfile as jest.MockedFunction<
+  typeof getPlayerProfile
+>;
 
-jest.mock('steamapi', () => {
-  return jest.fn().mockImplementation(() => ({
-    resolve: (target: string) => mockResolve(target),
-    getUserSummary: (steamId: string) => mockGetUserSummary(steamId),
-  }));
-});
+jest.mock('../../../../lib/getPlayerProfile', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('next-intl/server', () => ({
   getTranslations: jest.fn(async () => (key: string, vars?: any) => {
@@ -19,6 +20,7 @@ jest.mock('next-intl/server', () => ({
       fallbackTitle: 'SteamReveal - Analyze Steam Profiles',
       fallbackDescription: 'SteamReveal is an OSINT tool...',
     };
+
     return map[key];
   }),
 }));
@@ -29,27 +31,38 @@ describe('generateMetadata for /player/[steamId]', () => {
   });
 
   it('returns personalized metadata when profile resolves', async () => {
-    mockResolve.mockResolvedValue('76561198146931523');
-    mockGetUserSummary.mockResolvedValue({
+    mockGetPlayerProfile.mockResolvedValue({
       nickname: 'TestUser',
-      avatar: { large: 'https://example.com/avatar.jpg' },
-    });
+      avatar: {
+        large: 'https://example.com/avatar.jpg',
+        medium: '',
+        small: '',
+        hash: '',
+      },
+    } as UserSummary);
 
     const metadata = await generateMetadata({
-      params: { locale: 'en', steamId: 'testuser' },
+      params: {
+        locale: 'en',
+        steamId: 'testuser',
+      },
     });
 
     expect(metadata.title).toContain('TestUser');
+
     expect(metadata.openGraph?.images).toEqual([
       'https://example.com/avatar.jpg',
     ]);
   });
 
-  it('falls back to default metadata when resolve fails', async () => {
-    mockResolve.mockRejectedValue(new Error('Invalid target'));
+  it('falls back to default metadata when profile lookup fails', async () => {
+    mockGetPlayerProfile.mockResolvedValue(undefined);
 
     const metadata = await generateMetadata({
-      params: { locale: 'en', steamId: 'invalid' },
+      params: {
+        locale: 'en',
+        steamId: 'invalid',
+      },
     });
 
     expect(metadata.title).toBe('SteamReveal - Analyze Steam Profiles');

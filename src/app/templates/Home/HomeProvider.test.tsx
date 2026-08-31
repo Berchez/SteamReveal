@@ -26,8 +26,11 @@ const targetValueRef = { current: null };
 const stableIsLoading = {
   myCard: false,
   friendsCards: false,
+  location: false,
   cheaterReport: false,
 };
+
+const seedInitialProfile = jest.fn();
 
 function buildHookReturn() {
   // A brand-new top-level object every call — mirrors what the real useHome
@@ -51,6 +54,7 @@ function buildHookReturn() {
     onCloseSupportMe,
     getCheaterProbability,
     navigateToPlayer,
+    seedInitialProfile,
   };
 }
 

@@ -53,6 +53,7 @@ const useHome = () => {
     cheaterData,
     setCheaterData,
     lastSearchIdRef,
+    seedInitialProfile,
   } = useHomeSearch({
     runGuard,
     syncPlayerUrl,
@@ -60,6 +61,11 @@ const useHome = () => {
     clearSyncedUrlPlayer,
     handleShowSponsorMe,
     handleShowSupportMe,
+  });
+  console.log('walter', {
+    targetInfoJson,
+    possibleLocationJson,
+    closeFriendsJson,
   });
 
   const { getCheaterProbability } = useCheaterProbability({
@@ -88,6 +94,7 @@ const useHome = () => {
     navigateToPlayer,
     showSupportMe,
     onCloseSupportMe,
+    seedInitialProfile,
   };
 };
 

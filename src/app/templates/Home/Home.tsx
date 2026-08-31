@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useContext } from 'react';
+import React, { useContext, useLayoutEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { UserSummary } from 'steamapi';
+import { useTranslations } from 'next-intl';
 import SponsorMe from '@/app/components/SponsorMe';
 import SupportMe from '@/app/components/SupportMe';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
-import { useTranslations } from 'next-intl';
 import { HomeDataContext, HomeActionsContext } from './context';
 import VideoBackground from './sections/VideoBackground';
 import MyUserSection from './sections/MyUserSection';
@@ -17,16 +18,22 @@ import SupportedFormatsSection from './sections/SupportedFormatsSection';
 const LocationSection = dynamic(() => import('./sections/LocationSection'));
 const FriendsSection = dynamic(() => import('./sections/FriendsSection'));
 
-export default function Home() {
+export default function Home({
+  initialProfile,
+}: {
+  initialProfile?: UserSummary;
+}) {
   const data = useContext(HomeDataContext);
   const actions = useContext(HomeActionsContext);
-
+  useLayoutEffect(() => {
+    actions?.seedInitialProfile(initialProfile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialProfile]);
   if (!data || !actions) {
     throw new Error(
       'Home must be rendered inside HomeProvider (src/app/[locale]/layout.tsx).',
     );
   }
-
   const {
     closeFriendsJson,
     targetValue,
@@ -38,12 +45,9 @@ export default function Home() {
     cheaterData,
     showSupportMe,
   } = data;
-
   const { onChangeTarget, onCloseSponsorMe, onCloseSupportMe } = actions;
-
   const translator = useTranslations('Index');
   const currentYear = new Date().getFullYear();
-
   return (
     <div className="max-h-dvh">
       <VideoBackground />
@@ -53,20 +57,16 @@ export default function Home() {
           dontAskAgain={() => onCloseSponsorMe(-30)}
         />
       )}
-
       {showSupportMe && (
         <SupportMe
           onClose={() => onCloseSupportMe(0)}
           dontAskAgain={() => onCloseSupportMe(-50)}
         />
       )}
-
       {hasNoDataYet && <WelcomeText />}
-
       <div className="fixed top-4 right-4 z-50">
         <LanguageSwitcher />
       </div>
-
       <div
         className={`flow-root h-full w-full min-h-screen bg-no-repeat bg-cover py-8 px-4 md:p-12 text-white z-20 ${
           hasNoDataYet
@@ -84,20 +84,17 @@ export default function Home() {
           />
           {hasNoDataYet && <SupportedFormatsSection />}
         </div>
-
         {hasNoDataYet && <PostHeroSections />}
-
         <CheaterReport
           cheaterData={cheaterData}
           isLoading={isLoading.cheaterReport}
           nickname={targetInfoJson?.profileInfo?.nickname ?? ''}
         />
-
         <div className="flex flex-col gap-16 my-8">
           <LocationSection
             possibleLocationJson={possibleLocationJson}
             targetInfoJson={targetInfoJson}
-            isLoading={isLoading.friendsCards}
+            isLoading={isLoading.location}
           />
           <FriendsSection
             closeFriendsJson={closeFriendsJson}

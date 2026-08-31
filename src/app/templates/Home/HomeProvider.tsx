@@ -24,6 +24,7 @@ export default function HomeProvider({
     onCloseSupportMe,
     getCheaterProbability,
     navigateToPlayer,
+    seedInitialProfile,
   } = useHome();
 
   // Data changes on nearly every render (fetch progress, cache hits, etc) —
@@ -66,6 +67,7 @@ export default function HomeProvider({
       onCloseSupportMe,
       getCheaterProbability,
       navigateToPlayer,
+      seedInitialProfile,
     }),
     [
       onChangeTarget,
@@ -73,6 +75,7 @@ export default function HomeProvider({
       onCloseSupportMe,
       getCheaterProbability,
       navigateToPlayer,
+      seedInitialProfile,
     ],
   );
 

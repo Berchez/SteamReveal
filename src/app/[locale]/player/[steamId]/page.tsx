@@ -1,11 +1,8 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import SteamAPI, { UserSummary } from 'steamapi';
-import getSteamApiKey from '@/lib/getSteamApiKey';
 import Home from '@/app/templates/Home';
-
-const steam = new SteamAPI(getSteamApiKey() ?? '');
+import getPlayerProfile from '@/lib/getPlayerProfile';
 
 interface PlayerPageProps {
   params: {
@@ -14,23 +11,11 @@ interface PlayerPageProps {
   };
 }
 
-async function getSteamProfile(
-  target: string,
-): Promise<UserSummary | undefined> {
-  try {
-    const steamId = await steam.resolve(target);
-    const profile = await steam.getUserSummary(steamId);
-    return Array.isArray(profile) ? profile[0] : profile;
-  } catch (error) {
-    return undefined;
-  }
-}
-
 export async function generateMetadata({
   params: { locale, steamId },
 }: PlayerPageProps): Promise<Metadata> {
+  const profile = await getPlayerProfile(steamId);
   const t = await getTranslations({ locale, namespace: 'Metadata.Player' });
-  const profile = await getSteamProfile(steamId);
 
   if (!profile) {
     return {
@@ -62,6 +47,10 @@ export async function generateMetadata({
   };
 }
 
-export default function PlayerPage() {
-  return <Home />;
+export default async function PlayerPage({
+  params: { steamId },
+}: PlayerPageProps) {
+  const initialProfile = await getPlayerProfile(steamId);
+
+  return <Home initialProfile={initialProfile} />;
 }

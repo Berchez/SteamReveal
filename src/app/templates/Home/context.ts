@@ -5,6 +5,7 @@ import { isLoadingType } from '@/@types/isLoadingType';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
+import { UserSummary } from 'steamapi';
 
 // Split in two: state changes on almost every fetch tick, actions are
 // stable references (wrapped in useCallback in useHome.ts). Consumers that
@@ -29,6 +30,7 @@ interface HomeActionsContextType {
   onCloseSupportMe: (days: number) => void;
   getCheaterProbability: () => Promise<CheaterDataType | null>;
   navigateToPlayer: (steamId: string) => void;
+  seedInitialProfile: (profile: UserSummary | undefined) => void;
 }
 
 export const HomeDataContext = createContext<HomeDataContextType | null>(null);
