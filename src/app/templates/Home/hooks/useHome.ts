@@ -62,11 +62,6 @@ const useHome = () => {
     handleShowSponsorMe,
     handleShowSupportMe,
   });
-  console.log('walter', {
-    targetInfoJson,
-    possibleLocationJson,
-    closeFriendsJson,
-  });
 
   const { getCheaterProbability } = useCheaterProbability({
     runGuard,

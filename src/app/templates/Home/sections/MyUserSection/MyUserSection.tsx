@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 
@@ -39,6 +39,8 @@ function MyUserSection({
     actions?.navigateToPlayer(steamId);
   };
 
+  const searchSeqRef = useRef(0);
+
   const handleSearch = () => {
     const value = (targetValue.current ?? '').trim();
 
@@ -47,9 +49,22 @@ function MyUserSection({
       return;
     }
 
+    searchSeqRef.current += 1;
+    const seq = searchSeqRef.current;
+
     fetchSteamId(value)
-      .then(handleResolvedSearch)
+      .then((steamId) => {
+        if (searchSeqRef.current !== seq) {
+          return;
+        }
+
+        handleResolvedSearch(steamId);
+      })
       .catch(() => {
+        if (searchSeqRef.current !== seq) {
+          return;
+        }
+
         toast.error(serverMessagesTranslator('invalidPlayer'));
       });
   };

@@ -235,7 +235,9 @@ const useHomeSearch = ({
     runId: number,
   ): Promise<ResolvedTargetInfoJson> => {
     try {
-      setIsLoading((prev) => ({ ...prev, myCard: true }));
+      if (isCurrentRun(runId)) {
+        setIsLoading((prev) => ({ ...prev, myCard: true }));
+      }
 
       const { data } = await axios.post('/api/getUserInfo', {
         target: value,
