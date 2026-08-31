@@ -12,9 +12,12 @@ const config: Config = {
   testEnvironment: 'jsdom',
   moduleNameMapper: {
     '^@vercel/analytics$': '<rootDir>/__mocks__/@vercel/analytics.js',
-    '^@vercel/analytics/react$': '<rootDir>/__mocks__/@vercel/analytics-react.js',
-    '^@vercel/speed-insights/next$': '<rootDir>/__mocks__/@vercel/speed-insights-next.js',
+    '^@vercel/analytics/react$':
+      '<rootDir>/__mocks__/@vercel/analytics-react.js',
+    '^@vercel/speed-insights/next$':
+      '<rootDir>/__mocks__/@vercel/speed-insights-next.js',
   },
+  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/e2e/'],
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 };

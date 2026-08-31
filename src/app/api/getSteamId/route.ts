@@ -25,6 +25,34 @@ const RATE_LIMIT_MAX = 30;
 const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
 
 export async function GET(req: Request) {
+  // Dev/test mode: deterministic steamId, but ONLY when the extra
+  // isMockModeEnabled() guard also agrees (never NODE_ENV=production,
+  // never on Vercel). If DEV_TEST_MODE is set but the guard fails, we
+  // deliberately fall through to the real Steam call below instead of
+  // erroring out — a stray env var must never be able to take prod down.
+  if (process.env.DEV_TEST_MODE === '1') {
+    const { isMockModeEnabled, isMockInvalidTarget } = await import(
+      '@/mocks/devFixtures'
+    );
+
+    if (isMockModeEnabled()) {
+      try {
+        const { searchParams } = new URL(req.url);
+        const target = searchParams.get('target');
+        if (!target || !isValidTargetParam(target)) {
+          return errorResponse('Invalid target.', 400, 'INVALID_REQUEST');
+        }
+        if (isMockInvalidTarget(target)) {
+          return errorResponse('Invalid target.', 400, 'INVALID_REQUEST');
+        }
+        return NextResponse.json({ steamId: target }, { status: 200 });
+      } catch (e) {
+        return errorResponse('Invalid request.', 400, 'INVALID_REQUEST');
+      }
+    }
+    // Guard failed: fall through to the real implementation below.
+  }
+
   // GET has no method branch needed (Next.js only invokes this handler
   // for GET), so the standardized order here starts at rate limit.
   const ip = getRequestIp(req);

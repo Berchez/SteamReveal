@@ -34,7 +34,7 @@ dependencies:
     version: 12.23.26(react-dom@18.3.1)(react@18.3.1)
   next:
     specifier: 14.2.10
-    version: 14.2.10(@babel/core@7.26.9)(react-dom@18.3.1)(react@18.3.1)
+    version: 14.2.10(@babel/core@7.26.9)(@playwright/test@1.62.1)(react-dom@18.3.1)(react@18.3.1)
   next-intl:
     specifier: ^3.9.1
     version: 3.26.4(next@14.2.10)(react@18.3.1)
@@ -61,6 +61,9 @@ devDependencies:
   '@next/eslint-plugin-next':
     specifier: ^14.2.10
     version: 14.2.10
+  '@playwright/test':
+    specifier: ^1.62.1
+    version: 1.62.1
   '@testing-library/dom':
     specifier: ^10.4.0
     version: 10.4.0
@@ -978,6 +981,13 @@ packages:
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
     dev: true
 
+  /@playwright/test@1.62.1:
+    resolution: {integrity: sha512-DTcUc8qii+cpHvtOwggMtBRMjKZHXYWdw8syRYu2vtzuq4Wxphqq4NfCs5Zt44L6mA8rfDfj+PHnxFc/FeK6mQ==}
+    engines: {node: '>=20'}
+    hasBin: true
+    dependencies:
+      playwright: 1.62.1
+
   /@rtsao/scc@1.1.0:
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
     dev: true
@@ -1566,7 +1576,7 @@ packages:
       vue-router:
         optional: true
     dependencies:
-      next: 14.2.10(@babel/core@7.26.9)(react-dom@18.3.1)(react@18.3.1)
+      next: 14.2.10(@babel/core@7.26.9)(@playwright/test@1.62.1)(react-dom@18.3.1)(react@18.3.1)
       react: 18.3.1
     dev: false
 
@@ -1594,7 +1604,7 @@ packages:
       vue-router:
         optional: true
     dependencies:
-      next: 14.2.10(@babel/core@7.26.9)(react-dom@18.3.1)(react@18.3.1)
+      next: 14.2.10(@babel/core@7.26.9)(@playwright/test@1.62.1)(react-dom@18.3.1)(react@18.3.1)
       react: 18.3.1
     dev: false
 
@@ -3460,6 +3470,13 @@ packages:
   /fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
+  /fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+    requiresBuild: true
+    optional: true
+
   /fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -4928,12 +4945,12 @@ packages:
     dependencies:
       '@formatjs/intl-localematcher': 0.5.10
       negotiator: 1.0.0
-      next: 14.2.10(@babel/core@7.26.9)(react-dom@18.3.1)(react@18.3.1)
+      next: 14.2.10(@babel/core@7.26.9)(@playwright/test@1.62.1)(react-dom@18.3.1)(react@18.3.1)
       react: 18.3.1
       use-intl: 3.26.4(react@18.3.1)
     dev: false
 
-  /next@14.2.10(@babel/core@7.26.9)(react-dom@18.3.1)(react@18.3.1):
+  /next@14.2.10(@babel/core@7.26.9)(@playwright/test@1.62.1)(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-sDDExXnh33cY3RkS9JuFEKaS4HmlWmDKP1VJioucCG6z5KuA008DPsDZOzi8UfqEk3Ii+2NCQSJrfbEWtZZfww==}
     engines: {node: '>=18.17.0'}
     hasBin: true
@@ -4952,6 +4969,7 @@ packages:
         optional: true
     dependencies:
       '@next/env': 14.2.10
+      '@playwright/test': 1.62.1
       '@swc/helpers': 0.5.5
       busboy: 1.6.0
       caniuse-lite: 1.0.30001700
@@ -5307,6 +5325,20 @@ packages:
     dependencies:
       find-up: 4.1.0
     dev: true
+
+  /playwright-core@1.62.1:
+    resolution: {integrity: sha512-wPYSwEBJY9GHraISXqyqtx0na0LpO3XEX7jNDhntbex7tzUS7kLnZsOlFruFJB4Hi/rhDMjXGqHewDZ68nYZVw==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  /playwright@1.62.1:
+    resolution: {integrity: sha512-0M+L3LAD8/nm554LOla9Ayx0j0tmFZ0FBcoQ7F1VuVHpM/XpiC8RcDzBQB8W5+hA8L22THxELzeF+2WcUzvcLg==}
+    engines: {node: '>=20'}
+    hasBin: true
+    dependencies:
+      playwright-core: 1.62.1
+    optionalDependencies:
+      fsevents: 2.3.2
 
   /possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}

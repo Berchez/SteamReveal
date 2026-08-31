@@ -6,6 +6,28 @@ const steam = new SteamAPI(getSteamApiKey() ?? '');
 
 const getPlayerProfile = cache(
   async (target: string): Promise<UserSummary | undefined> => {
+    // Dev/test fixture path: only taken when isMockModeEnabled() also
+    // agrees (never NODE_ENV=production, never on Vercel). If
+    // DEV_TEST_MODE is set but the guard fails, fall through to the real
+    // Steam call below instead of returning undefined — a stray env var
+    // must never be able to silently break profile lookups in production.
+    if (process.env.DEV_TEST_MODE === '1') {
+      try {
+        const { isMockModeEnabled, makeMockProfile, isMockInvalidTarget } =
+          await import('@/mocks/devFixtures');
+
+        if (isMockModeEnabled()) {
+          if (isMockInvalidTarget(target)) {
+            return undefined;
+          }
+          return makeMockProfile(target) as unknown as UserSummary;
+        }
+        // Guard failed: fall through to the real implementation below.
+      } catch (e) {
+        // fall back to real behavior if fixtures can't be loaded
+      }
+    }
+
     try {
       const steamId = await steam.resolve(target);
       const profile = await steam.getUserSummary(steamId);

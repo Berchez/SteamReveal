@@ -39,3 +39,6 @@ next-env.d.ts
 
 gcNameCache.data.json
 /scripts
+
+playwright-report/
+test-results/

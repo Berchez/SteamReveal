@@ -146,6 +146,33 @@ export async function POST(req: Request) {
     return errorResponse('Method not allowed.', 405, 'METHOD_NOT_ALLOWED');
   }
 
+  // Dev/test mode: only taken when isMockModeEnabled() also agrees (never
+  // NODE_ENV=production, never on Vercel). If DEV_TEST_MODE is set but
+  // the guard fails, fall through to the real implementation instead of
+  // erroring — a stray env var must never be able to take production down.
+  if (process.env.DEV_TEST_MODE === '1') {
+    const { isMockModeEnabled, makeMockCloseFriends, isMockInvalidTarget } =
+      await import('@/mocks/devFixtures');
+
+    if (isMockModeEnabled()) {
+      try {
+        const body = await req.json();
+        const { target } = body;
+        if (!target || !isValidTargetParam(target)) {
+          return errorResponse('Invalid target.', 400, 'INVALID_REQUEST');
+        }
+        if (isMockInvalidTarget(target)) {
+          return errorResponse('Invalid target.', 400, 'INVALID_REQUEST');
+        }
+        const closeFriends = makeMockCloseFriends(target);
+        return NextResponse.json({ closeFriends }, { status: 200 });
+      } catch (e) {
+        return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
+      }
+    }
+    // Guard failed: fall through to the real implementation below.
+  }
+
   const ip = getRequestIp(req);
   if (rateLimiter.isRateLimited(ip)) {
     return errorResponse(
