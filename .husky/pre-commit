@@ -1,4 +1,4 @@
 pnpm run lint
+pnpm tsc --noEmit
 pnpm test
 pnpm run e2e
-pnpm tsc --noEmit
