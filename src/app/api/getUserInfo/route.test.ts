@@ -4,11 +4,13 @@ import { NextResponse } from 'next/server';
 // Mock SteamAPI
 const mockResolve = jest.fn();
 const mockGetUserSummary = jest.fn();
+const mockGetUserOwnedGames = jest.fn();
 
 jest.mock('steamapi', () => {
   return jest.fn().mockImplementation(() => ({
     resolve: (target: string) => mockResolve(target),
     getUserSummary: (steamId: string) => mockGetUserSummary(steamId),
+    getUserOwnedGames: (steamId: string) => mockGetUserOwnedGames(steamId),
   }));
 });
 
@@ -55,13 +57,29 @@ describe('POST /api/getUserInfo', () => {
 
     mockResolve.mockResolvedValue('12345');
     mockGetUserSummary.mockResolvedValue({ nickname: 'TestUser' });
+    mockGetUserOwnedGames.mockResolvedValue([
+      { game: { name: 'Counter-Strike 2' }, minutes: 50000 },
+      { game: { name: 'Dota 2' }, minutes: 1200 },
+    ]);
 
     const res = await POST(req);
     expect(res.status).toBe(200);
     expect(mockResolve).toHaveBeenCalledWith('test-user');
     expect(mockGetUserSummary).toHaveBeenCalledWith('12345');
+    expect(mockGetUserOwnedGames).toHaveBeenCalledWith('12345');
     expect(NextResponse.json).toHaveBeenCalledWith(
-      { targetInfo: { nickname: 'TestUser' } },
+      {
+        targetInfo: expect.objectContaining({
+          nickname: 'TestUser',
+          gamesSnapshot: expect.arrayContaining([
+            expect.objectContaining({
+              name: 'Counter-Strike 2',
+              playtimeHours: 833.3,
+            }),
+          ]),
+          isCSActive: true,
+        }),
+      },
       { status: 200 },
     );
   });

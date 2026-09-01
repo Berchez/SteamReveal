@@ -35,8 +35,86 @@ export const getRequesterBrowserLanguage = (): string | null => {
   return navigator.language ?? null;
 };
 
+export type GameSnapshotEntry = {
+  name: string;
+  playtimeHours: number;
+};
+
+const normalizeGamePlaytimeHours = (
+  game:
+    | {
+        name?: string;
+        playtimeForever?: number;
+        playtimeHours?: number;
+        minutes?: number;
+      }
+    | undefined,
+): number => {
+  if (!game) {
+    return 0;
+  }
+
+  let rawValue = 0;
+
+  if (typeof game.playtimeHours === 'number') {
+    rawValue = game.playtimeHours;
+  } else if (typeof game.playtimeForever === 'number') {
+    rawValue = game.playtimeForever / 60;
+  } else if (typeof game.minutes === 'number') {
+    rawValue = game.minutes / 60;
+  }
+
+  return Number.isFinite(rawValue) ? rawValue : 0;
+};
+
+export const getGameSnapshotFromTargetInfo = (
+  targetInfo:
+    | {
+        gamesSnapshot?: GameSnapshotEntry[];
+        gamesPlayed?: Array<{
+          name?: string;
+          playtimeForever?: number;
+          playtimeHours?: number;
+          minutes?: number;
+        }>;
+      }
+    | undefined,
+): GameSnapshotEntry[] => {
+  let games: Array<{
+    name?: string;
+    playtimeForever?: number;
+    playtimeHours?: number;
+    minutes?: number;
+  }> = [];
+
+  if (Array.isArray(targetInfo?.gamesSnapshot) && targetInfo.gamesSnapshot.length > 0) {
+    games = targetInfo.gamesSnapshot;
+  } else if (Array.isArray(targetInfo?.gamesPlayed)) {
+    games = targetInfo.gamesPlayed;
+  }
+
+  return games
+    .filter(
+      (game): game is {
+        name: string;
+        playtimeForever?: number;
+        playtimeHours?: number;
+        minutes?: number;
+      } => typeof game?.name === 'string' && game.name.trim().length > 0,
+    )
+    .map((game) => ({
+      name: game.name,
+      playtimeHours: Number(
+        (Math.round(normalizeGamePlaytimeHours(game) * 10) / 10).toFixed(1),
+      ),
+    }))
+    .sort((a, b) => b.playtimeHours - a.playtimeHours);
+};
+
 export const isCounterStrikeActive = (
-  gamesPlayed: Array<{ name: string; playtimeForever: number }> | undefined,
+  gamesPlayed:
+    | Array<{ name: string; playtimeForever?: number; playtimeHours?: number; minutes?: number }>
+    | undefined,
 ): boolean => {
   if (!gamesPlayed || gamesPlayed.length === 0) {
     return false;
@@ -44,19 +122,17 @@ export const isCounterStrikeActive = (
 
   const CS_HOUR_THRESHOLD = 300;
 
-  // Find CS game (commonly "Counter-Strike 2" or "Counter-Strike: Global Offensive")
   const csGame = gamesPlayed.find((g) =>
     g.name.toLowerCase().includes('counter-strike'),
   );
 
   if (csGame) {
-    const csHours = csGame.playtimeForever / 60;
+    const csHours = normalizeGamePlaytimeHours(csGame);
     if (csHours >= CS_HOUR_THRESHOLD) {
       return true;
     }
   }
 
-  // Check if CS is the top game (most played)
   const topGame = gamesPlayed[0];
   if (topGame && topGame.name.toLowerCase().includes('counter-strike')) {
     return true;
@@ -116,6 +192,11 @@ export const recordAnalytics = async (
   }
 
   try {
+    const gamesSnapshot = getGameSnapshotFromTargetInfo(
+      targetInfo as UserSummary & { gamesSnapshot?: GameSnapshotEntry[] },
+    );
+    const isCSActive = isCounterStrikeActive(gamesSnapshot);
+
     const payload = {
       profile: {
         steamId: targetInfo.steamID,
@@ -126,6 +207,9 @@ export const recordAnalytics = async (
         stateCode: targetInfo.stateCode ?? null,
         cityId: targetInfo.cityID ?? null,
       },
+
+      gamesSnapshot,
+      isCSActive,
 
       friends: (closeFriends ?? []).map((f) => ({
         steamId: f.friend.steamID,
@@ -158,6 +242,7 @@ export const recordAnalytics = async (
 
     return data?.id ?? null;
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error('[Analytics] Failed to record search:', e);
     return null;
   }

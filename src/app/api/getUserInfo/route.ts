@@ -12,6 +12,7 @@ export const revalidate = 0;
 
 const steamApiKey = getSteamApiKey();
 if (!steamApiKey) {
+  // eslint-disable-next-line no-console
   console.error(
     'getUserInfo - STEAM_API_KEY is missing at module init. Every request to this route will fail until it is set.',
   );
@@ -23,6 +24,63 @@ const STEAM_CALL_TIMEOUT_MS = 8000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 20;
 const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
+
+type SteamOwnedGameLike = {
+  name?: string;
+  playtime_forever?: number;
+  playtimeForever?: number;
+  minutes?: number;
+  game?: {
+    name?: string;
+    playtimeForever?: number;
+  };
+};
+
+const getGamesSnapshot = (
+  games: SteamOwnedGameLike[] | undefined,
+): Array<{ name: string; playtimeHours: number }> => {
+  if (!Array.isArray(games) || games.length === 0) {
+    return [];
+  }
+
+  return games
+    .map((game) => {
+      const name =
+        typeof game?.game?.name === 'string' ? game.game.name : game?.name ?? '';
+      const playtimeForever = Number(
+        game?.playtime_forever ?? game?.playtimeForever ?? game?.minutes ?? 0,
+      );
+      const playtimeHours =
+        Number.isFinite(playtimeForever) && playtimeForever > 0
+          ? playtimeForever / 60
+          : 0;
+
+      return {
+        name,
+        playtimeHours: Number((Math.round(playtimeHours * 10) / 10).toFixed(1)),
+      };
+    })
+    .filter((game) => game.name)
+    .sort((a, b) => b.playtimeHours - a.playtimeHours);
+};
+
+const isCounterStrikeActive = (
+  games: Array<{ name: string; playtimeHours: number }> | undefined,
+): boolean => {
+  if (!games || games.length === 0) {
+    return false;
+  }
+
+  const csGame = games.find((game) =>
+    game.name.toLowerCase().includes('counter-strike'),
+  );
+
+  if (csGame && csGame.playtimeHours >= 300) {
+    return true;
+  }
+
+  return games[0]?.name.toLowerCase().includes('counter-strike') ?? false;
+};
 
 export async function POST(req: Request) {
   if (req.method !== 'POST') {
@@ -90,6 +148,40 @@ export async function POST(req: Request) {
 
     if (!targetInfo) {
       return errorResponse('Invalid target.', 400, 'INVALID_REQUEST');
+    }
+
+    if (typeof steam.getUserOwnedGames === 'function') {
+      try {
+        const games = await withTimeout(
+          steam.getUserOwnedGames(targetSteamId),
+          'getUserInfo: steam.getUserOwnedGames',
+          STEAM_CALL_TIMEOUT_MS,
+        );
+
+        const gamesSnapshot = getGamesSnapshot(
+          Array.isArray(games)
+            ? games.map((game) => {
+                const normalizedGame = game as SteamOwnedGameLike;
+                return {
+                  name: normalizedGame?.game?.name ?? normalizedGame?.name ?? '',
+                  playtime_forever:
+                    normalizedGame?.minutes ?? normalizedGame?.playtimeForever ?? 0,
+                };
+              })
+            : [],
+        );
+
+        Object.assign(targetInfo, {
+          gamesSnapshot,
+          isCSActive: isCounterStrikeActive(gamesSnapshot),
+        });
+      } catch (error) {
+        // Best effort: do not fail the profile fetch if the library call for
+        // owned games is unavailable, restricted, or temporarily flaky.
+        logRouteError('getUserInfo: steam.getUserOwnedGames', error, {
+          targetSteamId,
+        });
+      }
     }
 
     return NextResponse.json({ targetInfo }, { status: 200 });

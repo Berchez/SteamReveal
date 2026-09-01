@@ -105,11 +105,18 @@ export interface CheaterProbabilityRecord {
   computedAt: string;
 }
 
+export interface GameSnapshotEntry {
+  name: string;
+  playtimeHours: number;
+}
+
 export interface SearchRecord {
   id: string;
   searchedAt: string;
   profile: ProfileRecord;
   friends: FriendRecord[];
+  gamesSnapshot?: GameSnapshotEntry[] | null;
+  isCSActive?: boolean | null;
 
   // ---- Everything below was added after the first version. ----
   /** Locale of whoever ran the search ('pt' | 'en' | ...). */
@@ -193,6 +200,7 @@ const analyticsStore: AnalyticsStore = {
 
     const legacyEntries = await readLegacyHtmlEntries();
     if (legacyEntries.length === 0) {
+      // eslint-disable-next-line no-console
       console.warn(
         `[Analytics] No persisted analytics data found at ${DB_JSON_PATH} or ${LEGACY_DB_HTML_PATH}. Starting from an empty history.`,
       );

@@ -286,6 +286,35 @@ describe('recordAnalytics', () => {
     expect(payload.durationMs).toBe(1234);
   });
 
+  it('includes a normalized gamesSnapshot and CS activity flag in the payload', async () => {
+    mockedAxios.post.mockImplementation((url: string) => {
+      if (url === '/api/getGamersClubName') {
+        return Promise.resolve({ data: { gcName: null } });
+      }
+      return Promise.resolve({ data: { id: 'search-id' } });
+    });
+
+    const target = makeTargetInfo({
+      gamesSnapshot: [
+        { name: 'Counter-Strike 2', playtimeHours: 420 },
+        { name: 'Dota 2', playtimeHours: 100 },
+      ],
+    });
+
+    await recordAnalytics(target, [], [], meta);
+
+    const recordCall = mockedAxios.post.mock.calls.find(
+      ([url]) => url === '/api/recordAnalytics',
+    );
+    const payload = recordCall?.[1] as any;
+
+    expect(payload.isCSActive).toBe(true);
+    expect(payload.gamesSnapshot).toEqual([
+      { name: 'Counter-Strike 2', playtimeHours: 420 },
+      { name: 'Dota 2', playtimeHours: 100 },
+    ]);
+  });
+
   it('returns null when the server reports the record was skipped', async () => {
     mockedAxios.post.mockImplementation((url: string) => {
       if (url === '/api/getGamersClubName') {
