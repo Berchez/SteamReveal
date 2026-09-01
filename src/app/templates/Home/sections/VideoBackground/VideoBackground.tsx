@@ -13,8 +13,6 @@ function VideoBackground() {
     };
 
     const win = window as IdleAwareWindow;
-    const mediaQuery = win.matchMedia('(prefers-reduced-motion: reduce)');
-    const reduceMotion = mediaQuery.matches;
     const { connection } = navigator as Navigator & {
       connection?: {
         saveData?: boolean;
@@ -25,7 +23,7 @@ function VideoBackground() {
       connection?.saveData ||
       ['slow-2g', '2g', '3g'].includes(connection?.effectiveType ?? '');
 
-    if (reduceMotion || slowNetwork) {
+    if (slowNetwork) {
       setShouldLoadVideo(false);
       return undefined;
     }
