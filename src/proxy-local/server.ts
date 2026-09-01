@@ -91,6 +91,7 @@ app.post('/api/analytics/record', async (req: Request, res: Response) => {
     friends,
     requesterLocale,
     requesterCountry,
+    requesterBrowserLanguage,
     device,
     locationGuess,
     durationMs,
@@ -108,6 +109,10 @@ app.post('/api/analytics/record', async (req: Request, res: Response) => {
         typeof requesterLocale === 'string' ? requesterLocale : null,
       requesterCountry:
         typeof requesterCountry === 'string' ? requesterCountry : null,
+      requesterBrowserLanguage:
+        typeof requesterBrowserLanguage === 'string'
+          ? requesterBrowserLanguage
+          : null,
       device: device === 'mobile' || device === 'desktop' ? device : null,
       locationGuess: Array.isArray(locationGuess) ? locationGuess : null,
       durationMs: typeof durationMs === 'number' ? durationMs : null,

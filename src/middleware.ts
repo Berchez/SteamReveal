@@ -26,5 +26,5 @@ export default function middleware(request: NextRequest) {
 // literals with runtime expressions here to prevent the "Unsupported template
 // literal" error during build.
 export const config = {
-  matcher: ['/', '/(en|pt|ru)/:path*'],
+  matcher: ['/', '/(en|pt|ru|de|es)/:path*'],
 };

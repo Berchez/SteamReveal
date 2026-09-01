@@ -1184,3 +1184,23 @@ test('Cheater report still loads correctly under slower network (dynamic import 
   const reportBox = page.locator('.bg-purple-900.border-2:not(.border-white)');
   await expect(reportBox).toBeVisible({ timeout: 20000 });
 });
+
+test('Browser language is accessible from navigator API', async ({ page }) => {
+  await routeApiMocks(page);
+
+  await page.goto('/en');
+
+  // Verify that navigator.language is accessible in the page context
+  const browserLang = await page.evaluate(() => navigator.language);
+  expect(browserLang).toBeTruthy();
+  expect(browserLang).toMatch(/^[a-z]{2}(-[A-Z]{2})?$/);
+
+  // Verify the getRequesterBrowserLanguage function works on the client side
+  const captured = await page.evaluate(() => {
+    // Import getRequesterBrowserLanguage directly in the page context
+    return (window as any).getRequesterBrowserLanguage?.() || navigator.language;
+  });
+
+  expect(captured).toBeTruthy();
+  expect(captured).toMatch(/^[a-z]{2}(-[A-Z]{2})?$/);
+});

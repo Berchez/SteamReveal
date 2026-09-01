@@ -94,6 +94,8 @@ export interface SearchRecord {
   requesterLocale?: string | null;
   /** Country of whoever ran the search (Vercel geo header, not the target's). */
   requesterCountry?: string | null;
+  /** Browser language preference of whoever ran the search (navigator.language). */
+  requesterBrowserLanguage?: string | null;
   device?: 'mobile' | 'desktop' | null;
   /** Top predicted location(s) for the searched profile. */
   locationGuess?: LocationGuess[] | null;

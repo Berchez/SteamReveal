@@ -81,6 +81,7 @@ describe('recordAnalytics', () => {
   const meta = {
     requesterLocale: 'pt-BR',
     requesterCountry: 'BR',
+    requesterBrowserLanguage: 'pt-BR',
     device: 'desktop' as const,
     durationMs: 1234,
   };

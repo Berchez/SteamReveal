@@ -49,6 +49,8 @@ export const metadata: Metadata = {
       'en-US': LOCALE_PATHS.en,
       'pt-BR': LOCALE_PATHS.pt,
       'ru-RU': LOCALE_PATHS.ru,
+      'de-DE': LOCALE_PATHS.de,
+      'es-ES': LOCALE_PATHS.es,
     },
   },
   keywords: [

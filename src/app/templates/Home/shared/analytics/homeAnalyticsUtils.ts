@@ -27,6 +27,14 @@ export const getRequesterCountry = (): string | null => {
   return document.body.getAttribute('data-country');
 };
 
+export const getRequesterBrowserLanguage = (): string | null => {
+  if (typeof navigator === 'undefined') {
+    return null;
+  }
+
+  return navigator.language ?? null;
+};
+
 const ANALYTICS_SKIP_PASSWORD_KEY = 'analytics_skip_password';
 
 export const getAnalyticsSkipHeaders = ():
@@ -50,6 +58,7 @@ export const getAnalyticsSkipHeaders = ():
 export type AnalyticsMeta = {
   requesterLocale: string | null;
   requesterCountry: string | null;
+  requesterBrowserLanguage: string | null;
   device: 'mobile' | 'desktop' | null;
   durationMs: number | null;
 };
@@ -104,6 +113,7 @@ export const recordAnalytics = async (
 
       requesterLocale: meta.requesterLocale,
       requesterCountry: meta.requesterCountry,
+      requesterBrowserLanguage: meta.requesterBrowserLanguage,
       device: meta.device,
       durationMs: meta.durationMs,
     };

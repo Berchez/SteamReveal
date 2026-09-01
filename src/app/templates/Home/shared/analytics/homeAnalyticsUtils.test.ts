@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
   getRequesterDevice,
   getRequesterCountry,
+  getRequesterBrowserLanguage,
   recordAnalytics,
   getAnalyticsSkipHeaders,
 } from './homeAnalyticsUtils';
@@ -136,10 +137,49 @@ describe('getRequesterCountry', () => {
   // — see that file for why it isn't tested here.
 });
 
+describe('getRequesterBrowserLanguage', () => {
+  const originalLanguage = Object.getOwnPropertyDescriptor(navigator, 'language');
+
+  afterEach(() => {
+    if (originalLanguage) {
+      Object.defineProperty(navigator, 'language', originalLanguage);
+    }
+  });
+
+  it.each([
+    ['pt-BR', 'pt-BR'],
+    ['en-US', 'en-US'],
+    ['fr-FR', 'fr-FR'],
+    ['de-DE', 'de-DE'],
+    ['es-ES', 'es-ES'],
+    ['ru-RU', 'ru-RU'],
+  ])('returns "%s" when navigator.language is "%s"', (lang, expected) => {
+    Object.defineProperty(navigator, 'language', {
+      value: lang,
+      configurable: true,
+    });
+
+    expect(getRequesterBrowserLanguage()).toBe(expected);
+  });
+
+  it('returns null when navigator.language is not available', () => {
+    Object.defineProperty(navigator, 'language', {
+      value: undefined,
+      configurable: true,
+    });
+
+    expect(getRequesterBrowserLanguage()).toBeNull();
+  });
+
+  // "navigator unavailable (SSR)" is covered in homeAnalyticsUtils.ssr.test.ts
+  // — see that file for why it isn't tested here.
+});
+
 describe('recordAnalytics', () => {
   const meta = {
     requesterLocale: 'pt-BR',
     requesterCountry: 'BR',
+    requesterBrowserLanguage: 'pt-BR',
     device: 'desktop' as const,
     durationMs: 1234,
   };

@@ -36,6 +36,7 @@ import {
   recordAnalytics,
   getRequesterDevice,
   getRequesterCountry,
+  getRequesterBrowserLanguage,
 } from '../../shared/analytics/homeAnalyticsUtils';
 
 import type { RunGuard } from '../run-guard/useRunGuard';
@@ -453,6 +454,7 @@ const useHomeSearch = ({
           {
             requesterLocale: locale ?? null,
             requesterCountry: getRequesterCountry(),
+            requesterBrowserLanguage: getRequesterBrowserLanguage(),
             device: getRequesterDevice(),
             durationMs: Date.now() - startedAt,
           },

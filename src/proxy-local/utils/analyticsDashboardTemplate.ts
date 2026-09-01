@@ -270,6 +270,12 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   </div>
 
   <div class="panel">
+    <h2>Idioma do navegador</h2>
+    <p class="panel-note">Browser language (navigator.language)</p>
+    <div id="chart-browser-lang" class="chart-with-legend"></div>
+  </div>
+
+  <div class="panel">
     <h2>Dispositivo</h2>
     <p class="panel-note">Mobile vs. desktop de quem busca</p>
     <div id="chart-device" class="chart-with-legend"></div>
@@ -737,6 +743,14 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   });
   document.getElementById('chart-locale').innerHTML = donutAndLegend(topNPlusOthers(localeCounts, 6));
 
+  // ---- Browser Language ----
+  var browserLangCounts = {};
+  entries.forEach(function (e) {
+    var lang = (e.requesterBrowserLanguage || 'desconhecido').toLowerCase();
+    browserLangCounts[lang] = (browserLangCounts[lang] || 0) + 1;
+  });
+  document.getElementById('chart-browser-lang').innerHTML = donutAndLegend(topNPlusOthers(browserLangCounts, 6));
+
   // ---- Dispositivo ----
   var deviceCounts = {};
   entries.forEach(function (e) {
@@ -888,6 +902,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
       var originFlag = flagEmoji(e.requesterCountry);
       if (originFlag) originBits.push(originFlag);
       if (e.device) originBits.push(e.device === 'mobile' ? '📱' : '💻');
+      if (e.requesterBrowserLanguage) originBits.push('🌐 ' + e.requesterBrowserLanguage);
       var originCell = originBits.length ? originBits.join(' ') : '<span class="muted-small">—</span>';
 
       var durationCell = typeof e.durationMs === 'number'

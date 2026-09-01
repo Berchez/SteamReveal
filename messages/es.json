@@ -1,0 +1,161 @@
+{
+  "General": {
+    "search": "Buscar"
+  },
+  "LanguageSwitcher": {
+    "toggleMenu": "Alternar menú de idioma",
+    "selectLanguage": "Seleccionar idioma"
+  },
+  "Default": {
+    "websiteDescription": "SteamReveal es una plataforma integral de inteligencia diseñada para la comunidad de juegos. Nuestra plataforma ofrece un conjunto de herramientas y funciones diseñadas para ayudar a los jugadores a recopilar, analizar y aprovechar la inteligencia de diversas fuentes en la web, todo en un lugar conveniente."
+  },
+  "UserCard": {
+    "nickname": "Apodo",
+    "realName": "Nombre real",
+    "probability": "Probabilidad",
+    "url": "URL",
+    "reliability": "Confiabilidad",
+    "searchFriend": "Buscar"
+  },
+  "LocationCard": {
+    "providedByUser": "Proporcionado por el usuario:"
+  },
+  "ServerMessages": {
+    "friendsNotPublic": "La lista de amigos de este jugador no es pública. ¡Intenta con otro!",
+    "invalidPlayer": "Esta no es una ID de Steam, enlace de perfil o URL de Steam personalizada válida"
+  },
+  "Index": {
+    "searchTitle": "Buscar un jugador de Steam",
+    "inputSearchPlaceholder": "Buscar un jugador (ID de Steam / Enlace de perfil de Steam / URL de Steam personalizada)",
+    "userInfo": "Información del jugador",
+    "userPossibleLocation": "Ubicación posible del jugador",
+    "friendsIRL": "Amigos en la vida real",
+    "csAnticheatReview": "Revisión antitrampas de CS2 - con IA",
+    "footer": {
+      "rights": "Todos los derechos reservados.",
+      "madeWith": "Hecho con ❤️ por"
+    }
+  },
+  "WelcomeText": {
+    "welcomeTo": "Bienvenido a"
+  },
+  "SponsorMe": {
+    "enjoying": "¿Te está gustando el sitio web?",
+    "ifYouLikeIt": "Si te gusta, considera dejar una estrella en nuestro repositorio de GitHub.",
+    "giveStar": "¡Regálanos una estrella!",
+    "dontAskAgain": "¡No me lo preguntes de nuevo!"
+  },
+  "CheaterReport": {
+    "lowPlaytime": "Poco tiempo de juego ({hours} horas, signo de poca experiencia)",
+    "highPlaytime": "Mucho tiempo de juego ({hours} horas, experiencia acumulada)",
+    "lowInventory": "Inventario de bajo valor (elementos de valor reducido)",
+    "valuableInventory": "Inventario valioso (signo de un jugador establecido)",
+    "bannedFriends": "Tiene amigos baneados en Steam (señal sospechosa)",
+    "cleanFriends": "Sin amigos baneados (todos los {count} amigos analizados son limpios)",
+    "badComments": "Recibió comentarios negativos (comentarios de la comunidad)",
+    "noBadComments": "Sin comentarios negativos (buena reputación)",
+    "highWinrate": "Tasa de victoria superior al {winrate}% (alto rendimiento)",
+    "normalWinrate": "Tasa de victoria normal",
+    "highKillsPerRound": "Muchas eliminaciones por ronda (indica alta habilidad)",
+    "highHeadAccuracy": "Alta precisión de disparos a la cabeza (indica buen entrenamiento de puntería)",
+    "suspectTitle": "¡Se sospecha trampa!",
+    "suspectDescription": "Según los datos analizados, este jugador muestra factores sospechosos:",
+    "inconclusiveTitle": "Resultado inconcluso",
+    "inconclusiveDescription": "El análisis no es definitivo. Algunos factores apuntan a sospecha mientras que otros a inocencia:",
+    "positiveFactors": "Factores positivos:",
+    "negativeFactors": "Factores sospechosos:",
+    "innocentTitle": "Parece inocente",
+    "innocentDescription": "Este jugador muestra signos normales/estándar de perfil:",
+    "isUserCheaterCS2": "¿Es {nickname} un tramposo en CS2?",
+    "normalKD": "Proporción K/D normal ({kd})",
+    "highKD": "Proporción K/D alta ({kd}, rendimiento inusualmente fuerte)",
+    "veryTrustedTitle": "Perfil muy confiable",
+    "veryTrustedDescription": "Este perfil muestra signos excepcionales de legitimidad e inversión:",
+    "highlySuspectTitle": "¡Altamente sospechoso!",
+    "highlySuspectDescription": "Advertencia crítica: Se detectaron múltiples factores de alto riesgo:",
+    "oldAccount": "Cuenta veterana ({age} años)",
+    "newAccount": "Cuenta reciente ({age} años, común para smurfs/tramposos)",
+    "highSteamLevel": "Nivel de Steam alto (Nivel {level}, signo de inversión)",
+    "lowSteamLevel": "Nivel de Steam bajo (Nivel {level}, típico de cuentas desechables)",
+    "manyGames": "Biblioteca grande ({count} juegos poseídos)",
+    "fewGames": "Biblioteca pequeña ({count} juegos, posible cuenta secundaria)"
+  },
+  "SupportedFormatsSection": {
+    "steamID64Desc": "ID de Steam de 64 bits único.",
+    "customLabel": "URL de perfil (Personalizado)",
+    "customDesc": "Enlace de perfil de Steam personalizado.",
+    "steamID64UrlLabel": "URL de perfil (Steam64ID)",
+    "steamID64UrlDesc": "Enlace directo con Steam64ID.",
+    "supportedFormats": "Formatos soportados",
+    "copied": "¡Copiado!"
+  },
+  "SupportMe": {
+    "supportTitle": "¡Gracias por usar el sitio! 💖",
+    "supportText": "Si el proyecto te está ayudando, puedes apoyarlo para que pueda seguir mejorando el sitio.",
+    "copied": "¡Copiado!",
+    "copy": "Copiar",
+    "myPixKey": "Mi clave PIX",
+    "openStripe": "Abrir Stripe",
+    "dontAskAgain": "No mostrar de nuevo",
+    "sendSkin": "Enviar oferta de skin",
+    "tradeLink": "Enlace comercial"
+  },
+  "feedback": {
+    "openButton": "Enviar comentarios",
+    "close": "Cerrar",
+    "title": "Comparte tu comentario",
+    "description": "¿Encontraste un error o tienes una idea? Cuéntamelo.",
+    "placeholder": "Escribe tu comentario aquí...",
+    "cancel": "Cancelar",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "success": "Comentario enviado. ¡Gracias!",
+    "types": {
+      "suggestion": "Sugerencia",
+      "bug": "Error",
+      "other": "Otro"
+    },
+    "errors": {
+      "generic": "Algo salió mal. Por favor intenta más tarde.",
+      "rateLimit": "Demasiadas solicitudes. Por favor espera un momento e intenta de nuevo."
+    }
+  },
+  "PostHeroSections": {
+    "whyUse": {
+      "title": "¿Por qué usar SteamReveal?",
+      "cards": {
+        "investigate": {
+          "title": "Investiga cualquier perfil",
+          "text": "Analiza perfiles de Steam y descubre a sus mejores amigos, conexiones y ubicación probable en segundos — sin necesidad de inicio de sesión."
+        },
+        "suspicious": {
+          "title": "Detecta comportamiento sospechoso",
+          "text": "SteamReveal analiza patrones y estima la probabilidad de que un jugador sea un tramposo combinando estadísticas, conexiones y datos públicos."
+        },
+        "intelligence": {
+          "title": "Inteligencia para jugadores",
+          "text": "Una herramienta OSINT construida para la comunidad de juegos — explora, descubre y comprende qué hay detrás de cada perfil con total privacidad."
+        }
+      }
+    },
+    "numbers": {
+      "title": "Nuestros números",
+      "visitors": "Visitantes",
+      "views": "Vistas",
+      "playersSearched": "Jugadores buscados"
+    },
+    "feedback": {
+      "title": "¿Preguntas o sugerencias?",
+      "description": "¡Envía tu comentario para ayudar a mejorar SteamReveal!",
+      "button": "Enviar comentarios"
+    }
+  },
+  "Metadata": {
+    "Player": {
+      "title": "Analizar el perfil de Steam de {nickname}",
+      "description": "Consulta los datos públicos de Steam de {nickname}, ubicación posible y análisis de amigos en SteamReveal.",
+      "fallbackTitle": "SteamReveal - Analizar perfiles de Steam",
+      "fallbackDescription": "SteamReveal es una herramienta OSINT diseñada para la comunidad de Steam. Analiza perfiles de Steam, descubre amigos reales y localiza jugadores usando datos públicos."
+    }
+  }
+}

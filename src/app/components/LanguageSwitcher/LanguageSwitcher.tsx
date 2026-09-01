@@ -10,12 +10,16 @@ const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
   en: 'English',
   pt: 'Português',
   ru: 'Русский',
+  de: 'Deutsch',
+  es: 'Español',
 };
 
 const LANGUAGE_FLAGS: Record<SupportedLocale, string> = {
   en: '🇺🇸',
   pt: '🇧🇷',
   ru: '🇷🇺',
+  de: '🇩🇪',
+  es: '🇪🇸',
 };
 
 const MENU_ID = 'language-switcher-menu';

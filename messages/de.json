@@ -1,0 +1,161 @@
+{
+  "General": {
+    "search": "Suche"
+  },
+  "LanguageSwitcher": {
+    "toggleMenu": "Sprachenmenü umschalten",
+    "selectLanguage": "Sprache auswählen"
+  },
+  "Default": {
+    "websiteDescription": "SteamReveal ist eine umfassende Analyseplattform für die Gaming-Community. Unsere Plattform bietet ein Paket an Tools und Funktionen, mit denen Gamer Daten aus verschiedenen Quellen im Web sammeln, analysieren und nutzen können – alles an einem Ort."
+  },
+  "UserCard": {
+    "nickname": "Nickname",
+    "realName": "Echter Name",
+    "probability": "Wahrscheinlichkeit",
+    "url": "URL",
+    "reliability": "Zuverlässigkeit",
+    "searchFriend": "Suchen"
+  },
+  "LocationCard": {
+    "providedByUser": "Vom Benutzer angegeben:"
+  },
+  "ServerMessages": {
+    "friendsNotPublic": "Die Freundesliste dieses Spielers ist nicht öffentlich. Versuche einen anderen Profil!",
+    "invalidPlayer": "Dies ist keine gültige Steam-ID, Profil-URL oder benutzerdefinierte Steam-URL"
+  },
+  "Index": {
+    "searchTitle": "Steam-Spieler suchen",
+    "inputSearchPlaceholder": "Nach Spieler suchen (Steam ID / Steam Profil-Link / Benutzerdefinierte Steam-URL)",
+    "userInfo": "Spielerinfo",
+    "userPossibleLocation": "Möglicher Standort des Spielers",
+    "friendsIRL": "Freunde im echten Leben",
+    "csAnticheatReview": "CS2-Anticheat-Review – mit KI",
+    "footer": {
+      "rights": "Alle Rechte vorbehalten.",
+      "madeWith": "Mit ❤️ gemacht von"
+    }
+  },
+  "WelcomeText": {
+    "welcomeTo": "Willkommen bei"
+  },
+  "SponsorMe": {
+    "enjoying": "Gefällt dir die Website?",
+    "ifYouLikeIt": "Wenn dir das Projekt gefällt, hinterlasse bitte einen Stern in unserem GitHub-Repository!",
+    "giveStar": "Gib uns einen Stern!",
+    "dontAskAgain": "Frag mich nicht noch einmal!"
+  },
+  "CheaterReport": {
+    "lowPlaytime": "Wenige Spielstunden ({hours} Stunden, Zeichen für geringe Erfahrung)",
+    "highPlaytime": "Viele Spielstunden ({hours} Stunden, angesammelte Erfahrung)",
+    "lowInventory": "Geringwertiges Inventar (Waren mit reduziertem Wert)",
+    "valuableInventory": "Wertvolles Inventar (Zeichen für einen erfahrenen Spieler)",
+    "bannedFriends": "Hat gesperrte Freunde auf Steam (verdächtiges Signal)",
+    "cleanFriends": "Keine gesperrten Freunde (alle {count} analysierten Freunde sind sauber)",
+    "badComments": "Negative Kommentare erhalten (Community-Feedback)",
+    "noBadComments": "Keine negativen Kommentare (guter Ruf)",
+    "highWinrate": "Winrate über {winrate}% (hohe Leistung)",
+    "normalWinrate": "Normale Winrate",
+    "highKillsPerRound": "Viele Kills pro Runde (weist auf hohe Fähigkeiten hin)",
+    "highHeadAccuracy": "Hohe Kopfschusspräzision (weist auf gutes Training hin)",
+    "suspectTitle": "Cheating verdächtig!",
+    "suspectDescription": "Basierend auf den analysierten Daten zeigt dieser Spieler verdächtige Faktoren:",
+    "inconclusiveTitle": "Unklare Ergebnisse",
+    "inconclusiveDescription": "Die Analyse ist nicht endgültig. Einige Faktoren deuten auf Verdacht hin und andere auf Unschuld:",
+    "positiveFactors": "Positive Faktoren:",
+    "negativeFactors": "Verdächtige Faktoren:",
+    "innocentTitle": "Scheint unschuldig",
+    "innocentDescription": "Dieser Spieler zeigt normale/typische Profilmerkmale:",
+    "isUserCheaterCS2": "Ist {nickname} in CS2 ein Cheater?",
+    "normalKD": "Normales K/D-Verhältnis ({kd})",
+    "highKD": "Hohes K/D-Verhältnis ({kd}, ungewöhnlich starke Leistung)",
+    "veryTrustedTitle": "Sehr vertrauenswürdiges Profil",
+    "veryTrustedDescription": "Dieses Profil zeigt außergewöhnliche Zeichen von Legitimität und Investition:",
+    "highlySuspectTitle": "Sehr verdächtig!",
+    "highlySuspectDescription": "Kritische Warnung: Mehrere Hochrisikofaktoren erkannt:",
+    "oldAccount": "Veteranen-Account ({age} Jahre alt)",
+    "newAccount": "Neuer Account ({age} Jahre alt, typisch für Smurfs/Cheater)",
+    "highSteamLevel": "Hoher Steam-Level (Level {level}, Zeichen für Investition)",
+    "lowSteamLevel": "Niedriger Steam-Level (Level {level}, typisch für wegwerfbare Accounts)",
+    "manyGames": "Große Bibliothek ({count} Spiele im Besitz)",
+    "fewGames": "Kleine Bibliothek ({count} Spiele, möglicher Zweitaccount)"
+  },
+  "SupportedFormatsSection": {
+    "steamID64Desc": "Eindeutige 64-Bit-Steam-ID.",
+    "customLabel": "Profil-URL (benutzerdefiniert)",
+    "customDesc": "Benutzerdefinierter Steam-Profil-Link.",
+    "steamID64UrlLabel": "Profil-URL (Steam64ID)",
+    "steamID64UrlDesc": "Direkter Link mit Steam64ID.",
+    "supportedFormats": "Unterstützte Formate",
+    "copied": "Kopiert!"
+  },
+  "SupportMe": {
+    "supportTitle": "Danke, dass du die Seite nutzt! 💖",
+    "supportText": "Wenn dir das Projekt hilft, kannst du es unterstützen, damit ich die Seite weiter verbessern kann.",
+    "copied": "Kopiert!",
+    "copy": "Kopieren",
+    "myPixKey": "Mein PIX-Schlüssel",
+    "openStripe": "Stripe öffnen",
+    "dontAskAgain": "Nicht erneut anzeigen",
+    "sendSkin": "Skin-Angebot senden",
+    "tradeLink": "Handelslink"
+  },
+  "feedback": {
+    "openButton": "Feedback senden",
+    "close": "Schließen",
+    "title": "Teile dein Feedback",
+    "description": "Fehler gefunden oder eine Idee? Lass es mich wissen.",
+    "placeholder": "Schreib dein Feedback hier...",
+    "cancel": "Abbrechen",
+    "send": "Senden",
+    "sending": "Wird gesendet…",
+    "success": "Feedback gesendet. Vielen Dank!",
+    "types": {
+      "suggestion": "Vorschlag",
+      "bug": "Fehler",
+      "other": "Sonstiges"
+    },
+    "errors": {
+      "generic": "Etwas ist schiefgelaufen. Bitte versuche es später erneut.",
+      "rateLimit": "Zu viele Anfragen. Bitte warte einen Moment und versuche es erneut."
+    }
+  },
+  "PostHeroSections": {
+    "whyUse": {
+      "title": "Warum SteamReveal nutzen?",
+      "cards": {
+        "investigate": {
+          "title": "Jedes Profil untersuchen",
+          "text": "Analysiere Steam-Profile und entdecke in Sekundenschnelle die besten Freunde, Verbindungen und den wahrscheinlichen Standort – ohne Anmeldung."
+        },
+        "suspicious": {
+          "title": "Verdächtiges Verhalten erkennen",
+          "text": "SteamReveal analysiert Muster und schätzt die Wahrscheinlichkeit ein, dass ein Spieler ein Cheater ist, indem es Statistiken, Verbindungen und öffentliche Daten kombiniert."
+        },
+        "intelligence": {
+          "title": "Intelligenz für Gamer",
+          "text": "Ein OSINT-Tool für die Gaming-Community – erkunde, entdecke und verstehe, was sich hinter jedem Profil verbirgt, mit voller Privatsphäre."
+        }
+      }
+    },
+    "numbers": {
+      "title": "Unsere Zahlen",
+      "visitors": "Besucher",
+      "views": "Aufrufe",
+      "playersSearched": "Gesuchte Spieler"
+    },
+    "feedback": {
+      "title": "Fragen oder Vorschläge?",
+      "description": "Sende dein Feedback, um SteamReveal zu verbessern!",
+      "button": "Feedback senden"
+    }
+  },
+  "Metadata": {
+    "Player": {
+      "title": "Steam-Profil von {nickname} analysieren",
+      "description": "Sieh dir die öffentlichen Steam-Daten, den möglichen Standort und die Freundesanalyse von {nickname} auf SteamReveal an.",
+      "fallbackTitle": "SteamReveal – Steam-Profile analysieren",
+      "fallbackDescription": "SteamReveal ist ein OSINT-Tool für die Steam-Community. Analysiere Steam-Profile, entdecke echte Freunde und finde den Standort von Spielern mithilfe öffentlicher Daten."
+    }
+  }
+}
