@@ -83,7 +83,7 @@ export default function Home({
       : undefined);
 
   return (
-    <div className="max-h-dvh">
+    <main className="max-h-dvh">
       <VideoBackground />
       {showSponsorMe && (
         <SponsorMe
@@ -155,6 +155,6 @@ export default function Home({
           </p>
         </footer>
       </div>
-    </div>
+    </main>
   );
 }

@@ -120,11 +120,14 @@ function UserCard({
             alt={`Avatar of the user ${friend.nickname}`}
             width={sizes.avatarSize}
             height={sizes.avatarSize}
+            loading={itsTargetUser ? 'eager' : 'lazy'}
+            fetchPriority={itsTargetUser ? 'high' : 'auto'}
+            decoding="async"
           />
           {!itsTargetUser && friendHref && (
             <Link
               href={friendHref}
-              className="inline-flex items-center justify-center w-[60px] py-1 mt-2 text-purple-400 font-semibold text-sm rounded-full border border-purple-800 bg-purple-600 bg-opacity-10 hover:bg-opacity-20"
+              className="inline-flex items-center justify-center w-[60px] py-1 mt-2 text-purple-300 font-semibold text-sm rounded-full border border-purple-600/40 bg-purple-600 bg-opacity-10 hover:bg-opacity-20"
               aria-label={`${translator('searchFriend')} ${friend.nickname}`}
             >
               {translator('searchFriend')}

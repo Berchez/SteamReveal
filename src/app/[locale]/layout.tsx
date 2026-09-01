@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import './globals.css';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
-import ToastProvider from '@/toast.provider';
 import { Roboto, Inknut_Antiqua } from 'next/font/google';
 import React from 'react';
 import { headers } from 'next/headers';
@@ -20,15 +19,24 @@ const VercelSpeedInsights = dynamic(
   { ssr: false, loading: () => null },
 );
 
+const ToastProvider = dynamic(
+  async () => {
+    await import('react-toastify/dist/ReactToastify.css');
+    const toastModule = await import('@/toast.provider');
+    return toastModule.default;
+  },
+  { ssr: false, loading: () => null },
+);
+
 const roboto = Roboto({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext', 'cyrillic'],
   display: 'swap',
   variable: '--font-roboto',
-  weight: ['400', '700'],
+  weight: ['400', '500', '700'],
 });
 
 const inknut = Inknut_Antiqua({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   display: 'swap',
   variable: '--font-inknut',
   weight: ['400', '700'],
