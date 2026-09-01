@@ -3,10 +3,14 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: 'e2e',
   timeout: 60_000,
+  // The E2E server runs in Next development mode. Concurrent workers can
+  // compete for on-demand compilation and make client-side navigation
+  // assertions time out even though the app flow is correct.
+  workers: 1,
   expect: {
     timeout: 5000,
   },
-  fullyParallel: false,
+  fullyParallel: true,
   retries: 0,
   reporter: [['list']],
   use: {

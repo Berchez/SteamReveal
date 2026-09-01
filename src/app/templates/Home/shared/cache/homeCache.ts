@@ -84,3 +84,9 @@ export const updateCachedSearchById = (
   }
   cacheById.set(steamId, { ...existing, ...patch });
 };
+
+/** Clear all cached searches. Used for testing. */
+export const clearAllCache = () => {
+  cacheById.clear();
+  aliasToId.clear();
+};
