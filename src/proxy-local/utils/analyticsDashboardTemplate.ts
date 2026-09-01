@@ -298,9 +298,21 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
     <p class="panel-note">Palpite #1 de localização (geolocalização por amigos) em cada busca</p>
     <div id="chart-locations"></div>
   </div>
+
+  <div class="panel" style="grid-column: 1 / -1;">
+    <h2>Games mais jogados nos perfis buscados</h2>
+    <p class="panel-note">Top 10 games por média de horas jogadas (configurável via TOP_GAMES_LIMIT)</p>
+    <div id="chart-games"></div>
+  </div>
 </div>
 
 <div class="charts-grid">
+  <div class="panel">
+    <h2>Counter-Strike Ativo</h2>
+    <p class="panel-note">Perfis onde CS tem ≥300 horas OU é o jogo mais jogado</p>
+    <div id="chart-cs-active"></div>
+  </div>
+
   <div class="panel">
     <h2>Perfis mais buscados</h2>
     <ul class="rank-list" id="top-profiles"></ul>
@@ -815,7 +827,89 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   }
   renderLocationsChart();
 
-  // Reconstrói os 5 gráficos de barra sempre que o layout muda de largura
+  // ---- Games mais jogados (Top 20) ----
+  var TOP_GAMES_LIMIT = 20; // CONFIGURÁVEL
+  var CS_HOUR_THRESHOLD = 300; // CONFIGURÁVEL
+
+  var gameStats = {};
+  var csActiveCount = 0;
+
+  entries.forEach(function (e) {
+    if (e.isCSActive) csActiveCount += 1;
+
+    var games = e.gamesSnapshot || [];
+    games.forEach(function (game) {
+      if (!gameStats[game.name]) {
+        gameStats[game.name] = { totalHours: 0, count: 0 };
+      }
+      gameStats[game.name].totalHours += game.playtimeHours || 0;
+      gameStats[game.name].count += 1;
+    });
+  });
+
+  var topGames = Object.keys(gameStats)
+    .map(function (name) {
+      var stats = gameStats[name];
+      return {
+        name: name,
+        avgPlaytimeHours: Math.round((stats.totalHours / stats.count) * 10) / 10,
+        profilesCount: stats.count
+      };
+    })
+    .sort(function (a, b) { return b.avgPlaytimeHours - a.avgPlaytimeHours; })
+    .slice(0, TOP_GAMES_LIMIT);
+
+  function renderGamesChart() {
+    var el = document.getElementById('chart-games');
+    if (!topGames.length) {
+      el.innerHTML = '<div class="empty">Nenhum dados de games (isCSActive não foi calculado ainda). Execute: node scripts/enrich-analytics.mjs</div>';
+      return;
+    }
+
+    var maxHours = Math.max.apply(null, topGames.map(function (g) { return g.avgPlaytimeHours; }));
+    var html = '<div class="games-chart">';
+
+    topGames.forEach(function (game, idx) {
+      var barWidth = (game.avgPlaytimeHours / maxHours) * 100;
+      var barColor = PALETTE[idx % PALETTE.length];
+      html += '<div class="game-row">' +
+        '<div class="game-label">' + (idx + 1) + '. ' + escapeHtml(game.name) + '</div>' +
+        '<div class="game-bar" style="position:relative; background:#2a2e37; height:24px; border-radius:4px; overflow:hidden;">' +
+          '<div style="width:' + barWidth + '%; height:100%; background:' + barColor + '; transition:width 0.3s ease;"></div>' +
+          '<div style="position:absolute; top:0; right:8px; height:100%; display:flex; align-items:center; color:var(--text); font-size:12px; font-weight:bold;">' +
+            game.avgPlaytimeHours + 'h (' + game.profilesCount + ')</div>' +
+        '</div>' +
+      '</div>';
+    });
+
+    html += '</div>';
+    el.innerHTML = html;
+  }
+  renderGamesChart();
+
+  function renderCSActiveChart() {
+    var el = document.getElementById('chart-cs-active');
+    var total = entries.length;
+    var percentage = total > 0 ? Math.round((csActiveCount / total) * 100) : 0;
+
+    var html = '<div class="cs-active-panel">' +
+      '<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">' +
+        '<div style="background:rgba(167, 139, 250, 0.1); border:1px solid rgba(167, 139, 250, 0.3); border-radius:6px; padding:12px; text-align:center;">' +
+          '<div style="font-size:24px; font-weight:bold; color:#a78bfa;">' + csActiveCount + '</div>' +
+          '<div style="font-size:12px; color:var(--muted); margin-top:4px;">CS Active</div>' +
+        '</div>' +
+        '<div style="background:rgba(167, 139, 250, 0.1); border:1px solid rgba(167, 139, 250, 0.3); border-radius:6px; padding:12px; text-align:center;">' +
+          '<div style="font-size:24px; font-weight:bold; color:#a78bfa;">' + percentage + '%</div>' +
+          '<div style="font-size:12px; color:var(--muted); margin-top:4px;">de ' + total + ' perfis</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    el.innerHTML = html;
+  }
+  renderCSActiveChart();
+
+  // Reconstrói os gráficos sempre que o layout muda de largura
   // (ex: redimensionar a janela), pra manter o viewBox 1:1 com o container.
   window.addEventListener('resize', debounce(function () {
     renderByDayChart();
@@ -823,6 +917,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     renderCountryChart();
     renderCheaterChart();
     renderLocationsChart();
+    renderGamesChart();
   }, 200));
 
   // ---- Ranking: perfis mais buscados / amigos que mais aparecem ----

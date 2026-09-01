@@ -35,6 +35,36 @@ export const getRequesterBrowserLanguage = (): string | null => {
   return navigator.language ?? null;
 };
 
+export const isCounterStrikeActive = (
+  gamesPlayed: Array<{ name: string; playtimeForever: number }> | undefined,
+): boolean => {
+  if (!gamesPlayed || gamesPlayed.length === 0) {
+    return false;
+  }
+
+  const CS_HOUR_THRESHOLD = 300;
+
+  // Find CS game (commonly "Counter-Strike 2" or "Counter-Strike: Global Offensive")
+  const csGame = gamesPlayed.find((g) =>
+    g.name.toLowerCase().includes('counter-strike'),
+  );
+
+  if (csGame) {
+    const csHours = csGame.playtimeForever / 60;
+    if (csHours >= CS_HOUR_THRESHOLD) {
+      return true;
+    }
+  }
+
+  // Check if CS is the top game (most played)
+  const topGame = gamesPlayed[0];
+  if (topGame && topGame.name.toLowerCase().includes('counter-strike')) {
+    return true;
+  }
+
+  return false;
+};
+
 const ANALYTICS_SKIP_PASSWORD_KEY = 'analytics_skip_password';
 
 export const getAnalyticsSkipHeaders = ():
