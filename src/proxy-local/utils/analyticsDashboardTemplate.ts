@@ -300,9 +300,15 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   </div>
 
   <div class="panel" style="grid-column: 1 / -1;">
-    <h2>Games mais jogados nos perfis buscados</h2>
-    <p class="panel-note">Top 10 games por média de horas jogadas (configurável via TOP_GAMES_LIMIT)</p>
-    <div id="chart-games"></div>
+    <h2>Games mais jogados — Média por Perfil Buscado</h2>
+    <p class="panel-note">Top 20 games: total de horas do jogo / total de perfis buscados (dilui popularidade)</p>
+    <div id="chart-games-per-profile"></div>
+  </div>
+
+  <div class="panel" style="grid-column: 1 / -1;">
+    <h2>Games mais jogados — Média de Engajamento</h2>
+    <p class="panel-note">Top 20 games: total de horas do jogo / quantidade de perfis que jogaram (mede intensidade)</p>
+    <div id="chart-games-engagement"></div>
   </div>
 </div>
 
@@ -827,12 +833,15 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   }
   renderLocationsChart();
 
-  // ---- Games mais jogados (Top 20) ----
+  // ---- Games Analytics (Top 20) ----
+  // Métrica 1: Média por perfil buscado (dilui pela população total)
+  // Métrica 2: Média de engajamento (apenas entre quem jogou)
   var TOP_GAMES_LIMIT = 20; // CONFIGURÁVEL
   var CS_HOUR_THRESHOLD = 300; // CONFIGURÁVEL
 
   var gameStats = {};
   var csActiveCount = 0;
+  var totalProfiles = entries.length || 0;
 
   entries.forEach(function (e) {
     if (e.isCSActive) csActiveCount += 1;
@@ -840,44 +849,59 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     var games = e.gamesSnapshot || [];
     games.forEach(function (game) {
       if (!gameStats[game.name]) {
-        gameStats[game.name] = { totalHours: 0, count: 0 };
+        gameStats[game.name] = { totalHours: 0, profilesCount: 0 };
       }
-      gameStats[game.name].totalHours += game.playtimeHours || 0;
-      gameStats[game.name].count += 1;
+      gameStats[game.name].totalHours += Number(game.playtimeHours) || 0;
+      gameStats[game.name].profilesCount += 1;
     });
   });
 
-  var topGames = Object.keys(gameStats)
+  var topGamesPerProfile = Object.keys(gameStats)
     .map(function (name) {
       var stats = gameStats[name];
       return {
         name: name,
-        avgPlaytimeHours: Math.round((stats.totalHours / stats.count) * 10) / 10,
-        profilesCount: stats.count
+        avgPerProfile: totalProfiles > 0
+          ? Math.round((stats.totalHours / totalProfiles) * 10) / 10
+          : 0,
+        avgEngagement: stats.profilesCount > 0
+          ? Math.round((stats.totalHours / stats.profilesCount) * 10) / 10
+          : 0,
+        profilesCount: stats.profilesCount,
       };
     })
-    .sort(function (a, b) { return b.avgPlaytimeHours - a.avgPlaytimeHours; })
-    .slice(0, TOP_GAMES_LIMIT);
+    .sort(function (a, b) { return b.avgPerProfile - a.avgPerProfile; });
 
-  function renderGamesChart() {
-    var el = document.getElementById('chart-games');
-    if (!topGames.length) {
-      el.innerHTML = '<div class="empty">Nenhum dados de games (isCSActive não foi calculado ainda). Execute: node scripts/enrich-analytics.mjs</div>';
+  var topGamesPerProfileLimit = topGamesPerProfile.slice(0, TOP_GAMES_LIMIT);
+
+  var topGamesEngagement = topGamesPerProfile.slice().sort(function (a, b) { return b.avgEngagement - a.avgEngagement; }).slice(0, TOP_GAMES_LIMIT);
+
+  function renderGameChart(games, elementId, showMetric) {
+    var el = document.getElementById(elementId);
+    if (!games.length) {
+      el.innerHTML = '<div class="empty">Nenhum dados de games. Execute: node scripts/enrich-analytics.mjs</div>';
       return;
     }
 
-    var maxHours = Math.max.apply(null, topGames.map(function (g) { return g.avgPlaytimeHours; }));
+    var maxValue = Math.max.apply(null, games.map(function (g) { 
+      return showMetric === 'engagement' ? g.avgEngagement : g.avgPerProfile;
+    }));
     var html = '<div class="games-chart">';
 
-    topGames.forEach(function (game, idx) {
-      var barWidth = (game.avgPlaytimeHours / maxHours) * 100;
+    games.forEach(function (game, idx) {
+      var value = showMetric === 'engagement' ? game.avgEngagement : game.avgPerProfile;
+      var barWidth = maxValue > 0 ? (value / maxValue) * 100 : 0;
       var barColor = PALETTE[idx % PALETTE.length];
+      var subtitle = showMetric === 'engagement' 
+        ? '(' + game.profilesCount + ' jogadores)'
+        : '(' + game.profilesCount + ' perfis)';
+      
       html += '<div class="game-row">' +
         '<div class="game-label">' + (idx + 1) + '. ' + escapeHtml(game.name) + '</div>' +
         '<div class="game-bar" style="position:relative; background:#2a2e37; height:24px; border-radius:4px; overflow:hidden;">' +
           '<div style="width:' + barWidth + '%; height:100%; background:' + barColor + '; transition:width 0.3s ease;"></div>' +
           '<div style="position:absolute; top:0; right:8px; height:100%; display:flex; align-items:center; color:var(--text); font-size:12px; font-weight:bold;">' +
-            game.avgPlaytimeHours + 'h (' + game.profilesCount + ')</div>' +
+            value + 'h ' + subtitle + '</div>' +
         '</div>' +
       '</div>';
     });
@@ -885,7 +909,9 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     html += '</div>';
     el.innerHTML = html;
   }
-  renderGamesChart();
+
+  renderGameChart(topGamesPerProfileLimit, 'chart-games-per-profile', 'per-profile');
+  renderGameChart(topGamesEngagement, 'chart-games-engagement', 'engagement');
 
   function renderCSActiveChart() {
     var el = document.getElementById('chart-cs-active');
@@ -917,7 +943,8 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     renderCountryChart();
     renderCheaterChart();
     renderLocationsChart();
-    renderGamesChart();
+    renderGameChart(topGamesPerProfileLimit, 'chart-games-per-profile', 'per-profile');
+    renderGameChart(topGamesEngagement, 'chart-games-engagement', 'engagement');
   }, 200));
 
   // ---- Ranking: perfis mais buscados / amigos que mais aparecem ----
