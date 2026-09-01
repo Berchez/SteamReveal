@@ -46,10 +46,32 @@ import { buildAnalyticsHtml } from './analyticsDashboardTemplate';
  * around that data gets replaced on the next write.
  */
 
-const DB_HTML_PATH = path.resolve(__dirname, 'analytics.html');
+const DB_JSON_PATH = path.resolve(__dirname, 'analytics-data.json');
+const LEGACY_DB_HTML_PATH = path.resolve(__dirname, 'analytics.html');
 
 const START_TAG = '<script type="application/json" id="db">';
 const END_TAG = '</script>';
+
+const isMissingFileError = (error: unknown): boolean =>
+  (error as { code?: string })?.code === 'ENOENT';
+
+const writeAtomically = async (targetPath: string, contents: string): Promise<void> => {
+  const tmpPath = `${targetPath}.tmp`;
+  await fs.writeFile(tmpPath, contents, 'utf-8');
+  await fs.rename(tmpPath, targetPath);
+};
+
+const backupIfExists = async (targetPath: string): Promise<void> => {
+  try {
+    await fs.readFile(targetPath, 'utf-8');
+  } catch (error) {
+    if (isMissingFileError(error)) return;
+    throw error;
+  }
+
+  const current = await fs.readFile(targetPath, 'utf-8');
+  await writeAtomically(`${targetPath}.bak`, current);
+};
 
 export interface FriendRecord {
   steamId: string;
@@ -107,52 +129,50 @@ export interface SearchRecord {
 
 type NewSearchInput = Omit<SearchRecord, 'id' | 'searchedAt' | 'cheater'>;
 
-/**
- * Reads just the JSON entries embedded in analytics.html on disk — the
- * <script id="db"> block. The surrounding HTML/CSS/JS shell is
- * intentionally ignored here (see the module doc comment above); only
- * writeEntries() decides what that shell looks like, and it always uses
- * analyticsDashboardTemplate.ts.
- *
- * Returns an empty array (not an error) if analytics.html doesn't exist
- * yet - first run, or the file was deleted/moved. Any
- * other read failure (permissions, I/O error...) still throws, since
- * that's not what this fallback is for.
- */
-const readEntries = async (): Promise<SearchRecord[]> => {
+interface AnalyticsStore {
+  read(): Promise<SearchRecord[]>;
+  write(entries: SearchRecord[]): Promise<void>;
+}
+
+const readJsonEntries = async (filePath: string): Promise<SearchRecord[] | null> => {
+  try {
+    const raw = await fs.readFile(filePath, 'utf-8');
+    const jsonText = String(raw ?? '').trim();
+    if (!jsonText) return [];
+
+    const parsed = JSON.parse(jsonText);
+    if (!Array.isArray(parsed)) {
+      throw new Error(`Data file at ${filePath} does not contain a JSON array.`);
+    }
+
+    return parsed as SearchRecord[];
+  } catch (error) {
+    if (isMissingFileError(error)) return null;
+    throw new Error(
+      `Failed to read analytics data at ${filePath}: ${(error as Error).message}`,
+    );
+  }
+};
+
+const readLegacyHtmlEntries = async (): Promise<SearchRecord[]> => {
   let html: string;
 
   try {
-    html = await fs.readFile(DB_HTML_PATH, 'utf-8');
+    html = await fs.readFile(LEGACY_DB_HTML_PATH, 'utf-8');
   } catch (error) {
-    const isMissing = (error as { code?: string })?.code === 'ENOENT';
-
-    if (!isMissing) {
-      throw new Error(
-        `Failed to read analytics.html at ${DB_HTML_PATH}: ${(error as Error).message}`,
-      );
-    }
-
-    console.warn(
-      `[Analytics] analytics.html not found at ${DB_HTML_PATH} — starting from an empty history. A fresh dashboard (from analyticsDashboardTemplate.ts) will be written on the next recordSearch()/attachCheaterProbability() call.`,
+    if (isMissingFileError(error)) return [];
+    throw new Error(
+      `Failed to read analytics.html at ${LEGACY_DB_HTML_PATH}: ${(error as Error).message}`,
     );
-    return [];
   }
 
   const startIdx = html.indexOf(START_TAG);
-
-  if (startIdx === -1) {
-    throw new Error('Start marker not found in analytics.html.');
-  }
+  if (startIdx === -1) return [];
 
   const jsonStart = startIdx + START_TAG.length;
-
   const endIdx = html.indexOf(END_TAG, jsonStart);
-
   if (endIdx === -1) {
-    throw new Error(
-      'Closing marker for the data block not found in analytics.html.',
-    );
+    throw new Error('Closing marker for the data block not found in analytics.html.');
   }
 
   const rawJson = html.slice(jsonStart, endIdx).trim() || '[]';
@@ -166,24 +186,53 @@ const readEntries = async (): Promise<SearchRecord[]> => {
   }
 };
 
+const analyticsStore: AnalyticsStore = {
+  async read(): Promise<SearchRecord[]> {
+    const persisted = await readJsonEntries(DB_JSON_PATH);
+    if (persisted !== null) return persisted;
+
+    const legacyEntries = await readLegacyHtmlEntries();
+    if (legacyEntries.length === 0) {
+      console.warn(
+        `[Analytics] No persisted analytics data found at ${DB_JSON_PATH} or ${LEGACY_DB_HTML_PATH}. Starting from an empty history.`,
+      );
+      return [];
+    }
+
+    await writeAtomically(DB_JSON_PATH, JSON.stringify(legacyEntries, null, 2));
+    return legacyEntries;
+  },
+
+  async write(entries: SearchRecord[]): Promise<void> {
+    const serializedEntries = JSON.stringify(entries, null, 2);
+    await backupIfExists(DB_JSON_PATH);
+    await writeAtomically(DB_JSON_PATH, serializedEntries);
+  },
+};
+
 /**
- * Rewrites analytics.html FROM SCRATCH: the dashboard shell always comes
- * from analyticsDashboardTemplate.ts, wrapped around the given entries —
- * see the module doc comment above for why. It first writes to a
- * temporary file and then renames it to avoid corrupting the file if the
- * process crashes during the write.
+ * Reads the persisted analytics records.
+ *
+ * The canonical datastore is analytics-data.json. analytics.html is kept
+ * only as a generated view layer; legacy entries are migrated automatically
+ * from the old embedded <script id="db"> block when needed.
+ */
+const readEntries = async (): Promise<SearchRecord[]> => analyticsStore.read();
+
+/**
+ * Persists the records and regenerates the dashboard shell from the current
+ * template. Keeping the shell and the data separate makes future DB
+ * migrations straightforward: the storage implementation can change without
+ * rewriting the dashboard logic.
  */
 const writeEntries = async (entries: SearchRecord[]): Promise<void> => {
-  // Escape "<" to prevent a malicious nickname/URL from prematurely
-  // closing the <script> tag (e.g., a gcName containing "</script>").
-  const serialized = JSON.stringify(entries, null, 2).replace(/</g, '\\u003c');
+  await analyticsStore.write(entries);
 
-  const newHtml = buildAnalyticsHtml(serialized);
+  const serializedEntries = JSON.stringify(entries, null, 2).replace(/</g, '\\u003c');
+  const newHtml = buildAnalyticsHtml(serializedEntries);
 
-  const tmpPath = `${DB_HTML_PATH}.tmp`;
-
-  await fs.writeFile(tmpPath, newHtml, 'utf-8');
-  await fs.rename(tmpPath, DB_HTML_PATH);
+  await backupIfExists(LEGACY_DB_HTML_PATH);
+  await writeAtomically(LEGACY_DB_HTML_PATH, newHtml);
 };
 
 // Global queue used to serialize concurrent writes (both new searches and

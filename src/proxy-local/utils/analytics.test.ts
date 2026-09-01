@@ -64,13 +64,15 @@ const extractEntries = (html: string): unknown[] => {
 describe('recordSearch — analytics.html missing', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockedFs.writeFile.mockResolvedValue(undefined);
+    mockedFs.rename.mockResolvedValue(undefined);
+    mockedFs.readFile.mockImplementation(async () => {
+      const err = Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+      throw err;
+    });
   });
 
-  it('starts from an empty history and still records the search when analytics.html is missing', async () => {
-    const enoent = Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
-    mockedFs.readFile.mockRejectedValueOnce(enoent);
-    mockedFs.writeFile.mockResolvedValueOnce(undefined);
-    mockedFs.rename.mockResolvedValueOnce(undefined);
+  it('starts from an empty history and still records the search when no persisted data exists', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     const record = await recordSearch({
@@ -78,19 +80,14 @@ describe('recordSearch — analytics.html missing', () => {
       friends: [],
     });
 
-    // Warned instead of throwing.
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('analytics.html not found'),
+      expect.stringContaining('No persisted analytics data found'),
     );
 
-    // Rebuilt the file through the normal tmp-write + rename path...
-    expect(mockedFs.writeFile).toHaveBeenCalledTimes(1);
-    expect(mockedFs.rename).toHaveBeenCalledTimes(1);
+    expect(mockedFs.writeFile).toHaveBeenCalledTimes(2);
+    expect(mockedFs.rename).toHaveBeenCalledTimes(2);
 
-    // ...and it contains exactly the one new entry, appended to a fresh
-    // (empty-history) dashboard built from analyticsDashboardTemplate.ts,
-    // not a bare/ad-hoc stub.
-    const writtenHtml = mockedFs.writeFile.mock.calls[0][1] as string;
+    const writtenHtml = mockedFs.writeFile.mock.calls.find(([target]) => String(target).endsWith('analytics.html.tmp'))?.[1] as string;
     const entries = extractEntries(writtenHtml) as Array<{
       id: string;
       profile: { steamId: string };
@@ -116,7 +113,7 @@ describe('recordSearch — analytics.html missing', () => {
 
     await expect(
       recordSearch({ profile: { steamId: '76561190000000002' }, friends: [] }),
-    ).rejects.toThrow('Failed to read analytics.html');
+    ).rejects.toThrow('Failed to read analytics data');
 
     expect(mockedFs.writeFile).not.toHaveBeenCalled();
   });
@@ -125,6 +122,8 @@ describe('recordSearch — analytics.html missing', () => {
 describe('writeEntries — dashboard shell always comes from analyticsDashboardTemplate.ts', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockedFs.writeFile.mockResolvedValue(undefined);
+    mockedFs.rename.mockResolvedValue(undefined);
   });
 
   // This is the core guarantee of the "invert the source of truth" fix:
@@ -138,7 +137,7 @@ describe('writeEntries — dashboard shell always comes from analyticsDashboardT
   // and then get "restored" to the wrong (stale) version the moment the
   // file went missing and got rebuilt — which is exactly the failure
   // mode that motivated this change.
-  it('overwrites a stale on-disk shell with the current template, preserving existing entries', async () => {
+  it('migrates legacy analytics.html data into the canonical JSON store without losing entries', async () => {
     const preExistingEntry = {
       id: 'pre-existing-1',
       searchedAt: '2020-01-01T00:00:00.000Z',
@@ -152,24 +151,29 @@ describe('writeEntries — dashboard shell always comes from analyticsDashboardT
       `${START_TAG}\n${JSON.stringify([preExistingEntry])}\n${END_TAG}` +
       '</body></html>';
 
-    mockedFs.readFile.mockResolvedValueOnce(staleHtml);
-    mockedFs.writeFile.mockResolvedValueOnce(undefined);
-    mockedFs.rename.mockResolvedValueOnce(undefined);
+    mockedFs.readFile.mockImplementation(async (filePath) => {
+      const target = String(filePath);
+      if (target.includes('analytics-data.json')) {
+        const err = Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+        throw err;
+      }
+      if (target.includes('analytics.html')) {
+        return staleHtml;
+      }
+      return '[]';
+    });
 
     await recordSearch({
       profile: { steamId: '76561190000000002' },
       friends: [],
     });
 
-    const writtenHtml = mockedFs.writeFile.mock.calls[0][1] as string;
+    const htmlWrite = mockedFs.writeFile.mock.calls.find(([target]) => String(target).endsWith('analytics.html.tmp'))?.[1] as string;
 
-    // The stale shell is gone; the current template's shell is there instead.
-    expect(writtenHtml).not.toContain('SOME OLD HAND-EDITED SHELL');
-    expect(writtenHtml).toContain('Steam Friend Finder');
+    expect(htmlWrite).not.toContain('SOME OLD HAND-EDITED SHELL');
+    expect(htmlWrite).toContain('Steam Friend Finder');
 
-    // But nothing was lost: the pre-existing entry survived alongside
-    // the new one.
-    const entries = extractEntries(writtenHtml) as Array<{
+    const entries = extractEntries(htmlWrite) as Array<{
       id: string;
       profile: { steamId: string };
     }>;
@@ -183,11 +187,15 @@ describe('writeEntries — dashboard shell always comes from analyticsDashboardT
 describe('attachCheaterProbability', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockedFs.writeFile.mockResolvedValue(undefined);
+    mockedFs.rename.mockResolvedValue(undefined);
+    mockedFs.readFile.mockImplementation(async () => {
+      const err = Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+      throw err;
+    });
   });
 
   it('returns false and does not write when the searchId is not found (e.g. analytics.html was reset)', async () => {
-    const enoent = Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
-    mockedFs.readFile.mockRejectedValueOnce(enoent);
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     const attached = await attachCheaterProbability('some-old-search-id', {
