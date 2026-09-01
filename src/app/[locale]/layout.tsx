@@ -98,8 +98,11 @@ export default function RootLayout({
           name="google-site-verification"
           content="9bnJzty2EA0iUCoFwiGESzR8VCUnDc33ChIgwb3oj1o"
         />
-
-        <link rel="preload" as="image" href="/images/background.webp" />
+        <link
+          rel="preconnect"
+          href="https://avatars.steamstatic.com"
+          crossOrigin="anonymous"
+        />
       </head>
       <body data-country={country}>
         <NextIntlClientProvider messages={messages}>

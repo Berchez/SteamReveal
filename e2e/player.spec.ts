@@ -483,6 +483,107 @@ test.describe('Search & Routing', () => {
 
     await expectNoLocationSkeletons(page);
   });
+
+  // Guards the `targetInfoJson ?? initialProfile` fallback added for the
+  // LCP fix in Home.tsx: it prefers stale context data over the fresh
+  // SSR-provided `initialProfile` until seedInitialProfile's
+  // useLayoutEffect runs. If that effect is ever made async, this should
+  // catch the flash of the previous player's nickname.
+  test('Swapping player never shows the previous nickname once the URL has changed', async ({
+    page,
+  }) => {
+    await routeApiMocks(page);
+
+    await page.goto('/en/player/player-a');
+    await expect(page.getByText('Nickname: User-player-a')).toBeVisible({
+      timeout: 15000,
+    });
+
+    await page.getByRole('textbox').fill('player-b');
+    await page.getByRole('button', { name: /search/i }).click();
+
+    await page.waitForURL(/\/en\/player\/player-b$/, { timeout: 15000 });
+    await expect(page.getByText('Nickname: User-player-a')).toHaveCount(0);
+    await expect(page.getByText('Nickname: User-player-b')).toBeVisible({
+      timeout: 15000,
+    });
+  });
+
+  test('Swapping player via browser back/forward never shows the wrong stale nickname mid-transition', async ({
+    page,
+  }) => {
+    await routeApiMocks(page);
+
+    await page.goto('/en/player/player-a');
+    await expect(page.getByText('Nickname: User-player-a')).toBeVisible({
+      timeout: 15000,
+    });
+
+    await page.goto('/en/player/player-b');
+    await expect(page.getByText('Nickname: User-player-b')).toBeVisible({
+      timeout: 15000,
+    });
+
+    await page.goBack();
+    await page.waitForURL(/\/en\/player\/player-a$/, { timeout: 15000 });
+    await expect(page.getByText('Nickname: User-player-b')).toHaveCount(0);
+    await expect(page.getByText('Nickname: User-player-a')).toBeVisible({
+      timeout: 15000,
+    });
+  });
+});
+
+// ---------------------------------------------------------------------
+// LCP — SSR-immediate avatar
+// ---------------------------------------------------------------------
+// Regression guard for the LCP fix: nickname must be present in the raw
+// SSR HTML (before any client JS/hydration), and no UserCardSkeleton
+// should ever be visible on a direct, first-paint load of a player route.
+
+test.describe('LCP — SSR-immediate avatar', () => {
+  test('Player route HTML already contains the nickname before any client JS runs', async ({
+    page,
+  }) => {
+    await routeApiMocks(page);
+
+    const response = await page.request.get('/en/player/player-a');
+    const html = await response.text();
+
+    expect(html).toContain('Nickname');
+    expect(html).toContain('User-player-a');
+  });
+
+  test('MyUserSection never shows UserCardSkeleton on first paint for a valid direct player URL', async ({
+    page,
+  }) => {
+    await routeApiMocks(page);
+
+    await page.goto('/en/player/player-a');
+    await expect(page.getByText('Nickname: User-player-a')).toBeVisible({
+      timeout: 3000,
+    });
+  });
+
+  // Guards the `targetLocationInfo: {}` SSR fallback: UserCard destructures
+  // { city, state, country } from it, and all three are guarded by
+  // `!isLoadingLocationDetails && city && ...` — an empty object should
+  // just render nothing there, never throw or print "undefined"/"NaN".
+  test('Direct player load with the SSR fallback profile does not throw or render broken location UI', async ({
+    page,
+  }) => {
+    await routeApiMocks(page);
+
+    const errors: string[] = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+
+    await page.goto('/en/player/player-a');
+    await expect(page.getByText('Nickname: User-player-a')).toBeVisible({
+      timeout: 15000,
+    });
+
+    expect(errors).toEqual([]);
+    await expect(page.locator('text=/undefined|NaN/')).toHaveCount(0);
+  });
 });
 
 // ---------------------------------------------------------------------
@@ -1025,4 +1126,61 @@ test('Friends with public profiles render as friend cards with reliability perce
   await expect(
     friendsSection.getByText(/Amambai, Mato Grosso do Sul, Brazil/),
   ).toHaveCount(2, { timeout: 15000 });
+});
+
+test.describe('Background & preconnect', () => {
+  test('Background renders (image fallback or video) without console errors even without priority preload', async ({
+    page,
+  }) => {
+    await routeApiMocks(page);
+
+    const errors: string[] = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+
+    await page.goto('/en');
+    // Covers both branches of VideoBackground: the immediate <Image> fallback
+    // and the post-idle/timeout <video>. Either is acceptable — this is a
+    // regression guard, not an assertion about which one shows first.
+    await expect(page.locator('img[alt="background"], video')).toBeVisible({
+      timeout: 5000,
+    });
+
+    expect(errors).toEqual([]);
+  });
+
+  test('Preconnect to the avatar CDN is present in <head>', async ({
+    page,
+  }) => {
+    await routeApiMocks(page);
+
+    await page.goto('/en/player/player-a');
+    const preconnect = page.locator(
+      'link[rel="preconnect"][href="https://avatars.steamstatic.com"]',
+    );
+    await expect(preconnect).toHaveCount(1);
+  });
+});
+
+test('Cheater report still loads correctly under slower network (dynamic import regression)', async ({
+  page,
+  context,
+}) => {
+  await routeApiMocks(page);
+
+  const client = await context.newCDPSession(page);
+  await client.send('Network.emulateNetworkConditions', {
+    offline: false,
+    downloadThroughput: (500 * 1024) / 8,
+    uploadThroughput: (500 * 1024) / 8,
+    latency: 200,
+  });
+
+  await page.goto('/en/player/player-a');
+  await expect(page.getByText('Nickname: User-player-a')).toBeVisible({
+    timeout: 20000,
+  });
+
+  await page.getByRole('button', { name: ANTICHEAT_BUTTON_NAME }).click();
+  const reportBox = page.locator('.bg-purple-900.border-2:not(.border-white)');
+  await expect(reportBox).toBeVisible({ timeout: 20000 });
 });

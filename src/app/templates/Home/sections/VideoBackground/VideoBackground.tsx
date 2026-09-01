@@ -76,7 +76,6 @@ function VideoBackground() {
           src="/images/background.webp"
           alt="background"
           fill
-          priority
           sizes="100vw"
           className="object-cover"
         />
