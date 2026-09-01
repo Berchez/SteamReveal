@@ -9,6 +9,8 @@ import Script from 'next/script';
 import HomeProvider from '@/app/templates/Home/HomeProvider';
 import { LOCALE_PATHS } from '../../locales';
 
+const shouldLoadVercelTelemetry = process.env.VERCEL_ENV === 'production';
+
 const VercelAnalytics = dynamic(
   () => import('@vercel/analytics/react').then((mod) => mod.Analytics),
   { ssr: false, loading: () => null },
@@ -120,8 +122,8 @@ export default function RootLayout({
             <HomeProvider>{children}</HomeProvider>
           </ToastProvider>
         </NextIntlClientProvider>
-        <VercelAnalytics />
-        <VercelSpeedInsights />
+        {shouldLoadVercelTelemetry && <VercelAnalytics />}
+        {shouldLoadVercelTelemetry && <VercelSpeedInsights />}
       </body>
     </html>
   );
