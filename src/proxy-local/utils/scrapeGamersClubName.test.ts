@@ -11,7 +11,9 @@
  * also the more accurate environment for it regardless.
  */
 import axios from 'axios';
-import scrapeGamersClubName from './scrapeGamersClubName';
+import scrapeGamersClubName, {
+  scrapeGamersClubBan,
+} from './scrapeGamersClubName';
 import { resetRateLimiter, setMinDelay, setMaxDelay } from './rateLimit';
 import { getCachedGcName, setCachedGcName } from './gcNameCache';
 
@@ -278,5 +280,171 @@ describe('scrapeGamersClubName', () => {
     // there) — could mean GamersClub changed their HTML, so this must
     // never get baked into a 90-day cached miss.
     expect(mockedSetCachedGcName).not.toHaveBeenCalled();
+  });
+});
+
+describe('scrapeGamersClubBan', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetRateLimiter();
+    setMinDelay(5);
+    setMaxDelay(50);
+    process.env.GAMERSCLUB_SESSION_COOKIE = 'fake-session-value';
+    mockedGetCachedGcName.mockReturnValue(null);
+    (mockedAxios.isAxiosError as unknown as jest.Mock).mockImplementation(
+      (err: unknown) => !!(err as { isAxiosError?: boolean })?.isAxiosError,
+    );
+  });
+
+  it('marks a profile as not banned when it has no ban alert', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Eay- | Jogador | Gamers Club</title>
+          <div class="gc-list-item">
+            <h6 class="gc-list-title">Nome</h6>
+            <p class="gc-list-text">Eay-</p>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.banned).toBe(false);
+    expect(ban.banReason).toBeNull();
+    expect(ban.name).toBe('Eay-');
+  });
+
+  it('marks a profile as banned (PT) when it renders the MEMBRO BANIDO alert and extracts the reason', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - daaula - Player</title>
+          <div class="center alert alert-danger">
+            <strong class="alert-color">MEMBRO BANIDO NA GAMERS CLUB</strong><br>
+            <strong>Motivo:</strong>
+            <span class="primary-color">Usuário banido pelo Gamers Club Anti-Cheat</span>
+          </div>
+          <div class="gc-list-item">
+            <h6 class="gc-list-title">Nome</h6>
+            <p class="gc-list-text">daaula</p>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.banned).toBe(true);
+    expect(ban.banReason).toBe('Usuário banido pelo Gamers Club Anti-Cheat');
+  });
+
+  it('marks a profile as banned (EN) when it renders the MEMBER BANNED alert and extracts the reason', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - daaula - Player</title>
+          <div class="center alert alert-danger">
+            <strong class="alert-color">MEMBER BANNED AT GAMERS CLUB</strong><br>
+            <strong>Reason:</strong>
+            <span class="primary-color">User banned by Gamers Club Anti-Cheat</span>
+          </div>
+          <div class="gc-list-item">
+            <h6 class="gc-list-title">Nome</h6>
+            <p class="gc-list-text">daaula</p>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.banned).toBe(true);
+    expect(ban.banReason).toBe('User banned by Gamers Club Anti-Cheat');
+  });
+
+  it('scopes the reason to the ban alert container when the page has other .alert-danger blocks', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - daaula - Player</title>
+          <div class="alert alert-danger notice">
+            <span class="primary-color">Unrelated site-wide warning</span>
+          </div>
+          <div class="center alert alert-danger">
+            <strong class="alert-color">MEMBRO BANIDO NA GAMERS CLUB</strong><br>
+            <strong>Motivo:</strong>
+            <span class="primary-color">Usuário banido pelo Gamers Club Anti-Cheat</span>
+          </div>
+          <div class="gc-list-item">
+            <h6 class="gc-list-title">Nome</h6>
+            <p class="gc-list-text">daaula</p>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.banned).toBe(true);
+    expect(ban.banReason).toBe('Usuário banido pelo Gamers Club Anti-Cheat');
+  });
+
+  it('does NOT flag a profile merely because the nickname starts with "Punishment"', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - Punishment - Player</title>
+          <div class="gc-list-item">
+            <h6 class="gc-list-title">Nome</h6>
+            <p class="gc-list-text">Punishment</p>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.banned).toBe(false);
+    expect(ban.banReason).toBeNull();
+  });
+
+  it('is best-effort and returns not-banned on scrape errors', async () => {
+    mockedAxios.get.mockRejectedValue(makeAxiosError(403));
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban).toEqual({ name: null, banned: false, banReason: null });
   });
 });

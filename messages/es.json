@@ -1,4 +1,4 @@
-{
+﻿{
   "General": {
     "search": "Buscar"
   },
@@ -10,7 +10,7 @@
     "websiteDescription": "SteamReveal es una plataforma integral de inteligencia diseñada para la comunidad de juegos. Nuestra plataforma ofrece un conjunto de herramientas y funciones diseñadas para ayudar a los jugadores a recopilar, analizar y aprovechar la inteligencia de diversas fuentes en la web, todo en un lugar conveniente."
   },
   "UserCard": {
-    "nickname": "Apodo",
+    "nickname": "Nickname",
     "realName": "Nombre real",
     "probability": "Probabilidad",
     "url": "URL",
@@ -52,6 +52,10 @@
     "valuableInventory": "Inventario valioso (signo de un jugador establecido)",
     "bannedFriends": "Tiene amigos baneados en Steam (señal sospechosa)",
     "cleanFriends": "Sin amigos baneados (todos los {count} amigos analizados son limpios)",
+    "platformBannedFaceit": "Baneado en Faceit — fuerte señal de cheater",
+    "platformBannedGamersClub": "Baneado en Gamers Club — fuerte señal de cheater",
+    "platformSmurfedFaceit": "Baneado en Faceit por smurf / cuenta secundaria — indica alta habilidad, no trampa",
+    "platformSmurfedGamersClub": "Baneado en Gamers Club por smurf / cuenta secundaria — indica alta habilidad, no trampa",
     "badComments": "Recibió comentarios negativos (comentarios de la comunidad)",
     "noBadComments": "Sin comentarios negativos (buena reputación)",
     "highWinrate": "Tasa de victoria superior al {winrate}% (alto rendimiento)",
@@ -94,11 +98,11 @@
     "supportText": "Si el proyecto te está ayudando, puedes apoyarlo para que pueda seguir mejorando el sitio.",
     "copied": "¡Copiado!",
     "copy": "Copiar",
-    "myPixKey": "Mi clave PIX",
+    "myPixKey": "Mi clave PIX (solo Brasil)",
     "openStripe": "Abrir Stripe",
     "dontAskAgain": "No mostrar de nuevo",
     "sendSkin": "Enviar oferta de skin",
-    "tradeLink": "Enlace comercial"
+    "tradeLink": "Enlace de intercambio"
   },
   "feedback": {
     "openButton": "Enviar comentarios",

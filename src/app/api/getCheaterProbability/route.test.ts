@@ -57,12 +57,27 @@ jest.mock('./utils/csStats', () => ({
   CS_STATS_FIELD_ORDER: [],
   assertCsStatsShape: jest.fn(),
 }));
+jest.mock('./utils/platformBanMethod', () =>
+  jest.fn().mockResolvedValue({
+    score: 0,
+    cheatCount: 0,
+    smurfCount: 0,
+    otherCount: 0,
+    details: {
+      faceit: { banned: false, reason: null, classification: null },
+      gamersClub: { banned: false, reason: null, classification: null },
+    },
+  }),
+);
 
 jest.mock('axios', () => ({
   post: jest.fn().mockResolvedValue({ data: { probability: 0.5 } }),
 }));
 import axios from 'axios';
 const mockedAxiosPost = jest.mocked(axios.post);
+
+import getPlatformBanScore from './utils/platformBanMethod';
+const mockedPlatformBan = jest.mocked(getPlatformBanScore);
 
 const { POST } = require('./route') as typeof import('./route');
 
@@ -168,5 +183,163 @@ describe('POST /api/getCheaterProbability — Ticket 8 request validation', () =
     expect(res.status).toBe(200);
     expect(data.cheaterProbability).toBe(0.5);
     expect(mockedAxiosPost).toHaveBeenCalledTimes(1);
+  });
+
+  it('boosts the probability by 0.15 when banned for cheating on one platform', async () => {
+    mockedPlatformBan.mockResolvedValue({
+      score: 1,
+      cheatCount: 1,
+      smurfCount: 0,
+      otherCount: 0,
+      details: {
+        faceit: { banned: true, reason: 'Cheating', classification: 'cheat' },
+        gamersClub: { banned: false, reason: null, classification: null },
+      },
+    });
+
+    const res = await POST(
+      makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+    );
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.cheaterProbability).toBe(0.65); // 0.5 + 0.15
+    expect(data.featureObject.platformBanScore).toBe(1);
+    expect(data.featureObject.platformBanCheatCount).toBe(1);
+    expect(data.featureObject.platformBanDetails.faceit.banned).toBe(true);
+  });
+
+  it('boosts +0.15 per anti-cheat platform and caps at 0.95', async () => {
+    mockedPlatformBan.mockResolvedValue({
+      score: 2,
+      cheatCount: 2,
+      smurfCount: 0,
+      otherCount: 0,
+      details: {
+        faceit: { banned: true, reason: 'Cheating', classification: 'cheat' },
+        gamersClub: {
+          banned: true,
+          reason: 'Gamers Club Anti-Cheat',
+          classification: 'cheat',
+        },
+      },
+    });
+
+    const res = await POST(
+      makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+    );
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.cheaterProbability).toBe(0.8); // 0.5 + 0.3
+  });
+
+  it('caps the boosted probability at 0.95', async () => {
+    mockedPlatformBan.mockResolvedValue({
+      score: 2,
+      cheatCount: 2,
+      smurfCount: 0,
+      otherCount: 0,
+      details: {
+        faceit: { banned: true, reason: 'Cheating', classification: 'cheat' },
+        gamersClub: {
+          banned: true,
+          reason: 'Gamers Club Anti-Cheat',
+          classification: 'cheat',
+        },
+      },
+    });
+    mockedAxiosPost.mockResolvedValueOnce({
+      data: { probability: 0.9 },
+    });
+
+    const res = await POST(
+      makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+    );
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.cheaterProbability).toBe(0.95); // 0.9 + 0.3 capped
+  });
+
+  it('lowers the probability by 0.1 when banned for smurfing', async () => {
+    mockedPlatformBan.mockResolvedValue({
+      score: -1,
+      cheatCount: 0,
+      smurfCount: 1,
+      otherCount: 0,
+      details: {
+        faceit: { banned: false, reason: null, classification: null },
+        gamersClub: {
+          banned: true,
+          reason: 'smurfing',
+          classification: 'smurf',
+        },
+      },
+    });
+
+    const res = await POST(
+      makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+    );
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.cheaterProbability).toBe(0.4); // 0.5 - 0.1
+    expect(data.featureObject.platformBanScore).toBe(-1);
+    expect(data.featureObject.platformBanSmurfCount).toBe(1);
+  });
+
+  it('floors the probability at 0 when smurf penalties overflow', async () => {
+    mockedPlatformBan.mockResolvedValue({
+      score: -1,
+      cheatCount: 0,
+      smurfCount: 1,
+      otherCount: 0,
+      details: {
+        faceit: { banned: false, reason: null, classification: null },
+        gamersClub: {
+          banned: true,
+          reason: 'smurfing',
+          classification: 'smurf',
+        },
+      },
+    });
+    mockedAxiosPost.mockResolvedValueOnce({
+      data: { probability: 0.05 },
+    });
+
+    const res = await POST(
+      makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+    );
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.cheaterProbability).toBe(0); // 0.05 - 0.1 floored at 0
+  });
+
+  it('keeps a neutral "other" ban unchanged', async () => {
+    mockedPlatformBan.mockResolvedValue({
+      score: 0,
+      cheatCount: 0,
+      smurfCount: 0,
+      otherCount: 1,
+      details: {
+        faceit: { banned: false, reason: null, classification: null },
+        gamersClub: {
+          banned: true,
+          reason: 'Some other reason',
+          classification: 'other',
+        },
+      },
+    });
+
+    const res = await POST(
+      makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+    );
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.cheaterProbability).toBe(0.5);
+    expect(data.featureObject.platformBanOtherCount).toBe(1);
   });
 });

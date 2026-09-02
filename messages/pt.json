@@ -1,4 +1,4 @@
-{
+﻿{
   "General": {
     "search": "Buscar"
   },
@@ -13,7 +13,7 @@
     "nickname": "Nickname",
     "realName": "Nome real",
     "probability": "Probabilidade",
-    "url": "Url",
+    "url": "URL",
     "reliability": "Confiabilidade",
     "searchFriend": "Buscar"
   },
@@ -22,14 +22,14 @@
   },
   "ServerMessages": {
     "friendsNotPublic": "A lista de amigos deste jogador não é pública. Tente outro diferente!",
-    "invalidPlayer": "Está não é uma válida (ID do Steam / Link do perfil do Steam / URL personalizado do Steam)"
+    "invalidPlayer": "Isto não é um ID do Steam / Link de perfil do Steam / URL personalizado do Steam válido"
   },
   "Index": {
     "searchTitle": "Procure por um jogador Steam",
     "inputSearchPlaceholder": "Procure um jogador (ID do Steam / Link do perfil do Steam / URL personalizado do Steam)",
     "friendsIRL": "Amigos na vida real",
     "userPossibleLocation": "Possível localização do usuário",
-    "userInfo": "Informaçãoes do usuário",
+    "userInfo": "Informações do usuário",
     "csAnticheatReview": "Análise CS2 Anticheat - com IA",
     "footer": {
       "rights": "Todos os direitos reservados.",
@@ -52,6 +52,10 @@
     "valuableInventory": "Inventário valioso (sinal de jogador estabelecido)",
     "bannedFriends": "Possui amigos banidos na Steam (sinal suspeito)",
     "cleanFriends": "Nenhum amigo banido (todos os {count} amigos analisados estão limpos)",
+    "platformBannedFaceit": "Foi banido na Faceit — forte sinal de trapaça",
+    "platformBannedGamersClub": "Foi banido na Gamers Club — forte sinal de trapaça",
+    "platformSmurfedFaceit": "Banido na Faceit por smurf — indica alta habilidade, não trapaça.",
+    "platformSmurfedGamersClub": "Banido na GamersClub por smurf — indica alta habilidade, não trapaça.",
     "badComments": "Recebeu comentários negativos (feedback da comunidade)",
     "noBadComments": "Nenhum comentário negativo (boa reputação)",
     "highWinrate": "Taxa de vitória acima de {winrate}% (performance alta)",
@@ -66,7 +70,7 @@
     "negativeFactors": "Fatores suspeitos:",
     "innocentTitle": "Parece Inocente",
     "innocentDescription": "Este jogador apresenta sinais de perfil normal/no padrão:",
-    "isUserCheaterCS2": "{nickname} é um cheater no CS2?",
+    "isUserCheaterCS2": "{nickname} é um trapaceiro no CS2?",
     "normalKD": "K/D normal ({kd})",
     "highKD": "K/D muito alto ({kd}, desempenho acima do padrão)",
     "veryTrustedTitle": "Perfil Muito Confiável",
@@ -126,7 +130,7 @@
       "cards": {
         "investigate": {
           "title": "Investigue qualquer perfil",
-          "text": "Analise perfis da Steam seus melhores descubra amigos, conexões e localização provável em segundos, sem necessidade de login."
+          "text": "Analise perfis da Steam e descubra seus melhores amigos, conexões e localização provável em segundos, sem necessidade de login."
         },
         "suspicious": {
           "title": "Detecte comportamentos suspeitos",
@@ -155,7 +159,7 @@
       "title": "Analise o perfil Steam de {nickname}",
       "description": "Veja os dados públicos de {nickname} na Steam, possível localização e análise de amigos no SteamReveal.",
       "fallbackTitle": "SteamReveal - Analise Perfis da Steam",
-      "fallbackDescription": "SteamReveal é uma ferramenta OSINT feita para a comunidade gamer. Analise perfis da Steam, descubra amigos reais e localize jogadores usando dados públicos."
+      "fallbackDescription": "SteamReveal é uma ferramenta OSINT feita para a comunidade Steam. Analise perfis da Steam, descubra amigos reais e localize jogadores usando dados públicos."
     }
   }
 }

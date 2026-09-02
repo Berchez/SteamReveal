@@ -16,6 +16,7 @@ import getBadCommentsScore from './utils/badCommentsMethod';
 import getBannedFriendsScore from './utils/bannedFriendsMethod';
 import getInventoryScore from './utils/inventoryMethod';
 import getGameLibraryStats from './utils/gameLibraryStatsMethod';
+import getPlatformBanScore from './utils/platformBanMethod';
 import getCsStats, {
   CS_STATS_FIELD_ORDER,
   assertCsStatsShape,
@@ -108,6 +109,7 @@ export async function POST(req: Request) {
       userLevel,
       csStats,
       userSummary,
+      platformBanResult,
     ] = await Promise.all([
       getBadCommentsScore(targetSteamId),
       getBannedFriendsScore(closeFriends),
@@ -124,6 +126,7 @@ export async function POST(req: Request) {
         'getCheaterProbability: steam.getUserSummary',
         STEAM_CALL_TIMEOUT_MS,
       ),
+      getPlatformBanScore(targetSteamId),
     ]);
 
     const { playTime: playTimeScore, totalGamesCount } = gameLibraryStats;
@@ -166,6 +169,11 @@ export async function POST(req: Request) {
       bannedFriendsDetails,
       accountAge,
       totalGamesCount,
+      platformBanScore: platformBanResult.score,
+      platformBanCheatCount: platformBanResult.cheatCount,
+      platformBanSmurfCount: platformBanResult.smurfCount,
+      platformBanOtherCount: platformBanResult.otherCount,
+      platformBanDetails: platformBanResult.details,
     };
 
     const flaskResponse = await axios.post(
@@ -181,8 +189,42 @@ export async function POST(req: Request) {
 
     const { probability } = flaskResponse.data;
 
+    // External-platform bans are strong, deterministic signals that the ML
+    // model wasn't trained on, so we adjust the model's probability directly
+    // instead of feeding them into the trained feature vector (which would
+    // change its input shape). The direction depends on the ban reason:
+    //   - cheat  (e.g. GamersClub Anti-Cheat): +0.15 per platform, cap 0.95.
+    //   - smurf  (secondary account / smurf): -0.10 per platform, floor 0.
+    //   - other  (unknown/non-cheat/non-smurf): neutral.
+    const CHEAT_PLATFORM_BOOST = 0.15;
+    const SMURF_PROBABILITY_PENALTY = 0.1;
+    const MAX_CHEATER_PROBABILITY = 0.95;
+    const MIN_CHEATER_PROBABILITY = 0;
+
+    const probabilityAdjustment =
+      platformBanResult.cheatCount * CHEAT_PLATFORM_BOOST -
+      platformBanResult.smurfCount * SMURF_PROBABILITY_PENALTY;
+
+    // Round to 2 decimals: the boost/penalty terms are multiples of 0.1/0.15
+    // but summing them in floats can accumulate representation error once more
+    // platforms/signals are added (e.g. 0.3 + 0.5). Clamping an unrounded sum
+    // could otherwise make the exact-equality assertions in the tests (and any
+    // downstream consumer) flaky for values like 0.80000000000000004.
+    const roundedAdjustment = Math.round(probabilityAdjustment * 100) / 100;
+
+    const boostedProbability = Math.min(
+      MAX_CHEATER_PROBABILITY,
+      Math.max(
+        MIN_CHEATER_PROBABILITY,
+        Number(probability) + roundedAdjustment,
+      ),
+    );
+
     return NextResponse.json(
-      { cheaterProbability: probability, featureObject },
+      {
+        cheaterProbability: boostedProbability,
+        featureObject,
+      },
       { status: 200 },
     );
   } catch (error) {

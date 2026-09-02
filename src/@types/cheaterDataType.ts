@@ -12,6 +12,21 @@ export type BannedFriendDetail = {
   };
 };
 
+export type BanClassification = 'cheat' | 'smurf' | 'other';
+
+export type PlatformBanDetails = {
+  faceit: {
+    banned: boolean;
+    reason: string | null;
+    classification: BanClassification | null;
+  };
+  gamersClub: {
+    banned: boolean;
+    reason: string | null;
+    classification: BanClassification | null;
+  };
+};
+
 export type FeatureObjectType = {
   badCommentsScore: number;
   bannedFriendsScore: number;
@@ -24,6 +39,11 @@ export type FeatureObjectType = {
   accountAge?: number;
   totalGamesCount?: number;
   serviceMedalsCount?: number;
+  platformBanScore?: number;
+  platformBanCheatCount?: number;
+  platformBanSmurfCount?: number;
+  platformBanOtherCount?: number;
+  platformBanDetails?: PlatformBanDetails;
 };
 
 export type CheaterDataType = {

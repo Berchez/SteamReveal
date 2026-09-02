@@ -3,6 +3,45 @@ import { ReportOutcomeKey, ReportOutcomes } from '@/@types/cheaterReportTypes';
 import { clearStat } from '@/app/api/getCheaterProbability/utils/utils';
 import { useTranslations } from 'next-intl';
 
+type PlatformBanKind = 'cheat' | 'smurf';
+
+const PLATFORM_BAN_KEYS: Record<
+  PlatformBanKind,
+  { faceit: 'platformBannedFaceit' | 'platformSmurfedFaceit'; gamersClub: 'platformBannedGamersClub' | 'platformSmurfedGamersClub' }
+> = {
+  cheat: { faceit: 'platformBannedFaceit', gamersClub: 'platformBannedGamersClub' },
+  smurf: { faceit: 'platformSmurfedFaceit', gamersClub: 'platformSmurfedGamersClub' },
+};
+
+/**
+ * Pushes one message per banned platform (Faceit / GamersClub) into `target`,
+ * so the report tells the user exactly WHICH platform flagged them. Filters by
+ * the ban classification so cheat bans go to suspicion and smurf bans to
+ * innocence independently (no cross-direction conflict).
+ */
+const pushPlatformBanMessages = (
+  featureObject: CheaterDataType['featureObject'],
+  translator: ReturnType<typeof useTranslations<'CheaterReport'>>,
+  kind: PlatformBanKind,
+  target: string[],
+): void => {
+  const details = featureObject.platformBanDetails;
+  const classification = kind === 'cheat' ? 'cheat' : 'smurf';
+
+  if (
+    details?.faceit?.banned &&
+    details.faceit.classification === classification
+  ) {
+    target.push(translator(PLATFORM_BAN_KEYS[kind].faceit));
+  }
+  if (
+    details?.gamersClub?.banned &&
+    details.gamersClub.classification === classification
+  ) {
+    target.push(translator(PLATFORM_BAN_KEYS[kind].gamersClub));
+  }
+};
+
 const analyzeCheaterData = (
   data: CheaterDataType,
   translator: ReturnType<typeof useTranslations<'CheaterReport'>>,
@@ -84,6 +123,41 @@ const analyzeCheaterData = (
     negativeMsg: translator('bannedFriends'),
     conditionToBeInnocent: (v) => v === 0,
   });
+
+  // Banned on an external platform (Faceit / GamersClub)
+  const {
+    platformBanScore,
+    platformBanCheatCount,
+    platformBanSmurfCount,
+  } = featureObject;
+
+  if (platformBanScore !== undefined) {
+    const cheatCount = platformBanCheatCount ?? 0;
+    const smurfCount = platformBanSmurfCount ?? 0;
+
+    // Two independent checks (not else-if): a player can be cheat-banned on one
+    // platform and smurf-banned on another, and the backend sums both effects
+    // (+0.15 and -0.10), so both messages must be shown.
+    if (cheatCount > 0) {
+      // Banned for cheating / anti-cheat -> suspicion (one msg per platform).
+      pushPlatformBanMessages(
+        featureObject,
+        translator,
+        'cheat',
+        suspicionReasons,
+      );
+    }
+    if (smurfCount > 0) {
+      // Banned for smurfing / secondary account -> typically a legit player.
+      pushPlatformBanMessages(
+        featureObject,
+        translator,
+        'smurf',
+        innocenceReasons,
+      );
+    }
+    // else: all-other bans stay neutral (no reason added).
+  }
 
   // Account Age
   if (featureObject.accountAge !== undefined) {

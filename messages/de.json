@@ -1,6 +1,6 @@
-{
+﻿{
   "General": {
-    "search": "Suche"
+    "search": "Suchen"
   },
   "LanguageSwitcher": {
     "toggleMenu": "Sprachenmenü umschalten",
@@ -21,7 +21,7 @@
     "providedByUser": "Vom Benutzer angegeben:"
   },
   "ServerMessages": {
-    "friendsNotPublic": "Die Freundesliste dieses Spielers ist nicht öffentlich. Versuche einen anderen Profil!",
+    "friendsNotPublic": "Die Freundesliste dieses Spielers ist nicht öffentlich. Versuche ein anderes Profil!",
     "invalidPlayer": "Dies ist keine gültige Steam-ID, Profil-URL oder benutzerdefinierte Steam-URL"
   },
   "Index": {
@@ -52,13 +52,17 @@
     "valuableInventory": "Wertvolles Inventar (Zeichen für einen erfahrenen Spieler)",
     "bannedFriends": "Hat gesperrte Freunde auf Steam (verdächtiges Signal)",
     "cleanFriends": "Keine gesperrten Freunde (alle {count} analysierten Freunde sind sauber)",
+    "platformBannedFaceit": "Auf Faceit gesperrt — starkes Cheater-Signal",
+    "platformBannedGamersClub": "Auf Gamers Club gesperrt — starkes Cheater-Signal",
+    "platformSmurfedFaceit": "Auf Faceit wegen Smurf-/Zweitkonto gesperrt — deutet auf hohes Skill-Niveau hin, nicht auf Cheating",
+    "platformSmurfedGamersClub": "Auf Gamers Club wegen Smurf-/Zweitkonto gesperrt — deutet auf hohes Skill-Niveau hin, nicht auf Cheating",
     "badComments": "Negative Kommentare erhalten (Community-Feedback)",
     "noBadComments": "Keine negativen Kommentare (guter Ruf)",
     "highWinrate": "Winrate über {winrate}% (hohe Leistung)",
     "normalWinrate": "Normale Winrate",
     "highKillsPerRound": "Viele Kills pro Runde (weist auf hohe Fähigkeiten hin)",
     "highHeadAccuracy": "Hohe Kopfschusspräzision (weist auf gutes Training hin)",
-    "suspectTitle": "Cheating verdächtig!",
+    "suspectTitle": "Cheating-Verdacht!",
     "suspectDescription": "Basierend auf den analysierten Daten zeigt dieser Spieler verdächtige Faktoren:",
     "inconclusiveTitle": "Unklare Ergebnisse",
     "inconclusiveDescription": "Die Analyse ist nicht endgültig. Einige Faktoren deuten auf Verdacht hin und andere auf Unschuld:",
@@ -94,7 +98,7 @@
     "supportText": "Wenn dir das Projekt hilft, kannst du es unterstützen, damit ich die Seite weiter verbessern kann.",
     "copied": "Kopiert!",
     "copy": "Kopieren",
-    "myPixKey": "Mein PIX-Schlüssel",
+    "myPixKey": "Mein PIX-Schlüssel (nur Brasilien)",
     "openStripe": "Stripe öffnen",
     "dontAskAgain": "Nicht erneut anzeigen",
     "sendSkin": "Skin-Angebot senden",

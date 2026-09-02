@@ -138,6 +138,123 @@ const extractNameFromProfile = (html: string): string | null => {
   return name;
 };
 
+// GamersClub renders a prominent alert on a punished profile page with the
+// text "MEMBRO BANIDO NA GAMERS CLUB" (pt) / "MEMBER BANNED AT GAMERS CLUB"
+// (en) — the language depends on the Accept-Language header sent in the
+// request. We treat that alert as the authoritative signal that the account
+// is banned on the platform. Note: detecting bans via the page <title> is NOT
+// reliable — GamersClub prefixes the title with the player's nickname, so a
+// player literally nicknamed "Punishment" would be a false positive.
+
+/**
+ * Extracts whether the profile page indicates a punishment (block/suspension)
+ * from its HTML. Looks for the "BANIDO/BANNED" alert rendered only on
+ * punished/banned profiles (locale-independent), and surfaces its reason when
+ * present.
+ */
+const extractBanStatus = (
+  html: string,
+): { banned: boolean; banReason: string | null } => {
+  const $profile = cheerio.load(html);
+  // Risk: if GamersClub ever puts another `strong.alert-color` before the ban
+  // alert (promo banner, maintenance note), .first() would silently miss the
+  // real ban. The current tests cover this selector; revisit if the page shape
+  // changes. Hard to make more specific without a stable surrounding marker.
+  const alert = $profile('strong.alert-color').first();
+  const alertText = alert.text().trim();
+
+  const isBannedMarker = /banid|banned/i.test(alertText);
+  if (!isBannedMarker) {
+    return { banned: false, banReason: null };
+  }
+
+  // Scope the reason to the same alert container as the "BANIDO" marker so a
+  // page with multiple `.alert-danger` blocks can't pull the wrong reason,
+  // which would feed a wrong cheat/smurf classification.
+  const reason = alert
+    .closest('.alert-danger')
+    .find('span.primary-color')
+    .first()
+    .text()
+    .trim();
+
+  return {
+    banned: true,
+    banReason: reason || alertText,
+  };
+};
+
+export type GamersClubProfile = {
+  name: string | null;
+  banned: boolean;
+  banReason: string | null;
+};
+
+/**
+ * Fetches the GamersClub profile page and extracts the public name plus the
+ * punishment/ban status. Never uses the name cache here — the cheater-report
+ * ban check must always reflect the current profile rather than a possibly
+ * stale cached name, so this always does a fresh scrape.
+ */
+const scrapeGamersClubProfile = async (
+  steamId: string,
+): Promise<GamersClubProfile | null> => {
+  if (!steamId) return null;
+
+  const cookie = getSessionCookie();
+  const lookup = await resolvePlayerUrl(steamId, cookie);
+
+  if (lookup.status === 'not_found') {
+    // Confirmed by GamersClub itself that this Steam ID has no profile.
+    // Cache the miss so we don't re-scrape it within the TTL.
+    setCachedGcName(steamId, null);
+    return { name: null, banned: false, banReason: null };
+  }
+
+  if (lookup.status === 'unknown') {
+    // We couldn't determine the outcome — return null for this call but
+    // deliberately don't cache it, so the next lookup gets a fresh try.
+    return null;
+  }
+
+  const { url: playerUrl } = lookup;
+
+  console.debug(`[GamersClub] Fetching profile from ${playerUrl}`);
+
+  const profileResponse = await withRetry(
+    () =>
+      axios.get(playerUrl, {
+        timeout: 60000,
+        headers: {
+          'User-Agent': GAMERSCLUB_USER_AGENT,
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+          Cookie: cookie,
+        },
+      }),
+    { shouldRetry: isRetryableAxiosError },
+  );
+
+  console.debug(
+    `[GamersClub] Profile page status: ${profileResponse.status}`,
+  );
+
+  const html = profileResponse.data as string;
+  const name = extractNameFromProfile(html);
+  const { banned, banReason } = extractBanStatus(html);
+
+  // The profile page loaded fine but the expected "Nome" field wasn't found.
+  // This is ambiguous — could be a genuinely empty field, or GamersClub
+  // having changed their HTML structure — so it's NOT cached, to avoid
+  // baking a scraper breakage into a 90-day "miss".
+  if (name) {
+    setCachedGcName(steamId, name);
+  }
+
+  return { name, banned, banReason };
+};
+
 /**
  * Fetches and scrapes the public name from a GamersClub profile.
  * @param steamId - The Steam ID (can be in any format)
@@ -164,59 +281,8 @@ const scrapeGamersClubName = async (
   }
 
   try {
-    const cookie = getSessionCookie();
-    const lookup = await resolvePlayerUrl(steamId, cookie);
-
-    if (lookup.status === 'not_found') {
-      console.warn(`GamersClub: No player URL found for Steam ID ${steamId}`);
-      // Confirmed by GamersClub itself — safe to cache as a miss.
-      setCachedGcName(steamId, null);
-      return null;
-    }
-
-    if (lookup.status === 'unknown') {
-      // We couldn't determine the outcome — return null for this call but
-      // deliberately don't cache it, so the next lookup gets a fresh try.
-      return null;
-    }
-
-    const { url: playerUrl } = lookup;
-
-    console.debug(`[GamersClub] Fetching profile from ${playerUrl}`);
-
-    const profileResponse = await withRetry(
-      () =>
-        axios.get(playerUrl, {
-          timeout: 60000,
-          headers: {
-            'User-Agent': GAMERSCLUB_USER_AGENT,
-            Accept:
-              'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-            Cookie: cookie,
-          },
-        }),
-      { shouldRetry: isRetryableAxiosError },
-    );
-
-    console.debug(
-      `[GamersClub] Profile page status: ${profileResponse.status}`,
-    );
-
-    const name = extractNameFromProfile(profileResponse.data);
-
-    if (!name) {
-      // The profile page loaded fine but the expected "Nome" field wasn't
-      // found. This is ambiguous — could be a genuinely empty field, or
-      // GamersClub having changed their HTML structure — so it's NOT
-      // cached, to avoid baking a scraper breakage into a 90-day "miss".
-      console.warn(`GamersClub: Name field not found for Steam ID ${steamId}`);
-      return null;
-    }
-
-    console.debug(`[GamersClub] Successfully extracted name: ${name}`);
-    setCachedGcName(steamId, name);
-    return name;
+    const profile = await scrapeGamersClubProfile(steamId);
+    return profile?.name ?? null;
   } catch (error) {
     // Network errors, timeouts, missing cookie, non-retryable 4xx, etc.
     // None of these are a confirmed outcome, so nothing gets cached here.
@@ -228,4 +294,28 @@ const scrapeGamersClubName = async (
   }
 };
 
+/**
+ * Checks whether a Steam ID is banned/punished on GamersClub. Always does a
+ * fresh scrape (never reuses the cached name) so the result reflects the
+ * current profile. Best-effort: on any error it resolves to "not banned"
+ * rather than throwing, so the caller's analysis never breaks.
+ */
+const scrapeGamersClubBan = async (
+  steamId: string,
+): Promise<GamersClubProfile> => {
+  try {
+    const profile = await scrapeGamersClubProfile(steamId);
+    return (
+      profile ?? { name: null, banned: false, banReason: null }
+    );
+  } catch (error) {
+    console.error(
+      `GamersClub ban scraping error for Steam ID ${steamId}:`,
+      getErrorMessage(error),
+    );
+    return { name: null, banned: false, banReason: null };
+  }
+};
+
+export { scrapeGamersClubBan };
 export default scrapeGamersClubName;

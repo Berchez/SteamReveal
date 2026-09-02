@@ -1,7 +1,9 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
-import scrapeGamersClubName from './utils/scrapeGamersClubName';
+import scrapeGamersClubName, {
+  scrapeGamersClubBan,
+} from './utils/scrapeGamersClubName';
 import { recordSearch, attachCheaterProbability } from './utils/analytics';
 
 /**
@@ -52,13 +54,34 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
 
   try {
     console.log(
-      `[Local Proxy] Fetching GamersClub name for Steam ID: ${steamId} (allowScrape: ${allowScrape})`,
+      `[Local Proxy] Fetching GamersClub status for Steam ID: ${steamId} (allowScrape: ${allowScrape})`,
     );
-    const name = await scrapeGamersClubName(steamId, allowScrape);
+
+    let name: string | null = null;
+    let banned = false;
+    let banReason: string | null = null;
+
+    // The cheater-report flow passes includeBan=true so it always gets a fresh
+    // profile scrape with the punishment status. That single scrape drives both
+    // the name and the ban — running scrapeGamersClubName separately would do a
+    // second full search+profile fetch on GamersClub per request (doubling
+    // latency, load on the target site, and our own rate-limit exposure).
+    const includeBan = req.query.includeBan === 'true';
+
+    if (includeBan) {
+      const banProfile = await scrapeGamersClubBan(steamId);
+      name = banProfile.name;
+      banned = banProfile.banned;
+      banReason = banProfile.banReason;
+    } else {
+      name = await scrapeGamersClubName(steamId, allowScrape);
+    }
 
     return res.status(200).json({
       steamId,
       name,
+      banned,
+      banReason,
     });
   } catch (error) {
     console.error(
