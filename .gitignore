@@ -38,7 +38,6 @@ next-env.d.ts
 
 
 gcNameCache.data.json
-/scripts
 
 src/proxy-local/utils/analytics.html
 src/proxy-local/utils/analytics-data.json

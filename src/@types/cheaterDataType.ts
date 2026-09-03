@@ -19,11 +19,15 @@ export type PlatformBanDetails = {
     banned: boolean;
     reason: string | null;
     classification: BanClassification | null;
+    /** Total CS2 matches played on FACEIT (best-effort activity signal). */
+    matches?: number | null;
   };
   gamersClub: {
     banned: boolean;
     reason: string | null;
     classification: BanClassification | null;
+    /** Matches/sessions played on GamersClub (best-effort activity signal). */
+    matches?: number | null;
   };
 };
 
@@ -44,6 +48,14 @@ export type FeatureObjectType = {
   platformBanSmurfCount?: number;
   platformBanOtherCount?: number;
   platformBanDetails?: PlatformBanDetails;
+  /**
+   * Post-model reduction owed to demonstrable activity on FACEIT/GamersClub.
+   * The player is less likely to be a cheater the more they play on a
+   * platform whose anti-cheat is more invasive than Valve's VAC.
+   */
+  platformActivityDiscount?: number;
+  faceitActive?: boolean;
+  gcActive?: boolean;
 };
 
 export type CheaterDataType = {

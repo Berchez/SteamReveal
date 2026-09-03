@@ -14,6 +14,7 @@ const faceitOk = (over: Record<string, unknown> = {}) => ({
   reason: null,
   playerId: null,
   classification: null,
+  matches: null,
   ...over,
 });
 
@@ -22,6 +23,7 @@ const gcOk = (over: Record<string, unknown> = {}) => ({
   reason: null,
   name: null,
   classification: null,
+  matches: null,
   ...over,
 });
 
@@ -60,6 +62,7 @@ describe('getPlatformBanScore', () => {
       banned: true,
       reason: 'Cheating',
       classification: 'cheat',
+      matches: null,
     });
   });
 
@@ -136,5 +139,105 @@ describe('getPlatformBanScore', () => {
     expect(res.score).toBe(0);
     expect(res.details.gamersClub.banned).toBe(false);
     expect(res.details.gamersClub.classification).toBeNull();
+  });
+
+  it('fills the timeout fallback with null matches (not undefined) so the JSON contract stays intact', async () => {
+    // A timed-out lookup resolves to the module's "not banned" fallback, which
+    // must carry `matches: null` (not a missing key). Otherwise the route's
+    // serialization would drop the key instead of sending null, breaking the
+    // `matches: number | null` contract and the activity discount logic.
+    mockedFaceit.mockRejectedValueOnce(
+      new SteamCallTimeoutError('faceit', 8000),
+    );
+    mockedGamersClub.mockResolvedValueOnce(
+      gcOk({ banned: true, reason: 'cheating', name: 'X', classification: 'cheat' }),
+    );
+
+    const res = await getPlatformBanScore('76561198000000000');
+
+    expect(res.details).toEqual({
+      faceit: {
+        banned: false,
+        reason: null,
+        classification: null,
+        matches: null,
+      },
+      gamersClub: {
+        banned: true,
+        reason: 'cheating',
+        classification: 'cheat',
+        matches: null,
+      },
+    });
+    // No activity discount from the timed-out FACEIT side.
+    expect(res.faceitActive).toBe(false);
+  });
+
+  it('derives an activity discount from FACEIT matches', async () => {
+    mockedFaceit.mockResolvedValueOnce(
+      faceitOk({ matches: 250 }),
+    );
+    mockedGamersClub.mockResolvedValueOnce(gcOk());
+
+    const res = await getPlatformBanScore('76561198000000000');
+
+    // 250 / 500 saturation * 0.1 max = 0.05
+    expect(res.activityDiscount).toBeCloseTo(0.05, 10);
+    expect(res.faceitActive).toBe(true);
+    expect(res.gcActive).toBe(false);
+  });
+
+  it('derives an activity discount from GamersClub sessions', async () => {
+    mockedFaceit.mockResolvedValueOnce(faceitOk());
+    mockedGamersClub.mockResolvedValueOnce(gcOk({ matches: 1000 }));
+
+    const res = await getPlatformBanScore('76561198000000000');
+
+    // >= saturation -> full 0.1
+    expect(res.activityDiscount).toBeCloseTo(0.1, 10);
+    expect(res.gcActive).toBe(true);
+  });
+
+  it('stacks FACEIT and GamersClub activity discounts up to the combined cap', async () => {
+    mockedFaceit.mockResolvedValueOnce(faceitOk({ matches: 500 }));
+    mockedGamersClub.mockResolvedValueOnce(gcOk({ matches: 500 }));
+
+    const res = await getPlatformBanScore('76561198000000000');
+
+    expect(res.activityDiscount).toBeCloseTo(0.2, 10);
+    expect(res.faceitActive).toBe(true);
+    expect(res.gcActive).toBe(true);
+  });
+
+  it('cancels the activity discount for a platform where the player is banned for cheating', async () => {
+    // FACEIT: cheating ban -> no activity discount despite high match count.
+    mockedFaceit.mockResolvedValueOnce(
+      faceitOk({
+        banned: true,
+        reason: 'Cheating',
+        playerId: 'p1',
+        classification: 'cheat',
+        matches: 900,
+      }),
+    );
+    // GamersClub: active and not banned -> full discount.
+    mockedGamersClub.mockResolvedValueOnce(gcOk({ matches: 600 }));
+
+    const res = await getPlatformBanScore('76561198000000000');
+
+    expect(res.activityDiscount).toBeCloseTo(0.1, 10); // only GC contributes
+    expect(res.faceitActive).toBe(false);
+    expect(res.gcActive).toBe(true);
+  });
+
+  it('does not apply a discount when neither platform reports activity', async () => {
+    mockedFaceit.mockResolvedValueOnce(faceitOk());
+    mockedGamersClub.mockResolvedValueOnce(gcOk());
+
+    const res = await getPlatformBanScore('76561198000000000');
+
+    expect(res.activityDiscount).toBe(0);
+    expect(res.faceitActive).toBe(false);
+    expect(res.gcActive).toBe(false);
   });
 });

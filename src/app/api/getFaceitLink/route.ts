@@ -34,7 +34,7 @@ export async function GET(req: Request) {
 
     if (response.status === 404) {
       return errorResponse(
-        'Perfil FACEIT não encontrado para esse SteamID',
+        'No FACEIT profile found for this SteamID.',
         404,
         'NOT_FOUND',
       );
@@ -42,7 +42,7 @@ export async function GET(req: Request) {
 
     if (response.status >= 400) {
       return errorResponse(
-        'Erro ao consultar a API da FACEIT',
+        'Error querying the FACEIT API.',
         502,
         'UPSTREAM_ERROR',
       );

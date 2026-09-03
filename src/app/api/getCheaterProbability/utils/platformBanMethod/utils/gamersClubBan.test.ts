@@ -26,13 +26,25 @@ describe('getGamersClubBanStatus', () => {
   it('returns not-banned when LOCAL_PROXY_URL is missing', async () => {
     delete process.env.LOCAL_PROXY_URL;
     const res = await getGamersClubBanStatus('76561198000000000');
-    expect(res).toEqual({ banned: false, reason: null, name: null, classification: null });
+    expect(res).toEqual({
+      banned: false,
+      reason: null,
+      name: null,
+      classification: null,
+      matches: null,
+    });
     expect(mockedAxiosGet).not.toHaveBeenCalled();
   });
 
   it('returns not-banned for an invalid Steam ID without calling the proxy', async () => {
     const res = await getGamersClubBanStatus('not-a-steam-id');
-    expect(res).toEqual({ banned: false, reason: null, name: null, classification: null });
+    expect(res).toEqual({
+      banned: false,
+      reason: null,
+      name: null,
+      classification: null,
+      matches: null,
+    });
     expect(mockedAxiosGet).not.toHaveBeenCalled();
   });
 
@@ -50,6 +62,7 @@ describe('getGamersClubBanStatus', () => {
       reason: null,
       name: 'SomePlayer',
       classification: null,
+      matches: null,
     });
   });
 
@@ -63,7 +76,24 @@ describe('getGamersClubBanStatus', () => {
       reason: 'Punishment',
       name: 'BadPlayer',
       classification: 'other',
+      matches: null,
     });
+  });
+
+  it('parses the match/session count from the proxy payload', async () => {
+    mockedAxiosGet.mockResolvedValueOnce({
+      data: { name: 'ActivePlayer', banned: false, sessions: 1250 },
+    } as never);
+    const res = await getGamersClubBanStatus('76561198000000000');
+    expect(res.matches).toBe(1250);
+  });
+
+  it('treats an invalid/negative session count as null', async () => {
+    mockedAxiosGet.mockResolvedValueOnce({
+      data: { name: 'X', banned: false, sessions: -5 },
+    } as never);
+    const res = await getGamersClubBanStatus('76561198000000000');
+    expect(res.matches).toBeNull();
   });
 
   it('strips a trailing slash from LOCAL_PROXY_URL', async () => {
@@ -81,6 +111,12 @@ describe('getGamersClubBanStatus', () => {
   it('is best-effort on proxy errors', async () => {
     mockedAxiosGet.mockRejectedValueOnce(new Error('proxy down'));
     const res = await getGamersClubBanStatus('76561198000000000');
-    expect(res).toEqual({ banned: false, reason: null, name: null, classification: null });
+    expect(res).toEqual({
+      banned: false,
+      reason: null,
+      name: null,
+      classification: null,
+      matches: null,
+    });
   });
 });

@@ -138,6 +138,57 @@ const extractNameFromProfile = (html: string): string | null => {
   return name;
 };
 
+/**
+ * The profile page shows match counters in "history cards" of the form
+ * `<p class="gc-card-history-text">1419 <span>Partidas</span></p>` — one card per
+ * Lobby/season/mode. The same player can have several such cards (e.g. a CS:GO
+ * lobby and a separate CS2 lobby), so the total match history is the SUM across
+ * all matching cards — NOT the largest one. The label is the text right after
+ * the number (pt: "Partidas", en: "Matches"), so we match on that. Best-effort:
+ * returns the summed counter or null if no card matches — so a markup change
+ * simply turns the signal off without breaking the scrape or the report.
+ */
+// Matches the counter label as a whole word (pt: "Partida"/"Partidas",
+// en: "Match"/"Matches"), so a string like "próxima partida" or "partidas
+// perdidas" (a label, not a total) doesn't count as an activity counter.
+const ACTIVITY_COUNTER_LABEL_REGEX = /\b(partidas?|matches?)\b/i;
+
+const normalizeNumber = (input: string): number | null => {
+  // DEPENDS on the page coming back in pt-BR: the request pins
+  // `Accept-Language: pt-BR,pt;q=0.9,...` (see the proxy call below), so
+  // GamersClub renders pt-BR thousands separators as dots ("2.500"). If that
+  // header ever changes to a locale that uses commas for thousands (e.g.
+  // en-US "1,250"), this pt-BR parse would mis-read "1,250" as 1.25 — keep the
+  // header and this parser in sync. Strip anything non-numeric except . and ,
+  // first (also drops the trailing unit like "Partidas"/"Matches").
+  const cleaned = input.replace(/[^\d.,]/g, '').trim();
+  if (!cleaned) return null;
+
+  const normalized = cleaned.replace(/\./g, '').replace(',', '.');
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parsed;
+};
+
+const extractActivityFromProfile = (html: string): number | null => {
+  const $profile = cheerio.load(html);
+  let totalActivity: number | null = null;
+  let anyMatch = false;
+
+  $profile('.gc-card-history-text').each((_, element) => {
+    const text = $profile(element).text().trim();
+    if (!ACTIVITY_COUNTER_LABEL_REGEX.test(text)) return;
+
+    const value = normalizeNumber(text);
+    if (value === null) return;
+
+    anyMatch = true;
+    totalActivity = (totalActivity ?? 0) + value;
+  });
+
+  return anyMatch && totalActivity !== null ? totalActivity : null;
+};
+
 // GamersClub renders a prominent alert on a punished profile page with the
 // text "MEMBRO BANIDO NA GAMERS CLUB" (pt) / "MEMBER BANNED AT GAMERS CLUB"
 // (en) — the language depends on the Accept-Language header sent in the
@@ -188,6 +239,13 @@ export type GamersClubProfile = {
   name: string | null;
   banned: boolean;
   banReason: string | null;
+  /**
+   * Number of matches/sessions the player has on GamersClub, scraped from the
+   * profile page. Best-effort: null when no recognizable activity counter is
+   * present (or the scrape fails). Used to discount the cheater probability for
+   * players active on this invasive-anti-cheat platform.
+   */
+  sessions: number | null;
 };
 
 /**
@@ -208,7 +266,7 @@ const scrapeGamersClubProfile = async (
     // Confirmed by GamersClub itself that this Steam ID has no profile.
     // Cache the miss so we don't re-scrape it within the TTL.
     setCachedGcName(steamId, null);
-    return { name: null, banned: false, banReason: null };
+    return { name: null, banned: false, banReason: null, sessions: null };
   }
 
   if (lookup.status === 'unknown') {
@@ -243,6 +301,7 @@ const scrapeGamersClubProfile = async (
   const html = profileResponse.data as string;
   const name = extractNameFromProfile(html);
   const { banned, banReason } = extractBanStatus(html);
+  const sessions = extractActivityFromProfile(html);
 
   // The profile page loaded fine but the expected "Nome" field wasn't found.
   // This is ambiguous — could be a genuinely empty field, or GamersClub
@@ -252,7 +311,7 @@ const scrapeGamersClubProfile = async (
     setCachedGcName(steamId, name);
   }
 
-  return { name, banned, banReason };
+  return { name, banned, banReason, sessions };
 };
 
 /**
@@ -306,16 +365,16 @@ const scrapeGamersClubBan = async (
   try {
     const profile = await scrapeGamersClubProfile(steamId);
     return (
-      profile ?? { name: null, banned: false, banReason: null }
+      profile ?? { name: null, banned: false, banReason: null, sessions: null }
     );
   } catch (error) {
     console.error(
       `GamersClub ban scraping error for Steam ID ${steamId}:`,
       getErrorMessage(error),
     );
-    return { name: null, banned: false, banReason: null };
+    return { name: null, banned: false, banReason: null, sessions: null };
   }
 };
 
-export { scrapeGamersClubBan };
+export { scrapeGamersClubBan, scrapeGamersClubProfile };
 export default scrapeGamersClubName;

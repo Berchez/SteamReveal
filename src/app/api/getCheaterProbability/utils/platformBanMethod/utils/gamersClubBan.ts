@@ -11,7 +11,29 @@ export type GamersClubBanStatus = {
   reason: string | null;
   name: string | null;
   classification: BanClassification | null;
+  /**
+   * Matches/sessions the player has on GamersClub (scraped by the proxy from
+   * the profile page). Best-effort: null when unavailable. Used to discount
+   * the cheater probability for players active on this invasive-anti-cheat
+   * platform.
+   */
+  matches: number | null;
 };
+
+/**
+ * Shared "no data / not banned" value (single source of truth for the empty
+ * fallback). Imported by `platformBanMethod/index.ts` for the timeout path so
+ * the wrapper and call sites don't each hand-maintain a duplicate shape.
+ */
+export const gamersClubNotBannedStatus: GamersClubBanStatus = {
+  banned: false,
+  reason: null,
+  name: null,
+  classification: null,
+  matches: null,
+};
+
+const notBanned = (): GamersClubBanStatus => gamersClubNotBannedStatus;
 
 /**
  * Checks whether a Steam ID is banned on GamersClub.
@@ -31,11 +53,11 @@ const getGamersClubBanStatus = async (
   const proxyUrl = process.env.LOCAL_PROXY_URL;
 
   if (!proxyUrl) {
-    return { banned: false, reason: null, name: null, classification: null };
+    return notBanned();
   }
 
   if (!STEAM64_ID_REGEX.test(steamId)) {
-    return { banned: false, reason: null, name: null, classification: null };
+    return notBanned();
   }
 
   try {
@@ -49,23 +71,31 @@ const getGamersClubBanStatus = async (
       banned?: boolean;
       banReason?: string | null;
       name?: string | null;
+      sessions?: number | null;
     } | null;
 
     const banned = Boolean(data?.banned);
     const reason = banned ? (data?.banReason ?? null) : null;
+
+    const rawMatches = data?.sessions;
+    const matches =
+      typeof rawMatches === 'number' && Number.isFinite(rawMatches) && rawMatches >= 0
+        ? rawMatches
+        : null;
 
     return {
       banned,
       reason,
       name: data?.name ?? null,
       classification: banned ? classifyBanReason(reason) : null,
+      matches,
     };
   } catch (error) {
     console.error(
       `getGamersClubBanStatus - error for steamId ${steamId}:`,
       error,
     );
-    return { banned: false, reason: null, name: null, classification: null };
+    return notBanned();
   }
 };
 

@@ -56,6 +56,8 @@
     "platformBannedGamersClub": "Baneado en Gamers Club — fuerte señal de cheater",
     "platformSmurfedFaceit": "Baneado en Faceit por smurf / cuenta secundaria — indica alta habilidad, no trampa",
     "platformSmurfedGamersClub": "Baneado en Gamers Club por smurf / cuenta secundaria — indica alta habilidad, no trampa",
+    "activeOnFaceit": "Activo en FACEIT (anti-cheat más invasivo que VAC)",
+    "activeOnGamersClub": "Activo en Gamers Club (anti-cheat más invasivo que VAC)",
     "badComments": "Recibió comentarios negativos (comentarios de la comunidad)",
     "noBadComments": "Sin comentarios negativos (buena reputación)",
     "highWinrate": "Tasa de victoria superior al {winrate}% (alto rendimiento)",

@@ -67,6 +67,9 @@ jest.mock('./utils/platformBanMethod', () =>
       faceit: { banned: false, reason: null, classification: null },
       gamersClub: { banned: false, reason: null, classification: null },
     },
+    activityDiscount: 0,
+    faceitActive: false,
+    gcActive: false,
   }),
 );
 
@@ -341,5 +344,100 @@ describe('POST /api/getCheaterProbability — Ticket 8 request validation', () =
     expect(res.status).toBe(200);
     expect(data.cheaterProbability).toBe(0.5);
     expect(data.featureObject.platformBanOtherCount).toBe(1);
+  });
+
+  it('reduces the probability by the activity discount for active players', async () => {
+    mockedPlatformBan.mockResolvedValue({
+      score: 0,
+      cheatCount: 0,
+      smurfCount: 0,
+      otherCount: 0,
+      details: {
+        faceit: {
+          banned: false,
+          reason: null,
+          classification: null,
+          matches: 500,
+        },
+        gamersClub: {
+          banned: false,
+          reason: null,
+          classification: null,
+          matches: null,
+        },
+      },
+      activityDiscount: 0.1,
+      faceitActive: true,
+      gcActive: false,
+    });
+
+    const res = await POST(
+      makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+    );
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    // 0.5 - 0.1 activity = 0.4
+    expect(data.cheaterProbability).toBe(0.4);
+    expect(data.featureObject.platformActivityDiscount).toBe(0.1);
+    expect(data.featureObject.faceitActive).toBe(true);
+    expect(data.featureObject.gcActive).toBe(false);
+  });
+
+  it('nets the activity discount against cheat boosts but clamp still applies', async () => {
+    mockedPlatformBan.mockResolvedValue({
+      score: 1,
+      cheatCount: 1,
+      smurfCount: 0,
+      otherCount: 0,
+      details: {
+        faceit: {
+          banned: true,
+          reason: 'Cheating',
+          classification: 'cheat',
+          matches: null,
+        },
+        gamersClub: {
+          banned: false,
+          reason: null,
+          classification: null,
+          matches: 800,
+        },
+      },
+      activityDiscount: 0.1,
+      faceitActive: false,
+      gcActive: true,
+    });
+
+    const res = await POST(
+      makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+    );
+    const data = await res.json();
+
+    // 0.5 + 0.15 (cheat) - 0.1 (GC activity) = 0.55
+    expect(data.cheaterProbability).toBe(0.55);
+  });
+
+  it('exposes activity fields even when the platform result omits them', async () => {
+    mockedPlatformBan.mockResolvedValue({
+      score: 0,
+      cheatCount: 0,
+      smurfCount: 0,
+      otherCount: 0,
+      details: {
+        faceit: { banned: false, reason: null, classification: null },
+        gamersClub: { banned: false, reason: null, classification: null },
+      },
+    });
+
+    const res = await POST(
+      makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+    );
+    const data = await res.json();
+
+    expect(data.cheaterProbability).toBe(0.5);
+    expect(data.featureObject.platformActivityDiscount).toBe(0);
+    expect(data.featureObject.faceitActive).toBe(false);
+    expect(data.featureObject.gcActive).toBe(false);
   });
 });

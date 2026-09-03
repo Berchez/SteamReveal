@@ -29,6 +29,8 @@ const makeTranslator = () => {
     platformBannedGamersClub: 'Banned on Gamers Club',
     platformSmurfedFaceit: 'Banned on FACEIT for smurfing',
     platformSmurfedGamersClub: 'Banned on Gamers Club for smurfing',
+    activeOnFaceit: 'Active on FACEIT',
+    activeOnGamersClub: 'Active on GamersClub',
   };
   return (key: string) => lookup[key] ?? key;
 };
@@ -189,5 +191,88 @@ describe('analyzeCheaterData - platform ban', () => {
       'Banned on Gamers Club for smurfing',
     );
     expect(result.suspicionReasons).not.toContain('Banned on Gamers Club');
+  });
+});
+
+describe('analyzeCheaterData - platform activity', () => {
+  it('adds a Faceit innocence reason when the player is demonstrably active on FACEIT', () => {
+    const result = analyzeCheaterData(
+      makeData(
+        makeFeatureObject({
+          platformActivityDiscount: 0.08,
+          faceitActive: true,
+          gcActive: false,
+        }),
+      ),
+      makeTranslator() as never,
+    );
+
+    expect(result.innocenceReasons).toContain('Active on FACEIT');
+    expect(result.innocenceReasons).not.toContain('Active on GamersClub');
+  });
+
+  it('adds a GamersClub innocence reason when the player is active on GamersClub', () => {
+    const result = analyzeCheaterData(
+      makeData(
+        makeFeatureObject({
+          platformActivityDiscount: 0.05,
+          faceitActive: false,
+          gcActive: true,
+        }),
+      ),
+      makeTranslator() as never,
+    );
+
+    expect(result.innocenceReasons).toContain('Active on GamersClub');
+    expect(result.innocenceReasons).not.toContain('Active on FACEIT');
+  });
+
+  it('adds one innocence reason per platform when active on both', () => {
+    const result = analyzeCheaterData(
+      makeData(
+        makeFeatureObject({
+          platformActivityDiscount: 0.05,
+          faceitActive: true,
+          gcActive: true,
+        }),
+      ),
+      makeTranslator() as never,
+    );
+
+    expect(result.innocenceReasons).toContain('Active on FACEIT');
+    expect(result.innocenceReasons).toContain('Active on GamersClub');
+  });
+
+  it('does NOT add activity reasons when there is no demonstrable activity discount', () => {
+    const result = analyzeCheaterData(
+      makeData(
+        makeFeatureObject({
+          platformActivityDiscount: 0,
+          faceitActive: true,
+          gcActive: true,
+        }),
+      ),
+      makeTranslator() as never,
+    );
+
+    expect(result.innocenceReasons).not.toContain('Active on FACEIT');
+    expect(result.innocenceReasons).not.toContain('Active on GamersClub');
+  });
+
+  it('suppresses activity reasons when the outcome is HIGHLY_SUSPECT', () => {
+    const result = analyzeCheaterData(
+      makeData(
+        makeFeatureObject({
+          platformActivityDiscount: 0.08,
+          faceitActive: true,
+          gcActive: false,
+        }),
+        0.9,
+      ),
+      makeTranslator() as never,
+    );
+
+    expect(result.outcome).toBe('highlySuspect');
+    expect(result.innocenceReasons).toHaveLength(0);
   });
 });

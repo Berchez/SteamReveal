@@ -440,11 +440,230 @@ describe('scrapeGamersClubBan', () => {
     expect(ban.banReason).toBeNull();
   });
 
+  it('extracts the session/match counter (pt: Partidas) as `sessions`', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - aaaa - Player</title>
+          <div class="gc-list-item">
+            <h6 class="gc-list-title">Nome</h6>
+            <p class="gc-list-text">aaaa</p>
+          </div>
+          <div class="gc-card-history">
+            <h4 class="gc-card-history-title">Lobby</h4>
+            <div class="gc-card-history-content">
+              <p class="gc-card-history-text">1.250 <span>Partidas</span></p>
+            </div>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.banned).toBe(false);
+    expect(ban.name).toBe('aaaa');
+    expect(ban.sessions).toBe(1250);
+  });
+
+  it('extracts the session counter (en: Matches) as `sessions`', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - bbbb - Player</title>
+          <div class="gc-card-history">
+            <h4 class="gc-card-history-title">Lobby</h4>
+            <div class="gc-card-history-content">
+              <p class="gc-card-history-text">75 <span>Matches</span></p>
+            </div>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.sessions).toBe(75);
+  });
+
+  it('sums the counters across all history cards (e.g. sequential CS:GO + CS2 lobbies)', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - dddd - Player</title>
+          <div class="gc-card-history">
+            <h4 class="gc-card-history-title">19 a 21</h4>
+            <div class="gc-card-history-content">
+              <p class="gc-card-history-text">3 <span>Partidas</span></p>
+            </div>
+          </div>
+          <div class="gc-card-history">
+            <h4 class="gc-card-history-title">Lobby</h4>
+            <div class="gc-card-history-content">
+              <p class="gc-card-history-text">2.500 <span>Partidas</span></p>
+            </div>
+          </div>
+          <div class="gc-card-history">
+            <h4 class="gc-card-history-title">Pro</h4>
+            <div class="gc-card-history-content">
+              <p class="gc-card-history-text">92 <span>Partidas</span></p>
+            </div>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.sessions).toBe(2595); // 3 + 2500 + 92 (sum, not max)
+  });
+
+  it('matches the counter label as a whole word (and singular "Partida")', async () => {
+    // The regex matches "Partida"/"Partidas" as whole words, so a card whose
+    // label is singular "1 Partida" still counts.
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - sng - Player</title>
+          <div class="gc-card-history">
+            <h4 class="gc-card-history-title">Lobby</h4>
+            <div class="gc-card-history-content">
+              <p class="gc-card-history-text">1 <span>Partida</span></p>
+            </div>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.sessions).toBe(1);
+  });
+
+  it('does NOT treat a longer word containing "partida" as a counter (whole-word guard)', async () => {
+    // Sanity-check the whole-word regex: a word like "partidaria" embeds the
+    // substring "partida" but is NOT the counter word "Partida(s)". The old
+    // `.includes('partida')` would have counted it as a match; `\bpartidas?\b`
+    // correctly rejects it (no word boundary after "partida" before "ria").
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - lbl2 - Player</title>
+          <div class="gc-card-history">
+            <h4 class="gc-card-history-title">Histórico (partidaria)</h4>
+            <div class="gc-card-history-content">
+              <p class="gc-card-history-text">100 <span>partidaria</span></p>
+            </div>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.sessions).toBeNull();
+  });
+
+  it('regression: sums two identical Lobby cards (CS:GO 15 + CS2 6 = 21)', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - eeee - Player</title>
+          <div class="gc-card-history">
+            <h4 class="gc-card-history-title">Lobby</h4>
+            <div class="gc-card-history-content">
+              <p class="gc-card-history-text">6 <span>Partidas</span></p>
+            </div>
+          </div>
+          <div class="gc-card-history">
+            <h4 class="gc-card-history-title">Lobby</h4>
+            <div class="gc-card-history-content">
+              <p class="gc-card-history-text">15 <span>Partidas</span></p>
+            </div>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.sessions).toBe(21); // 15 + 6
+  });
+
+  it('sets sessions null when the profile has no recognizable activity counter', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <title>Gamers Club - cccc - Player</title>
+          <div class="gc-list-item">
+            <h6 class="gc-list-title">Nome</h6>
+            <p class="gc-list-text">cccc</p>
+          </div>
+          <div class="gc-list-item">
+            <h6 class="gc-list-title">Vitórias</h6>
+            <p class="gc-list-text">10</p>
+          </div>
+        `,
+      });
+
+    const ban = await scrapeGamersClubBan(STEAM_ID);
+
+    expect(ban.sessions).toBeNull();
+  });
+
   it('is best-effort and returns not-banned on scrape errors', async () => {
     mockedAxios.get.mockRejectedValue(makeAxiosError(403));
 
     const ban = await scrapeGamersClubBan(STEAM_ID);
 
-    expect(ban).toEqual({ name: null, banned: false, banReason: null });
+    expect(ban).toEqual({
+      name: null,
+      banned: false,
+      banReason: null,
+      sessions: null,
+    });
   });
 });

@@ -128,10 +128,14 @@ export async function POST(req: Request) {
 //
 //  3. platformBanMethod/faceitBans (getFaceitBanStatus)
 //                                                    → FACEIT Open Data API
-//       · 2 sequential calls per player (players resolve + players/:id/bans).
+//       · 4 calls per player, two stages: first resolve the player (one call),
+//         then the remaining three — /bans + stats/cs2 + stats/csgo — fire in
+//         parallel. The two stats calls sum `segments[].stats.Matches` counters
+//         to discount cheater probability for active players (the profile total).
 //       · FACEIT is strict with free keys; each lookup needs the bearer token.
-//       · Failures are swallowed (resolves to banned:false).
-//       · MONITOR: player/bans 403/429. Needs a valid FACEIT_API_KEY at high
+//       · Failures are swallowed (resolves to banned:false / matches:null); a
+//         `/bans` failure no longer discards the match-count that resolved fine.
+//       · MONITOR: player/bans/stats 403/429. Needs a valid FACEIT_API_KEY at high
 //         search volume.
 //
 //  4. badCommentsMethod (getBadCommentsScore)    → STEAMCOMMUNITY scrape
@@ -144,7 +148,12 @@ export async function POST(req: Request) {
 //  5. platformBanMethod/gamersClubBan (getGamersClubBanStatus)
 //                                                     → GC LOCAL PROXY
 //       · GET LOCAL_PROXY_URL/api/gamersclub/:steamId?includeBan=true — the
-//         proxy scrapes gamersclub.gg with GAMERSCLUB_SESSION_COOKIE.
+//         proxy scrapes gamersclub.gg with GAMERSCLUB_SESSION_COOKIE and returns
+//         name, ban status AND the scraped match/session count (activity that
+//         discounts the cheater probability). The count is the SUM of the
+//         `.gc-card-history-text` counters on the profile (one card per
+//         lobby/mode/season); a page/markup change that stops them being parsed
+//         simply yields matches:null (the discount silently turns off) — watch for it.
 //       · The proxy is the single throttle point; a stale/rotated session
 //         cookie or cloudflared tunnel churn converts to 403/timeouts.
 //       · MONITOR: proxy reachability + session-cookie freshness (indirect, not
@@ -249,6 +258,9 @@ export async function POST(req: Request) {
       platformBanSmurfCount: platformBanResult.smurfCount,
       platformBanOtherCount: platformBanResult.otherCount,
       platformBanDetails: platformBanResult.details,
+      platformActivityDiscount: platformBanResult.activityDiscount ?? 0,
+      faceitActive: platformBanResult.faceitActive ?? false,
+      gcActive: platformBanResult.gcActive ?? false,
     };
 
     const flaskResponse = await axios.post(
@@ -271,14 +283,24 @@ export async function POST(req: Request) {
     //   - cheat  (e.g. GamersClub Anti-Cheat): +0.15 per platform, cap 0.95.
     //   - smurf  (secondary account / smurf): -0.10 per platform, floor 0.
     //   - other  (unknown/non-cheat/non-smurf): neutral.
+    //
+    // A separate post-model signal REDUCES the probability for players who are
+    // demonstrably active on a platform whose anti-cheat is more invasive than
+    // Valve's VAC (FACEIT/GamersClub): a player who grinds matches there is far
+    // less likely to be running cheats. This `activityDiscount` is the sum of
+    // each platform's capped discount, and it is cancelled for any platform
+    // where the player is already banned for cheating ("ban wins").
     const CHEAT_PLATFORM_BOOST = 0.15;
     const SMURF_PROBABILITY_PENALTY = 0.1;
     const MAX_CHEATER_PROBABILITY = 0.95;
     const MIN_CHEATER_PROBABILITY = 0;
 
+    const activityDiscount = platformBanResult.activityDiscount ?? 0;
+
     const probabilityAdjustment =
       platformBanResult.cheatCount * CHEAT_PLATFORM_BOOST -
-      platformBanResult.smurfCount * SMURF_PROBABILITY_PENALTY;
+      platformBanResult.smurfCount * SMURF_PROBABILITY_PENALTY -
+      activityDiscount;
 
     // Round to 2 decimals: the boost/penalty terms are multiples of 0.1/0.15
     // but summing them in floats can accumulate representation error once more

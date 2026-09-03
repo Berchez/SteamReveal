@@ -159,6 +159,25 @@ const analyzeCheaterData = (
     // else: all-other bans stay neutral (no reason added).
   }
 
+  // Demonstrable activity on an invasive-anticheat platform (FACEIT / GamersClub).
+  // The more a player plays on a platform whose anti-cheat is stronger than
+  // Valve's VAC, the less likely they are to be a cheater (see the post-model
+  // platformActivityDiscount). We surface it as an innocence factor when the
+  // backend flagged them as demonstrably active.
+  const { platformActivityDiscount, faceitActive, gcActive } = featureObject;
+  // Note: unlike the signals below (which use -1/NaN/undefined via `addReason`
+  // to mean "no data"), `platformActivityDiscount` uses 0 as a REAL value — a
+  // player with no activity genuinely gets a 0 discount, not an absent/missing
+  // one. So we gate on `> 0` directly instead of routing it through `addReason`.
+  if ((platformActivityDiscount ?? 0) > 0) {
+    if (faceitActive) {
+      innocenceReasons.push(translator('activeOnFaceit'));
+    }
+    if (gcActive) {
+      innocenceReasons.push(translator('activeOnGamersClub'));
+    }
+  }
+
   // Account Age
   if (featureObject.accountAge !== undefined) {
     addReason({

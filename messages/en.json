@@ -56,6 +56,8 @@
     "platformBannedGamersClub": "Banned on Gamers Club — strong cheating signal",
     "platformSmurfedFaceit": "Banned by FACEIT for smurfing — indicates high skill, not cheating.",
     "platformSmurfedGamersClub": "Banned by GamersClub for smurfing — indicates high skill, not cheating.",
+    "activeOnFaceit": "Active on FACEIT (anti-cheat more invasive than VAC)",
+    "activeOnGamersClub": "Active on GamersClub (anti-cheat more invasive than VAC)",
     "badComments": "Received negative comments (community feedback)",
     "noBadComments": "No negative comments (good reputation)",
     "highWinrate": "Win rate above {winrate}% (high performance)",

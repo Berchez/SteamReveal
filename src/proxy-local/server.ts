@@ -60,6 +60,7 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
     let name: string | null = null;
     let banned = false;
     let banReason: string | null = null;
+    let sessions: number | null = null;
 
     // The cheater-report flow passes includeBan=true so it always gets a fresh
     // profile scrape with the punishment status. That single scrape drives both
@@ -73,6 +74,7 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
       name = banProfile.name;
       banned = banProfile.banned;
       banReason = banProfile.banReason;
+      sessions = banProfile.sessions;
     } else {
       name = await scrapeGamersClubName(steamId, allowScrape);
     }
@@ -82,6 +84,7 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
       name,
       banned,
       banReason,
+      sessions,
     });
   } catch (error) {
     console.error(
