@@ -101,6 +101,81 @@ export async function POST(req: Request) {
       STEAM_CALL_TIMEOUT_MS,
     );
 
+    // ─────────────────────────────────────────────────────────────────────────────
+// RATE-LIMIT / "Too Many Requests" (429) WATCHLIST — which helpers hit which
+// external source, how fragile each one is, and what to monitor.
+//
+// One request to this route fires MANY external calls in parallel (the
+// Promise.all below). The helpers below are the ones most prone to returning
+// 'Too Many Requests' / 'Rate Limit' — in rough order of severity:
+//
+//  1. csStats (getCsStats)                       → LEETIFY (public no-auth)
+//       · 2 concurrent calls: api-public.cs-prod.leetify.com/v3/profile
+//         + api.cs-prod.leetify.com/api/profile/id/:id.
+//       · Rate-limits HARD when LEETIFY_API_KEY is absent (sharedHeaders
+//         becomes undefined → unauthenticated traffic shares a global bucket).
+//       · Failures are swallowed silently (returns null) — easy to miss.
+//       · MONITOR: Leetify network errors; consider setting LEETIFY_API_KEY.
+//
+//  2. inventoryMethod (getInventoryScore)        → STEAMCOMMUNITY scrape
+//       · GET steamcommunity.com/inventory/:id/730/2 — 1+ requests when the
+//         inventory is paginated (more_items), with 1.5s sleep between pages.
+//       · Already handles 429 with exponential-backoff retry (see
+//         steamInventory.ts), but 5 retries × 2s cap is easy to starve under
+//         load. Needs a real IP / no aggressive shared-IP traffic.
+//       · MONITOR: '429 detected. Retrying' warns and 'Too many requests (429).
+//         Retry limit reached.' exceptions (score silently becomes -1).
+//
+//  3. platformBanMethod/faceitBans (getFaceitBanStatus)
+//                                                    → FACEIT Open Data API
+//       · 2 sequential calls per player (players resolve + players/:id/bans).
+//       · FACEIT is strict with free keys; each lookup needs the bearer token.
+//       · Failures are swallowed (resolves to banned:false).
+//       · MONITOR: player/bans 403/429. Needs a valid FACEIT_API_KEY at high
+//         search volume.
+//
+//  4. badCommentsMethod (getBadCommentsScore)    → STEAMCOMMUNITY scrape
+//       · GET steamcommunity.com/comment/Profile/render/:id?count=200 (Cheerio).
+//       · Unauthenticated, IP-fate-limited like any steamcommunity scrape; the
+//         response HTML may silently degrade when throttled.
+//       · Failure → catch inside helper returns -1 (silent).
+//       · MONITOR: render/:id non-2xx and empty comment bodies.
+//
+//  5. platformBanMethod/gamersClubBan (getGamersClubBanStatus)
+//                                                     → GC LOCAL PROXY
+//       · GET LOCAL_PROXY_URL/api/gamersclub/:steamId?includeBan=true — the
+//         proxy scrapes gamersclub.gg with GAMERSCLUB_SESSION_COOKIE.
+//       · The proxy is the single throttle point; a stale/rotated session
+//         cookie or cloudflared tunnel churn converts to 403/timeouts.
+//       · MONITOR: proxy reachability + session-cookie freshness (indirect, not
+//         usually a literal 429, but kills the signal silently).
+//
+//  MÉDIO (official Steam Web API, tolerates more, still not a blank check):
+//   · bannedFriendsMethod → steam.getUserBans(steamIDs) — ONE batched call per
+//     request but with up to MAX_CLOSE_FRIENDS (100) steamIDs in the payload.
+//   · gameLibraryStatsMethod → steam.getUserOwnedGames (full library fetch).
+//   · route: steam.resolve / steam.getUserLevel / steam.getUserSummary.
+//
+//  ROUTE-LEVEL backstop: this route has its own in-route rate limiter
+//  (RATE_LIMIT_WINDOW_MS=30s, RATE_LIMIT_MAX=5 per IP) which returns 429 before
+//  any external call — it protects OUR backend from abuse, NOT the downstream
+//  providers. When Vercel/Steam/FACEIT/Leetify start throttling, this route
+//  degrades gracefully (features become -1 / null) rather than erroring loudly,
+//  so the FIRST sign of trouble is usually a score that starts looking
+//  suspiciously uniform, not an error page.
+//
+// General monitoring tips:
+//   · Grep Vercel logs for the console.error strings above (e.g. '429 detected.
+//     Retrying', 'getBadCommentsScore - Internal server Error',
+//     'Error getting game library stats', 'Error fetching bans for close
+//     friends', 'getFaceitBanStatus - error', 'getGamersClubBanStatus - error').
+//   · If a single search comes back 0/empty on several features WHILE 429s
+//     are present in the logs, assume provider throttling (not a code bug).
+//   · Keep LEETIFY_API_KEY + FACEIT_API_KEY set, keep GAMERSCLUB_SESSION_COOKIE
+//     fresh, and consider tightening/reducing the parallel fan-out if the site
+//     goes global.
+// ─────────────────────────────────────────────────────────────────────────────
+
     const [
       badCommentsScore,
       bannedFriendsResult,

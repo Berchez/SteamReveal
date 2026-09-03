@@ -82,7 +82,9 @@
     "highSteamLevel": "High Steam level (Level {level}, sign of investment)",
     "lowSteamLevel": "Low Steam level (Level {level}, typical of disposable accounts)",
     "manyGames": "Large library ({count} games owned)",
-    "fewGames": "Small library ({count} games, possible secondary account)"
+    "fewGames": "Small library ({count} games, possible secondary account)",
+    "reportFailedToLoad": "We couldn't calculate the cheater probability right now. Please try again.",
+    "retry": "Try again"
   },
   "SupportedFormatsSection": {
     "steamID64Desc": "Unique 64-bit Steam ID.",

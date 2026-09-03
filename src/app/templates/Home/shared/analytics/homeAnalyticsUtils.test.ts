@@ -6,6 +6,8 @@ import {
   getRequesterBrowserLanguage,
   recordAnalytics,
   getAnalyticsSkipHeaders,
+  getGamesSnapshot,
+  isCounterStrikeActive,
 } from './homeAnalyticsUtils';
 
 jest.mock('axios');
@@ -30,6 +32,102 @@ function makeFriend(steamID: string, extra: Record<string, unknown> = {}) {
     probability: 80,
   } as any;
 }
+
+describe('getGamesSnapshot', () => {
+  it('reads the nested `game.name`, converts playtime to hours, and sorts desc', () => {
+    const games = [
+      { game: { name: 'Dota 2' }, minutes: 600 }, // 10h
+      { game: { name: 'CS2' }, minutes: 120 }, // 2h
+      { game: { name: 'TF2' }, minutes: 300 }, // 5h
+    ];
+    const result = getGamesSnapshot(games as never);
+
+    expect(result.map((g) => g.name)).toEqual(['Dota 2', 'TF2', 'CS2']);
+    expect(result[0].playtimeHours).toBe(10);
+    expect(result[1].playtimeHours).toBe(5);
+    expect(result[2].playtimeHours).toBe(2);
+  });
+
+  it('falls back to a top-level `name` and `playtime_forever` when the nested shape is absent', () => {
+    const games = [
+      { name: 'Witcher 3', playtime_forever: 240 }, // 4h
+      { game: { name: 'Portal' }, minutes: 60 }, // 1h
+    ];
+    const result = getGamesSnapshot(games as never);
+
+    expect(result.map((g) => g.name)).toEqual(['Witcher 3', 'Portal']);
+    expect(result[0].playtimeHours).toBe(4);
+  });
+
+  it('drops entries with a non-string name instead of coercing them', () => {
+    const games = [
+      { game: { name: 12345 }, minutes: 600 },
+      { name: null, minutes: 300 },
+      { game: { name: 'Playable' }, minutes: 60 },
+    ];
+    const result = getGamesSnapshot(games as never);
+
+    expect(result.map((g) => g.name)).toEqual(['Playable']);
+  });
+
+  it('returns [] for undefined/empty input', () => {
+    expect(getGamesSnapshot(undefined)).toEqual([]);
+    expect(getGamesSnapshot([])).toEqual([]);
+  });
+});
+
+describe('isCounterStrikeActive', () => {
+  it('returns false for undefined / empty game lists', () => {
+    expect(isCounterStrikeActive(undefined)).toBe(false);
+    expect(isCounterStrikeActive([])).toBe(false);
+  });
+
+  it('returns true when a Counter-Strike game has >= 300h played', () => {
+    expect(
+      isCounterStrikeActive([
+        { name: 'Counter-Strike 2', playtimeHours: 300 },
+        { name: 'Dota 2', playtimeHours: 900 },
+      ]),
+    ).toBe(true);
+  });
+
+  it('returns true when Counter-Strike is the top-playtime game even under 300h', () => {
+    // CS is not >= 300h, but it is the most-played game — the cost gate treats
+    // an active CS family as worth the expensive cheater pipeline.
+    expect(
+      isCounterStrikeActive([
+        { name: 'Counter-Strike 2', playtimeHours: 120 },
+        { name: 'Valheim', playtimeHours: 80 },
+      ]),
+    ).toBe(true);
+  });
+
+  it('returns false when CS exists but is neither >= 300h nor the top game', () => {
+    // Precondition (documented): the list is sorted by playtime desc, exactly
+    // as getGamesSnapshot emits it — otherwise the "top game" branch is moot.
+    expect(
+      isCounterStrikeActive([
+        { name: 'Elden Ring', playtimeHours: 500 },
+        { name: 'Counter-Strike 2', playtimeHours: 20 },
+      ]),
+    ).toBe(false);
+  });
+
+  it('returns false when no Counter-Strike game is present at all', () => {
+    expect(
+      isCounterStrikeActive([
+        { name: 'Dota 2', playtimeHours: 400 },
+        { name: 'Rocket League', playtimeHours: 30 },
+      ]),
+    ).toBe(false);
+  });
+
+  it('is case-insensitive against the game name', () => {
+    expect(
+      isCounterStrikeActive([{ name: 'counter-strike: global offensive', playtimeHours: 400 }]),
+    ).toBe(true);
+  });
+});
 
 describe('getAnalyticsSkipHeaders', () => {
   const originalLocalStorage = window.localStorage;

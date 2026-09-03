@@ -82,7 +82,9 @@
     "highSteamLevel": "Nível Steam alto (Nível {level}, sinal de investimento)",
     "lowSteamLevel": "Nível Steam baixo (Nível {level}, típico de contas descartáveis)",
     "manyGames": "Biblioteca extensa ({count} jogos na conta)",
-    "fewGames": "Biblioteca pequena ({count} jogos, possível conta secundária)"
+    "fewGames": "Biblioteca pequena ({count} jogos, possível conta secundária)",
+    "reportFailedToLoad": "Não foi possível calcular a probabilidade de cheater agora. Tente novamente.",
+    "retry": "Tentar novamente"
   },
   "SupportedFormatsSection": {
     "steamID64Desc": "ID Steam único de 64 bits.",

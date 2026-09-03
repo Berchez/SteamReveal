@@ -7,6 +7,11 @@ import withTimeout, { SteamCallTimeoutError } from '@/lib/withTimeout';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import logRouteError from '@/lib/logRouteError';
 import isSteamResolveFormatError from '@/lib/isSteamResolveFormatError';
+import {
+  CS_ACTIVE_ENRICHMENT_TIMEOUT_MS,
+  getGamesSnapshot,
+  isCounterStrikeActive,
+} from '@/app/templates/Home/shared/analytics/homeAnalyticsUtils';
 
 export const revalidate = 0;
 
@@ -24,63 +29,6 @@ const STEAM_CALL_TIMEOUT_MS = 8000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 20;
 const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
-
-type SteamOwnedGameLike = {
-  name?: string;
-  playtime_forever?: number;
-  playtimeForever?: number;
-  minutes?: number;
-  game?: {
-    name?: string;
-    playtimeForever?: number;
-  };
-};
-
-const getGamesSnapshot = (
-  games: SteamOwnedGameLike[] | undefined,
-): Array<{ name: string; playtimeHours: number }> => {
-  if (!Array.isArray(games) || games.length === 0) {
-    return [];
-  }
-
-  return games
-    .map((game) => {
-      const name =
-        typeof game?.game?.name === 'string' ? game.game.name : game?.name ?? '';
-      const playtimeForever = Number(
-        game?.playtime_forever ?? game?.playtimeForever ?? game?.minutes ?? 0,
-      );
-      const playtimeHours =
-        Number.isFinite(playtimeForever) && playtimeForever > 0
-          ? playtimeForever / 60
-          : 0;
-
-      return {
-        name,
-        playtimeHours: Number((Math.round(playtimeHours * 10) / 10).toFixed(1)),
-      };
-    })
-    .filter((game) => game.name)
-    .sort((a, b) => b.playtimeHours - a.playtimeHours);
-};
-
-const isCounterStrikeActive = (
-  games: Array<{ name: string; playtimeHours: number }> | undefined,
-): boolean => {
-  if (!games || games.length === 0) {
-    return false;
-  }
-
-  const csGame = games.find((game) =>
-    game.name.toLowerCase().includes('counter-strike'),
-  );
-
-  if (csGame && csGame.playtimeHours >= 300) {
-    return true;
-  }
-
-  return games[0]?.name.toLowerCase().includes('counter-strike') ?? false;
-};
 
 export async function POST(req: Request) {
   if (req.method !== 'POST') {
@@ -140,6 +88,34 @@ export async function POST(req: Request) {
       STEAM_CALL_TIMEOUT_MS,
     );
 
+    // The owned-games enrichment is optional (it only feeds the CS-active +
+    // analytics cost gate) and can be slow for large libraries due to
+    // `includeAppInfo: true`, so it fires in parallel with the summary and is
+    // bounded by a short dedicated timeout — it must never hold up the
+    // user-card response that drives LCP/CLS.
+    let ownedGamesPromise:
+      | Promise<
+          | Array<{ name?: string; playtime_forever?: number; minutes?: number }>
+          | null
+        >
+      | undefined;
+    if (typeof steam.getUserOwnedGames === 'function') {
+      ownedGamesPromise = withTimeout(
+        steam.getUserOwnedGames(targetSteamId, { includeAppInfo: true }),
+        'getUserInfo: steam.getUserOwnedGames',
+        CS_ACTIVE_ENRICHMENT_TIMEOUT_MS,
+      ).catch((error) => {
+        // Best effort: a failure here must never fail the profile fetch. It
+        // only leaves isCSActive/gamesSnapshot off the response (the prefetch
+        // gate treats unknown as "don't spend"). Still log it so rate-limit /
+        // provider issues on the enrichment are observable rather than silent.
+        logRouteError('getUserInfo: steam.getUserOwnedGames', error, {
+          targetSteamId,
+        });
+        return null;
+      });
+    }
+
     const targetInfo = await withTimeout(
       steam.getUserSummary(targetSteamId),
       'getUserInfo: steam.getUserSummary',
@@ -150,36 +126,13 @@ export async function POST(req: Request) {
       return errorResponse('Invalid target.', 400, 'INVALID_REQUEST');
     }
 
-    if (typeof steam.getUserOwnedGames === 'function') {
-      try {
-        const games = await withTimeout(
-          steam.getUserOwnedGames(targetSteamId),
-          'getUserInfo: steam.getUserOwnedGames',
-          STEAM_CALL_TIMEOUT_MS,
-        );
-
-        const gamesSnapshot = getGamesSnapshot(
-          Array.isArray(games)
-            ? games.map((game) => {
-                const normalizedGame = game as SteamOwnedGameLike;
-                return {
-                  name: normalizedGame?.game?.name ?? normalizedGame?.name ?? '',
-                  playtime_forever:
-                    normalizedGame?.minutes ?? normalizedGame?.playtimeForever ?? 0,
-                };
-              })
-            : [],
-        );
-
+    if (ownedGamesPromise) {
+      const games = await ownedGamesPromise;
+      if (games) {
+        const gamesSnapshot = getGamesSnapshot(games);
         Object.assign(targetInfo, {
           gamesSnapshot,
           isCSActive: isCounterStrikeActive(gamesSnapshot),
-        });
-      } catch (error) {
-        // Best effort: do not fail the profile fetch if the library call for
-        // owned games is unavailable, restricted, or temporarily flaky.
-        logRouteError('getUserInfo: steam.getUserOwnedGames', error, {
-          targetSteamId,
         });
       }
     }

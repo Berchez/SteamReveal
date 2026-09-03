@@ -4,8 +4,9 @@ import { CheaterDataType } from '@/@types/cheaterDataType';
 import { isLoadingType } from '@/@types/isLoadingType';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import { locationDataIWant } from '@/@types/locationDataIWant';
-import targetInfoJsonType from '@/@types/targetInfoJsonType';
-import { UserSummary } from 'steamapi';
+import targetInfoJsonType, {
+  EnrichedUserSummary,
+} from '@/@types/targetInfoJsonType';
 
 // Split in two: state changes on almost every fetch tick, actions are
 // stable references (wrapped in useCallback in useHome.ts). Consumers that
@@ -21,16 +22,19 @@ interface HomeDataContextType {
   hasNoDataYet: boolean;
   showSponsorMe: boolean;
   cheaterData: CheaterDataType | undefined;
+  cheaterError: boolean;
   showSupportMe: boolean;
+  isReportOpen: boolean;
 }
 
 interface HomeActionsContextType {
   onChangeTarget: (value: string) => void;
   onCloseSponsorMe: (days: number) => void;
   onCloseSupportMe: (days: number) => void;
-  getCheaterProbability: () => Promise<CheaterDataType | null>;
+  openCheaterReport: () => void;
+  retryCheaterReport: () => void;
   navigateToPlayer: (steamId: string) => void;
-  seedInitialProfile: (profile: UserSummary | undefined) => void;
+  seedInitialProfile: (profile: EnrichedUserSummary | undefined) => void;
 }
 
 export const HomeDataContext = createContext<HomeDataContextType | null>(null);

@@ -112,6 +112,9 @@ function makeTargetInfo(steamID: string) {
     stateCode: undefined,
     cityID: undefined,
     url: `https://steamcommunity.com/id/${steamID}`,
+    // Mirrors /api/getUserInfo enriching profileInfo via Object.assign — kept
+    // true so the cheater prefetch (gated on isCSActive) fires in these tests.
+    isCSActive: true,
   };
 }
 
@@ -193,7 +196,11 @@ describe('useHome — behavioral risk scenarios', () => {
         },
         closeFriendsJson: makeCloseFriends('cached-friend'),
         possibleLocationJson: [],
-        cheaterData: undefined,
+        // A completed cheater report is part of the cached search — with one
+        // present, the auto-prefetch correctly skips (nothing to fetch), which
+        // is exactly what the "skips getCheaterProbability" assertion below
+        // pins down.
+        cheaterData: { cheaterProbability: 42, featureObject: {} } as any,
         searchId: 'cached-search-id',
       };
 
@@ -401,6 +408,261 @@ describe('useHome — behavioral risk scenarios', () => {
       expect(result.current.closeFriendsJson).toBeUndefined();
       expect(result.current.possibleLocationJson).toBeUndefined();
       expect(result.current.cheaterData).toBeUndefined();
+    });
+  });
+
+  // -------------------------------------------------------------------
+  // Case 5 — opening the cheater report attaches the analytics event
+  // -------------------------------------------------------------------
+  describe('Case 5: openCheaterReport fires recordAnalyticsCheater on click', () => {
+    // A cache-hit search is the deterministic setup here: the cached record
+    // carries both `searchId` (which becomes lastSearchIdRef.current) and the
+    // already-prefetched `cheaterData`, so opening the report has everything
+    // it needs to attach the analytics event — no reliance on the async
+    // recordAnalytics network flow.
+    function makeCachedWithCheater(searchId: string) {
+      return {
+        targetInfoJson: {
+          profileInfo: makeTargetInfo('cached-report-id'),
+          targetLocationInfo: {
+            country: undefined,
+            state: undefined,
+            city: undefined,
+          },
+        },
+        closeFriendsJson: makeCloseFriends('cached-friend'),
+        possibleLocationJson: [],
+        cheaterData: { cheaterProbability: 42, featureObject: {} } as any,
+        searchId,
+      };
+    }
+
+    it('attaches the cheater probability to the active search when the report is opened', async () => {
+      mockUseParams.mockReturnValue({ steamId: 'cached-report-id' });
+      mockGetCachedSearch.mockReturnValue(makeCachedWithCheater('cached-search-123'));
+
+      const { result } = renderHook(() => useHome());
+
+      await waitFor(() => {
+        expect(result.current.cheaterData).toBeDefined();
+      });
+
+      act(() => {
+        result.current.openCheaterReport();
+      });
+
+      expect(result.current.isReportOpen).toBe(true);
+
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        '/api/recordAnalyticsCheater',
+        expect.objectContaining({
+          searchId: 'cached-search-123',
+          score: 42,
+          bannedFriendsCount: 0,
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('opens the report once and does not re-attach analytics on repeat clicks', async () => {
+      mockUseParams.mockReturnValue({ steamId: 'cached-report-id' });
+      mockGetCachedSearch.mockReturnValue(makeCachedWithCheater('cached-search-999'));
+
+      const { result } = renderHook(() => useHome());
+
+      await waitFor(() => {
+        expect(result.current.cheaterData).toBeDefined();
+      });
+
+      act(() => {
+        result.current.openCheaterReport();
+      });
+      act(() => {
+        result.current.openCheaterReport();
+      });
+
+      expect(result.current.isReportOpen).toBe(true);
+
+      // Only the first open triggers the analytics attach + monetization.
+      const attachCalls = (
+        mockedAxios.post as jest.Mock
+      ).mock.calls.filter(
+        ([url]: [string]) => url === '/api/recordAnalyticsCheater',
+      );
+      expect(attachCalls).toHaveLength(1);
+      expect(handleShowSupportMe).toHaveBeenCalledWith(3);
+    });
+
+    it('still attaches the analytics when the user clicks BEFORE the cheater prefetch has returned', async () => {
+      mockUseParams.mockReturnValue({ steamId: 'early-click-id' });
+      mockGetCachedSearch.mockReturnValue(undefined);
+
+      // Keep the cheater prefetch pending so we can open the report first,
+      // then deliver the data afterwards — the ordering that a naive
+      // click-time-only implementation would miss.
+      let resolveCheater: (v: any) => void = () => {};
+      (mockedAxios.post as jest.Mock).mockImplementation(
+        (url: string, body?: any) => {
+          if (url === '/api/getCheaterProbability') {
+            return new Promise((resolve) => {
+              resolveCheater = resolve;
+            });
+          }
+          if (url === '/api/recordAnalytics') {
+            return Promise.resolve({ data: { id: 'early-search-id' } });
+          }
+          return defaultAxiosPostImpl(url, body);
+        },
+      );
+
+      const { result } = renderHook(() => useHome());
+
+      // Wait until the profile is loaded and lastSearchIdRef is populated,
+      // but the cheater prefetch is still pending.
+      await waitFor(() => {
+        expect(result.current.targetInfoJson?.profileInfo.steamID).toBe(
+          'early-click-id',
+        );
+      });
+
+      // User clicks before the cheater data arrives.
+      act(() => {
+        result.current.openCheaterReport();
+      });
+      expect(result.current.isReportOpen).toBe(true);
+
+      // The cheater prefetch then resolves with the real data.
+      await act(async () => {
+        resolveCheater({
+          data: { cheaterProbability: 77, featureObject: {} },
+        });
+        await Promise.resolve();
+      });
+
+      // The analytics event must still fire once the data lands.
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        '/api/recordAnalyticsCheater',
+        expect.objectContaining({
+          searchId: 'early-search-id',
+          score: 77,
+          bannedFriendsCount: 0,
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('still attaches the analytics when the searchId arrives AFTER the cheater data', async () => {
+      mockUseParams.mockReturnValue({ steamId: 'late-search-id' });
+      mockGetCachedSearch.mockReturnValue(undefined);
+
+      // Hold /api/recordAnalytics (which produces the searchId) pending while
+      // the cheater prefetch resolves immediately. This is the ordering that a
+      // reactive-on-a-ref effect would silently miss: by the time the searchId
+      // lands, nothing else re-triggers the attach.
+      let resolveAnalytics: (v: any) => void = () => {};
+      (mockedAxios.post as jest.Mock).mockImplementation(
+        (url: string, body?: any) => {
+          if (url === '/api/recordAnalytics') {
+            return new Promise((resolve) => {
+              resolveAnalytics = resolve;
+            });
+          }
+          return defaultAxiosPostImpl(url, body);
+        },
+      );
+
+      const { result } = renderHook(() => useHome());
+
+      // The cheater prefetch resolves first (defaultAxiosPostImpl returns data
+      // for /api/getCheaterProbability), so cheaterData is present.
+      await waitFor(() => {
+        expect(result.current.cheaterData).toBeDefined();
+      });
+
+      // Open the report while the searchId is still unresolved.
+      act(() => {
+        result.current.openCheaterReport();
+      });
+      expect(result.current.isReportOpen).toBe(true);
+
+      // No attach yet — searchId is still null.
+      expect(mockedAxios.post).not.toHaveBeenCalledWith(
+        '/api/recordAnalyticsCheater',
+        expect.anything(),
+      );
+
+      // The analytics search resolves last, populating the searchId.
+      await act(async () => {
+        resolveAnalytics({ data: { id: 'late-analytics-search-id' } });
+        await Promise.resolve();
+      });
+
+      // The attach now fires with the late-arriving searchId.
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        '/api/recordAnalyticsCheater',
+        expect.objectContaining({
+          searchId: 'late-analytics-search-id',
+          score: 10,
+          bannedFriendsCount: 0,
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('does NOT kick a non-silent safety-net fetch when the background prefetch already failed', async () => {
+      mockUseParams.mockReturnValue({ steamId: 'failed-prefetch-id' });
+      mockGetCachedSearch.mockReturnValue(undefined);
+
+      // The automatic background prefetch tries once and fails. It must NOT be
+      // re-fired (visibly) when the report is later opened — opening should
+      // surface the existing error + "Try again" state instead of burning a
+      // second rate-limited request on a click the user didn't intend as retry.
+      (mockedAxios.post as jest.Mock).mockImplementation(
+        (url: string, body?: Record<string, unknown>) => {
+          if (url === '/api/getCheaterProbability') {
+            return Promise.reject(new Error('provider rate-limited (429)'));
+          }
+          return defaultAxiosPostImpl(url, body as never);
+        },
+      );
+
+      const { result } = renderHook(() => useHome());
+
+      // Wait until profile + close friends are loaded so the auto-prefetch can
+      // gate on them, then confirm it ran and failed (cheaterError is set).
+      await waitFor(() => {
+        expect(
+          result.current.targetInfoJson?.profileInfo.steamID,
+        ).toBe('failed-prefetch-id');
+      });
+      await waitFor(() => {
+        expect(result.current.closeFriendsJson).toBeDefined();
+      });
+      await waitFor(() => {
+        expect(result.current.cheaterError).toBe(true);
+      });
+
+      const prefetchCallsBefore = (
+        mockedAxios.post as jest.Mock
+      ).mock.calls.filter(
+        ([url]: [string]) => url === '/api/getCheaterProbability',
+      ).length;
+      expect(prefetchCallsBefore).toBe(1);
+
+      // Opening the report must NOT trigger another fetch (the safety-net is
+      // gated on !cheaterError).
+      act(() => {
+        result.current.openCheaterReport();
+      });
+      await act(async () => {});
+
+      const prefetchCallsAfter = (
+        mockedAxios.post as jest.Mock
+      ).mock.calls.filter(
+        ([url]: [string]) => url === '/api/getCheaterProbability',
+      ).length;
+      expect(prefetchCallsAfter).toBe(1);
+      expect(result.current.isReportOpen).toBe(true);
     });
   });
 });

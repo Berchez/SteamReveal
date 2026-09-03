@@ -91,37 +91,38 @@ function MyUserSection({
           itsTargetUser
           preloadedLocationInfo={targetInfoJson.targetLocationInfo}
           bottomChildren={
-            // Always mounted now — swaps its inner content instead of
-            // unmounting the whole wrapper. `friendsCards` toggles
-            // true/false multiple times per search (start loading → done),
-            // and unmounting this block each time was shifting everything
-            // above/below it in the flex column on every toggle.
+            // Same-sized button in both states (no layout shift on toggle).
+            // While close-friends are loading the button is disabled and shows
+            // a spinner — we must not run the cheater-probability fetch until
+            // the friends list has settled, because the endpoint produces a
+            // far less reliable score when it runs without close friends.
+            // Once the close-friends load finishes it is ENABLED regardless of
+            // the result (0 friends = private profile / private friends list /
+            // genuinely friendless — still a valid click target).
             <div className="relative rounded-xl p-[1px] w-fit inline-flex items-center justify-center group">
-              {data?.isLoading.friendsCards ? (
-                <div
-                  className="px-4 py-2 text-sm font-medium rounded-xl border border-transparent invisible"
-                  aria-hidden="true"
-                >
+              <div
+                className="absolute inset-0 rounded-xl bg-[length:200%_200%] animate-gradient-spin"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(90deg, #ff8ae2, #ff1bce, #ea00ff, #9a64ff, #3d5afe, #ae00ff, #ff8ae2, #ff1bce, #ea00ff)',
+                }}
+              />
+              <button
+                onClick={() => actions?.openCheaterReport()}
+                disabled={data?.isLoading.friendsCards}
+                className="relative z-10 px-4 py-2 text-sm font-medium text-white rounded-xl bg-[#1c0029d7] backdrop-blur-md border border-transparent group-hover:shadow-[0_0_20px_rgba(255,100,249,0.5)] transition duration-200 disabled:cursor-not-allowed disabled:opacity-60 disabled:group-hover:shadow-none"
+                type="button"
+              >
+                <span className="inline-flex items-center gap-2">
                   {translator('csAnticheatReview')}
-                </div>
-              ) : (
-                <>
-                  <div
-                    className="absolute inset-0 rounded-xl bg-[length:200%_200%] animate-gradient-spin"
-                    style={{
-                      backgroundImage:
-                        'linear-gradient(90deg, #ff8ae2, #ff1bce, #ea00ff, #9a64ff, #3d5afe, #ae00ff, #ff8ae2, #ff1bce, #ea00ff)',
-                    }}
-                  />
-                  <button
-                    onClick={() => actions?.getCheaterProbability()}
-                    className="relative z-10 px-4 py-2 text-sm font-medium text-white rounded-xl bg-[#1c0029d7] backdrop-blur-md border border-transparent group-hover:shadow-[0_0_20px_rgba(255,100,249,0.5)] transition duration-200"
-                    type="button"
-                  >
-                    {translator('csAnticheatReview')}
-                  </button>
-                </>
-              )}
+                  {data?.isLoading.friendsCards && (
+                    <span
+                      className="w-3 h-3 border-2 border-gray-200 border-t-transparent rounded-full animate-spin"
+                      aria-hidden="true"
+                    />
+                  )}
+                </span>
+              </button>
             </div>
           }
         />

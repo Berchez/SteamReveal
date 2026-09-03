@@ -83,6 +83,76 @@ test.describe('Cheater Report', () => {
     await expect(page.locator('.bg-purple-900.border-2')).toHaveCount(0);
   });
 
+  test('Cheater report shows the error + "Try again" and recovers on retry', async ({
+    page,
+  }) => {
+    // First call fails (500), the "Try again" retry returns real data. A
+    // closure counter keys the mock so the recovery path is exercised.
+    let calls = 0;
+    await page.route('**/api/getCheaterProbability', (route) => {
+      calls += 1;
+      if (calls === 1) {
+        return route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'fail' }),
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(makeMockCheaterProbability()),
+      });
+    });
+
+    await page.goto('/en/player/player-a');
+    await expect(page.getByText('Nickname: User-player-a')).toBeVisible({
+      timeout: 15000,
+    });
+    await page.getByRole('button', { name: ANTICHEAT_BUTTON_NAME }).click();
+
+    // The manual click failure surfaces the in-report error state (i18n key
+    // resolves to the translated string) with a retry button.
+    const retryButton = page.getByRole('button', { name: 'Try again' });
+    await expect(retryButton).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.getByText("We couldn't calculate the cheater probability right now. Please try again."),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('.bg-purple-900.border-2')).toHaveCount(0);
+
+    retryButton.click();
+
+    // The retry re-runs the request; now it succeeds and the ReportBox renders.
+    const reportBox = page.locator('.bg-purple-900.border-2:not(.border-white)');
+    await expect(reportBox).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.getByText("We couldn't calculate the cheater probability right now. Please try again."),
+    ).toHaveCount(0);
+  });
+
+  test('Cheater report disables "Try again" during the retry cooldown (15s)', async ({
+    page,
+  }) => {
+    await page.route('**/api/getCheaterProbability', (route) =>
+      route.abort(),
+    );
+
+    await page.goto('/en/player/player-a');
+    await expect(page.getByText('Nickname: User-player-a')).toBeVisible({
+      timeout: 15000,
+    });
+    await page.getByRole('button', { name: ANTICHEAT_BUTTON_NAME }).click();
+
+    const retryButton = page.getByRole('button', { name: 'Try again' });
+    await expect(retryButton).toBeVisible({ timeout: 15000 });
+
+    retryButton.click();
+
+    // Immediately after a tap the button is locked for the 15s cooldown —
+    // a repeat click cannot re-queue the failing request.
+    await expect(retryButton).toBeDisabled();
+  });
+
   test('High cheater probability renders a red (highly-suspect) ReportBox', async ({
     page,
   }) => {

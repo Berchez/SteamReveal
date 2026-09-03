@@ -18,15 +18,17 @@ export default function HomeProvider({
     hasNoDataYet,
     showSponsorMe,
     cheaterData,
+    cheaterError,
     showSupportMe,
+    isReportOpen,
     onChangeTarget,
     onCloseSponsorMe,
     onCloseSupportMe,
-    getCheaterProbability,
+    openCheaterReport,
+    retryCheaterReport,
     navigateToPlayer,
     seedInitialProfile,
   } = useHome();
-
   // Data changes on nearly every render (fetch progress, cache hits, etc) —
   // this memo just avoids rebuilding the object identity when unrelated
   // renders happen (e.g. a parent re-render with no state change here).
@@ -40,7 +42,9 @@ export default function HomeProvider({
       hasNoDataYet,
       showSponsorMe,
       cheaterData,
+      cheaterError,
       showSupportMe,
+      isReportOpen,
     }),
     [
       closeFriendsJson,
@@ -51,7 +55,9 @@ export default function HomeProvider({
       hasNoDataYet,
       showSponsorMe,
       cheaterData,
+      cheaterError,
       showSupportMe,
+      isReportOpen,
     ],
   );
 
@@ -65,7 +71,8 @@ export default function HomeProvider({
       onChangeTarget,
       onCloseSponsorMe,
       onCloseSupportMe,
-      getCheaterProbability,
+      openCheaterReport,
+      retryCheaterReport,
       navigateToPlayer,
       seedInitialProfile,
     }),
@@ -73,7 +80,8 @@ export default function HomeProvider({
       onChangeTarget,
       onCloseSponsorMe,
       onCloseSupportMe,
-      getCheaterProbability,
+      openCheaterReport,
+      retryCheaterReport,
       navigateToPlayer,
       seedInitialProfile,
     ],

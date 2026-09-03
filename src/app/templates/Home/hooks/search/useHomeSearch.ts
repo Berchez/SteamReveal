@@ -9,11 +9,11 @@ import {
 import { toast } from 'react-toastify';
 import { useLocale, useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
-import { UserSummary } from 'steamapi';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import targetInfoJsonType, {
   LocationInfoType,
+  EnrichedUserSummary,
 } from '@/@types/targetInfoJsonType';
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { isLoadingType } from '@/@types/isLoadingType';
@@ -63,7 +63,7 @@ interface UseHomeSearchParams {
 type CloseFriendsJsonState = closeFriendsDataIWant[] | undefined;
 type PossibleLocationJsonState = locationDataIWant[] | undefined;
 type ResolvedTargetInfoJson = {
-  profileInfo: UserSummary;
+  profileInfo: EnrichedUserSummary;
   targetLocationInfo: LocationInfoType;
 };
 
@@ -95,7 +95,11 @@ const useHomeSearch = ({
 
   const initialCache = urlPlayer ? getCachedSearch(urlPlayer) : undefined;
 
-  const lastSearchIdRef = useRef<string | null>(initialCache?.searchId ?? null);
+  // The active search's id, kept reactive so downstream effects (e.g. the
+  // cheater-report analytics attach in useHome) can react to it arriving.
+  const [searchId, setSearchId] = useState<string | null>(
+    initialCache?.searchId ?? null,
+  );
 
   const targetValue = useRef<string | null>(null);
 
@@ -175,17 +179,20 @@ const useHomeSearch = ({
   // effect for the reason above.
   const seededProfileRef = useRef<{
     steamId: string;
-    profile: UserSummary;
+    profile: EnrichedUserSummary;
   } | null>(null);
 
   const appliedSeedForRef = useRef<string | null>(null);
 
-  const seedInitialProfile = useCallback((profile: UserSummary | undefined) => {
-    if (!profile) {
-      return;
-    }
-    seededProfileRef.current = { steamId: profile.steamID, profile };
-  }, []);
+  const seedInitialProfile = useCallback(
+    (profile: EnrichedUserSummary | undefined) => {
+      if (!profile) {
+        return;
+      }
+      seededProfileRef.current = { steamId: profile.steamID, profile };
+    },
+    [],
+  );
 
   useLayoutEffect(() => {
     if (
@@ -345,7 +352,7 @@ const useHomeSearch = ({
     setPossibleLocationJson(undefined);
     setTargetInfoJson(preserveProfile);
     setCheaterData(undefined);
-    lastSearchIdRef.current = null;
+    setSearchId(null);
     if (startLoading) {
       // Only when a new profile search is actually starting (see call site
       // in handleGetInfoClick). The other call site — clearing state
@@ -376,7 +383,7 @@ const useHomeSearch = ({
       setCloseFriendsJson(cached.closeFriendsJson);
       setPossibleLocationJson(cached.possibleLocationJson);
       setCheaterData(cached.cheaterData);
-      lastSearchIdRef.current = cached.searchId ?? null;
+      setSearchId(cached.searchId ?? null);
       const cachedSteamId = cached.targetInfoJson?.profileInfo?.steamID;
       if (cachedSteamId && cachedSteamId !== urlPlayer) {
         syncPlayerUrl(cachedSteamId);
@@ -392,7 +399,7 @@ const useHomeSearch = ({
       setCloseFriendsJson(undefined);
       setPossibleLocationJson(undefined);
       setCheaterData(undefined);
-      lastSearchIdRef.current = null;
+      setSearchId(null);
       setIsLoading((prev) => ({
         ...prev,
         friendsCards: true,
@@ -415,13 +422,13 @@ const useHomeSearch = ({
         return;
       }
       let possibleLocation: locationDataIWant[] | undefined;
-      let searchId: string | null = null;
+      let resolvedSearchId: string | null = null;
       const cacheSearch = () => {
         setCachedSearch(value, newTargetInfoJson.profileInfo.steamID, {
           targetInfoJson: newTargetInfoJson,
           closeFriendsJson: closeFriends,
           possibleLocationJson: possibleLocation ?? [],
-          searchId,
+          searchId: resolvedSearchId,
         });
       };
       try {
@@ -447,7 +454,7 @@ const useHomeSearch = ({
         return;
       }
       try {
-        searchId = await recordAnalytics(
+        resolvedSearchId = await recordAnalytics(
           newTargetInfoJson.profileInfo,
           closeFriends,
           possibleLocation,
@@ -461,12 +468,12 @@ const useHomeSearch = ({
         );
       } catch (e) {
         console.error('recordAnalytics error:', e);
-        searchId = null;
+        resolvedSearchId = null;
       }
       if (!isCurrentRun(runId)) {
         return;
       }
-      lastSearchIdRef.current = searchId;
+      setSearchId(resolvedSearchId);
       cacheSearch();
     } catch (e) {
       // Ensure loading flags are cleared on any failure so skeletons don't
@@ -524,7 +531,7 @@ const useHomeSearch = ({
     hasNoDataYet,
     cheaterData,
     setCheaterData,
-    lastSearchIdRef,
+    searchId,
     seedInitialProfile,
   };
 };

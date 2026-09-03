@@ -5,6 +5,16 @@ import { locationDataIWant } from '@/@types/locationDataIWant';
 
 // ---- Analytics helpers ---------------------------------------------------
 
+// Dedicated, short budget for the best-effort CS-active enrichment. Fetching
+// a user's owned games with `includeAppInfo: true` makes Steam resolve per-game
+// metadata, which for large libraries is noticeably slower than a plain
+// summary/resolve. This enrichment is optional (it only feeds the "don't spend
+// money on non-CS profiles" cost gate) so it must never hold up the primary
+// profile/card response that drives LCP/CLS. Shared by the client search route
+// (/api/getUserInfo) and the SSR seed path (getPlayerProfile) so both cap the
+// worst-case latency identically instead of the 8s general Steam-call timeout.
+export const CS_ACTIVE_ENRICHMENT_TIMEOUT_MS = 2500;
+
 // Moved from useHome.ts without behavioral changes. Kept as a pure module
 // (not a hook) because nothing here uses React state or lifecycle — the same
 // approach as the existing homeUtils.ts and probabilityMath.ts modules.
@@ -38,6 +48,60 @@ export const getRequesterBrowserLanguage = (): string | null => {
 export type GameSnapshotEntry = {
   name: string;
   playtimeHours: number;
+};
+
+/**
+ * Normalizes a raw "owned games" list (either the steamapi Game[] shape with
+ * nested `.game.name` / `.playtime_forever`, or a flattened shape) into the
+ * `{ name, playtimeHours }` snapshot used for analytics + the CS-active flag.
+ * Server-safe (no browser globals) so both /api/getUserInfo and the SSR seed
+ * path (getPlayerProfile) can share it.
+ */
+export const getGamesSnapshot = (
+  games:
+    | Array<
+        | {
+            name?: string;
+            playtime_forever?: number;
+            playtimeForever?: number;
+            minutes?: number;
+            game?: {
+              name?: string;
+              playtimeForever?: number;
+            };
+          }
+        | undefined
+      >
+    | undefined,
+): GameSnapshotEntry[] => {
+  if (!Array.isArray(games) || games.length === 0) {
+    return [];
+  }
+
+  return games
+    .map((game) => {
+      let name = '';
+      if (typeof game?.game?.name === 'string') {
+        name = game.game.name;
+      } else if (typeof game?.name === 'string') {
+        name = game.name;
+      }
+      const playtimeForever = Number(
+        game?.playtime_forever ?? game?.playtimeForever ?? game?.minutes ?? 0,
+      );
+      const playtimeHours =
+        Number.isFinite(playtimeForever) && playtimeForever > 0
+          ? playtimeForever / 60
+          : 0;
+      return {
+        name,
+        playtimeHours: Number(
+          (Math.round(playtimeHours * 10) / 10).toFixed(1),
+        ),
+      };
+    })
+    .filter((game) => game.name)
+    .sort((a, b) => b.playtimeHours - a.playtimeHours);
 };
 
 const normalizeGamePlaytimeHours = (

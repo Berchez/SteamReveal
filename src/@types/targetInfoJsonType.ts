@@ -29,9 +29,20 @@ export interface LocationInfoType {
   city?: City;
 }
 
+/**
+ * `UserSummary` is enriched server-side in /api/getUserInfo (via
+ * Object.assign) with an `isCSActive` flag — whether the profile's active
+ * game family is Counter-Strike (>=300h OR top playtime). Client code gates
+ * the automatic cheater-probability prefetch on it, so it's part of the
+ * official profile shape rather than an ad-hoc inline cast.
+ */
+export interface EnrichedUserSummary extends UserSummary {
+  isCSActive?: boolean;
+}
+
 type targetInfoJsonType =
   | {
-      profileInfo: UserSummary;
+      profileInfo: EnrichedUserSummary;
       targetLocationInfo: LocationInfoType;
     }
   | undefined;

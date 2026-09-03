@@ -82,7 +82,9 @@
     "highSteamLevel": "Hoher Steam-Level (Level {level}, Zeichen für Investition)",
     "lowSteamLevel": "Niedriger Steam-Level (Level {level}, typisch für wegwerfbare Accounts)",
     "manyGames": "Große Bibliothek ({count} Spiele im Besitz)",
-    "fewGames": "Kleine Bibliothek ({count} Spiele, möglicher Zweitaccount)"
+    "fewGames": "Kleine Bibliothek ({count} Spiele, möglicher Zweitaccount)",
+    "reportFailedToLoad": "Die Cheater-Wahrscheinlichkeit konnte gerade nicht berechnet werden. Bitte erneut versuchen.",
+    "retry": "Erneut versuchen"
   },
   "SupportedFormatsSection": {
     "steamID64Desc": "Eindeutige 64-Bit-Steam-ID.",

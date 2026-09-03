@@ -14,7 +14,8 @@ const mockUseHome = useHome as jest.Mock;
 const onChangeTarget = jest.fn();
 const onCloseSponsorMe = jest.fn();
 const onCloseSupportMe = jest.fn();
-const getCheaterProbability = jest.fn();
+const openCheaterReport = jest.fn();
+const retryCheaterReport = jest.fn();
 const navigateToPlayer = jest.fn();
 const targetValueRef = { current: null };
 // The real useHome hook stores isLoading in useState, so its reference only
@@ -48,11 +49,14 @@ function buildHookReturn() {
     hasNoDataYet: true,
     showSponsorMe: false,
     cheaterData: undefined,
+    cheaterError: false,
     showSupportMe: false,
+    isReportOpen: false,
     onChangeTarget,
     onCloseSponsorMe,
     onCloseSupportMe,
-    getCheaterProbability,
+    openCheaterReport,
+    retryCheaterReport,
     navigateToPlayer,
     seedInitialProfile,
   };

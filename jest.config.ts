@@ -16,6 +16,10 @@ const config: Config = {
       '<rootDir>/__mocks__/@vercel/analytics-react.js',
     '^@vercel/speed-insights/next$':
       '<rootDir>/__mocks__/@vercel/speed-insights-next.js',
+    // next/jest already resolves tsconfig paths for runtime imports; mapping
+    // here too lets jest.mock('@/...') strings resolve (used by CheaterReport
+    // and its test).
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/e2e/'],
   // Add more setup options before each test is run

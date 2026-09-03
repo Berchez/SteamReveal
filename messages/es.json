@@ -82,7 +82,9 @@
     "highSteamLevel": "Nivel de Steam alto (Nivel {level}, signo de inversión)",
     "lowSteamLevel": "Nivel de Steam bajo (Nivel {level}, típico de cuentas desechables)",
     "manyGames": "Biblioteca grande ({count} juegos poseídos)",
-    "fewGames": "Biblioteca pequeña ({count} juegos, posible cuenta secundaria)"
+    "fewGames": "Biblioteca pequeña ({count} juegos, posible cuenta secundaria)",
+    "reportFailedToLoad": "No pudimos calcular la probabilidad de trampa ahora mismo. Inténtalo de nuevo.",
+    "retry": "Reintentar"
   },
   "SupportedFormatsSection": {
     "steamID64Desc": "ID de Steam de 64 bits único.",

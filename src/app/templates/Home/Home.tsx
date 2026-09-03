@@ -2,13 +2,14 @@
 
 import React, { useContext, useLayoutEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { UserSummary } from 'steamapi';
 import { useTranslations } from 'next-intl';
 
 import SponsorMe from '@/app/components/SponsorMe';
 import SupportMe from '@/app/components/SupportMe';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
-import targetInfoJsonType from '@/@types/targetInfoJsonType';
+import targetInfoJsonType, {
+  EnrichedUserSummary,
+} from '@/@types/targetInfoJsonType';
 
 import { HomeDataContext, HomeActionsContext } from './context';
 import VideoBackground from './sections/VideoBackground';
@@ -24,7 +25,7 @@ const CheaterReport = dynamic(() => import('./sections/CheaterReport'));
 export default function Home({
   initialProfile,
 }: {
-  initialProfile?: UserSummary;
+  initialProfile?: EnrichedUserSummary;
 }) {
   const data = useContext(HomeDataContext);
   const actions = useContext(HomeActionsContext);
@@ -46,9 +47,16 @@ export default function Home({
     hasNoDataYet,
     showSponsorMe,
     cheaterData,
+    cheaterError,
     showSupportMe,
+    isReportOpen,
   } = data;
-  const { onChangeTarget, onCloseSponsorMe, onCloseSupportMe } = actions;
+  const {
+    onChangeTarget,
+    onCloseSponsorMe,
+    onCloseSupportMe,
+    retryCheaterReport,
+  } = actions;
   const translator = useTranslations('Index');
   const currentYear = new Date().getFullYear();
 
@@ -119,11 +127,14 @@ export default function Home({
           {hasNoDataYet && <SupportedFormatsSection />}
         </div>
         {hasNoDataYet && <PostHeroSections />}
-        <CheaterReport
-          cheaterData={cheaterData}
-          isLoading={isLoading.cheaterReport}
-          nickname={targetInfoJson?.profileInfo?.nickname ?? ''}
-        />
+        {isReportOpen && (
+          <CheaterReport
+            cheaterData={cheaterData}
+            cheaterError={cheaterError}
+            nickname={targetInfoJson?.profileInfo?.nickname ?? ''}
+            onRetry={retryCheaterReport}
+          />
+        )}
         <div className="flex flex-col gap-16 my-8">
           <LocationSection
             possibleLocationJson={possibleLocationJson}
