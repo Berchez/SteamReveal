@@ -11,7 +11,12 @@ export default defineConfig({
     timeout: 5000,
   },
   fullyParallel: true,
-  retries: 0,
+  // The dev server compiles routes on demand, so the first test to hit a
+  // given route can cold-compile it and blow a navigation assertion timeout
+  // even though the flow is correct (see the `workers` comment above). One
+  // retry absorbs that one-off warm-up flake — it only re-runs the failed
+  // test, not the whole suite.
+  retries: 1,
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:3100/en',

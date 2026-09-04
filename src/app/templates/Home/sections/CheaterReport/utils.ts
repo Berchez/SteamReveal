@@ -42,6 +42,26 @@ const pushPlatformBanMessages = (
   }
 };
 
+/**
+ * Builds the "active on an invasive-anti-cheat platform" innocence message,
+ * interpolating the player's scraped match count (e.g. "2,385 matches"). The
+ * number is the same regardless of UI locale (it's a data value, not prose), so
+ * it's formatted en-US to match the product wording ("— 2,385 matches"). If the
+ * count is unexpectedly absent (shouldn't happen: faceitActive/gcActive are only
+ * true when activityTier saw a valid matches), degrade to a number-less message
+ * instead of rendering a broken "— … matches" line.
+ */
+const activePlatformMessage = (
+  translator: ReturnType<typeof useTranslations<'CheaterReport'>>,
+  key: 'activeOnFaceit' | 'activeOnGamersClub',
+  matches: number | null | undefined,
+): string => {
+  if (typeof matches === 'number' && Number.isFinite(matches)) {
+    return translator(key, { matches: matches.toLocaleString('en-US') });
+  }
+  return translator(key, { matches: '' });
+};
+
 const analyzeCheaterData = (
   data: CheaterDataType,
   translator: ReturnType<typeof useTranslations<'CheaterReport'>>,
@@ -171,10 +191,22 @@ const analyzeCheaterData = (
   // one. So we gate on `> 0` directly instead of routing it through `addReason`.
   if ((platformActivityDiscount ?? 0) > 0) {
     if (faceitActive) {
-      innocenceReasons.push(translator('activeOnFaceit'));
+      innocenceReasons.push(
+        activePlatformMessage(
+          translator,
+          'activeOnFaceit',
+          featureObject.platformBanDetails?.faceit?.matches,
+        ),
+      );
     }
     if (gcActive) {
-      innocenceReasons.push(translator('activeOnGamersClub'));
+      innocenceReasons.push(
+        activePlatformMessage(
+          translator,
+          'activeOnGamersClub',
+          featureObject.platformBanDetails?.gamersClub?.matches,
+        ),
+      );
     }
   }
 

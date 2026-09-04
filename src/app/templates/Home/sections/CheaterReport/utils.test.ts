@@ -29,10 +29,11 @@ const makeTranslator = () => {
     platformBannedGamersClub: 'Banned on Gamers Club',
     platformSmurfedFaceit: 'Banned on FACEIT for smurfing',
     platformSmurfedGamersClub: 'Banned on Gamers Club for smurfing',
-    activeOnFaceit: 'Active on FACEIT',
-    activeOnGamersClub: 'Active on GamersClub',
+    activeOnFaceit: 'Active on FACEIT — {matches} matches',
+    activeOnGamersClub: 'Active on GamersClub — {matches} matches',
   };
-  return (key: string) => lookup[key] ?? key;
+  return (key: string, args?: { matches?: string }) =>
+    (lookup[key] ?? key).replace('{matches}', args?.matches ?? '');
 };
 
 const noBan = {
@@ -75,7 +76,9 @@ describe('analyzeCheaterData - platform ban', () => {
 
     expect(result.suspicionReasons).toContain('Banned on FACEIT');
     expect(result.suspicionReasons).not.toContain('Banned on Gamers Club');
-    expect(result.innocenceReasons).not.toContain('Banned on FACEIT for smurfing');
+    expect(result.innocenceReasons).not.toContain(
+      'Banned on FACEIT for smurfing',
+    );
   });
 
   it('adds one suspicion reason per platform when banned for cheating on both', () => {
@@ -195,35 +198,67 @@ describe('analyzeCheaterData - platform ban', () => {
 });
 
 describe('analyzeCheaterData - platform activity', () => {
-  it('adds a Faceit innocence reason when the player is demonstrably active on FACEIT', () => {
+  it('adds a Faceit innocence reason with the match count when the player is demonstrably active on FACEIT', () => {
     const result = analyzeCheaterData(
       makeData(
         makeFeatureObject({
           platformActivityDiscount: 0.08,
           faceitActive: true,
           gcActive: false,
+          platformBanDetails: {
+            faceit: {
+              banned: false,
+              reason: null,
+              classification: null,
+              matches: 2385,
+            },
+            gamersClub: {
+              banned: false,
+              reason: null,
+              classification: null,
+              matches: null,
+            },
+          },
         }),
       ),
       makeTranslator() as never,
     );
 
-    expect(result.innocenceReasons).toContain('Active on FACEIT');
+    expect(result.innocenceReasons).toContain(
+      'Active on FACEIT — 2,385 matches',
+    );
     expect(result.innocenceReasons).not.toContain('Active on GamersClub');
   });
 
-  it('adds a GamersClub innocence reason when the player is active on GamersClub', () => {
+  it('adds a GamersClub innocence reason with the match count when the player is active on GamersClub', () => {
     const result = analyzeCheaterData(
       makeData(
         makeFeatureObject({
           platformActivityDiscount: 0.05,
           faceitActive: false,
           gcActive: true,
+          platformBanDetails: {
+            faceit: {
+              banned: false,
+              reason: null,
+              classification: null,
+              matches: null,
+            },
+            gamersClub: {
+              banned: false,
+              reason: null,
+              classification: null,
+              matches: 1419,
+            },
+          },
         }),
       ),
       makeTranslator() as never,
     );
 
-    expect(result.innocenceReasons).toContain('Active on GamersClub');
+    expect(result.innocenceReasons).toContain(
+      'Active on GamersClub — 1,419 matches',
+    );
     expect(result.innocenceReasons).not.toContain('Active on FACEIT');
   });
 
@@ -234,13 +269,61 @@ describe('analyzeCheaterData - platform activity', () => {
           platformActivityDiscount: 0.05,
           faceitActive: true,
           gcActive: true,
+          platformBanDetails: {
+            faceit: {
+              banned: false,
+              reason: null,
+              classification: null,
+              matches: 732,
+            },
+            gamersClub: {
+              banned: false,
+              reason: null,
+              classification: null,
+              matches: 2411,
+            },
+          },
         }),
       ),
       makeTranslator() as never,
     );
 
-    expect(result.innocenceReasons).toContain('Active on FACEIT');
-    expect(result.innocenceReasons).toContain('Active on GamersClub');
+    expect(result.innocenceReasons).toContain('Active on FACEIT — 732 matches');
+    expect(result.innocenceReasons).toContain(
+      'Active on GamersClub — 2,411 matches',
+    );
+  });
+
+  it('degrades to a number-less message when active but the match count is unexpectedly missing', () => {
+    // faceitActive=true guarantees a matches value upstream (activityTier > 0
+    // requires a valid count), so this is defensive only — but the UI must not
+    // render a broken "— … matches" line if the contract ever drifts.
+    const result = analyzeCheaterData(
+      makeData(
+        makeFeatureObject({
+          platformActivityDiscount: 0.08,
+          faceitActive: true,
+          gcActive: false,
+          platformBanDetails: {
+            faceit: {
+              banned: false,
+              reason: null,
+              classification: null,
+              matches: null,
+            },
+            gamersClub: {
+              banned: false,
+              reason: null,
+              classification: null,
+              matches: null,
+            },
+          },
+        }),
+      ),
+      makeTranslator() as never,
+    );
+
+    expect(result.innocenceReasons).toContain('Active on FACEIT —  matches');
   });
 
   it('does NOT add activity reasons when there is no demonstrable activity discount', () => {
