@@ -1,2 +1,3 @@
 pnpm run e2e
 pnpm run smoke:gc
+pnpm run smoke:analytics
