@@ -340,5 +340,3 @@ export const attachCheaterProbability = (
 
   return task;
 };
-
-export default recordSearch;

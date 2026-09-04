@@ -26,5 +26,3 @@ export const sanitizeError = (err: unknown): string => {
     .replace(LIB_SQL_URL_PATTERN, 'libsql://[REDACTED]')
     .replace(DATABASE_URL_PATTERN, '[URL REDACTED]');
 };
-
-export default sanitizeError;
