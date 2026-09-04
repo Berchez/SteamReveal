@@ -208,3 +208,52 @@ describe('attachCheaterProbability', () => {
     warnSpy.mockRestore();
   });
 });
+
+describe('refreshDashboard', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    mockedFs.writeFile.mockResolvedValue(undefined);
+    mockedFs.rename.mockResolvedValue(undefined);
+    mockedFs.readFile.mockImplementation(async () => {
+      const err = Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+      throw err;
+    });
+  });
+
+  it('writes a dashboard whose data block escapes < without touching the JSON store', async () => {
+    const { refreshDashboard } = require('./analytics') as typeof import('./analytics');
+
+    await refreshDashboard([
+      {
+        id: '1',
+        searchedAt: '2023-01-01T00:00:00.000Z',
+        profile: { steamId: '76561190000000001', nickname: '<script>alert(1)</script>' },
+        friends: [],
+        cheater: null,
+      } as never,
+    ]);
+
+    // Only the dashboard html is written — refreshDashboard must NOT write the
+    // analytics-data.json store (that's writeEntries' job in the JSON path).
+    const dataJsonWrites = mockedFs.writeFile.mock.calls.filter(([target]) =>
+      String(target).endsWith('analytics-data.json.tmp'),
+    );
+    expect(dataJsonWrites).toHaveLength(0);
+
+    const writtenHtml = mockedFs.writeFile.mock.calls.find(([target]) =>
+      String(target).endsWith('analytics.html.tmp'),
+    )?.[1] as string;
+
+    expect(writtenHtml).toContain(START_TAG);
+    // The malicious nickname must reach the browser as \u003c, never a raw
+    // closing </script> that would terminate the data block early.
+    expect(writtenHtml).not.toContain('</script>alert');
+
+    const [extracted] = extractEntries(writtenHtml) as Array<{
+      id: string;
+      profile: { steamId: string; nickname?: string | null };
+    }>;
+    expect(extracted.id).toBe('1');
+    expect(extracted.profile.nickname).toBe('<script>alert(1)</script>');
+  });
+});

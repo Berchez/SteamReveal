@@ -91,11 +91,22 @@ export interface ProfileRecord {
   gcName?: string | null;
   countryCode?: string | null;
   stateCode?: string | null;
-  cityId?: string | null;
+  /**
+   * Numeric in the client payload in practice (geolocation city ID), even
+   * though older data files sometimes carry it as a string. The Turso schema
+   * stores it as TEXT; writers normalize via nullableText() in
+   * src/lib/analytics/sqlHelpers.
+   */
+  cityId?: string | number | null;
 }
 
 export interface LocationGuess {
-  location: string;
+  location: {
+    cityName?: string;
+    stateName?: string;
+    countryName?: string;
+    countryCode?: string;
+  };
   probability: number;
 }
 
@@ -134,7 +145,7 @@ export interface SearchRecord {
   durationMs?: number | null;
 }
 
-type NewSearchInput = Omit<SearchRecord, 'id' | 'searchedAt' | 'cheater'>;
+export type NewSearchInput = Omit<SearchRecord, 'id' | 'searchedAt' | 'cheater'>;
 
 interface AnalyticsStore {
   read(): Promise<SearchRecord[]>;
@@ -228,6 +239,23 @@ const analyticsStore: AnalyticsStore = {
 const readEntries = async (): Promise<SearchRecord[]> => analyticsStore.read();
 
 /**
+ * Regenerates the analytics.html dashboard shell from the current records.
+ * Shared by the JSON-file store (writeEntries below, where analytics-data.json
+ * is canonical) and by the Turso adapter (src/proxy-local/utils/analyticsAdapter.ts,
+ * where Turso is canonical and analytics.html is only a rendered view).
+ *
+ * Keeps the shell and the data separate — callers decide what "current
+ * records" means; this function only renders them.
+ */
+export const refreshDashboard = async (entries: SearchRecord[]): Promise<void> => {
+  const serializedEntries = JSON.stringify(entries, null, 2).replace(/</g, '\\u003c');
+  const newHtml = buildAnalyticsHtml(serializedEntries);
+
+  await backupIfExists(LEGACY_DB_HTML_PATH);
+  await writeAtomically(LEGACY_DB_HTML_PATH, newHtml);
+};
+
+/**
  * Persists the records and regenerates the dashboard shell from the current
  * template. Keeping the shell and the data separate makes future DB
  * migrations straightforward: the storage implementation can change without
@@ -236,11 +264,7 @@ const readEntries = async (): Promise<SearchRecord[]> => analyticsStore.read();
 const writeEntries = async (entries: SearchRecord[]): Promise<void> => {
   await analyticsStore.write(entries);
 
-  const serializedEntries = JSON.stringify(entries, null, 2).replace(/</g, '\\u003c');
-  const newHtml = buildAnalyticsHtml(serializedEntries);
-
-  await backupIfExists(LEGACY_DB_HTML_PATH);
-  await writeAtomically(LEGACY_DB_HTML_PATH, newHtml);
+  await refreshDashboard(entries);
 };
 
 // Global queue used to serialize concurrent writes (both new searches and

@@ -1,39 +1,10 @@
 import express, { Request, Response } from 'express';
-import fs from 'fs';
-import path from 'path';
+import { loadEnv } from '../lib/env';
+import { sanitizeError } from '../lib/sanitizeError';
 import scrapeGamersClubName, {
   scrapeGamersClubBan,
 } from './utils/scrapeGamersClubName';
-import { recordSearch, attachCheaterProbability } from './utils/analytics';
-
-/**
- * Custom environment variable loader for standalone execution.
- * Reads the .env file in the workspace root and populates process.env.
- */
-function loadEnv(): void {
-  const envPath = path.resolve(process.cwd(), '.env');
-  if (fs.existsSync(envPath)) {
-    const envContent = fs.readFileSync(envPath, 'utf-8');
-    const lines = envContent.split(/\r?\n/);
-    lines.forEach((line) => {
-      const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith('#')) {
-        const index = trimmed.indexOf('=');
-        if (index > -1) {
-          const key = trimmed.slice(0, index).trim();
-          let value = trimmed.slice(index + 1).trim();
-          if (
-            (value.startsWith('"') && value.endsWith('"')) ||
-            (value.startsWith("'") && value.endsWith("'"))
-          ) {
-            value = value.slice(1, -1);
-          }
-          process.env[key] = value;
-        }
-      }
-    });
-  }
-}
+import { recordSearch, attachCheaterProbability } from './utils/analyticsAdapter';
 
 // Load environment variables before setting up the server
 loadEnv();
@@ -91,15 +62,9 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
       `[Local Proxy] Scraping error for Steam ID ${steamId}:`,
       error,
     );
-    let errorMessage = '';
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    } else {
-      errorMessage = String(error);
-    }
     return res.status(500).json({
       error: 'Failed to scrape GamersClub name',
-      details: errorMessage,
+      details: sanitizeError(error),
     });
   }
 });
@@ -149,15 +114,9 @@ app.post('/api/analytics/record', async (req: Request, res: Response) => {
     return res.status(200).json({ ok: true, id: record.id });
   } catch (error) {
     console.error('[Analytics] Failed to record search:', error);
-    let errorMessage = '';
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    } else {
-      errorMessage = String(error);
-    }
     return res.status(500).json({
       error: 'Failed to record search',
-      details: errorMessage,
+      details: sanitizeError(error),
     });
   }
 });
@@ -192,15 +151,9 @@ app.post('/api/analytics/cheater', async (req: Request, res: Response) => {
     return res.status(200).json({ ok: true });
   } catch (error) {
     console.error('[Analytics] Failed to attach cheater probability:', error);
-    let errorMessage = '';
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    } else {
-      errorMessage = String(error);
-    }
     return res.status(500).json({
       error: 'Failed to attach cheater probability',
-      details: errorMessage,
+      details: sanitizeError(error),
     });
   }
 });

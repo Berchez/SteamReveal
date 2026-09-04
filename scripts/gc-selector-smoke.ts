@@ -29,37 +29,8 @@
  * or the required config is incomplete. NEVER runs in `pnpm test` or pre-commit
  * — it is deliberately manual and depends on a live network + session cookie.
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import { loadEnv } from '../src/lib/env';
 import { scrapeGamersClubProfile } from '../src/proxy-local/utils/scrapeGamersClubName';
-
-/**
- * Minimal .env loader for standalone execution (the smoke script runs via
- * ts-node, outside Next, so process.env isn't populated for us). Mirrors the
- * loader used by the local proxy server.
- */
-function loadEnv(): void {
-  const envPath = path.resolve(process.cwd(), '.env');
-  if (!fs.existsSync(envPath)) return;
-  const lines = fs.readFileSync(envPath, 'utf-8').split(/\r?\n/);
-  lines.forEach((line) => {
-    const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith('#')) {
-      const idx = trimmed.indexOf('=');
-      if (idx > -1) {
-        const key = trimmed.slice(0, idx).trim();
-        let value = trimmed.slice(idx + 1).trim();
-        if (
-          (value.startsWith('"') && value.endsWith('"')) ||
-          (value.startsWith("'") && value.endsWith("'"))
-        ) {
-          value = value.slice(1, -1);
-        }
-        if (process.env[key] === undefined) process.env[key] = value;
-      }
-    }
-  });
-}
 
 loadEnv();
 

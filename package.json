@@ -8,6 +8,8 @@
     "start": "next start",
     "start:proxy-local": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" src/proxy-local/server.ts",
     "smoke:gc": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/gc-selector-smoke.ts",
+    "db:migrate": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/migrate-db.ts",
+    "db:migrate-data": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/migrate-data.ts",
     "lint": "next lint",
     "postinstall": "patch-package",
     "test": "cross-env NODE_ENV=test jest",
@@ -19,6 +21,7 @@
     "node": "22.x"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
     "@types/axios": "^0.14.0",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
