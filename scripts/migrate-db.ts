@@ -15,7 +15,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@libsql/client';
-import { loadEnv } from '../src/lib/env';
+import { loadEnv, requireRemoteTursoToken } from '../src/lib/env';
 import { sanitizeError } from '../src/lib/sanitizeError';
 import splitSqlStatements from '../src/lib/analytics/sqlStatements';
 
@@ -54,11 +54,10 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (url.startsWith('libsql://') && !process.env.DATABASE_TOKEN) {
+  const tokenError = requireRemoteTursoToken(url, process.env.DATABASE_TOKEN);
+  if (tokenError) {
     // eslint-disable-next-line no-console
-    console.error(
-      'DATABASE_TOKEN is required for remote Turso URLs (libsql://). Set it in .env and re-run.',
-    );
+    console.error(tokenError);
     process.exit(1);
   }
 
@@ -146,6 +145,10 @@ async function main(): Promise<void> {
         args: [file, new Date().toISOString()],
       };
 
+      // Per-file sequential apply is intentional: migrations are ordered, and
+      // the next file's statements can depend on this one having run. Each
+      // batch is its own transaction, so a failure rolls back the whole file.
+      // eslint-disable-next-line no-await-in-loop
       await db.batch([...statementArgs, migrationInsert]);
 
       // eslint-disable-next-line no-console
@@ -169,7 +172,9 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
+  // Same sanitization as the inner catch: driver errors can embed the
+  // connection string or token, which must not leak to CI/terminal logs.
   // eslint-disable-next-line no-console
-  console.error('Unexpected error:', err);
+  console.error('Unexpected error:', sanitizeError(err));
   process.exit(1);
 });

@@ -8,122 +8,120 @@
  * Required env vars (read from .env):
  *   DATABASE_URL
  *   DATABASE_TOKEN
+ *
+ * The JSON source is discovered in this order:
+ *   1. The newest snapshot under analytics-archive/<date>/analytics-data.json
+ *      (the local-only PII archive taken when the proxy store was retired).
+ *   2. The legacy path src/proxy-local/utils/analytics-data.json.
+ * The .gitignore comment about re-importing from analytics-archive/ refers to
+ * #1; the legacy path is kept as a fallback for machines that still have it.
  */
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@libsql/client';
-import { loadEnv } from '../src/lib/env';
+import { loadEnv, requireRemoteTursoToken } from '../src/lib/env';
 import { sanitizeError } from '../src/lib/sanitizeError';
-import { toSqlBool, nullableText } from '../src/lib/analytics/sqlHelpers';
 
-import type {
-  SearchRecord,
-} from '../src/proxy-local/utils/analytics';
+import type { SearchRecord } from '../src/lib/analytics/types';
+import { buildStatements, type Statement } from './migrate-utils';
 
-function buildStatements(record: SearchRecord): Array<{ sql: string; args: (string | number | null)[] }> {
-  const stmts: Array<{ sql: string; args: (string | number | null)[] }> = [];
+const LEGACY_JSON_PATH = path.resolve(
+  process.cwd(),
+  'src',
+  'proxy-local',
+  'utils',
+  'analytics-data.json',
+);
 
-  stmts.push({
-    sql: 'INSERT OR IGNORE INTO searches (id, searched_at) VALUES (?, ?)',
-    args: [record.id, record.searchedAt],
-  });
+const findDataFile = (): string | null => {
+  const archiveRoot = path.resolve(process.cwd(), 'analytics-archive');
+  let newestFile: string | null = null;
+  let newestMtime = -1;
 
-  stmts.push({
-    sql: `INSERT OR IGNORE INTO profiles
-          (search_id, steam_id, steam_url, nickname, gc_name,
-           country_code, state_code, city_id, is_cs_active, duration_ms)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [
-      record.id,
-      record.profile.steamId,
-      record.profile.steamUrl ?? null,
-      record.profile.nickname ?? null,
-      record.profile.gcName ?? null,
-      record.profile.countryCode ?? null,
-      record.profile.stateCode ?? null,
-      nullableText(record.profile.cityId),
-      toSqlBool(record.isCSActive),
-      record.durationMs ?? null,
-    ],
-  });
-
-  stmts.push({
-    sql: `INSERT OR IGNORE INTO search_meta
-          (search_id, requester_locale, requester_country,
-           requester_browser_language, device)
-          VALUES (?, ?, ?, ?, ?)`,
-    args: [
-      record.id,
-      record.requesterLocale ?? null,
-      record.requesterCountry ?? null,
-      record.requesterBrowserLanguage ?? null,
-      record.device ?? null,
-    ],
-  });
-
-  // Child tables: DELETE existing rows for this search_id first, then INSERT.
-  // This makes the migration idempotent — re-running after a partial failure
-  // won't duplicate rows from already-migrated records.
-  stmts.push({
-    sql: 'DELETE FROM friends WHERE search_id = ?',
-    args: [record.id],
-  });
-  record.friends.forEach((f) => {
-    stmts.push({
-      sql: `INSERT INTO friends
-            (search_id, steam_id, nickname, gc_name,
-             mutual_count, probability, country_code)
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      args: [
-        record.id,
-        f.steamId,
-        f.nickname ?? null,
-        f.gcName ?? null,
-        f.mutualCount ?? null,
-        f.probability ?? null,
-        f.countryCode ?? null,
-      ],
-    });
-  });
-
-  stmts.push({
-    sql: 'DELETE FROM games_snapshot WHERE search_id = ?',
-    args: [record.id],
-  });
-  (record.gamesSnapshot ?? []).forEach((g) => {
-    stmts.push({
-      sql: 'INSERT INTO games_snapshot (search_id, name, playtime_hours) VALUES (?, ?, ?)',
-      args: [record.id, g.name, g.playtimeHours],
-    });
-  });
-
-  stmts.push({
-    sql: 'DELETE FROM location_guesses WHERE search_id = ?',
-    args: [record.id],
-  });
-  (record.locationGuess ?? []).forEach((lg) => {
-    stmts.push({
-      sql: 'INSERT INTO location_guesses (search_id, location, probability) VALUES (?, ?, ?)',
-      args: [record.id, JSON.stringify(lg.location), lg.probability],
-    });
-  });
-
-  if (record.cheater) {
-    stmts.push({
-      sql: `INSERT OR IGNORE INTO cheater_results
-            (search_id, score, banned_friends_count, computed_at)
-            VALUES (?, ?, ?, ?)`,
-      args: [
-        record.id,
-        record.cheater.score,
-        record.cheater.bannedFriendsCount ?? null,
-        record.cheater.computedAt,
-      ],
-    });
+  try {
+    if (fs.existsSync(archiveRoot)) {
+      // Snapshot before iterating (same pattern as src/lib/rateLimit.ts) to
+      // appease airbnb's no-restricted-syntax (for...of is banned).
+      Array.from(fs.readdirSync(archiveRoot, { withFileTypes: true })).forEach(
+        (entry) => {
+          if (!entry.isDirectory()) return;
+          const candidate = path.join(archiveRoot, entry.name, 'analytics-data.json');
+          if (fs.existsSync(candidate)) {
+            const mtime = fs.statSync(candidate).mtimeMs;
+            if (mtime > newestMtime) {
+              newestFile = candidate;
+              newestMtime = mtime;
+            }
+          }
+        },
+      );
+    }
+  } catch {
+    // Unreadable archive dir — fall through to the legacy path.
   }
 
-  return stmts;
-}
+  if (newestFile) return newestFile;
+  if (fs.existsSync(LEGACY_JSON_PATH)) return LEGACY_JSON_PATH;
+  return null;
+};
+
+type ChunkResult = {
+  /** Records in this chunk whose statements were assembled without a JS error. */
+  assembled: number;
+  /** Records skipped during statement assembly (reported individually). */
+  skipped: number;
+  /** True if db.batch() rejected the chunk (DB-level constraint failure). */
+  batchFailed: boolean;
+};
+
+// Migrates one chunk of records. Isolation has two layers, both documented in
+// the header comment of migrate-utils.buildStatements():
+//   - Assembly errors (missing profile, unreadable shape) are caught per record
+//     here, so one bad legacy record can't abort the migration.
+//   - db.batch() is atomic, so a DB-level constraint failure (hand-imported
+//     data with values the JS-level guards can't see) still rolls back the
+//     whole chunk. That failure is caught here too: it's reported with the
+//     chunk's record range and the migration carries on, instead of dying for
+//     the rest of the dataset. The caller re-runs later once the data is fixed.
+// Closing over no loop variables (all passed as args) keeps airbnb's
+// no-loop-func happy — the chunk loop below stays index-driven.
+const migrateChunk = async (
+  db: ReturnType<typeof createClient>,
+  chunk: SearchRecord[],
+  startIndex: number,
+): Promise<ChunkResult> => {
+  const statements: Statement[] = [];
+  let skipped = 0;
+
+  chunk.forEach((record, j) => {
+    try {
+      statements.push(...buildStatements(record));
+    } catch (err) {
+      skipped += 1;
+      // eslint-disable-next-line no-console
+      console.error(
+        `  SKIPPED record ${startIndex + j}${record?.id ? ` (id=${record.id})` : ''}: ${sanitizeError(err)}`,
+      );
+    }
+  });
+
+  const assembled = chunk.length - skipped;
+
+  if (statements.length === 0) {
+    return { assembled: 0, skipped, batchFailed: false };
+  }
+
+  try {
+    await db.batch(statements);
+    return { assembled, skipped, batchFailed: false };
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(
+      `  CHUNK [${startIndex}..${startIndex + chunk.length}) FAILED in db.batch (${assembled} record(s) not migrated): ${sanitizeError(err)}`,
+    );
+    return { assembled: 0, skipped, batchFailed: true };
+  }
+};
 
 async function main(): Promise<void> {
   loadEnv();
@@ -137,25 +135,19 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (url.startsWith('libsql://') && !process.env.DATABASE_TOKEN) {
+  const tokenError = requireRemoteTursoToken(url, process.env.DATABASE_TOKEN);
+  if (tokenError) {
     // eslint-disable-next-line no-console
-    console.error(
-      'DATABASE_TOKEN is required for remote Turso URLs. Set it in .env and re-run.',
-    );
+    console.error(tokenError);
     process.exit(1);
   }
 
-  const jsonPath = path.resolve(
-    process.cwd(),
-    'src',
-    'proxy-local',
-    'utils',
-    'analytics-data.json',
-  );
-
-  if (!fs.existsSync(jsonPath)) {
+  const jsonPath = findDataFile();
+  if (!jsonPath) {
     // eslint-disable-next-line no-console
-    console.error(`No analytics data found at ${jsonPath} — nothing to migrate.`);
+    console.error(
+      `No analytics data found at analytics-archive/<date>/analytics-data.json or ${LEGACY_JSON_PATH} — nothing to migrate.`,
+    );
     process.exit(0);
   }
 
@@ -164,12 +156,12 @@ async function main(): Promise<void> {
 
   if (!Array.isArray(records) || records.length === 0) {
     // eslint-disable-next-line no-console
-    console.log('analytics-data.json is empty — nothing to migrate.');
+    console.log(`${path.basename(path.dirname(jsonPath))}/analytics-data.json is empty — nothing to migrate.`);
     process.exit(0);
   }
 
   // eslint-disable-next-line no-console
-  console.log(`Found ${records.length} records in analytics-data.json`);
+  console.log(`Found ${records.length} records in ${jsonPath}`);
 
   const db = createClient({
     url,
@@ -181,22 +173,42 @@ async function main(): Promise<void> {
   try {
     const BATCH_SIZE = 50;
     let migrated = 0;
+    let combinedSkipped = 0;
+    let chunkFailures = 0;
 
     let i = 0;
     while (i < records.length) {
       const chunk = records.slice(i, i + BATCH_SIZE);
+      // Sequential on purpose: each chunk is one atomic batch, and running
+      // them in parallel would let statement memory grow unbounded with the
+      // dataset size while still being constrained by the same Turso rate
+      // limits. Bounded, ordered progress beats throughput here.
+      // eslint-disable-next-line no-await-in-loop
+      const result = await migrateChunk(db, chunk, i);
 
-      const allStatements = chunk.flatMap(buildStatements);
-      await db.batch(allStatements);
+      migrated += result.assembled;
+      combinedSkipped += result.skipped;
+      if (result.batchFailed) {
+        chunkFailures += 1;
+      }
 
-      migrated += chunk.length;
       // eslint-disable-next-line no-console
-      console.log(`  migrated ${migrated}/${records.length}`);
+      console.log(
+        `  migrated ${migrated}/${records.length}${combinedSkipped ? `, skipped ${combinedSkipped}` : ''}${chunkFailures ? `, failed chunk(s) ${chunkFailures}` : ''}`,
+      );
       i += BATCH_SIZE;
     }
 
-    // eslint-disable-next-line no-console
-    console.log(`✔ Migrated ${migrated} records to Turso.`);
+    if (combinedSkipped > 0 || chunkFailures > 0) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `\u26a0 ${combinedSkipped} record(s) were skipped and ${chunkFailures} chunk(s) failed (see messages above). Fix and re-run for a complete import — the migration is idempotent.`,
+      );
+      exitCode = 1;
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`\u2714 Migrated ${migrated} records to Turso.`);
+    }
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Migration failed:', sanitizeError(err));
@@ -210,6 +222,6 @@ async function main(): Promise<void> {
 
 main().catch((err) => {
   // eslint-disable-next-line no-console
-  console.error('Unexpected error:', err);
+  console.error('Unexpected error:', sanitizeError(err));
   process.exit(1);
 });

@@ -39,6 +39,16 @@ next-env.d.ts
 
 gcNameCache.data.json
 
+# Local-only PII snapshot taken when the proxy's analytics store was retired
+# (see analytics-archive/ if you want to re-import it via scripts/migrate-data.ts).
+# Intentionally NOT committed: it holds real user search data.
+analytics-archive/
+
+# Legacy proxy-local runtime files. They may still exist on machines that
+# pulled the repo before the proxy's analytics endpoints were retired, and
+# they contain REAL search data (steamIds, nicknames, friends, location
+# guesses) — keep them ignored so a routine `git add -A` can't stage PII,
+# even though the proxy no longer writes them.
 src/proxy-local/utils/analytics.html
 src/proxy-local/utils/analytics-data.json
 src/proxy-local/utils/*.bak

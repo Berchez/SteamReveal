@@ -1,3 +1,9 @@
+set -e
 pnpm run e2e
 pnpm run smoke:gc
+# Best-effort: skips (exit 0) when no local dev server is reachable on :3000
+# and when DATABASE_URL isn't set — e.g. the machine is offline, or only
+# e2e's temporary server was up. It still FAILS loudly (set -e) on real
+# analytics regressions, which is the point of running it here.
 pnpm run smoke:analytics
+pnpm run db:smoke
