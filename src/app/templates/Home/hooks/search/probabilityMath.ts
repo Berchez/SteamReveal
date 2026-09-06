@@ -83,11 +83,18 @@ export function computeCloseFriendsProbability(
 
 /**
  * Aggregates close friends into a "location key -> weighted score" map.
- * A friend only contributes if their Steam profile exposes a city;
- * the weight is multiplied (rather than added) when multiple friends
- * share exactly the same country/state/city combination — a cluster of
- * friends in the same place weighs more than several friends spread across
- * different locations, even when their individual counts are similar.
+ * A friend only contributes if their Steam profile exposes a city AND they
+ * share at least one mutual connection (count > 0). Friends with zero mutual
+ * overlap carry no triangulation evidence: they would otherwise seed
+ * candidates scored 0 (rendered as "possible location with count 0", a real
+ * complaint), and — worse — because the aggregation MULTIPLIES shared-city
+ * scores, a single count-0 friend in a genuine cluster would zero it via
+ * `existing * 0`. Skipping them keeps both failure modes out.
+ *
+ * The weight is multiplied (rather than added) when multiple friends share
+ * exactly the same country/state/city combination — a cluster of friends in
+ * the same place weighs more than several friends spread across different
+ * locations, even when their individual counts are similar.
  */
 export function computeCityScores(
   closeFriends: closeFriendsDataIWant[],
@@ -95,7 +102,7 @@ export function computeCityScores(
   const citiesScored: cityNameAndScore = {};
 
   closeFriends
-    .filter((f) => f.friend.cityID !== undefined)
+    .filter((f) => f.count > 0 && f.friend.cityID !== undefined)
     .forEach((f) => {
       const cityKey = `${f.friend.countryCode}/${f.friend.stateCode}/${f.friend.cityID}`;
       citiesScored[cityKey] = citiesScored[cityKey]

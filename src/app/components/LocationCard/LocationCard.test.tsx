@@ -86,6 +86,43 @@ describe('LocationCard component', () => {
     expect(screen.queryByText('Brazil')).not.toBeInTheDocument();
   });
 
+  it('does not render possibleLocations with count 0 or probability 0', () => {
+    const providedLocation = {};
+    const possibleLocations = [
+      {
+        location: {
+          cityName: 'New York',
+          stateName: 'New York',
+          countryName: 'USA',
+          countryCode: 'US',
+        },
+        probability: 85.5,
+        count: 150,
+      },
+      {
+        location: {
+          cityName: 'Joao Pessoa',
+          stateName: 'Paraiba',
+          countryName: 'Brazil',
+          countryCode: 'BR',
+        },
+        probability: 0,
+        count: 0,
+      },
+    ];
+
+    render(
+      <LocationCard
+        providedLocation={providedLocation}
+        possibleLocations={possibleLocations}
+      />,
+    );
+
+    expect(screen.getByText(/New York,/i)).toBeInTheDocument();
+    expect(screen.getByText(/85.50%/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Joao Pessoa,/i)).not.toBeInTheDocument();
+  });
+
   it('renders fallback when no providedLocation or possibleLocations', () => {
     const providedLocation = {};
     render(<LocationCard providedLocation={providedLocation} />);

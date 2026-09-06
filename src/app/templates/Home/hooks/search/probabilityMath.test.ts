@@ -94,6 +94,21 @@ describe('computeCityScores', () => {
     ];
     expect(computeCityScores(input)).toEqual({ 'US/CA/5': 30 });
   });
+
+  it('skips friends with count 0 (no mutual-overlap evidence), even with a public city', () => {
+    const input = [
+      makeFriend('a', 0, { countryCode: 'BR', stateCode: '27', cityID: 8872 }),
+    ];
+    expect(computeCityScores(input)).toEqual({});
+  });
+
+  it('does not let a count-0 friend zero a shared city cluster', () => {
+    const input = [
+      makeFriend('a', 10, { countryCode: 'US', stateCode: 'CA', cityID: 5 }),
+      makeFriend('b', 0, { countryCode: 'US', stateCode: 'CA', cityID: 5 }),
+    ];
+    expect(computeCityScores(input)).toEqual({ 'US/CA/5': 10 });
+  });
 });
 
 describe('computeLocationProbabilities', () => {

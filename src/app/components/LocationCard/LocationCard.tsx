@@ -20,7 +20,14 @@ function LocationCard({
   const glassmorphism =
     'bg-purple-900 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-20 border border-gray-100/50';
 
-  const topLocation = possibleLocations?.[0];
+  // Zero-count / zero-probability candidates carry no triangulation evidence.
+  // computeCityScores no longer emits them (count-0 friends are skipped), but
+  // cached/legacy data can still contain them — never render a pointless row.
+  const visibleLocations = (possibleLocations ?? []).filter(
+    (l) => l.count > 0 && l.probability > 0,
+  );
+
+  const topLocation = visibleLocations[0];
   const showMap =
     topLocation && topLocation.probability >= 60 && topLocation.count >= 30;
 
@@ -54,40 +61,39 @@ function LocationCard({
         </div>
       )}
 
-      {possibleLocations &&
-        possibleLocations.map((l, index) => {
-          const { cityName, stateName, countryName, countryCode } = l.location;
-          const isFirst = index === 0;
+      {visibleLocations.map((l, index) => {
+        const { cityName, stateName, countryName, countryCode } = l.location;
+        const isFirst = index === 0;
 
-          return (
-            <React.Fragment
-              key={`${l.location.countryName}/${l.location.stateName}/${l.location.cityName}`}
-            >
-              <div className="flex md:items-center md:justify-between md:flex-row flex-col mb-2">
-                <div className="flex items-center gap-x-2">
-                  {countryCode && (
-                    <img
-                      src={`https://flagcdn.com/w20/${countryCode.toLowerCase()}.png`}
-                      className="w-max h-max"
-                      alt={`${countryCode}'s flag`}
-                      width={20}
-                      height={14}
-                    />
-                  )}
-                  {cityName && `${cityName}, `}
-                  {stateName && `${stateName}, `}
-                  {countryName && `${countryName}`}
-                </div>
-                <div className="flex gap-x-1">
-                  {l.probability.toFixed(2)}%
-                  <p className="text-xs self-end justify-end">({l.count})</p>
-                </div>
+        return (
+          <React.Fragment
+            key={`${l.location.countryName}/${l.location.stateName}/${l.location.cityName}`}
+          >
+            <div className="flex md:items-center md:justify-between md:flex-row flex-col mb-2">
+              <div className="flex items-center gap-x-2">
+                {countryCode && (
+                  <img
+                    src={`https://flagcdn.com/w20/${countryCode.toLowerCase()}.png`}
+                    className="w-max h-max"
+                    alt={`${countryCode}'s flag`}
+                    width={20}
+                    height={14}
+                  />
+                )}
+                {cityName && `${cityName}, `}
+                {stateName && `${stateName}, `}
+                {countryName && `${countryName}`}
               </div>
+              <div className="flex gap-x-1">
+                {l.probability.toFixed(2)}%
+                <p className="text-xs self-end justify-end">({l.count})</p>
+              </div>
+            </div>
 
-              {isFirst && showMap && <LocationMap query={mapQuery} isTop />}
-            </React.Fragment>
-          );
-        })}
+            {isFirst && showMap && <LocationMap query={mapQuery} isTop />}
+          </React.Fragment>
+        );
+      })}
 
       {!showMap && providedLocation.cityName && (
         <LocationMap query={mapQuery} />
