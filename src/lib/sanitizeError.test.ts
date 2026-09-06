@@ -36,6 +36,26 @@ describe('sanitizeError', () => {
     );
   });
 
+  it('redacts libsql:// even without a preceding word boundary', () => {
+    // No \b before "libsql" here — the generic DATABASE_URL_PATTERN can't
+    // match it; this is what LIB_SQL_URL_PATTERN exists for.
+    expect(
+      sanitizeError('embeddedurlxlibsql://user:tok@host.turso.io seeded'),
+    ).toBe('embeddedurlxlibsql://[REDACTED] seeded');
+  });
+
+  it('redacts authToken/auth_token variants the drivers actually use', () => {
+    expect(
+      sanitizeError('connect error invalid authToken topsecret123XYZ'),
+    ).toBe('connect error invalid token=[REDACTED]');
+    expect(sanitizeError("refused auth_token 'abc123XYZ'")).toBe(
+      'refused token=[REDACTED]',
+    );
+    expect(sanitizeError('bad credentials authtoken=sup3r-secret')).toBe(
+      'bad credentials token=[REDACTED]',
+    );
+  });
+
   it('leaves ordinary messages untouched', () => {
     expect(sanitizeError(new Error('Rate limit exceeded'))).toBe(
       'Rate limit exceeded',

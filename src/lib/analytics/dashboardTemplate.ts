@@ -11,26 +11,16 @@
  * note below). Do not accept an autofix for this rule in this file.
  */
 /**
- * Static HTML/CSS/JS shell for the analytics dashboard (analytics.html).
+ * Static HTML/CSS/JS shell for the analytics dashboard.
  *
  * THIS FILE IS THE ONLY SOURCE OF TRUTH for the dashboard's markup,
- * styling, and client-side behavior. analytics.ts's writeEntries()
- * regenerates the ENTIRE analytics.html shell from
- * ANALYTICS_DASHBOARD_HEAD/TAIL on every single write (every
- * recordSearch() / attachCheaterProbability() call), not just when the
- * file is missing. This means hand-editing analytics.html's HTML/CSS/JS
- * directly no longer has any lasting effect -- the next write silently
- * overwrites it with whatever this file currently says. If you want to
- * change the dashboard's look or behavior, edit HEAD/TAIL below, not a
- * generated analytics.html.
- *
- * (Earlier iteration of this file only used the template to recreate
- * analytics.html when it was MISSING. That left the file
- * on disk as a second, independently hand-edited copy of the shell that
- * could silently drift from this one. This version removes that second
- * copy: reading analytics.html only ever pulls out the <script id="db">
- * JSON data block -- see analytics.ts's readEntries() -- never the shell
- * around it.)
+ * styling, and client-side behavior. The dashboard route
+ * (src/app/api/analytics/dashboard/route.ts) serves the ENTIRE shell via
+ * buildAnalyticsHtml(), regenerated on every request from the current
+ * getSearchRecords() data, so hand-editing any served HTML has no lasting
+ * effect — the next request silently overwrites it with whatever this file
+ * currently says. If you want to change the dashboard's look or behavior,
+ * edit the HEAD/TAIL templates below, not a generated file.
  *
  * IMPORTANT -- how this file must be edited:
  * The content below is embedded as escaped template-literal string data,
@@ -1113,16 +1103,16 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
  * Deliberately takes a pre-serialized string rather than SearchRecord[]:
  * this file only knows about markup/styling/behavior, not about what a
  * "search record" is or how it should be escaped for embedding (that's
- * analytics.ts's job -- see its `<` -> `\u003c` escaping in writeEntries(),
- * which guards against a malicious nickname/URL containing "</script>").
- * Keeping that split also avoids a circular import, since analytics.ts
+ * dashboardRender.ts's job -- see its `<` -> `\u003c` escaping, which
+ * guards against a malicious nickname/URL containing "</script>").
+ * Keeping that split also avoids a circular import, since dashboardRender.ts
  * already imports from this file.
  */
 export const buildAnalyticsHtml = (serializedEntriesJson: string): string =>
   `${ANALYTICS_DASHBOARD_HEAD}\n${serializedEntriesJson}\n${ANALYTICS_DASHBOARD_TAIL}`;
 
 /**
- * Convenience wrapper for an empty-history dashboard -- used by tests and
- * by analytics.ts's readEntries() when analytics.html doesn't exist yet.
+ * Convenience wrapper for an empty-history dashboard — used by tests and by
+ * dashboardRender.ts's renderDashboard() when there are no records at all.
  */
 export const buildEmptyAnalyticsHtml = (): string => buildAnalyticsHtml('[]');

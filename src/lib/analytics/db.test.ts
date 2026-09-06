@@ -1,3 +1,11 @@
+/**
+ * @jest-environment node
+ *
+ * The mocked @libsql/client is fully offline (createClient/buildMockClient),
+ * but the node env matches the production runtime and keeps this file
+ * consistent with db.integration.test.ts, which needs it for file::memory:.
+ */
+
 // The factory is hoisted, but jest allows referencing variables that start
 // with `mock` — keeping the SAME jest.fn() across jest.resetModules() so the
 // test's setup (mockReturnValue) is still bound after a fresh require of ./db.
@@ -73,6 +81,31 @@ describe('analytics db DAL', () => {
     expect(mockCreateClient).toHaveBeenCalledTimes(1);
   });
 
+  it('drops the memoized client after a connection-level failure so the next call reconnects', async () => {
+    const { recordSearch } = require('./db');
+    await recordSearch(newSearchInput);
+
+    mockBatch.mockRejectedValueOnce(new Error('The session is closed'));
+    await expect(recordSearch(newSearchInput)).rejects.toThrow('session is closed');
+
+    // The dead client must not be reused: the next call rebuilds it.
+    await recordSearch(newSearchInput);
+    expect(mockCreateClient).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps reusing the memoized client on ordinary DB errors (no reconnect)', async () => {
+    const { recordSearch } = require('./db');
+    await recordSearch(newSearchInput);
+
+    mockBatch.mockRejectedValueOnce(new Error('db down'));
+    await expect(recordSearch(newSearchInput)).rejects.toThrow('db down');
+
+    mockBatch.mockResolvedValue({});
+    await recordSearch(newSearchInput);
+    // A generic failure is not a transport error — the client stays cached.
+    expect(mockCreateClient).toHaveBeenCalledTimes(1);
+  });
+
   it('coerces a numeric cityId to TEXT and encodes booleans', async () => {
     const { recordSearch } = require('./db');
     await recordSearch(newSearchInput);
@@ -102,6 +135,29 @@ describe('analytics db DAL', () => {
 
     expect(profileStatement.args).toContain(null);
     expect(profileStatement.args).not.toContain('null');
+  });
+
+  it('surfaces a db:migrate hint instead of a raw "no such table"', async () => {
+    mockBatch.mockRejectedValueOnce(new Error('no such table: searches'));
+    const { recordSearch } = require('./db');
+
+    await expect(recordSearch(newSearchInput)).rejects.toThrow(
+      'Analytics database schema is missing — run `pnpm run db:migrate` first.',
+    );
+  });
+
+  it('hints db:migrate when attachCheaterProbability hits a missing schema', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] }); // PRAGMA foreign_keys
+    mockExecute.mockRejectedValueOnce(new Error('no such table: searches'));
+    const { attachCheaterProbability } = require('./db');
+
+    await expect(
+      attachCheaterProbability('some-search-id', {
+        score: 1,
+        bannedFriendsCount: null,
+        computedAt: '2026-09-05T00:00:00.000Z',
+      }),
+    ).rejects.toThrow(/db:migrate/);
   });
 });
 
@@ -140,9 +196,17 @@ describe('getSearchRecords read path', () => {
     process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
     process.env.DATABASE_TOKEN = 'secret-token';
 
-    // getClient() punches PRAGMA foreign_keys first; the five read queries
-    // (Promise.all) follow in a deterministic order for the Once-chain.
+    // getClient() punches PRAGMA foreign_keys first; getSearchRecords then
+    // runs the five reads in ONE db.batch() (consistent snapshot) whose
+    // result sets default to empty rows unless a test overrides a slot.
     mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockBatch.mockResolvedValue([
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+    ]);
   });
 
   it('returns an empty list when the database has no searches', async () => {
@@ -152,7 +216,13 @@ describe('getSearchRecords read path', () => {
   });
 
   it('reconstructs a bare record from the 1:1 join', async () => {
-    mockExecute.mockResolvedValueOnce({ rows: [searchRow] });
+    mockBatch.mockResolvedValueOnce([
+      { rows: [searchRow] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+    ]);
     const { getSearchRecords } = require('./db');
 
     const [record] = await getSearchRecords();
@@ -183,44 +253,46 @@ describe('getSearchRecords read path', () => {
   });
 
   it('attaches friends, games, location guesses and the cheater result', async () => {
-    mockExecute.mockResolvedValueOnce({ rows: [searchRow] });
-    mockExecute.mockResolvedValueOnce({
-      rows: [
-        {
-          search_id: searchId,
-          id: 1,
-          steam_id: '76561198000001111',
-          nickname: 'F1',
-          gc_name: null,
-          mutual_count: 3,
-          probability: 87.5,
-          country_code: 'US',
-        },
-      ],
-    });
-    mockExecute.mockResolvedValueOnce({
-      rows: [{ search_id: searchId, id: 1, name: 'Counter-Strike 2', playtime_hours: 120.5 }],
-    });
-    mockExecute.mockResolvedValueOnce({
-      rows: [
-        {
-          search_id: searchId,
-          id: 1,
-          location: '{"cityName":"Sao Paulo","countryCode":"BR"}',
-          probability: 0.93,
-        },
-      ],
-    });
-    mockExecute.mockResolvedValueOnce({
-      rows: [
-        {
-          search_id: searchId,
-          score: 72,
-          banned_friends_count: 4,
-          computed_at: '2023-11-14T13:00:00.000Z',
-        },
-      ],
-    });
+    mockBatch.mockResolvedValueOnce([
+      { rows: [searchRow] },
+      {
+        rows: [
+          {
+            search_id: searchId,
+            id: 1,
+            steam_id: '76561198000001111',
+            nickname: 'F1',
+            gc_name: null,
+            mutual_count: 3,
+            probability: 87.5,
+            country_code: 'US',
+          },
+        ],
+      },
+      {
+        rows: [{ search_id: searchId, id: 1, name: 'Counter-Strike 2', playtime_hours: 120.5 }],
+      },
+      {
+        rows: [
+          {
+            search_id: searchId,
+            id: 1,
+            location: '{"cityName":"Sao Paulo","countryCode":"BR"}',
+            probability: 87.5,
+          },
+        ],
+      },
+      {
+        rows: [
+          {
+            search_id: searchId,
+            score: 72,
+            banned_friends_count: 4,
+            computed_at: '2023-11-14T13:00:00.000Z',
+          },
+        ],
+      },
+    ]);
 
     const { getSearchRecords } = require('./db');
     const [record] = await getSearchRecords();
@@ -239,7 +311,7 @@ describe('getSearchRecords read path', () => {
       { name: 'Counter-Strike 2', playtimeHours: 120.5 },
     ]);
     expect(record.locationGuess).toEqual([
-      { location: { cityName: 'Sao Paulo', countryCode: 'BR' }, probability: 0.93 },
+      { location: { cityName: 'Sao Paulo', countryCode: 'BR' }, probability: 87.5 },
     ]);
     expect(record.cheater).toEqual({
       score: 72,
@@ -249,9 +321,15 @@ describe('getSearchRecords read path', () => {
   });
 
   it('maps is_cs_active NULL / invalid device to null instead of crashing', async () => {
-    mockExecute.mockResolvedValueOnce({
-      rows: [{ ...searchRow, is_cs_active: null, device: 'potato', city_id: null }],
-    });
+    mockBatch.mockResolvedValueOnce([
+      {
+        rows: [{ ...searchRow, is_cs_active: null, device: 'potato', city_id: null }],
+      },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+    ]);
 
     const { getSearchRecords } = require('./db');
     const [record] = await getSearchRecords();
@@ -260,5 +338,61 @@ describe('getSearchRecords read path', () => {
     expect(record.device).toBeNull();
     expect(record.profile.cityId).toBeNull();
     expect(record.cheater).toBeNull();
+  });
+
+  it('skips a corrupted location JSON row instead of breaking the dashboard', async () => {
+    mockBatch.mockResolvedValueOnce([
+      { rows: [searchRow] },
+      { rows: [] },
+      { rows: [] },
+      {
+        rows: [
+          {
+            search_id: searchId,
+            id: 1,
+            location: '{not-valid-json',
+            probability: 87.5,
+          },
+        ],
+      },
+      { rows: [] },
+    ]);
+
+    const { getSearchRecords } = require('./db');
+    const [record] = await getSearchRecords();
+
+    expect(record.id).toBe(searchId);
+    expect(record.locationGuess).toEqual([]);
+    expect(record.friends).toEqual([]);
+  });
+
+  it('hints db:migrate when the read path hits a missing schema', async () => {
+    mockBatch.mockRejectedValueOnce(new Error('no such table: searches'));
+    const { getSearchRecords } = require('./db');
+
+    await expect(getSearchRecords()).rejects.toThrow(/db:migrate/);
+  });
+
+  it('drops a search whose profile row is missing (LEFT JOIN null steam_id)', async () => {
+    mockBatch.mockResolvedValueOnce([
+      {
+        rows: [
+          { id: 'orphan-1', searched_at: '2026-09-04T20:00:00.000Z', steam_id: null },
+          { id: 'orphan-2', searched_at: '2026-09-04T21:00:00.000Z', steam_id: '' },
+          searchRow,
+        ],
+      },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+    ]);
+
+    const { getSearchRecords } = require('./db');
+    const records = await getSearchRecords();
+
+    expect(records).toHaveLength(1);
+    expect(records[0].id).toBe(searchId);
+    expect(records[0].profile.steamId).toBe('76561198000000000');
   });
 });

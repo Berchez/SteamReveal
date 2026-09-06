@@ -6,12 +6,12 @@
 -- file is a safe no-op. Apply with `pnpm run db:migrate`.
 --
 -- This replaces the old file-backed datastore
--- (src/proxy-local/utils/analytics-data.json). The `SearchRecord[]`
--- array from that file maps 1:1 onto these relations: a `searches` row
--- per record, plus child rows for its friends / games / location
--- guesses / cheater result. `searches.id` stays the same string id so
--- the frontend's `searchId` (used to attach the cheater result) keeps
--- working untouched.
+-- (analytics-data.json, retired with the proxy's analytics endpoints).
+-- The `SearchRecord[]` array from that file maps 1:1 onto these
+-- relations: a `searches` row per record, plus child rows for its
+-- friends / games / location guesses / cheater result. `searches.id`
+-- stays the same string id so the frontend's `searchId` (used to attach
+-- the cheater result) keeps working untouched.
 -- =====================================================================
 
 -- Root entity: one row per finished search.

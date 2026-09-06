@@ -8,10 +8,15 @@
  * catches quoted tokens (`token '...'`), bare tokens after whitespace, and
  * JWT-shaped strings, so a differently-formatted driver message still can't
  * leak a credential.
+ *
+ * The optional `auth[_-]?` prefix matters: driver messages refer to the
+ * credential as `authToken`/`auth_token` (libSQL) or `authtoken`, not the
+ * bare word `token`, so an unconditional `\btoken` would miss them (word
+ * boundary exists before `auth`, not before `token`).
  */
 
-const TOKEN_LITERAL_PATTERN = /\btoken[=:]\s*\S+/gi;
-const TOKEN_BARE_OR_QUOTED_PATTERN = /\btoken\s+["']?[A-Za-z0-9._-]+["']?/gi;
+const TOKEN_LITERAL_PATTERN = /\b(?:auth[_-]?)?token[=:]\s*\S+/gi;
+const TOKEN_BARE_OR_QUOTED_PATTERN = /\b(?:auth[_-]?)?token\s+["']?[A-Za-z0-9._-]+["']?/gi;
 const JWT_PATTERN = /\beyJ[A-Za-z0-9_-]{10,}(\.[A-Za-z0-9_-]+){1,2}\b/g;
 const LIB_SQL_URL_PATTERN = /libsql:\/\/\S+/g;
 const DATABASE_URL_PATTERN = /\b(?:libsql|https?):\/\/[^\s"']+/gi;

@@ -4,9 +4,10 @@ import { sanitizeError } from '../lib/sanitizeError';
 import scrapeGamersClubName, {
   scrapeGamersClubBan,
 } from './utils/scrapeGamersClubName';
-import { recordSearch, attachCheaterProbability } from './utils/analyticsAdapter';
 
-// Load environment variables before setting up the server
+// Load environment variables before setting up the server. loadEnv() follows
+// dotenv semantics: a var already present in the process (shell/CI export)
+// is NEVER overwritten by .env, so host-provided values win over the file.
 loadEnv();
 
 const app = express();
@@ -69,95 +70,6 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
   }
 });
 
-// Endpoint: POST /api/analytics/record
-// Called by the deployed site (via the same tunnel used for LOCAL_PROXY_URL)
-// every time a search finishes. Writes to the local analytics.html — this is why
-// it has to live on this local server rather than on Vercel.
-//
-// All the fields below `profile`/`friends` are optional and new — older
-// callers that only send profile/friends keep working exactly as before.
-app.post('/api/analytics/record', async (req: Request, res: Response) => {
-  const {
-    profile,
-    friends,
-    requesterLocale,
-    requesterCountry,
-    requesterBrowserLanguage,
-    device,
-    locationGuess,
-    durationMs,
-  } = req.body ?? {};
-
-  if (!profile || !profile.steamId) {
-    return res.status(400).json({ error: 'Invalid or missing profile' });
-  }
-
-  try {
-    const record = await recordSearch({
-      profile,
-      friends: Array.isArray(friends) ? friends : [],
-      requesterLocale:
-        typeof requesterLocale === 'string' ? requesterLocale : null,
-      requesterCountry:
-        typeof requesterCountry === 'string' ? requesterCountry : null,
-      requesterBrowserLanguage:
-        typeof requesterBrowserLanguage === 'string'
-          ? requesterBrowserLanguage
-          : null,
-      device: device === 'mobile' || device === 'desktop' ? device : null,
-      locationGuess: Array.isArray(locationGuess) ? locationGuess : null,
-      durationMs: typeof durationMs === 'number' ? durationMs : null,
-    });
-
-    // `id` is returned so the frontend can later attach a cheater-probability
-    // score to this exact search via /api/analytics/cheater.
-    return res.status(200).json({ ok: true, id: record.id });
-  } catch (error) {
-    console.error('[Analytics] Failed to record search:', error);
-    return res.status(500).json({
-      error: 'Failed to record search',
-      details: sanitizeError(error),
-    });
-  }
-});
-
-// Endpoint: POST /api/analytics/cheater
-// Called separately, after /api/analytics/record, once the user actually
-// requests a cheater-probability report for that same search (the score
-// isn't computed as part of every search, so it can't be sent up front).
-app.post('/api/analytics/cheater', async (req: Request, res: Response) => {
-  const { searchId, score, bannedFriendsCount } = req.body ?? {};
-
-  if (!searchId || typeof score !== 'number') {
-    return res.status(400).json({
-      error: 'Invalid payload: searchId and numeric score are required',
-    });
-  }
-
-  try {
-    const updated = await attachCheaterProbability(searchId, {
-      score,
-      bannedFriendsCount:
-        typeof bannedFriendsCount === 'number' ? bannedFriendsCount : null,
-      computedAt: new Date().toISOString(),
-    });
-
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ error: 'Search record not found for that searchId' });
-    }
-
-    return res.status(200).json({ ok: true });
-  } catch (error) {
-    console.error('[Analytics] Failed to attach cheater probability:', error);
-    return res.status(500).json({
-      error: 'Failed to attach cheater probability',
-      details: sanitizeError(error),
-    });
-  }
-});
-
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
@@ -168,6 +80,4 @@ app.listen(Number(PORT), '0.0.0.0', () => {
     `[Local Proxy] Standalone server running on http://localhost:${PORT}`,
   );
   console.log(`[Local Proxy] Endpoint active: GET /api/gamersclub/:steamId`);
-  console.log(`[Local Proxy] Endpoint active: POST /api/analytics/record`);
-  console.log(`[Local Proxy] Endpoint active: POST /api/analytics/cheater`);
 });

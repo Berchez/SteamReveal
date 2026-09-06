@@ -58,3 +58,23 @@ export const loadEnv = (
     }
   });
 };
+
+/**
+ * Validates that a remote Turso URL carries a token. "Remote" means everything
+ * except `file:` URLs (local SQLite needs no auth) — Turso serves the same
+ * databases under both `libsql://` and `https://`, so both must be covered.
+ *
+ * Returns a human-readable error message when the config is invalid, null when
+ * it is fine. Callers keep handling a missing DATABASE_URL themselves (the
+ * error strings differ per tool), so a missing URL yields null here.
+ */
+export const requireRemoteTursoToken = (
+  url: string | undefined,
+  token: string | null | undefined,
+): string | null => {
+  if (!url) return null;
+  if (url.startsWith('file:')) return null;
+  return token
+    ? null
+    : 'DATABASE_TOKEN is required for remote Turso URLs (libsql:// or https://).';
+};

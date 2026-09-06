@@ -1,6 +1,6 @@
 import os from 'os';
 import path from 'path';
-import { loadEnv, parseEnvFile } from './env';
+import { loadEnv, parseEnvFile, requireRemoteTursoToken } from './env';
 
 describe('parseEnvFile', () => {
   it('parses key=value pairs and strips surrounding quotes', () => {
@@ -61,5 +61,40 @@ describe('loadEnv', () => {
     process.env.SHOULD_STAY = 'x';
     loadEnv(path.join(os.tmpdir(), 'does-not-exist-unique.env'));
     expect(process.env.SHOULD_STAY).toBe('x');
+  });
+});
+
+describe('requireRemoteTursoToken', () => {
+  it('accepts a remote URL with a token', () => {
+    expect(
+      requireRemoteTursoToken('libsql://demo-org.turso.io', 'token'),
+    ).toBeNull();
+    expect(
+      requireRemoteTursoToken('https://demo-org.turso.io', 'token'),
+    ).toBeNull();
+  });
+
+  it('rejects remote libsql:// URLs without a token', () => {
+    expect(requireRemoteTursoToken('libsql://demo-org.turso.io', undefined)).toBe(
+      'DATABASE_TOKEN is required for remote Turso URLs (libsql:// or https://).',
+    );
+    expect(requireRemoteTursoToken('libsql://demo-org.turso.io', null)).toBe(
+      'DATABASE_TOKEN is required for remote Turso URLs (libsql:// or https://).',
+    );
+  });
+
+  it('rejects remote https:// URLs without a token (same auth path as libsql://)', () => {
+    expect(requireRemoteTursoToken('https://demo-org.turso.io', undefined)).toBe(
+      'DATABASE_TOKEN is required for remote Turso URLs (libsql:// or https://).',
+    );
+  });
+
+  it('accepts local file: URLs without a token (no auth needed)', () => {
+    expect(requireRemoteTursoToken('file:analytics.db', undefined)).toBeNull();
+    expect(requireRemoteTursoToken('file::memory:', null)).toBeNull();
+  });
+
+  it('returns null when the URL is missing (callers own that error)', () => {
+    expect(requireRemoteTursoToken(undefined, undefined)).toBeNull();
   });
 });

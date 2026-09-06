@@ -1,10 +1,10 @@
 /**
  * Analytics DAL — Turso (libSQL) backend.
  *
- * Drop-in replacement for the JSON-file based recordSearch() and
- * attachCheaterProbability() in proxy-local/utils/analytics.ts.
- * Exported from src/lib/ so it can eventually be consumed by Vercel
- * serverless routes too (not just the proxy).
+ * Replaces the retired JSON-file store (recordSearch() and
+ * attachCheaterProbability() used to live in the proxy's
+ * utils/analytics.ts). Exported from src/lib/ so the Vercel serverless
+ * routes consume it directly — no proxy forward anymore.
  *
  * Required env vars:
  *   DATABASE_URL   libsql://<db>-<org>.turso.io
@@ -20,8 +20,17 @@ import type {
   FriendRecord,
   GameSnapshotEntry,
   LocationGuess,
-} from '../../proxy-local/utils/analytics';
+} from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
+import { requireRemoteTursoToken } from '../env';
+import {
+  filterValidFriends,
+  filterValidGames,
+  filterValidLocations,
+  MAX_FRIENDS,
+  MAX_GAMES_SNAPSHOT,
+  MAX_LOCATION_GUESSES,
+} from './normalize';
 
 // ---------------------------------------------------------------------------
 // Client singleton (created once, reused across calls)
@@ -42,10 +51,9 @@ const createClientInstance = async (): Promise<Client> => {
     );
   }
 
-  if (url.startsWith('libsql://') && !process.env.DATABASE_TOKEN) {
-    throw new Error(
-      'DATABASE_TOKEN is required for remote Turso URLs (libsql://). Set it in .env.',
-    );
+  const tokenError = requireRemoteTursoToken(url, process.env.DATABASE_TOKEN);
+  if (tokenError) {
+    throw new Error(tokenError);
   }
 
   const c = createClient({
@@ -54,8 +62,10 @@ const createClientInstance = async (): Promise<Client> => {
   });
 
   // SQLite disables FK enforcement by default; set it per-connection.
-  // For HTTP transport (Turso remoto), this applies to subsequent statements
-  // on this client instance.
+  // For HTTP transport (remote Turso), this applies to subsequent statements
+  // on this client instance. Empirically verified against a real Turso remote
+  // DB: the pragma persists across separate execute() calls on the same client
+  // session, and ON DELETE CASCADE fires over HTTP.
   await c.execute('PRAGMA foreign_keys = ON');
 
   return c;
@@ -73,8 +83,84 @@ const getClient = (): Promise<Client> => {
 };
 
 // ---------------------------------------------------------------------------
+// Schema-missing detection. A fresh Turso DB has no tables until `pnpm run
+// db:migrate` runs; a missing-schema failure currently surfaces as a generic
+// 500 ("INTERNAL_ERROR") downstream. Rewrite only that specific case into a
+// message that points at the fix, leaving every other error untouched.
+// ---------------------------------------------------------------------------
+
+const SCHEMA_MISSING_TABLE_PATTERN = /no such table/i;
+
+// A client that was created fine can still die later (idle timeout, network
+// blip, Turso closing a hrana session). These are the error shapes the driver
+// produces when that happens; anything matching invalidates the memoized
+// client so the next call rebuilds it instead of serving 500s from a dead
+// connection until the container recycles.
+const CONNECTION_FAILURE_PATTERN =
+  /(?:connection|socket|session is closed|ECONNRESET|ECONNREFUSED|network|fetch failed|timeout|timed out)/i;
+
+// Classifies an error as a transport/connectivity failure (as opposed to a
+// query/logic error). Exported so the smoke scripts (db-smoke, smoke-analytics)
+// can distinguish "Turso is unreachable right now" — an environment problem
+// that a pre-push hook should SKIP, not fail the push over — from a genuine
+// analytics regression, which must still FAIL.
+export const isTransportFailure = (error: unknown): boolean =>
+  error instanceof Error && CONNECTION_FAILURE_PATTERN.test(error.message);
+
+const withSchemaHint = async <T>(operation: Promise<T>): Promise<T> => {
+  try {
+    return await operation;
+  } catch (error) {
+    if (error instanceof Error && SCHEMA_MISSING_TABLE_PATTERN.test(error.message)) {
+      throw new Error(
+        'Analytics database schema is missing — run `pnpm run db:migrate` first.',
+      );
+    }
+    // If a transport failure is caught here, the memoized client is stale —
+    // null it so the next call reconnects. All operations on the memo share
+    // this catch, so a failure handled after a concurrent call already
+    // re-created the memo can null a fresh healthy client too: worst case is
+    // ONE wasted reconnect on the next call (self-healing, no data impact).
+    if (isTransportFailure(error) && clientPromise !== null) {
+      clientPromise = null;
+    }
+    throw error;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Test-only helpers: let integration tests drive the memoized client that the
+// DAL actually uses, so a `file::memory:` DATABASE_URL can host both the
+// migration and the queries on a single connection (no temp files, no Windows
+// lock-release races). Nothing in production calls these.
+// ---------------------------------------------------------------------------
+
+export const closeClientForTests = async (): Promise<void> => {
+  if (clientPromise) {
+    const client = await clientPromise;
+    client.close();
+    clientPromise = null;
+  }
+};
+
+export const executeForTests = async (
+  sql: string,
+  args?: (string | number | null)[],
+): Promise<Awaited<ReturnType<Client['execute']>>> => {
+  const db = await getClient();
+  return withSchemaHint(args ? db.execute({ sql, args }) : db.execute(sql));
+};
+
+// ---------------------------------------------------------------------------
 // recordSearch — insert a completed search across all normalized tables.
 // Uses db.batch() so the entire insert is atomic (BEGIN/COMMIT/ROLLBACK).
+//
+// Statements in one batch are bounded by the shared caps (normalize.ts
+// MAX_FRIENDS=1000, MAX_GAMES_SNAPSHOT=1000, MAX_LOCATION_GUESSES=10) — re-
+// applied here on top of the route parser's own slice — plus the 3 parent
+// rows: at most ~2013 statements in a single batch. That's the largest
+// transaction this code ever opens — well inside @libsql/client's practical
+// batch sizes, but the number matters if the transport ever changes.
 // ---------------------------------------------------------------------------
 
 export const recordSearch = async (
@@ -132,8 +218,13 @@ export const recordSearch = async (
     },
   ];
 
-  // 4. Friends (N:1)
-  record.friends.forEach((f) => {
+  // 4. Friends (N:1) — the route parser already validated/trimmed these, but
+  // recordSearch is callable by anyone; the shared filters + caps are cheap
+  // defense in depth (same MAX_* the parser applies, so a batch can never
+  // exceed ~2013 statements).
+  filterValidFriends(record.friends)
+    .slice(0, MAX_FRIENDS)
+    .forEach((f) => {
     statements.push({
       sql: `INSERT INTO friends
             (search_id, steam_id, nickname, gc_name,
@@ -152,7 +243,9 @@ export const recordSearch = async (
   });
 
   // 5. Games snapshot (N:1)
-  (record.gamesSnapshot ?? []).forEach((g) => {
+  filterValidGames(record.gamesSnapshot ?? [])
+    .slice(0, MAX_GAMES_SNAPSHOT)
+    .forEach((g) => {
     statements.push({
       sql: 'INSERT INTO games_snapshot (search_id, name, playtime_hours) VALUES (?, ?, ?)',
       args: [id, g.name, g.playtimeHours],
@@ -160,14 +253,16 @@ export const recordSearch = async (
   });
 
   // 6. Location guesses (N:1) — location is a JSON-serialized object
-  (record.locationGuess ?? []).forEach((lg) => {
+  filterValidLocations(record.locationGuess ?? [])
+    .slice(0, MAX_LOCATION_GUESSES)
+    .forEach((lg) => {
     statements.push({
       sql: 'INSERT INTO location_guesses (search_id, location, probability) VALUES (?, ?, ?)',
       args: [id, JSON.stringify(lg.location), lg.probability],
     });
   });
 
-  await db.batch(statements);
+  await withSchemaHint(db.batch(statements));
 
   return record;
 };
@@ -183,29 +278,35 @@ export const attachCheaterProbability = async (
 ): Promise<boolean> => {
   const db = await getClient();
 
-  // Explicit check — deterministic, no reliance on FK error message text.
-  const exists = await db.execute({
-    sql: 'SELECT 1 FROM searches WHERE id = ?',
-    args: [searchId],
-  });
+  // Explicit pre-check instead of parsing an FK-violation message. Has a tiny
+  // non-atomic window vs. a hypothetical concurrent search deletion — harmless
+  // today, since nothing in the app deletes searches (would throw, not corrupt).
+  const exists = await withSchemaHint(
+    db.execute({
+      sql: 'SELECT 1 FROM searches WHERE id = ?',
+      args: [searchId],
+    }),
+  );
 
   if (exists.rows.length === 0) return false;
 
-  await db.execute({
-    sql: `INSERT INTO cheater_results
-          (search_id, score, banned_friends_count, computed_at)
-          VALUES (?, ?, ?, ?)
-          ON CONFLICT(search_id) DO UPDATE SET
-            score = excluded.score,
-            banned_friends_count = excluded.banned_friends_count,
-            computed_at = excluded.computed_at`,
-    args: [
-      searchId,
-      cheater.score,
-      cheater.bannedFriendsCount ?? null,
-      cheater.computedAt,
-    ],
-  });
+  await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO cheater_results
+            (search_id, score, banned_friends_count, computed_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(search_id) DO UPDATE SET
+              score = excluded.score,
+              banned_friends_count = excluded.banned_friends_count,
+              computed_at = excluded.computed_at`,
+      args: [
+        searchId,
+        cheater.score,
+        cheater.bannedFriendsCount ?? null,
+        cheater.computedAt,
+      ],
+    }),
+  );
 
   return true;
 };
@@ -230,33 +331,53 @@ const toNullableNumber = (value: unknown): number | null => {
   return null;
 };
 
-const parseLocationGuesses = (rows: Row[]): LocationGuess[] =>
-  rows.map((row) => ({
-    location: JSON.parse(row.location as string) as LocationGuess['location'],
-    probability: typeof row.probability === 'number' ? row.probability : 0,
-  }));
+const parseLocationGuesses = (rows: Row[]): LocationGuess[] => {
+  const guesses: LocationGuess[] = [];
+
+  rows.forEach((row) => {
+    try {
+      guesses.push({
+        location: JSON.parse(row.location as string) as LocationGuess['location'],
+        probability: typeof row.probability === 'number' ? row.probability : 0,
+      });
+    } catch {
+      // One corrupted/legacy row must not take the whole dashboard down —
+      // skip just that guess.
+    }
+  });
+
+  return guesses;
+};
 
 export const getSearchRecords = async (): Promise<SearchRecord[]> => {
   const db = await getClient();
 
-  const [searches, friends, games, locations, cheaters] = await Promise.all([
-    db.execute(`
-      SELECT s.id, s.searched_at,
-             p.steam_id, p.steam_url, p.nickname, p.gc_name,
-             p.country_code, p.state_code, p.city_id,
-             p.is_cs_active, p.duration_ms,
-             m.requester_locale, m.requester_country,
-             m.requester_browser_language, m.device
-      FROM searches s
-      LEFT JOIN profiles p ON p.search_id = s.id
-      LEFT JOIN search_meta m ON m.search_id = s.id
-      ORDER BY s.searched_at ASC, s.id ASC
-    `),
-    db.execute('SELECT * FROM friends ORDER BY search_id, id'),
-    db.execute('SELECT * FROM games_snapshot ORDER BY search_id, id'),
-    db.execute('SELECT * FROM location_guesses ORDER BY search_id, id'),
-    db.execute('SELECT * FROM cheater_results'),
-  ]);
+  // The five reads run inside ONE db.batch(), which @libsql/client wraps in a
+  // single (deferred) transaction: all child tables are read from the same
+  // snapshot as the searches table, so a record can't come back with a child
+  // list that was written a moment later by a concurrent recordSearch.
+  const [searches, friends, games, locations, cheaters] = await withSchemaHint(
+    db.batch([
+      {
+        sql: `
+          SELECT s.id, s.searched_at,
+                 p.steam_id, p.steam_url, p.nickname, p.gc_name,
+                 p.country_code, p.state_code, p.city_id,
+                 p.is_cs_active, p.duration_ms,
+                 m.requester_locale, m.requester_country,
+                 m.requester_browser_language, m.device
+          FROM searches s
+          LEFT JOIN profiles p ON p.search_id = s.id
+          LEFT JOIN search_meta m ON m.search_id = s.id
+          ORDER BY s.searched_at ASC, s.id ASC
+        `,
+      },
+      { sql: 'SELECT * FROM friends ORDER BY search_id, id' },
+      { sql: 'SELECT * FROM games_snapshot ORDER BY search_id, id' },
+      { sql: 'SELECT * FROM location_guesses ORDER BY search_id, id' },
+      { sql: 'SELECT * FROM cheater_results' },
+    ]),
+  );
 
   const friendsBySearch = new Map<string, FriendRecord[]>();
   friends.rows.forEach((row) => {
@@ -301,10 +422,21 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
     });
   });
 
-  return searches.rows.map((row) => {
-    const searchId = row.id as string;
+  return searches.rows
+    .map((row) => {
+      const searchId = row.id as string;
 
-    const profile: ProfileRecord = {
+      // Defensive: the LEFT JOIN on profiles can only ever yield a NULL
+      // steam_id if a searches row lost its profile (impossible through the
+      // DAL — recordSearch writes both atomically — but hand-edited rows or a
+      // partial legacy import could do it). A profile-less record renders a
+      // broken dashboard row (null steamId), so drop it instead of casting the
+      // null to string and shipping a corrupt SearchRecord.
+      if (typeof row.steam_id !== 'string' || row.steam_id.length === 0) {
+        return null;
+      }
+
+      const profile: ProfileRecord = {
       steamId: row.steam_id as string,
       steamUrl: toNullableString(row.steam_url),
       nickname: toNullableString(row.nickname),
@@ -321,6 +453,9 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
       id: searchId,
       searchedAt: row.searched_at as string,
       profile,
+      // An empty child table reads back as arrays/nulls regardless of whether
+      // the source sent `[]` or `undefined` (both store zero rows) — fine, the
+      // dashboard treats null and [] the same (it maps over `?? []`).
       friends: friendsBySearch.get(searchId) ?? [],
       gamesSnapshot: gamesBySearch.get(searchId) ?? null,
       isCSActive: typeof isActive === 'number' && (isActive === 0 || isActive === 1)
@@ -329,10 +464,13 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
       requesterLocale: toNullableString(row.requester_locale),
       requesterCountry: toNullableString(row.requester_country),
       requesterBrowserLanguage: toNullableString(row.requester_browser_language),
-      device: device === 'mobile' || device === 'desktop' ? device : null,
+      device: (device === 'mobile' || device === 'desktop'
+        ? device
+        : null) as 'mobile' | 'desktop' | null,
       locationGuess: locationsBySearch.get(searchId) ?? null,
       cheater,
       durationMs: toNullableNumber(row.duration_ms),
     };
-  });
+    })
+    .filter((record) => record !== null);
 };
