@@ -115,6 +115,27 @@ export default function RootLayout({
           href="https://avatars.steamstatic.com"
           crossOrigin="anonymous"
         />
+        {/*
+          next/font does not emit <link rel="preload"> for woff2 on this Next
+          version (vercel/next.js#62332), so fonts only start after the fonts
+          CSS parses. Preload the latin files used on first paint (Roboto is a
+          variable font, one file covers 400/500/700). Rebuild and copy the
+          latin *-s.p.woff2 names from .next/static/media if they change.
+        */}
+        <link
+          rel="preload"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+          href="/_next/static/media/1e41be92c43b3255-s.p.woff2"
+        />
+        <link
+          rel="preload"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+          href="/_next/static/media/0d10e58a08c28482-s.p.woff2"
+        />
         <link
           rel="icon"
           type="image/png"
