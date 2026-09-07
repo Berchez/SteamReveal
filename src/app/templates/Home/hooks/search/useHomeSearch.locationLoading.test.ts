@@ -77,6 +77,10 @@ describe('useHomeSearch - location loading flag', () => {
         });
       }
 
+      if (url === '/api/recordAnalyticsFriends') {
+        return Promise.resolve({ data: { ok: true, updated: 0 } });
+      }
+
       return Promise.reject(new Error(`unexpected url ${url}`));
     });
 

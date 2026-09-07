@@ -161,6 +161,107 @@ describe('analytics db DAL', () => {
   });
 });
 
+describe('attachFriendGcNames backfill', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    // reset (not clear) to drop any mockResolvedValueOnce queue leaked by
+    // other describes; defaults are restored below.
+    mockCreateClient.mockReset();
+    mockExecute.mockReset();
+    mockBatch.mockReset();
+    mockClose.mockReset();
+    buildMockClient();
+    // Every execute resolves empty by default (PRAGMA + the exists SELECT).
+    mockExecute.mockResolvedValue({ rows: [] });
+    process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
+    process.env.DATABASE_TOKEN = 'secret-token';
+  });
+
+  it('reports a missing search as searchExists:false without touching batch', async () => {
+    const { attachFriendGcNames } = require('./db');
+
+    const result = await attachFriendGcNames('no-such-search', [
+      { steamId: '76561198000000001', gcName: 'Alice' },
+    ]);
+
+    expect(result).toEqual({ searchExists: false, updated: 0 });
+    expect(mockBatch).not.toHaveBeenCalled();
+  });
+
+  it('updates one row per valid entry and sums rowsAffected', async () => {
+    // PRAGMA resolve → exists-SELECT finds the search → batch UPDATEs.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [{}] });
+    mockBatch.mockResolvedValue([{ rowsAffected: 1 }, { rowsAffected: 2 }]);
+
+    const { attachFriendGcNames } = require('./db');
+
+    const result = await attachFriendGcNames('search-id', [
+      { steamId: '76561198000000001', gcName: 'Alice' },
+      { steamId: '76561198000000002', gcName: 'Bob' },
+    ]);
+
+    expect(result).toEqual({ searchExists: true, updated: 3 });
+    const statements = mockBatch.mock.calls[0][0];
+    expect(statements).toHaveLength(2);
+    expect(statements[0]).toEqual({
+      sql: 'UPDATE friends SET gc_name = ? WHERE search_id = ? AND steam_id = ?',
+      args: ['Alice', 'search-id', '76561198000000001'],
+    });
+    expect(statements[1].args).toEqual(['Bob', 'search-id', '76561198000000002']);
+  });
+
+  it('filters blank/oversized names and invalid steamIds before writing', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [{}] });
+    mockBatch.mockResolvedValue([{ rowsAffected: 1 }]);
+
+    const { attachFriendGcNames } = require('./db');
+
+    const result = await attachFriendGcNames('search-id', [
+      { steamId: '76561198000000001', gcName: 'Ok' },
+      { steamId: '76561198000000002', gcName: '   ' },
+      { steamId: 'short', gcName: 'No' },
+      { steamId: '76561198000000003', gcName: 'x'.repeat(2001) },
+      { steamId: '76561198000000004', gcName: null as unknown as string },
+      null as unknown as { steamId: string; gcName: string },
+    ]);
+
+    expect(result).toEqual({ searchExists: true, updated: 1 });
+    const statements = mockBatch.mock.calls[0][0];
+    expect(statements).toHaveLength(1);
+    expect(statements[0].args).toEqual(['Ok', 'search-id', '76561198000000001']);
+  });
+
+  it('treats an empty batch as a successful no-op', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [{}] });
+
+    const { attachFriendGcNames } = require('./db');
+
+    const result = await attachFriendGcNames('search-id', [
+      { steamId: '76561198000000001', gcName: '   ' },
+    ]);
+
+    expect(result).toEqual({ searchExists: true, updated: 0 });
+    expect(mockBatch).not.toHaveBeenCalled();
+  });
+
+  it('hints db:migrate when the backfill hits a missing schema', async () => {
+    // First call is the PRAGMA during client init; reject the SELECT after.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(new Error('no such table: searches'));
+
+    const { attachFriendGcNames } = require('./db');
+
+    await expect(
+      attachFriendGcNames('search-id', [
+        { steamId: '76561198000000001', gcName: 'Alice' },
+      ]),
+    ).rejects.toThrow(/db:migrate/);
+  });
+});
+
 describe('getSearchRecords read path', () => {
   const searchId = '1699999999999-abc123';
   const searchedAt = '2023-11-14T12:00:00.000Z';

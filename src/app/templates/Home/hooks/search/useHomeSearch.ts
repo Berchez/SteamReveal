@@ -39,6 +39,13 @@ import {
   getRequesterBrowserLanguage,
 } from '../../shared/analytics/homeAnalyticsUtils';
 
+import {
+  FRIEND_GC_NAME_SYNC_DELAYS_MS,
+  collectFriendGcNames,
+  postFriendGcNames,
+  scheduleSyncAttempts,
+} from '../../shared/analytics/friendGcNamesSync';
+
 import type { RunGuard } from '../run-guard/useRunGuard';
 
 const getCloseFriendsCore = async (id: string) => {
@@ -84,6 +91,61 @@ const useHomeSearch = ({
   handleShowSupportMe,
 }: UseHomeSearchParams) => {
   const { reserveNewRun, isCurrentRun } = runGuard;
+
+  // ---- Friend-GC-name analytics backfill ------------------------------
+  //
+  // The friend cards resolve each GC name AFTER the search data lands (each
+  // card fetches via /api/getGamersClubName post-render), so the initial
+  // recordAnalytics payload carries gcName: null for every friend. These refs
+  // drive the best-effort backfill (friendGcNamesSync) that fills the Turso
+  // friends.gc_name a couple of ticks later with names the UI actually
+  // resolved. Plain refs + module-scoped store: nothing here re-renders, and
+  // the run-guard + cancel-on-transfer guarantee a backfill never lands on
+  // the wrong search.
+  const friendGcNameSyncCancelRef = useRef<(() => void) | null>(null);
+  const friendGcNameSentRef = useRef<Set<string>>(new Set());
+
+  const cancelFriendGcNameSync = useCallback(() => {
+    friendGcNameSyncCancelRef.current?.();
+    friendGcNameSyncCancelRef.current = null;
+  }, []);
+
+  // Unmount: no dangling timers. Also cancels on navigation away, since
+  // resetJsons below fires on that path too.
+  useEffect(() => cancelFriendGcNameSync, [cancelFriendGcNameSync]);
+
+  const scheduleFriendGcNameSync = useCallback(
+    (searchId: string, friends: closeFriendsDataIWant[], runId: number) => {
+      cancelFriendGcNameSync();
+      friendGcNameSentRef.current = new Set();
+
+      const attempt = () => {
+        // Never write to a search that a newer run already superseded.
+        if (!isCurrentRun(runId)) {
+          return;
+        }
+        const entries = collectFriendGcNames(
+          friends,
+          undefined,
+          friendGcNameSentRef.current,
+        );
+        if (entries.length === 0) {
+          return;
+        }
+        entries.forEach((entry) =>
+          friendGcNameSentRef.current.add(entry.steamId),
+        );
+        // Best-effort, fire-and-forget: failures are swallowed inside.
+        postFriendGcNames(searchId, entries);
+      };
+
+      friendGcNameSyncCancelRef.current = scheduleSyncAttempts(
+        FRIEND_GC_NAME_SYNC_DELAYS_MS,
+        attempt,
+      );
+    },
+    [cancelFriendGcNameSync, isCurrentRun],
+  );
 
   const routeParams = useParams<{ steamId?: string }>();
 
@@ -348,6 +410,8 @@ const useHomeSearch = ({
     preserveProfile?: targetInfoJsonType,
     startLoading = false,
   ) => {
+    cancelFriendGcNameSync();
+    friendGcNameSentRef.current = new Set();
     setCloseFriendsJson(undefined);
     setPossibleLocationJson(undefined);
     setTargetInfoJson(preserveProfile);
@@ -375,6 +439,8 @@ const useHomeSearch = ({
   };
   const handleGetInfoClick = async (value: string, alreadySeeded = false) => {
     const runId = reserveNewRun();
+    cancelFriendGcNameSync();
+    friendGcNameSentRef.current = new Set();
     const cached = getCachedSearch(value);
     if (cached) {
       handleShowSponsorMe();
@@ -387,6 +453,13 @@ const useHomeSearch = ({
       const cachedSteamId = cached.targetInfoJson?.profileInfo?.steamID;
       if (cachedSteamId && cachedSteamId !== urlPlayer) {
         syncPlayerUrl(cachedSteamId);
+      }
+      if (cached.searchId && cached.closeFriendsJson?.length) {
+        scheduleFriendGcNameSync(
+          cached.searchId,
+          cached.closeFriendsJson,
+          runId,
+        );
       }
       return;
     }
@@ -475,6 +548,9 @@ const useHomeSearch = ({
       }
       setSearchId(resolvedSearchId);
       cacheSearch();
+      if (resolvedSearchId && closeFriends?.length) {
+        scheduleFriendGcNameSync(resolvedSearchId, closeFriends, runId);
+      }
     } catch (e) {
       // Ensure loading flags are cleared on any failure so skeletons don't
       // remain visible indefinitely (e.g. invalid player causing getUserInfo

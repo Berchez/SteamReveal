@@ -99,6 +99,14 @@ export async function routeApiMocks(page: Page) {
     });
   });
 
+  await page.route('**/api/recordAnalyticsFriends', async (route) => {
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, updated: 0 }),
+    });
+  });
+
   await page.route('**/api/feedback', async (route) => {
     return route.fulfill({
       status: 200,

@@ -1,4 +1,8 @@
-import { parseRecordBody, parseCheaterBody } from './input';
+import {
+  parseRecordBody,
+  parseCheaterBody,
+  parseFriendGcNamesBody,
+} from './input';
 
 describe('parseRecordBody', () => {
   it('parses a full valid payload', () => {
@@ -240,5 +244,72 @@ describe('parseCheaterBody', () => {
   it('returns null when searchId is missing or score is not a number', () => {
     expect(parseCheaterBody({ score: 10 })).toBeNull();
     expect(parseCheaterBody({ searchId: 'x', score: 'high' })).toBeNull();
+  });
+});
+
+describe('parseFriendGcNamesBody', () => {
+  const steamId = '76561198000000001';
+
+  it('parses a valid list of confirmed names', () => {
+    expect(
+      parseFriendGcNamesBody({
+        searchId: '1788564056404-tzx2nt',
+        gcNames: [{ steamId, gcName: 'João CS' }],
+      }),
+    ).toEqual({
+      searchId: '1788564056404-tzx2nt',
+      gcNames: [{ steamId, gcName: 'João CS' }],
+    });
+  });
+
+  it('returns null when searchId is missing or the body is not an object', () => {
+    expect(parseFriendGcNamesBody(null)).toBeNull();
+    expect(parseFriendGcNamesBody([])).toBeNull();
+    expect(parseFriendGcNamesBody({ gcNames: [] })).toBeNull();
+    expect(parseFriendGcNamesBody({ searchId: '' })).toBeNull();
+    expect(parseFriendGcNamesBody({ searchId: 42, gcNames: [] })).toBeNull();
+  });
+
+  it('accepts a missing/non-array gcNames as an empty batch', () => {
+    expect(parseFriendGcNamesBody({ searchId: 'x' })).toEqual({
+      searchId: 'x',
+      gcNames: [],
+    });
+    expect(parseFriendGcNamesBody({ searchId: 'x', gcNames: 'nope' })).toEqual({
+      searchId: 'x',
+      gcNames: [],
+    });
+  });
+
+  it('drops entries with invalid steamIds or blank/oversized names', () => {
+    expect(
+      parseFriendGcNamesBody({
+        searchId: 'x',
+        gcNames: [
+          { steamId, gcName: 'Ok' },
+          { steamId: '  ', gcName: 'Blank' }, // invalid steamId
+          { steamId, gcName: '   ' }, // blank name (nothing confirmed)
+          { steamId: '7656119800000000', gcName: 'short-id' }, // 16 digits
+          { steamId: 42, gcName: 'not-string' }, // wrong type
+          { steamId, gcName: 'x'.repeat(2001) }, // oversized name
+          'lixo', // not an object
+          null, // not an object
+        ],
+      }),
+    ).toEqual({
+      searchId: 'x',
+      gcNames: [{ steamId, gcName: 'Ok' }],
+    });
+  });
+
+  it('caps the batch at the defensive bound', () => {
+    const gcNames = Array.from({ length: 2000 }, (_, i) => ({
+      steamId: String(76561198000000000 + i),
+      gcName: `name-${i}`,
+    }));
+
+    expect(
+      parseFriendGcNamesBody({ searchId: 'x', gcNames })?.gcNames,
+    ).toHaveLength(1000);
   });
 });

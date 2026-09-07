@@ -1,4 +1,5 @@
 import type {
+  FriendGcNameEntry,
   FriendRecord,
   LocationGuess,
   GameSnapshotEntry,
@@ -185,4 +186,44 @@ export const parseCheaterBody = (body: unknown): ParsedCheaterInput | null => {
     score: body.score,
     bannedFriendsCount: nullableNumber(body.bannedFriendsCount),
   };
+};
+
+export interface ParsedFriendGcNamesInput {
+  searchId: string;
+  gcNames: FriendGcNameEntry[];
+}
+
+/**
+ * Body parsing for the friend-GC-name backfill (POST /api/recordAnalyticsFriends).
+ *
+ * Unlike the friends in parseRecordBody, gcName here is a CONFIRMED name the
+ * UI already resolved — only non-empty strings are accepted (a null/failed
+ * scrape is never sent, see friendGcNameStore). Each entry is dropped
+ * individually so one bad pair can't reject a whole batch; the list is capped
+ * at MAX_FRIENDS like the friends table it updates.
+ */
+export const parseFriendGcNamesBody = (
+  body: unknown,
+): ParsedFriendGcNamesInput | null => {
+  if (!isRecord(body)) return null;
+  if (typeof body.searchId !== 'string' || body.searchId.length === 0) {
+    return null;
+  }
+
+  const rawGcNames = body.gcNames;
+  if (!Array.isArray(rawGcNames)) {
+    return { searchId: body.searchId, gcNames: [] };
+  }
+
+  const gcNames: FriendGcNameEntry[] = [];
+  rawGcNames.forEach((value) => {
+    if (!isRecord(value)) return;
+    const { steamId, gcName } = value;
+    if (typeof steamId !== 'string' || !STEAM64_ID_REGEX.test(steamId)) return;
+    if (typeof gcName !== 'string' || gcName.trim().length === 0) return;
+    if (gcName.length > 2000) return;
+    gcNames.push({ steamId, gcName });
+  });
+
+  return { searchId: body.searchId, gcNames: gcNames.slice(0, MAX_FRIENDS) };
 };

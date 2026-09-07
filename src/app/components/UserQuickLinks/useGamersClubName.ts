@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
+import { setFriendGcName } from '@/app/templates/Home/shared/analytics/friendGcNameStore';
 
 interface GamersClubNameResponse {
   steamId: string;
@@ -54,6 +55,12 @@ const useGamersClubName = (steamId: string): UseGamersClubNameState => {
       )
       .then((data) => {
         if (!cancelled) {
+          // Only a CONFIRMED name goes into the shared store (the analytics
+          // backfill reads it) — null here is ambiguous (no GC profile vs.
+          // a failed/rate-limited scrape) and must never be treated as fact.
+          if (data.gcName) {
+            setFriendGcName(steamId, data.gcName);
+          }
           setName(data.gcName);
         }
       })

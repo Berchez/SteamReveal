@@ -18,6 +18,7 @@ import type {
   NewSearchInput,
   ProfileRecord,
   FriendRecord,
+  FriendGcNameEntry,
   GameSnapshotEntry,
   LocationGuess,
 } from './types';
@@ -309,6 +310,80 @@ export const attachCheaterProbability = async (
   );
 
   return true;
+};
+
+// ---------------------------------------------------------------------------
+// attachFriendGcNames — fill friends.gc_name for an existing search with names
+// the client resolved AFTER the initial recordSearch (the friend cards fetch
+// each GC name post-render, so the original payload carries nulls).
+//
+// Best-effort, non-atomic by design: this is an informational enrichment —
+// losing one UPDATE to a concurrent write costs nothing. Returns the number
+// of rows actually updated, plus whether the search existed, so the route can
+// distinguish "no such search" (404) from "search exists but zero friends
+// matched" (200 with updated: 0).
+// ---------------------------------------------------------------------------
+
+export type AttachFriendGcNamesResult = {
+  searchExists: boolean;
+  updated: number;
+};
+
+const toRowsUpdated = (
+  results: Awaited<ReturnType<Client['batch']>> | undefined,
+): number => {
+  if (!results) return 0;
+  return results.reduce(
+    (sum, result) => sum + (Number(result?.rowsAffected) || 0),
+    0,
+  );
+};
+
+export const attachFriendGcNames = async (
+  searchId: string,
+  entries: FriendGcNameEntry[],
+): Promise<AttachFriendGcNamesResult> => {
+  const db = await getClient();
+
+  // Explicit pre-check instead of parsing an FK-violation message (same
+  // pattern as attachCheaterProbability). A missing search is a client error
+  // the route surfaces as 404, not a fatal one.
+  const exists = await withSchemaHint(
+    db.execute({
+      sql: 'SELECT 1 FROM searches WHERE id = ?',
+      args: [searchId],
+    }),
+  );
+  if (exists.rows.length === 0) {
+    return { searchExists: false, updated: 0 };
+  }
+
+  // Defense in depth: never write a blank name, and only touch Steam64 ids.
+  // The route parser already enforced both; recordSearch's own callers are
+  // the same DACL as here, but the DAL stays self-protective like every
+  // other entry point.
+  const valid = entries.filter(
+    (entry) =>
+      entry != null &&
+      /^\d{17}$/.test(entry.steamId) &&
+      typeof entry.gcName === 'string' &&
+      entry.gcName.trim().length > 0 &&
+      entry.gcName.length <= 2000,
+  );
+  if (valid.length === 0) {
+    return { searchExists: true, updated: 0 };
+  }
+
+  const results = await withSchemaHint(
+    db.batch(
+      valid.map((entry) => ({
+        sql: 'UPDATE friends SET gc_name = ? WHERE search_id = ? AND steam_id = ?',
+        args: [entry.gcName, searchId, entry.steamId],
+      })),
+    ),
+  );
+
+  return { searchExists: true, updated: toRowsUpdated(results) };
 };
 
 // ---------------------------------------------------------------------------

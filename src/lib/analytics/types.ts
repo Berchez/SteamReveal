@@ -41,6 +41,19 @@ export interface LocationGuess {
   probability: number;
 }
 
+/**
+ * One friend -> GamersClub name pair, sent by the client backfill
+ * (POST /api/recordAnalyticsFriends) to fill friends.gc_name with a name the
+ * UI had already resolved (the friend cards fetch it after render, so the
+ * initial recordAnalytics payload can't carry it). Only CONFIRMED names —
+ * a null/missing value means "unknown", not "no GC profile", and is never
+ * sent here (see friendGcNameStore).
+ */
+export interface FriendGcNameEntry {
+  steamId: string;
+  gcName: string;
+}
+
 export interface CheaterProbabilityRecord {
   score: number;
   bannedFriendsCount?: number | null;
