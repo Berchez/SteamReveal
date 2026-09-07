@@ -2,54 +2,94 @@
 
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
+import {
+  isVideoAllowed,
+  type VideoBackgroundConnection,
+} from './videoLoadDecision';
+
+type IdleAwareWindow = Window & {
+  requestIdleCallback?: (callback: () => void) => number;
+  cancelIdleCallback?: (id: number) => void;
+};
+
+const POST_LOAD_IDLE_FALLBACK_MS = 300;
+
+const cancelPending = (win: IdleAwareWindow, pendingId: number | null) => {
+  if (pendingId === null) {
+    return;
+  }
+  if (typeof win.cancelIdleCallback === 'function') {
+    win.cancelIdleCallback(pendingId);
+  } else {
+    win.clearTimeout(pendingId);
+  }
+};
 
 function VideoBackground() {
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
 
   useEffect(() => {
-    type IdleAwareWindow = Window & {
-      requestIdleCallback?: (callback: () => void) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-
     const win = window as IdleAwareWindow;
     const { connection } = navigator as Navigator & {
-      connection?: {
-        saveData?: boolean;
-        effectiveType?: string;
-      };
+      connection?: VideoBackgroundConnection;
     };
-    const slowNetwork =
-      connection?.saveData ||
-      ['slow-2g', '2g', '3g'].includes(connection?.effectiveType ?? '');
+    const prefersReducedMotion =
+      typeof win.matchMedia === 'function' &&
+      win.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (slowNetwork) {
-      setShouldLoadVideo(false);
+    // Once mounted with autoPlay+muted the browser downloads the ~2.2MB loop
+    // regardless of preload="none" — so the only real lever is WHEN the
+    // <video> enters the DOM. Never mount it on slow connections / reduced
+    // motion (the 35KB poster image stays), and on healthy ones wait for
+    // window.load (all CSS/fonts/sub-resources done) before even scheduling
+    // idle time — starting as early as the old requestIdleCallback/1200ms
+    // path ran raced the critical rendering path for bandwidth.
+    if (!isVideoAllowed(connection, prefersReducedMotion)) {
       return undefined;
     }
 
-    const loadVideo = () => setShouldLoadVideo(true);
-    const idleCallback = win.requestIdleCallback;
+    let pendingId: number | null = null;
 
-    if (typeof idleCallback === 'function') {
-      const idleId = idleCallback.call(win, loadVideo);
-      return () => {
-        if (typeof win.cancelIdleCallback === 'function') {
-          win.cancelIdleCallback(idleId);
-        }
-      };
+    const startVideo = () => {
+      pendingId = null;
+      setShouldLoadVideo(true);
+    };
+
+    const scheduleAfterLoad = () => {
+      if (typeof win.requestIdleCallback === 'function') {
+        pendingId = win.requestIdleCallback(startVideo);
+      } else {
+        pendingId = win.setTimeout(startVideo, POST_LOAD_IDLE_FALLBACK_MS);
+      }
+    };
+
+    if (document.readyState === 'complete') {
+      scheduleAfterLoad();
+      return () => cancelPending(win, pendingId);
     }
 
-    const timeoutId = win.setTimeout(loadVideo, 1200);
+    const onLoad = () => {
+      win.removeEventListener('load', onLoad);
+      scheduleAfterLoad();
+    };
+    win.addEventListener('load', onLoad);
     return () => {
-      win.clearTimeout(timeoutId);
+      win.removeEventListener('load', onLoad);
+      cancelPending(win, pendingId);
     };
   }, []);
 
   if (!shouldLoadVideo && process.env.NODE_ENV === 'development') {
     return (
-      <div className="fixed inset-0 z-0">
-        <Image src="/images/background.webp" alt="background" fill priority />
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <Image
+          src="/images/background.webp"
+          alt="background"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
       </div>
     );
   }
