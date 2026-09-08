@@ -8,17 +8,19 @@ import React from 'react';
 type LocationSectionProps = {
   possibleLocationJson: locationDataIWant[] | undefined;
   targetInfoJson: targetInfoJsonType;
-  isLoading: boolean;
 };
 function LocationSection({
   possibleLocationJson,
   targetInfoJson,
-  isLoading,
 }: LocationSectionProps) {
   const translator = useTranslations('Index');
-  if (!possibleLocationJson && !isLoading) {
-    return null;
-  }
+  // Render the skeleton as long as the location hasn't resolved. Rendering
+  // `null` while `!data && !isLoading` (the window where the data fetch
+  // hasn't kicked off yet / is between resets) collapsed this section to
+  // zero height on first paint, then banked a full-section layout shift the
+  // moment content arrived — the biggest single CLS source on the player
+  // page. Home.tsx only mounts this section when !hasNoDataYet, so showing
+  // the skeleton here can never leak onto the empty home state.
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-100">

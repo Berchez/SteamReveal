@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 
+// Render the number of skeleton rows that matches the typical final state.
+// Analytics data shows the mean number of candidate-location rows per
+// profile is ~3 (median sits between 3 and 4, skewing mean-3), and the
+// analytics payload itself stores at most 3 location guesses (client
+// `.slice(0, 3)`). A 3-row skeleton keeps the swap height-neutral for the
+// average profile, so the location card doesn't visibly grow when it
+// resolves.
 const skeletonUUIDs = Array.from({ length: 3 }, () => crypto.randomUUID());
 type ProvidedLocation = {
   cityName?: string;
@@ -21,25 +28,34 @@ function LocationCardSkeleton({
   //
   // EXCEPTION — the seeded (server-rendered profile) path: targetLocationInfo
   // starts as `{}` and is enriched asynchronously a moment later, while this
-  // exact skeleton instance is still mounted (its loading flag stays true
-  // for that whole window). If hasProvidedLocation/willShowMap were
-  // recomputed from live props on every render, that later enrichment would
-  // flip them from false to true mid-flight — adding a "provided by user"
-  // line and a 400px map placeholder to an already-visible skeleton. That's
-  // a self-inflicted layout shift, and it was happening on effectively every
-  // seeded page load (i.e. most navigations on this site).
+  // exact skeleton instance is still mounted. If the shape were recomputed
+  // from live props on every render, that later enrichment would add a
+  // "provided by user" line and a 400px map placeholder to an
+  // already-visible skeleton. That's a self-inflicted layout shift, and it
+  // was happening on effectively every seeded page load (i.e. most
+  // navigations on this site).
   //
   // Locking the shape via a lazy useState initializer (runs once, on this
   // instance's first render only) fixes it — paired with LocationSection
   // giving this component a `key` tied to the current player, so a new
   // player always gets a brand-new instance/lock instead of inheriting the
   // previous player's shape.
-  const [{ hasProvidedLocation, willShowMap }] = useState(() => ({
-    hasProvidedLocation: Boolean(
-      providedLocation?.stateName && providedLocation?.countryCode,
-    ),
-    willShowMap: Boolean(providedLocation?.cityName),
-  }));
+  //
+  // NOTE: the lock snapshots the WHOLE providedLocation object, not just the
+  // two derived booleans. The displayed fields (city/state/country names)
+  // must come from the same frozen snapshot — otherwise a field arriving
+  // late (e.g. cityName resolving after stateName+countryCode were already
+  // present) would pop a new paragraph into the already-visible "provided by
+  // user" line: a smaller shift, but the same class of bug.
+  const [{ hasProvidedLocation, willShowMap, lockedProvided }] = useState(
+    () => ({
+      hasProvidedLocation: Boolean(
+        providedLocation?.stateName && providedLocation?.countryCode,
+      ),
+      willShowMap: Boolean(providedLocation?.cityName),
+      lockedProvided: { ...(providedLocation ?? {}) },
+    }),
+  );
   return (
     <div className={`mt-8 text-white py-4 px-8 ${glassmorphism}`}>
       {hasProvidedLocation && (
@@ -50,19 +66,15 @@ function LocationCardSkeleton({
           Provided by user
           <div className="flex items-center gap-x-2 flex-wrap">
             <img
-              src={`https://flagcdn.com/w20/${providedLocation!.countryCode!.toLowerCase()}.png`}
+              src={`https://flagcdn.com/w20/${lockedProvided.countryCode!.toLowerCase()}.png`}
               className="w-max h-max"
-              alt={`${providedLocation!.countryCode}'s flag`}
+              alt={`${lockedProvided.countryCode}'s flag`}
               width={20}
               height={14}
             />
-            {providedLocation!.cityName && <p>{providedLocation!.cityName},</p>}
-            {providedLocation!.stateName && (
-              <p>{providedLocation!.stateName},</p>
-            )}
-            {providedLocation!.countryName && (
-              <p>{providedLocation!.countryName}</p>
-            )}
+            {lockedProvided.cityName && <p>{lockedProvided.cityName},</p>}
+            {lockedProvided.stateName && <p>{lockedProvided.stateName},</p>}
+            {lockedProvided.countryName && <p>{lockedProvided.countryName}</p>}
           </div>
         </div>
       )}

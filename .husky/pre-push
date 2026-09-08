@@ -7,3 +7,9 @@ pnpm run smoke:gc
 # analytics regressions, which is the point of running it here.
 pnpm run smoke:analytics
 pnpm run db:smoke
+# Lighthouse regression gate (lighthouserc.js): runs the same mocked-server
+# audit CI runs. Requires a Chrome binary — scripts/lhci-hook.cjs auto-resolves
+# one and BLOCKS the push (exit 1, under set -e) if none is found or if LHCI
+# reports a regression. No skip switch by design; git push --no-verify is the
+# only escape hatch.
+node scripts/lhci-hook.cjs

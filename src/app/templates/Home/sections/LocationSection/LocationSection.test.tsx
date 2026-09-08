@@ -33,16 +33,24 @@ const renderWithIntl = (ui: React.ReactElement) =>
   );
 
 describe('LocationSection', () => {
-  it('renders nothing when idle (no data, not loading)', () => {
-    const { container } = renderWithIntl(
+  it('renders the skeleton even when idle (no data, not loading), so the section never collapses to zero height', () => {
+    // The section must not unmount during the `!data && !isLoading` window
+    // (before the fetch kicks off / between resets): collapsing to zero
+    // height on first paint banked a full-section layout shift when the
+    // content landed. Home.tsx only mounts this section when hasNoDataYet is
+    // false, so the heading + skeleton here can never leak onto the home
+    // empty state. `isLoading` is ignored by design.
+    const { getByText, container } = renderWithIntl(
       <LocationSection
         possibleLocationJson={undefined}
         targetInfoJson={undefined}
-        isLoading={false}
       />,
     );
 
-    expect(container).toBeEmptyDOMElement();
+    expect(getByText('User possible location')).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-testid="location-skeleton-provided"]'),
+    ).not.toBeInTheDocument();
   });
 
   it('renders the skeleton (not null) while loading, even once possibleLocationJson is the only thing still missing', () => {
@@ -59,7 +67,6 @@ describe('LocationSection', () => {
           profileInfo: { steamID: '123' } as UserSummary,
           targetLocationInfo: {},
         }}
-        isLoading
       />,
     );
 
@@ -74,7 +81,6 @@ describe('LocationSection', () => {
           profileInfo: { steamID: 'player-a' } as UserSummary,
           targetLocationInfo: {},
         }}
-        isLoading
       />,
     );
 
@@ -94,7 +100,6 @@ describe('LocationSection', () => {
               country: { code: 'BR', name: 'Brazil' },
             },
           }}
-          isLoading
         />
       </NextIntlClientProvider>,
     );

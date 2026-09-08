@@ -17,7 +17,10 @@
     "test": "cross-env NODE_ENV=test jest",
     "e2e": "playwright test",
     "prepare": "husky",
-    "tunnel:dev": "node scripts/start-tunnel.cjs"
+    "tunnel:dev": "node scripts/start-tunnel.cjs",
+    "lhci": "lhci autorun",
+    "lhci:collect": "lhci collect",
+    "lhci:assert": "lhci assert"
   },
   "engines": {
     "node": "22.x"
@@ -43,6 +46,7 @@
     "testing-library": "^0.0.2"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@next/eslint-plugin-next": "^14.2.10",
     "@playwright/test": "^1.62.1",
     "@testing-library/dom": "^10.4.0",

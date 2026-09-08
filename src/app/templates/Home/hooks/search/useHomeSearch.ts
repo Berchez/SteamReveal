@@ -179,12 +179,11 @@ const useHomeSearch = ({
   // `true` (see Home.tsx) — mounting the empty-state hero
   // (WelcomeText/SupportedFormatsSection/PostHeroSections) and the
   // absolute/centered layout, only to unmount/reposition everything one
-  // frame later when the effect set isLoading.myCard. Same story for
-  // LocationSection, which renders `null` while its own loading flag is
-  // false and `possibleLocationJson` is undefined, then pops in with a
-  // skeleton once it flips. Both were significant, avoidable CLS sources
-  // on every non-cached player-page load. Seeding the initial state here
-  // means the first render already reflects "we're loading this player",
+  // frame later when the effect set isLoading.myCard. Same story for the
+  // player sections below the card: with no data yet they rendered nothing,
+  // then popped in a full skeleton + content swap once the fetch kicked off.
+  // Both were significant, avoidable CLS sources on every non-cached
+  // player-page load. Seeding the initial state here means the first render already reflects "we're loading this player",
   // so the skeletons render from paint #1 and nothing has to unmount.
   //
   // NOTE: this default only reflects what's known synchronously at the
@@ -397,6 +396,13 @@ const useHomeSearch = ({
     } catch (e) {
       if (isCurrentRun(runId)) {
         toast.error(translator('friendsNotPublic'));
+        // Resolve both lists to empty: the target profile already rendered,
+        // so LocationSection/FriendsSection stay mounted and render
+        // `data ? content : skeleton` — leaving these `undefined` would show
+        // skeletons forever with no error signal. `[]` is truthy, so the
+        // sections settle on their (empty) real state instead.
+        setCloseFriendsJson([]);
+        setPossibleLocationJson([]);
       }
       console.error(e);
       throw e;
@@ -509,6 +515,10 @@ const useHomeSearch = ({
       } catch (e) {
         if (isCurrentRun(runId)) {
           toast.error(translator('invalidPlayer'));
+          // Same contract as the friends failure above: the friend cards
+          // already rendered, so an unresolved location would skeleton
+          // forever. `[]` settles LocationSection on its empty real state.
+          setPossibleLocationJson([]);
         }
         console.error('getPossibleLocation error:', e);
         if (isCurrentRun(runId)) {
@@ -517,8 +527,11 @@ const useHomeSearch = ({
         return;
       } finally {
         // Must fire on every path (success, thrown error, or the early
-        // `return` above) — this is the flag LocationSection now uses, and
-        // leaving it stuck true would permanently show a skeleton.
+        // `return` above). The sections no longer read this flag (they
+        // settle on data presence: `data ? content : skeleton`, with `[]`
+        // meaning "resolved empty" — see the catches above), but the flag
+        // is still asserted by tests and consumed elsewhere, so leaving it
+        // stuck true is not an option.
         if (isCurrentRun(runId)) {
           setIsLoading((prev) => ({ ...prev, location: false }));
         }

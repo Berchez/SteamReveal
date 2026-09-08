@@ -141,21 +141,22 @@ export default function Home({
             onRetry={retryCheaterReport}
           />
         )}
-        <div className="flex flex-col gap-16 my-8">
-          <LocationSection
-            possibleLocationJson={possibleLocationJson}
-            targetInfoJson={targetInfoJson}
-            isLoading={isLoading.location}
-          />
-          <FriendsSection
-            closeFriendsJson={closeFriendsJson}
-            isLoading={isLoading.friendsCards}
-          />
-        </div>
+        {!hasNoDataYet && (
+          <div className="flex flex-col gap-16 my-8">
+            <LocationSection
+              possibleLocationJson={possibleLocationJson}
+              targetInfoJson={targetInfoJson}
+            />
+            <FriendsSection closeFriendsJson={closeFriendsJson} />
+          </div>
+        )}
         {/* FOOTER */}
-        <footer
-          className={`absolute left-0 ${hasNoDataYet ? '' : 'bottom-0'} w-full mt-12 py-6 text-center text-gray-400 text-sm border-t border-gray-700 bg-gray-800`}
-        >
+        {/* Full-bleed footer: -mx-4 md:-mx-12 cancels the parent container's
+            px-4 md:p-12 horizontal padding so the bar spans edge-to-edge while
+            staying relative (in flow) — the P2 CLS fix requires it NOT to be
+            absolutely positioned. Keep these margins in sync if the parent's
+            horizontal padding ever changes. */}
+        <footer className="relative -mx-4 md:-mx-12 mt-12 py-6 text-center text-gray-400 text-sm border-t border-gray-700 bg-gray-800">
           <p>
             © {currentYear} SteamReveal. {translator('footer.rights')}
           </p>

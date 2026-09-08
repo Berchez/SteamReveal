@@ -8,7 +8,10 @@ import {
 } from './videoLoadDecision';
 
 type IdleAwareWindow = Window & {
-  requestIdleCallback?: (callback: () => void) => number;
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout: number },
+  ) => number;
   cancelIdleCallback?: (id: number) => void;
 };
 
@@ -57,7 +60,11 @@ function VideoBackground() {
 
     const scheduleAfterLoad = () => {
       if (typeof win.requestIdleCallback === 'function') {
-        pendingId = win.requestIdleCallback(startVideo);
+        // `timeout` bounds the wait on a saturated main thread: without it
+        // the callback may be deferred indefinitely and the video would never
+        // mount. 2000ms keeps it decorative-only (never competes with the
+        // critical path) while staying deterministic.
+        pendingId = win.requestIdleCallback(startVideo, { timeout: 2000 });
       } else {
         pendingId = win.setTimeout(startVideo, POST_LOAD_IDLE_FALLBACK_MS);
       }

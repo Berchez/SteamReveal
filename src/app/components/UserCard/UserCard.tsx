@@ -191,7 +191,12 @@ function UserCard({
           )}
         </p>
 
-        <div className="flex gap-x-2 items-center">
+        {/* Always mounted with one text line of reserved height (same
+            technique as the realName row above): the location names resolve
+            asynchronously per card, and mounting this row only when they
+            arrive would push everything below it down on nearly every
+            search. */}
+        <div className="flex gap-x-2 items-center min-h-[1.5rem]">
           {friend.countryCode && (
             <div className="flex items-center gap-x-1 w-full">
               <img

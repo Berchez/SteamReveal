@@ -84,4 +84,93 @@ describe('useHomeSearch - invalid player clears loading flags', () => {
     expect(result.current.possibleLocationJson).toBeUndefined();
     expect(result.current.closeFriendsJson).toBeUndefined();
   });
+
+  it('resolves both lists to [] when friends fail after the profile resolved (no infinite skeleton)', async () => {
+    // Partial failure: the target card rendered, so LocationSection and
+    // FriendsSection stay mounted. Leaving the lists `undefined` would show
+    // skeletons forever — they must settle on `[]` (empty real state).
+    mockedAxios.post.mockImplementation((url: string) => {
+      if (url === '/api/getUserInfo') {
+        return Promise.resolve({
+          data: {
+            targetInfo: { steamID: 'target-steam-id', nickname: 'x' },
+          },
+        });
+      }
+      if (url === '/api/getCloseFriends') {
+        return Promise.reject(new Error('private'));
+      }
+      return Promise.reject(new Error(`unexpected url ${url}`));
+    });
+
+    const runGuard = makeRunGuard();
+
+    const { result } = renderHook(() =>
+      useHomeSearch({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        runGuard: runGuard as any,
+        syncPlayerUrl: jest.fn(),
+        consumeSyncedUrlPlayer: jest.fn(() => false),
+        clearSyncedUrlPlayer: jest.fn(),
+        handleShowSponsorMe: jest.fn(),
+        handleShowSupportMe: jest.fn(),
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading.friendsCards).toBe(false);
+      expect(result.current.isLoading.location).toBe(false);
+    });
+
+    expect(result.current.closeFriendsJson).toEqual([]);
+    expect(result.current.possibleLocationJson).toEqual([]);
+    // The profile itself resolved, so the player sections stay mounted.
+    expect(result.current.hasNoDataYet).toBe(false);
+  });
+
+  it('resolves the location list to [] when location fails after friends resolved', async () => {
+    mockedAxios.post.mockImplementation((url: string) => {
+      if (url === '/api/getUserInfo') {
+        return Promise.resolve({
+          data: {
+            targetInfo: { steamID: 'target-steam-id', nickname: 'x' },
+          },
+        });
+      }
+      if (url === '/api/getCloseFriends') {
+        return Promise.resolve({
+          data: {
+            closeFriends: [{ friend: { steamID: 'f1' }, count: 1 }],
+          },
+        });
+      }
+      return Promise.reject(new Error(`unexpected url ${url}`));
+    });
+
+    const homeUtils = jest.requireMock('./homeUtils') as {
+      getCitiesNames: jest.Mock;
+    };
+    homeUtils.getCitiesNames.mockRejectedValueOnce(new Error('geo down'));
+
+    const runGuard = makeRunGuard();
+
+    const { result } = renderHook(() =>
+      useHomeSearch({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        runGuard: runGuard as any,
+        syncPlayerUrl: jest.fn(),
+        consumeSyncedUrlPlayer: jest.fn(() => false),
+        clearSyncedUrlPlayer: jest.fn(),
+        handleShowSponsorMe: jest.fn(),
+        handleShowSupportMe: jest.fn(),
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading.location).toBe(false);
+    });
+
+    expect(result.current.closeFriendsJson).toHaveLength(1);
+    expect(result.current.possibleLocationJson).toEqual([]);
+  });
 });

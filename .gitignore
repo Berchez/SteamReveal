@@ -55,3 +55,6 @@ src/proxy-local/utils/*.bak
 
 playwright-report/
 test-results/
+
+# Lighthouse CI local run output
+.lighthouseci/
