@@ -241,6 +241,11 @@ test.describe('Cheater Report', () => {
     page,
     context,
   }) => {
+    // Dev-mode chunks over a 500Kbps pipe take ~40-55s on a loaded machine;
+    // the 60s default test timeout leaves no margin for that plus the two
+    // 20s assertions below.
+    test.setTimeout(120000);
+
     const client = await context.newCDPSession(page);
     await client.send('Network.emulateNetworkConditions', {
       offline: false,
@@ -248,6 +253,14 @@ test.describe('Cheater Report', () => {
       uploadThroughput: (500 * 1024) / 8,
       latency: 200,
     });
+
+    // Abort the decorative background video: it mounts post-load and streams
+    // ~2.2MB, which saturates a 500Kbps pipe for ~35s and starves the
+    // code-split CheaterReport chunk this test is actually measuring. The
+    // video is orthogonal to the dynamic-import regression under test, and
+    // navigator.connection can't see CDP throttling so the product's own
+    // slow-connection gate doesn't apply here.
+    await page.route('**/videos/short-bg.*', (route) => route.abort());
 
     await page.goto('/en/player/player-a');
     await expect(page.getByText('Nickname: User-player-a')).toBeVisible({

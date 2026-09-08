@@ -75,6 +75,16 @@ test.describe('Client Cache & SSR', () => {
       timeout: 15000,
     });
 
+    // Let the first search fully settle (friends/location/analytics, ending
+    // in the homeCache write) before navigating away. The nickname above
+    // appears as soon as getUserInfo resolves, while the rest of the
+    // pipeline may still be in flight — going back first invalidates that
+    // run, nothing is ever cached, and the repeat search below refetches
+    // instead of hitting the cache (real race, not a product bug).
+    // networkidle returns immediately when already quiet, so this is a
+    // no-op on fast runs.
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
+
     // SPA nav back (not page.goto), so homeCache's module-level Map survives.
     await page.goBack();
     await expect(

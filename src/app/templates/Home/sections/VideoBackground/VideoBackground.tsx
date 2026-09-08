@@ -8,10 +8,7 @@ import {
 } from './videoLoadDecision';
 
 type IdleAwareWindow = Window & {
-  requestIdleCallback?: (
-    callback: () => void,
-    options?: { timeout: number },
-  ) => number;
+  requestIdleCallback?: (callback: () => void) => number;
   cancelIdleCallback?: (id: number) => void;
 };
 
@@ -60,11 +57,16 @@ function VideoBackground() {
 
     const scheduleAfterLoad = () => {
       if (typeof win.requestIdleCallback === 'function') {
-        // `timeout` bounds the wait on a saturated main thread: without it
-        // the callback may be deferred indefinitely and the video would never
-        // mount. 2000ms keeps it decorative-only (never competes with the
-        // critical path) while staying deterministic.
-        pendingId = win.requestIdleCallback(startVideo, { timeout: 2000 });
+        // Deliberately NO `timeout` option here: a forced deadline would
+        // mount the ~2.2MB decorative loop at a fixed time even when the
+        // main thread is saturated, letting it hog a constrained pipe and
+        // starve the code-split chunks the page actually needs (proven by
+        // the slow-network cheater-report e2e: the video saturated a
+        // 500Kbps pipe and the ReportBox chunk never arrived in time).
+        // Unbounded idle means "only when nothing more important needs the
+        // thread" — and if it never fires, the poster stays, which is the
+        // designed fallback with zero harm.
+        pendingId = win.requestIdleCallback(startVideo);
       } else {
         pendingId = win.setTimeout(startVideo, POST_LOAD_IDLE_FALLBACK_MS);
       }
