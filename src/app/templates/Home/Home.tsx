@@ -4,8 +4,6 @@ import React, { useContext, useLayoutEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 
-import SponsorMe from '@/app/components/SponsorMe';
-import SupportMe from '@/app/components/SupportMe';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 import targetInfoJsonType, {
   EnrichedUserSummary,
@@ -15,12 +13,20 @@ import { HomeDataContext, HomeActionsContext } from './context';
 import VideoBackground from './sections/VideoBackground';
 import MyUserSection from './sections/MyUserSection';
 import WelcomeText from './sections/WelcomeText';
-import PostHeroSections from './sections/PostHeroSections';
 import SupportedFormatsSection from './sections/SupportedFormatsSection';
 
 const LocationSection = dynamic(() => import('./sections/LocationSection'));
 const FriendsSection = dynamic(() => import('./sections/FriendsSection'));
 const CheaterReport = dynamic(() => import('./sections/CheaterReport'));
+const PostHeroSections = dynamic(() => import('./sections/PostHeroSections'));
+const SponsorMe = dynamic(() => import('@/app/components/SponsorMe'), {
+  ssr: false,
+  loading: () => null,
+});
+const SupportMe = dynamic(() => import('@/app/components/SupportMe'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function Home({
   initialProfile,
