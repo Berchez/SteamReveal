@@ -912,4 +912,58 @@ describe('watch/outbox DAL (Epic 1)', () => {
     );
     await expect(isWithinCooldown('short', 24)).rejects.toThrow(/17 digits/);
   });
+
+  it('listWatchedProfiles returns all rows oldest-first without filter', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: '76561198000000002',
+          status: 'active',
+          locale: 'en',
+          requested_at: '2026-09-08T01:00:00.000Z',
+          activated_at: '2026-09-08T02:00:00.000Z',
+          last_notified_at: null,
+        },
+      ],
+    });
+
+    const { listWatchedProfiles } = require('./db');
+    const rows = await listWatchedProfiles();
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      steamId: '76561198000000002',
+      status: 'active',
+      locale: 'en',
+    });
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM watched_profiles'),
+    );
+    expect(String(select[0]?.sql ?? select[0])).not.toContain('WHERE');
+  });
+
+  it('listWatchedProfiles filters by status and rejects anything else', async () => {    const { listWatchedProfiles } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(listWatchedProfiles('pending')).resolves.toEqual([]);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM watched_profiles'),
+    );
+    expect(String(select[0]?.sql ?? select[0])).toContain(
+      'WHERE status = ?',
+    );
+    expect(select[0].args).toEqual(['pending']);
+
+    await expect(
+      listWatchedProfiles('banned' as never),
+    ).rejects.toThrow(/status filter/);
+  });
+
+  it('hints db:migrate when listWatchedProfiles hits a missing schema', async () => {
+    // PRAGMA placeholder comes from beforeEach; the SELECT itself rejects.
+    mockExecute.mockRejectedValueOnce(new Error('no such table: watched_profiles'));
+    const { listWatchedProfiles } = require('./db');
+
+    await expect(listWatchedProfiles()).rejects.toThrow(/db:migrate/);
+  });
 });

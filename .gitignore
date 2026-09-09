@@ -58,3 +58,7 @@ test-results/
 
 # Lighthouse CI local run output
 .lighthouseci/
+
+# Watch Bot runtime state (Steam machine-id/sentry files, login session,
+# heartbeat). Contains account-identifying material — never commit.
+.data/

@@ -433,6 +433,16 @@ const assertWatchEventKind: (
   }
 };
 
+const assertOptionalWatchStatus: (
+  status: string | undefined,
+) => asserts status is WatchStatus | undefined = (status) => {
+  if (status !== undefined && status !== 'pending' && status !== 'active') {
+    throw new Error(
+      "Invalid watch status filter: expected 'pending' | 'active'",
+    );
+  }
+};
+
 /**
  * Matches SQLite/Turso unique-violation errors (PK + UNIQUE constraints).
  * Verified against @libsql/client 0.18.0: mapHranaError passes the server
@@ -545,6 +555,41 @@ export const getWatchStatus = async (
   // eslint-disable-next-line prefer-destructuring
   const status = row.rows[0].status;
   return status === 'active' ? 'active' : 'pending';
+};
+
+/**
+ * Lists watched profiles, oldest first — the read side of WB-4
+ * reconciliation (the bot converges these against its friendsList
+ * snapshot). Optional status filter; anything else throws (fail fast, same
+ * contract as the other watch validators).
+ *
+ * SCALING NOTE: unfiltered full-table scan, no LIMIT. Safe today (one bot,
+ * ~250 watches max by the Steam friends cap) but NOT shard-aware: if
+ * multi-bot sharding ever happens, this needs a bot/shard predicate (and a
+ * matching index) instead of returning every row to every poller.
+ */
+export const listWatchedProfiles = async (
+  status?: WatchStatus,
+): Promise<WatchedProfile[]> => {
+  assertOptionalWatchStatus(status);
+  const db = await getClient();
+
+  const rows = await withSchemaHint(
+    status === undefined
+      ? db.execute({
+          sql: `SELECT steam_id, status, locale, requested_at, activated_at, last_notified_at
+                FROM watched_profiles ORDER BY requested_at ASC, steam_id ASC`,
+        })
+      : db.execute({
+          sql: `SELECT steam_id, status, locale, requested_at, activated_at, last_notified_at
+                FROM watched_profiles WHERE status = ? ORDER BY requested_at ASC, steam_id ASC`,
+          args: [status],
+        }),
+  );
+
+  return rows.rows.map((row) =>
+    toWatchedProfile(row as Record<string, unknown>),
+  );
 };
 
 /**

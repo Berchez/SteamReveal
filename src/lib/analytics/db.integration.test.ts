@@ -53,6 +53,7 @@ type DbApi = {
   activateWatch: typeof import('./db').activateWatch;
   deactivateWatch: typeof import('./db').deactivateWatch;
   getWatchStatus: typeof import('./db').getWatchStatus;
+  listWatchedProfiles: typeof import('./db').listWatchedProfiles;
   enqueueEvent: typeof import('./db').enqueueEvent;
   claimNextQueuedEvents: typeof import('./db').claimNextQueuedEvents;
   markEventSent: typeof import('./db').markEventSent;
@@ -441,6 +442,24 @@ describe('analytics db integration against real libSQL', () => {
       // ...and the tables still work afterwards.
       await db.createWatchRequest(STEAM);
       expect(await db.getWatchStatus(STEAM)).toBe('pending');
+    });
+
+    it('listWatchedProfiles round-trips rows oldest-first, with and without filter', async () => {
+      await db.createWatchRequest('76561198000000001', 'en');
+      await db.createWatchRequest('76561198000000002', 'pt');
+      await db.activateWatch('76561198000000002');
+
+      const all = await db.listWatchedProfiles();
+      expect(all.map((w) => w.steamId)).toEqual([
+        '76561198000000001',
+        '76561198000000002',
+      ]);
+
+      const active = await db.listWatchedProfiles('active');
+      expect(active.map((w) => w.steamId)).toEqual(['76561198000000002']);
+
+      const pending = await db.listWatchedProfiles('pending');
+      expect(pending.map((w) => w.steamId)).toEqual(['76561198000000001']);
     });
   });
 });
