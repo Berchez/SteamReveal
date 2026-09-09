@@ -90,3 +90,45 @@ export interface SearchRecord {
 }
 
 export type NewSearchInput = Omit<SearchRecord, 'id' | 'searchedAt' | 'cheater'>;
+
+// ---------------------------------------------------------------------------
+// Watch Bot (Epic: notify user when their profile is searched).
+// No email anywhere by design — the Steam friendship is the opt-in proof
+// and Steam chat is the delivery channel.
+// ---------------------------------------------------------------------------
+
+/** Lifecycle of a watched profile: invite sent vs friendship observed. */
+export type WatchStatus = 'pending' | 'active';
+
+/** Poller lane: invite sender vs notify sender (never contend). */
+export type WatchEventKind = 'invite' | 'notify';
+
+/**
+ * Event lifecycle: queued (pollable) -> claimed (transient: a worker owns
+ * it right now) -> sent | dropped (terminal). 'claimed' is worker-local
+ * transient state, never a resting state — see resetStaleClaims.
+ */
+export type WatchEventStatus = 'queued' | 'claimed' | 'sent' | 'dropped';
+
+export interface WatchedProfile {
+  steamId: string;
+  status: WatchStatus;
+  /** Requester locale for bot messages ('pt' | 'en' | ...), null when unknown. */
+  locale: string | null;
+  requestedAt: string;
+  activatedAt: string | null;
+  /** Last successful notify send (Epic 4 cooldown clock). */
+  lastNotifiedAt: string | null;
+}
+
+export interface WatchEvent {
+  id: number;
+  /** The search that produced a notify; null for invites (not tied to any search). */
+  searchId: string | null;
+  steamId: string;
+  kind: WatchEventKind;
+  status: WatchEventStatus;
+  createdAt: string;
+  claimedAt: string | null;
+  sentAt: string | null;
+}
