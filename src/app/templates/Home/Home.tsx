@@ -96,6 +96,22 @@ export default function Home({
       ? { profileInfo: initialProfile, targetLocationInfo: {} }
       : undefined);
 
+  // Player wrapper layout mode. Home keeps its exact original box
+  // (flow-root + full padding + vertical centering). Player is a flex
+  // column with min-h-screen so the sections block (flex-1, below) absorbs
+  // leftover space and pins the footer to the viewport bottom on short
+  // pages — without absolute positioning, which would take the footer out
+  // of flow and reintroduce the CLS it was removed for. NOTE `flow-root`
+  // is deliberately absent from the player branch: Tailwind orders it
+  // after `flex` in the cascade, so keeping both would silently resolve to
+  // display:flow-root and disable the sticky behavior. The player branch
+  // also carries no bottom padding: the footer must end flush with the
+  // page, and wrapper bottom padding would leave a body-background gap
+  // below the full-bleed bar on short pages.
+  const wrapperClassName = hasNoDataYet
+    ? 'flow-root absolute top-1/2 transform -translate-y-1/2 pb-8 md:pb-12'
+    : 'flex flex-col relative';
+
   return (
     <main className="max-h-dvh">
       <VideoBackground />
@@ -116,24 +132,7 @@ export default function Home({
         <LanguageSwitcher />
       </div>
       <div
-        className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 pt-8 md:px-12 md:pt-12 text-white z-20 ${
-          hasNoDataYet
-            ? // Home keeps its exact original box (flow-root + full padding)
-              'flow-root absolute top-1/2 transform -translate-y-1/2 pb-8 md:pb-12'
-            : // Player: sticky footer without absolute positioning (which
-              // would take the footer out of flow and reintroduce the CLS it
-              // was removed for): flex column + min-h-screen, with the
-              // sections block below marked flex-1 so it absorbs leftover
-              // space and pushes the footer down when the content is shorter
-              // than the screen. NOTE `flow-root` is deliberately dropped
-              // here — Tailwind orders it after `flex` in the cascade, so
-              // keeping both would silently resolve to display:flow-root and
-              // disable the sticky behavior. No bottom padding on this
-              // branch either: the footer must end flush with the page —
-              // wrapper bottom padding would leave a body-background gap
-              // below the full-bleed bar on short pages.
-              'flex flex-col relative'
-        }`}
+        className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 pt-8 md:px-12 md:pt-12 text-white z-20 ${wrapperClassName}`}
       >
         <div className={hasNoDataYet ? 'min-h-[70dvh]' : undefined}>
           <MyUserSection

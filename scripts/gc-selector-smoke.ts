@@ -131,6 +131,14 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  if (!process.env.GAMERSCLUB_CF_CLEARANCE) {
+    // eslint-disable-next-line no-console
+    console.error(
+      'GAMERSCLUB_CF_CLEARANCE is missing from .env — Cloudflare challenges every GC request without it (see scrapeGamersClubName.ts).',
+    );
+    process.exit(1);
+  }
+
   const validatedActive = validateSteamId(rawActiveSteamId, 'GC_SMOKE_ACTIVE_STEAM_ID', false);
   const validatedBanned = validateSteamId(rawBannedSteamId, 'GC_SMOKE_BANNED_STEAM_ID', true);
 

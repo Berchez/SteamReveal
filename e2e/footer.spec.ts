@@ -70,12 +70,14 @@ test.describe('Footer placement', () => {
     expect(metrics).not.toBeNull();
     // Tall content: the page scrolls...
     expect(metrics!.scrollHeight).toBeGreaterThan(metrics!.viewportHeight);
-    // ...and the footer is the last thing in the document. The 50px
-    // tolerance is the wrapper's own designed bottom padding (md:p-12 =
-    // 48px at this viewport) sitting below the footer — anything larger
-    // would mean the footer drifted up out of place.
+    // ...and the footer ends exactly flush with the document: it is the
+    // last in-flow element and the player wrapper carries no bottom
+    // padding, so any gap here would mean the footer drifted up out of
+    // place. (An earlier version of this assertion allowed 50px for the
+    // wrapper's old md:p-12 bottom padding — removed since; flush is now
+    // the contract, verified by direct geometry dump.)
     expect(metrics!.scrollHeight - metrics!.footerBottom).toBeLessThanOrEqual(
-      50,
+      2,
     );
   });
 });

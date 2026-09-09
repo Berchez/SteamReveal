@@ -6,22 +6,54 @@ import { getCachedGcName, setCachedGcName } from './gcNameCache';
 
 const BASE_URL = 'https://gamersclub.com.br';
 
-const GAMERSCLUB_USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.108 Safari/537.36';
+/**
+ * Browser User-Agent sent with every GamersClub request.
+ *
+ * WARNING — this string is COUPLED to GAMERSCLUB_CF_CLEARANCE below:
+ * Cloudflare binds its `cf_clearance` challenge-pass to the exact UA that
+ * solved the challenge. Sending a clearance obtained under a different UA
+ * gets a 403 ("Just a moment...") just like sending no clearance at all
+ * (verified live: clearance + Chrome/151 UA -> 403, same clearance + the
+ * Edge/152 UA below -> 200). Whenever the clearance is refreshed from a
+ * browser, copy THAT browser's User-Agent here (or into
+ * GAMERSCLUB_USER_AGENT) — never rotate one without the other.
+ */
+// Exported so tests assert against the constant instead of hardcoding the
+// UA string (which rotates whenever the clearance is refreshed — a string
+// match would break on every bump with zero logic change).
+export const DEFAULT_GAMERSCLUB_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0';
+
+// Read lazily (not at module load) so tests can override the env per case.
+const getUserAgent = (): string =>
+  process.env.GAMERSCLUB_USER_AGENT ?? DEFAULT_GAMERSCLUB_USER_AGENT;
 
 /**
- * Reads the GamersClub session cookie from the environment instead of a
- * hardcoded value, since a hardcoded auth token committed to the repo is a
- * security risk (and expires every 7 days anyway).
+ * Builds the Cookie header for GamersClub requests from the environment.
+ *
+ * TWO cookies are required since Cloudflare started challenging axios/Node
+ * requests at the edge (previously `gclubsess` alone sufficed for months):
+ *  - `gclubsess` (GAMERSCLUB_SESSION_COOKIE): the app session. Expires
+ *    roughly every 7 days; refresh from a logged-in browser.
+ *  - `cf_clearance` (GAMERSCLUB_CF_CLEARANCE): the Cloudflare
+ *    managed-challenge pass. Without it every request dies at the edge with
+ *    403 "Just a moment..." before the app is even reached. Also expires
+ *    (and is bound to IP + the UA above) — refresh together with the UA.
  */
-const getSessionCookie = (): string => {
+const getCookieHeader = (): string => {
   const sessionValue = process.env.GAMERSCLUB_SESSION_COOKIE;
   if (!sessionValue) {
     throw new Error(
       'GAMERSCLUB_SESSION_COOKIE environment variable is not set',
     );
   }
-  return `gclubsess=${sessionValue}`;
+  const clearanceValue = process.env.GAMERSCLUB_CF_CLEARANCE;
+  if (!clearanceValue) {
+    throw new Error(
+      'GAMERSCLUB_CF_CLEARANCE environment variable is not set (Cloudflare challenges every request without it)',
+    );
+  }
+  return `gclubsess=${sessionValue}; cf_clearance=${clearanceValue}`;
 };
 
 /**
@@ -77,7 +109,7 @@ const resolvePlayerUrl = async (
         maxRedirects: 0,
         timeout: 10000,
         headers: {
-          'User-Agent': GAMERSCLUB_USER_AGENT,
+          'User-Agent': getUserAgent(),
           Cookie: cookie,
         },
         validateStatus: (status) =>
@@ -259,7 +291,7 @@ const scrapeGamersClubProfile = async (
 ): Promise<GamersClubProfile | null> => {
   if (!steamId) return null;
 
-  const cookie = getSessionCookie();
+  const cookie = getCookieHeader();
   const lookup = await resolvePlayerUrl(steamId, cookie);
 
   if (lookup.status === 'not_found') {
@@ -284,7 +316,7 @@ const scrapeGamersClubProfile = async (
       axios.get(playerUrl, {
         timeout: 60000,
         headers: {
-          'User-Agent': GAMERSCLUB_USER_AGENT,
+          'User-Agent': getUserAgent(),
           Accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
           'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
@@ -312,6 +344,23 @@ const scrapeGamersClubProfile = async (
   }
 
   return { name, banned, banReason, sessions };
+};
+
+/**
+ * A 403 from GamersClub is, in practice, always the Cloudflare edge
+ * ("Just a moment...") rejecting the request — the app itself answers 307
+ * (found), 2xx (not found) or 429/5xx, never a bare 403 for valid cookies.
+ * Since cf_clearance is bound to the IP + exact UA that solved the
+ * challenge and also expires, a 403 almost certainly means the clearance
+ * and the UA drifted apart (or the clearance died) — say so directly
+ * instead of logging a bare status code.
+ */
+const describeScrapeError = (error: unknown): string => {
+  const message = getErrorMessage(error);
+  if (axios.isAxiosError(error) && error.response?.status === 403) {
+    return `${message} (likely expired/desynced GAMERSCLUB_CF_CLEARANCE or GAMERSCLUB_USER_AGENT — refresh both together from the same browser session)`;
+  }
+  return message;
 };
 
 /**
@@ -347,7 +396,7 @@ const scrapeGamersClubName = async (
     // None of these are a confirmed outcome, so nothing gets cached here.
     console.error(
       `GamersClub scraping error for Steam ID ${steamId}:`,
-      getErrorMessage(error),
+      describeScrapeError(error),
     );
     return null;
   }
@@ -370,7 +419,7 @@ const scrapeGamersClubBan = async (
   } catch (error) {
     console.error(
       `GamersClub ban scraping error for Steam ID ${steamId}:`,
-      getErrorMessage(error),
+      describeScrapeError(error),
     );
     return { name: null, banned: false, banReason: null, sessions: null };
   }

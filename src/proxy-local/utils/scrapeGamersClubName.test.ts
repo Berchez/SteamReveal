@@ -13,6 +13,7 @@
 import axios from 'axios';
 import scrapeGamersClubName, {
   scrapeGamersClubBan,
+  DEFAULT_GAMERSCLUB_USER_AGENT,
 } from './scrapeGamersClubName';
 import { resetRateLimiter, setMinDelay, setMaxDelay } from './rateLimit';
 import { getCachedGcName, setCachedGcName } from './gcNameCache';
@@ -48,6 +49,8 @@ jest.setTimeout(10000);
 
 const STEAM_ID = '76561198000000000';
 const ORIGINAL_COOKIE_ENV = process.env.GAMERSCLUB_SESSION_COOKIE;
+const ORIGINAL_CLEARANCE_ENV = process.env.GAMERSCLUB_CF_CLEARANCE;
+const ORIGINAL_UA_ENV = process.env.GAMERSCLUB_USER_AGENT;
 
 const makeAxiosError = (
   status: number,
@@ -70,6 +73,8 @@ describe('scrapeGamersClubName', () => {
     setMaxDelay(50);
 
     process.env.GAMERSCLUB_SESSION_COOKIE = 'fake-session-value';
+    process.env.GAMERSCLUB_CF_CLEARANCE = 'fake-clearance-value';
+    delete process.env.GAMERSCLUB_USER_AGENT;
 
     // Default every test to a cache miss unless it explicitly says
     // otherwise — otherwise a stray `undefined` return would be treated
@@ -87,6 +92,18 @@ describe('scrapeGamersClubName', () => {
 
   afterAll(() => {
     process.env.GAMERSCLUB_SESSION_COOKIE = ORIGINAL_COOKIE_ENV;
+    // Restore (not assign-"undefined"): env values are strings, so a plain
+    // assignment of an undefined original would leave a truthy "undefined".
+    if (ORIGINAL_CLEARANCE_ENV === undefined) {
+      delete process.env.GAMERSCLUB_CF_CLEARANCE;
+    } else {
+      process.env.GAMERSCLUB_CF_CLEARANCE = ORIGINAL_CLEARANCE_ENV;
+    }
+    if (ORIGINAL_UA_ENV === undefined) {
+      delete process.env.GAMERSCLUB_USER_AGENT;
+    } else {
+      process.env.GAMERSCLUB_USER_AGENT = ORIGINAL_UA_ENV;
+    }
   });
 
   describe('cache hits', () => {
@@ -148,6 +165,71 @@ describe('scrapeGamersClubName', () => {
     expect(name).toBeNull();
     expect(mockedAxios.get).not.toHaveBeenCalled();
     expect(mockedSetCachedGcName).not.toHaveBeenCalled();
+  });
+
+  it('returns null without calling axios when the cf_clearance env var is missing', async () => {
+    delete process.env.GAMERSCLUB_CF_CLEARANCE;
+
+    const name = await scrapeGamersClubName(STEAM_ID);
+
+    expect(name).toBeNull();
+    expect(mockedAxios.get).not.toHaveBeenCalled();
+    expect(mockedSetCachedGcName).not.toHaveBeenCalled();
+  });
+
+  it('sends gclubsess + cf_clearance cookies and the default UA on both requests', async () => {    mockedAxios.get
+      .mockResolvedValueOnce({
+        status: 307,
+        headers: { location: '/player/123' },
+        data: '',
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: `
+          <div class="gc-list-item">
+            <h6 class="gc-list-title">Nome</h6>
+            <p class="gc-list-text">João Teste</p>
+          </div>
+        `,
+      });
+
+    const name = await scrapeGamersClubName(STEAM_ID);
+
+    expect(name).toBe('João Teste');
+    expect(mockedAxios.get).toHaveBeenCalledTimes(2);
+    for (const callIndex of [1, 2] as const) {
+      expect(mockedAxios.get).toHaveBeenNthCalledWith(
+        callIndex,
+        expect.anything(),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Cookie: 'gclubsess=fake-session-value; cf_clearance=fake-clearance-value',
+            'User-Agent': DEFAULT_GAMERSCLUB_USER_AGENT,
+          }),
+        }),
+      );
+    }
+  });
+
+  it('uses GAMERSCLUB_USER_AGENT override when set (must stay in sync with the clearance UA)', async () => {
+    process.env.GAMERSCLUB_USER_AGENT = 'Custom-UA/1.0';
+
+    mockedAxios.get.mockResolvedValueOnce({
+      status: 200,
+      headers: {},
+      data: '',
+    });
+
+    await scrapeGamersClubName(STEAM_ID);
+
+    expect(mockedAxios.get).toHaveBeenNthCalledWith(
+      1,
+      expect.anything(),
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'User-Agent': 'Custom-UA/1.0' }),
+      }),
+    );
   });
 
   it('returns null and caches a confirmed miss when the search responds 2xx (no redirect = player not found)', async () => {
@@ -290,6 +372,8 @@ describe('scrapeGamersClubBan', () => {
     setMinDelay(5);
     setMaxDelay(50);
     process.env.GAMERSCLUB_SESSION_COOKIE = 'fake-session-value';
+    process.env.GAMERSCLUB_CF_CLEARANCE = 'fake-clearance-value';
+    delete process.env.GAMERSCLUB_USER_AGENT;
     mockedGetCachedGcName.mockReturnValue(null);
     (mockedAxios.isAxiosError as unknown as jest.Mock).mockImplementation(
       (err: unknown) => !!(err as { isAxiosError?: boolean })?.isAxiosError,
