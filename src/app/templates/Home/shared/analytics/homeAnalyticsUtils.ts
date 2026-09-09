@@ -259,7 +259,17 @@ export const recordAnalytics = async (
     const gamesSnapshot = getGameSnapshotFromTargetInfo(
       targetInfo as UserSummary & { gamesSnapshot?: GameSnapshotEntry[] },
     );
-    const isCSActive = isCounterStrikeActive(gamesSnapshot);
+    // The SSR-seeded path (direct /player/[steamId] load) historically
+    // carried no gamesSnapshot, so recomputing here always yielded false
+    // and the dashboard CS Active counter froze. Prefer the recomputed
+    // value when we have a snapshot, but fall back to the server-computed
+    // flag the profile already carries (getUserInfo / getPlayerProfile)
+    // instead of emitting a wrong `false`.
+    const serverFlag = (targetInfo as { isCSActive?: unknown }).isCSActive;
+    let isCSActive = isCounterStrikeActive(gamesSnapshot);
+    if (gamesSnapshot.length === 0 && typeof serverFlag === 'boolean') {
+      isCSActive = serverFlag;
+    }
 
     const payload = {
       profile: {

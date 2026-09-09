@@ -32,12 +32,18 @@ export interface LocationInfoType {
 /**
  * `UserSummary` is enriched server-side in /api/getUserInfo (via
  * Object.assign) with an `isCSActive` flag — whether the profile's active
- * game family is Counter-Strike (>=300h OR top playtime). Client code gates
- * the automatic cheater-probability prefetch on it, so it's part of the
- * official profile shape rather than an ad-hoc inline cast.
+ * game family is Counter-Strike (>=300h OR top playtime) — plus the
+ * `gamesSnapshot` it was derived from. Client code gates
+ * the automatic cheater-probability prefetch on it, and the analytics
+ * payload (recordAnalytics) recomputes the flag from the snapshot, so both
+ * are part of the official profile shape rather than ad-hoc inline casts.
+ * The SSR seed path (getPlayerProfile) must populate both as well —
+ * otherwise a direct /player/[steamId] load records isCSActive=false
+ * unconditionally (empty snapshot) and the dashboard counter freezes.
  */
 export interface EnrichedUserSummary extends UserSummary {
   isCSActive?: boolean;
+  gamesSnapshot?: Array<{ name: string; playtimeHours: number }>;
 }
 
 type targetInfoJsonType =

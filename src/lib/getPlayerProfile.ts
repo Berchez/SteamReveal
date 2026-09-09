@@ -91,6 +91,11 @@ const getPlayerProfile = cache(
       if (ownedGames) {
         const gamesSnapshot = getGamesSnapshot(ownedGames as never);
         plain.isCSActive = isCounterStrikeActive(gamesSnapshot);
+        // The analytics payload (recordAnalytics) recomputes the flag from
+        // the snapshot — without it a direct /player/[steamId] load
+        // (seeded path, which skips /api/getUserInfo) always records
+        // isCSActive=false and the dashboard CS Active counter freezes.
+        plain.gamesSnapshot = gamesSnapshot;
       }
 
       return plain;

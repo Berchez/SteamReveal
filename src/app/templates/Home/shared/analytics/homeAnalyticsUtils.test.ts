@@ -413,6 +413,48 @@ describe('recordAnalytics', () => {
     ]);
   });
 
+  it('reuses the server-computed isCSActive flag when the seeded profile carries no snapshot', async () => {
+    // Regression: the SSR seed (direct /player/[steamId] load) used to drop
+    // gamesSnapshot, so recordAnalytics recomputed false for every seeded
+    // search and the dashboard CS Active counter froze.
+    mockedAxios.post.mockImplementation((url: string) => {
+      if (url === '/api/getGamersClubName') {
+        return Promise.resolve({ data: { gcName: null } });
+      }
+      return Promise.resolve({ data: { id: 'search-id' } });
+    });
+
+    const target = makeTargetInfo({ isCSActive: true });
+
+    await recordAnalytics(target, [], [], meta);
+
+    const recordCall = mockedAxios.post.mock.calls.find(
+      ([url]) => url === '/api/recordAnalytics',
+    );
+    const payload = recordCall?.[1] as any;
+
+    expect(payload.isCSActive).toBe(true);
+    expect(payload.gamesSnapshot).toEqual([]);
+  });
+
+  it('records isCSActive=false when neither snapshot nor server flag is present', async () => {
+    mockedAxios.post.mockImplementation((url: string) => {
+      if (url === '/api/getGamersClubName') {
+        return Promise.resolve({ data: { gcName: null } });
+      }
+      return Promise.resolve({ data: { id: 'search-id' } });
+    });
+
+    await recordAnalytics(makeTargetInfo(), [], [], meta);
+
+    const recordCall = mockedAxios.post.mock.calls.find(
+      ([url]) => url === '/api/recordAnalytics',
+    );
+    const payload = recordCall?.[1] as any;
+
+    expect(payload.isCSActive).toBe(false);
+  });
+
   it('returns null when the server reports the record was skipped', async () => {
     mockedAxios.post.mockImplementation((url: string) => {
       if (url === '/api/getGamersClubName') {

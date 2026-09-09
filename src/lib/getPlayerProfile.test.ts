@@ -85,6 +85,12 @@ describe('getPlayerProfile — SSR isCSActive enrichment', () => {
 
     expect(result?.steamID).toBe('111');
     expect(result?.isCSActive).toBe(true);
+    // The snapshot must travel with the seeded profile — recordAnalytics
+    // recomputes the flag from it, and without it every direct
+    // /player/[steamId] load recorded isCSActive=false (frozen dashboard).
+    expect(result?.gamesSnapshot).toEqual([
+      { name: 'Counter-Strike 2', playtimeHours: 300 },
+    ]);
   });
 
   it('enriches isCSActive=false when Counter-Strike is not active', async () => {
@@ -95,6 +101,9 @@ describe('getPlayerProfile — SSR isCSActive enrichment', () => {
     const result = await getPlayerProfile('player-a');
 
     expect(result?.isCSActive).toBe(false);
+    expect(result?.gamesSnapshot).toEqual([
+      { name: 'Dota 2', playtimeHours: 1 },
+    ]);
   });
 
   it('leaves isCSActive undefined (and keeps the profile) when owned-games lookup fails', async () => {
@@ -106,5 +115,6 @@ describe('getPlayerProfile — SSR isCSActive enrichment', () => {
 
     expect(result?.steamID).toBe('111');
     expect(result?.isCSActive).toBeUndefined();
+    expect(result?.gamesSnapshot).toBeUndefined();
   });
 });
