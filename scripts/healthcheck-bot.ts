@@ -31,14 +31,16 @@ const resolveStaleMs = (): number => {
   const raw = process.env.BOT_HEARTBEAT_STALE_MS;
   if (raw === undefined || raw === '') return 180000;
   const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
+  // Integers only (same contract as the bot's readPositiveInt): a
+  // fractional "0.5" would floor to a 0ms threshold and fail every check.
+  if (!Number.isInteger(parsed) || parsed <= 0) {
     // eslint-disable-next-line no-console
     console.error(
-      `BOT_HEARTBEAT_STALE_MS must be a positive number of milliseconds (got ${JSON.stringify(raw)})`,
+      `BOT_HEARTBEAT_STALE_MS must be a positive integer number of milliseconds (got ${JSON.stringify(raw)})`,
     );
     process.exit(2);
   }
-  return Math.floor(parsed);
+  return parsed;
 };
 
 async function main(): Promise<void> {

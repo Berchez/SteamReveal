@@ -681,6 +681,29 @@ export const enqueueEvent = async (
     }
   }
 
+  if (kind === 'invite' && searchId == null) {
+    // Per-profile invite discipline: at most one open invite event per
+    // profile. Sequential duplicates (double-click, client retry, refresh
+    // then re-request) collapse here instead of producing a second
+    // addFriend for the same target. A genuinely concurrent double-submit
+    // can still slip two rows past this read (no unique constraint covers
+    // it — adding one would couple the schema to poller timing); that
+    // residual window is microseconds wide and Steam dedupes pending
+    // invites server-side. Events already sent/dropped do NOT block: a new
+    // invite after expiry must go through.
+    const open = await withSchemaHint(
+      db.execute({
+        sql: `SELECT id FROM watch_events
+              WHERE steam_id = ? AND kind = 'invite' AND status IN ('queued', 'claimed')
+              LIMIT 1`,
+        args: [steamId],
+      }),
+    );
+    if (open.rows.length > 0) {
+      return { eventId: Number(open.rows[0].id), duplicate: true };
+    }
+  }
+
   const now = new Date().toISOString();
   let inserted;
   try {
@@ -878,6 +901,109 @@ export const isWithinCooldown = async (
   const lastMs = Date.parse(last);
   if (!Number.isFinite(lastMs)) return false;
   return Date.now() - lastMs < windowHours * 3600000;
+};
+
+/** Full watched row, or null when this profile was never requested. */
+export const getWatchedProfile = async (
+  steamId: string,
+): Promise<WatchedProfile | null> => {
+  assertSteamId64(steamId);
+  const db = await getClient();
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT steam_id, status, locale, requested_at, activated_at, last_notified_at
+            FROM watched_profiles WHERE steam_id = ?`,
+      args: [steamId],
+    }),
+  );
+  if (row.rows.length === 0) return null;
+  return toWatchedProfile(row.rows[0] as Record<string, unknown>);
+};
+
+/**
+ * Whether an invite event is currently open (queued or claimed) for this
+ * profile. Used by the WB-6 compensation path (never roll back a row
+ * someone else just queued an invite for) and mirrors the dedupe predicate
+ * in enqueueEvent — keep the two WHERE clauses in sync.
+ */
+export const hasOpenInviteEvent = async (steamId: string): Promise<boolean> => {
+  assertSteamId64(steamId);
+  const db = await getClient();
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT 1 FROM watch_events
+            WHERE steam_id = ? AND kind = 'invite' AND status IN ('queued', 'claimed')
+            LIMIT 1`,
+      args: [steamId],
+    }),
+  );
+  return row.rows.length > 0;
+};
+
+/**
+ * Restarts the invite-request clock (requested_at = now) for a pending
+ * watch. Optionally refreshes the locale at the same time: a provided
+ * valid locale overwrites, an absent/invalid one keeps the stored value
+ * (COALESCE) — re-requesting from a new browser language updates the bot's
+ * message language without a separate call.
+ */
+export const refreshWatchRequest = async (
+  steamId: string,
+  locale?: string | null,
+): Promise<boolean> => {
+  assertSteamId64(steamId);
+  const db = await getClient();
+
+  const refreshed = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE watched_profiles SET requested_at = ?, locale = COALESCE(?, locale)
+            WHERE steam_id = ? AND status = 'pending'`,
+      args: [new Date().toISOString(), normalizeLocale(locale), steamId],
+    }),
+  );
+  return Number(refreshed.rowsAffected) > 0;
+};
+
+/**
+ * Records one failed delivery attempt for a worker-claimed event and
+ * routes it: back to 'queued' for another short retry, or to 'dropped'
+ * once attempts reach maxAttempts. Returns null when the row is not
+ * claimed (already settled or missing) — the poller treats that as
+ * "someone else handled it" and moves on.
+ *
+ * Single UPDATE...RETURNING statement (no read-then-write): the atomic
+ * claim already guarantees single ownership, and one statement means never
+ * reasoning about interleavings at all.
+ */
+export const recordEventAttempt = async (
+  id: number,
+  maxAttempts: number,
+): Promise<'requeued' | 'dropped' | null> => {
+  if (!Number.isFinite(maxAttempts) || maxAttempts < 1) {
+    throw new Error(
+      'Invalid maxAttempts for watch event retry: expected positive integer',
+    );
+  }
+  const db = await getClient();
+  const cap = Math.floor(maxAttempts);
+  const now = new Date().toISOString();
+
+  const updated = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE watch_events
+            SET attempts = attempts + 1,
+                status = CASE WHEN attempts + 1 >= ? THEN 'dropped' ELSE 'queued' END,
+                claimed_at = CASE WHEN attempts + 1 >= ? THEN claimed_at ELSE NULL END,
+                sent_at = CASE WHEN attempts + 1 >= ? THEN ? ELSE sent_at END
+            WHERE id = ? AND status = 'claimed'
+            RETURNING status`,
+      args: [cap, cap, cap, now, id],
+    }),
+  );
+  if (updated.rows.length === 0) return null;
+  return updated.rows[0].status === 'dropped' ? 'dropped' : 'requeued';
 };
 
 // ---------------------------------------------------------------------------

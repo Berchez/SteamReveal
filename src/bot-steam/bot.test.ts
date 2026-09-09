@@ -258,6 +258,35 @@ describe('WatchBot', () => {
     bot.stop();
   });
 
+  it('fires onConnected on every logon and contains its failures', () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const onConnected = jest.fn();
+    const { bot, client } = makeBot({ onConnected, logger });
+    bot.start();
+
+    client.emit('loggedOn', {}, {});
+    expect(onConnected).toHaveBeenCalledTimes(1);
+
+    client.emit('disconnected', 2, 'x');
+    client.emit('loggedOn', {}, {});
+    expect(onConnected).toHaveBeenCalledTimes(2);
+
+    onConnected.mockImplementation(() => {
+      throw new Error('host blew up');
+    });
+    client.emit('loggedOn', {}, {});
+    expect(onConnected).toHaveBeenCalledTimes(3);
+    expect(bot.isConnected()).toBe(true);
+    // One error from the disconnect above, one from the throwing callback.
+    expect(logger.error).toHaveBeenCalledTimes(2);
+    expect(
+      logger.error.mock.calls.some((call) =>
+        String(call[0]).includes('onConnected handler failed'),
+      ),
+    ).toBe(true);
+    bot.stop();
+  });
+
   it('never logs secrets across a full login/disconnect/snapshot cycle', () => {
     const logger = { info: jest.fn(), error: jest.fn() };
     const onFriendsSnapshot = jest.fn();

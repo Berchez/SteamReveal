@@ -20,6 +20,16 @@ describe('loadBotConfig', () => {
       heartbeatStaleMs: BOT_CONFIG_DEFAULTS.DEFAULT_HEARTBEAT_STALE_MS,
       reconnectBaseMs: BOT_CONFIG_DEFAULTS.DEFAULT_RECONNECT_BASE_MS,
       reconnectMaxMs: BOT_CONFIG_DEFAULTS.DEFAULT_RECONNECT_MAX_MS,
+      invitePollIntervalMs:
+        BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_POLL_INTERVAL_MS,
+      inviteBatchLimit: BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_BATCH_LIMIT,
+      inviteMaxAttempts: BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_MAX_ATTEMPTS,
+      inviteSendTimeoutMs:
+        BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_SEND_TIMEOUT_MS,
+      staleSweepIntervalMs:
+        BOT_CONFIG_DEFAULTS.DEFAULT_STALE_SWEEP_INTERVAL_MS,
+      staleClaimWindowMinutes:
+        BOT_CONFIG_DEFAULTS.DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
     });
   });
 
@@ -58,6 +68,16 @@ describe('loadBotConfig', () => {
     ['BOT_HEARTBEAT_STALE_MS', '-5'],
     ['BOT_RECONNECT_BASE_MS', 'not-a-number'],
     ['BOT_RECONNECT_MAX_MS', 'Infinity'],
+    ['BOT_INVITE_POLL_INTERVAL_MS', '0'],
+    ['BOT_INVITE_BATCH_LIMIT', '-1'],
+    ['BOT_INVITE_MAX_ATTEMPTS', 'NaN'],
+    ['BOT_INVITE_SEND_TIMEOUT_MS', '0'],
+    ['BOT_STALE_SWEEP_INTERVAL_MS', '0'],
+    ['BOT_STALE_CLAIM_WINDOW_MINUTES', '-2'],
+    // Fractional values would floor to 0 downstream ("always expired") —
+    // rejected loudly instead.
+    ['BOT_HEARTBEAT_INTERVAL_MS', '0.5'],
+    ['BOT_STALE_CLAIM_WINDOW_MINUTES', '1.5'],
   ])('throws on invalid %s (%s)', (name, value) => {
     expect(() => loadBotConfig({ ...FULL_ENV, [name]: value })).toThrow(
       name,

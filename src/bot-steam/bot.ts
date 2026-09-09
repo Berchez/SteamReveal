@@ -32,6 +32,13 @@ export interface WatchBotOptions {
   reconnectBaseMs: number;
   reconnectMaxMs: number;
   onFriendsSnapshot?: BotSnapshotListener;
+  /**
+   * Fired on every successful (re)logon, after setPersona. Lets the host
+   * trigger connection-gated work immediately (e.g. the first invite poll)
+   * instead of waiting for the next interval tick. Never called with
+   * secrets; exceptions are contained and logged.
+   */
+  onConnected?: () => void;
   logger?: BotLogger;
   /** Injected for tests (avoids real TOTP computation). */
   generateTwoFactorCode?: (sharedSecret: string) => string;
@@ -61,6 +68,8 @@ export class WatchBot {
 
   private readonly onFriendsSnapshot?: BotSnapshotListener;
 
+  private readonly onConnected?: () => void;
+
   private readonly logger: BotLogger;
 
   private readonly generateTwoFactorCode: (sharedSecret: string) => string;
@@ -83,6 +92,7 @@ export class WatchBot {
     this.reconnectBaseMs = options.reconnectBaseMs;
     this.reconnectMaxMs = options.reconnectMaxMs;
     this.onFriendsSnapshot = options.onFriendsSnapshot;
+    this.onConnected = options.onConnected;
     this.logger = options.logger ?? console;
     this.generateTwoFactorCode =
       options.generateTwoFactorCode ?? generateAuthCode;
@@ -147,6 +157,17 @@ export class WatchBot {
             error instanceof Error ? error.message : String(error)
           }`,
         );
+      }
+      if (this.onConnected) {
+        try {
+          this.onConnected();
+        } catch (error) {
+          this.logger.error(
+            `[WatchBot] onConnected handler failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          );
+        }
       }
     });
 

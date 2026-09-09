@@ -14,13 +14,19 @@ import SteamUser from 'steam-user';
 import { loadEnv } from '../lib/env';
 import {
   activateWatch,
+  claimNextQueuedEvents,
   deactivateWatch,
   listWatchedProfiles,
+  markEventSent,
+  recordEventAttempt,
+  resetStaleClaims,
 } from '../lib/analytics/db';
 import { loadBotConfig } from './config';
 import { WatchBot } from './bot';
 import { reconcileFriendsList } from './reconcile';
 import { startHeartbeat } from './heartbeat';
+import { startInvitePoller } from './invitePoller';
+import { startStaleClaimSweeper, sweepStaleClaimsOnce } from './staleSweep';
 
 loadEnv();
 
@@ -46,6 +52,11 @@ const main = (): void => {
     autoRelogin: false,
   });
 
+  // Declared before the bot: onConnected (below) fires the first invite
+  // pass, so it needs the handle — assigned further down during the same
+  // synchronous setup, long before any logon can complete.
+  let invitePoller: ReturnType<typeof startInvitePoller> | undefined;
+
   const bot = new WatchBot({
     client,
     accountName: config.accountName,
@@ -53,11 +64,11 @@ const main = (): void => {
     sharedSecret: config.sharedSecret,
     reconnectBaseMs: config.reconnectBaseMs,
     reconnectMaxMs: config.reconnectMaxMs,
+    // reconcile() is async but the snapshot event is sync: a rejection
+    // here must never become an unhandled rejection that kills the
+    // process (reconcile already isolates per-row errors; this is the
+    // last-resort guard for listWatchedProfiles-level failures).
     onFriendsSnapshot: (friendsById) => {
-      // reconcile() is async but the snapshot event is sync: a rejection
-      // here must never become an unhandled rejection that kills the
-      // process (reconcile already isolates per-row errors; this is the
-      // last-resort guard for listWatchedProfiles-level failures).
       reconcileFriendsList(
         friendsById,
         SteamUser.EFriendRelationship.Friend,
@@ -70,6 +81,22 @@ const main = (): void => {
           }`,
         );
       });
+    },
+    // Prompt first invite pass on every (re)logon instead of waiting for
+    // the next interval tick — queued invites drain right after reconnects.
+    // The poller itself re-checks connection, so a stray call is a safe
+    // no-op, never a wasted invite attempt.
+    onConnected: () => {
+      const poller = invitePoller;
+      if (poller === undefined) return;
+      poller.pollOnce().catch((error: unknown) =>
+        // eslint-disable-next-line no-console
+        console.error(
+          `[WatchBot] post-logon invite poll failed: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ),
+      );
     },
   });
 
@@ -87,6 +114,49 @@ const main = (): void => {
   // (otherwise a fresh process looks stale for a whole interval).
   heartbeat.beat();
 
+  // Stale-claim recovery driver: without this interval, rows orphaned in
+  // 'claimed' (crashed worker, failed bookkeeping) would sit forever —
+  // every comment promising "~30min recovery" refers to this timer.
+  const staleSweeper = startStaleClaimSweeper({
+    dal: { resetStaleClaims },
+    sweepIntervalMs: config.staleSweepIntervalMs,
+    staleWindowMinutes: config.staleClaimWindowMinutes,
+  });
+  sweepStaleClaimsOnce({
+    dal: { resetStaleClaims },
+    staleWindowMinutes: config.staleClaimWindowMinutes,
+  }).catch((error: unknown) =>
+    // eslint-disable-next-line no-console
+    console.error(
+      `[WatchBot] initial stale sweep failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    ),
+  );
+
+  invitePoller = startInvitePoller({
+    client,
+    dal: { claimNextQueuedEvents, markEventSent, recordEventAttempt },
+    pollIntervalMs: config.invitePollIntervalMs,
+    batchLimit: config.inviteBatchLimit,
+    maxAttempts: config.inviteMaxAttempts,
+    sendTimeoutMs: config.inviteSendTimeoutMs,
+    isConnected: () => bot.isConnected(),
+  });
+  // Explicit first pass (the poller itself only schedules the interval, so
+  // startup ordering stays visible here). A failure rejects into the log,
+  // never into an unhandled rejection.
+  invitePoller
+    .pollOnce()
+    .catch((error: unknown) =>
+      // eslint-disable-next-line no-console
+      console.error(
+        `[WatchBot] initial invite poll failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      ),
+    );
+
   let shuttingDown = false;
   const shutdown = (signal: 'SIGINT' | 'SIGTERM'): void => {
     if (shuttingDown) return;
@@ -94,6 +164,8 @@ const main = (): void => {
     // eslint-disable-next-line no-console
     console.log(`[WatchBot] received ${signal}, shutting down...`);
     heartbeat.stop();
+    staleSweeper.stop();
+    invitePoller?.stop();
     bot.stop();
     // Let logOff flush, then exit. The delay is ref'd on purpose: prompt
     // shutdown still waits out this beat instead of racing process exit

@@ -35,6 +35,11 @@ const WATCH_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const WATCH_ATTEMPTS_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '003_watch_attempts.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -53,6 +58,10 @@ type DbApi = {
   activateWatch: typeof import('./db').activateWatch;
   deactivateWatch: typeof import('./db').deactivateWatch;
   getWatchStatus: typeof import('./db').getWatchStatus;
+  getWatchedProfile: typeof import('./db').getWatchedProfile;
+  hasOpenInviteEvent: typeof import('./db').hasOpenInviteEvent;
+  refreshWatchRequest: typeof import('./db').refreshWatchRequest;
+  recordEventAttempt: typeof import('./db').recordEventAttempt;
   listWatchedProfiles: typeof import('./db').listWatchedProfiles;
   enqueueEvent: typeof import('./db').enqueueEvent;
   claimNextQueuedEvents: typeof import('./db').claimNextQueuedEvents;
@@ -78,6 +87,9 @@ describe('analytics db integration against real libSQL', () => {
     // (fresh file through the same splitter), so a syntax slip in
     // 002_watch_bot.sql fails here, not on Turso.
     for (const statement of splitSqlStatements(WATCH_MIGRATION_SQL)) {
+      await db.executeForTests(statement);
+    }
+    for (const statement of splitSqlStatements(WATCH_ATTEMPTS_MIGRATION_SQL)) {
       await db.executeForTests(statement);
     }
   });
@@ -384,19 +396,54 @@ describe('analytics db integration against real libSQL', () => {
       expect(Number(count.rows[0].n)).toBe(1);
     });
 
-    it('allows many NULL search_ids (invites) while rejecting a repeated one', async () => {
+    it('collapses sequential duplicate invites while one is still open', async () => {
       await db.createWatchRequest(STEAM);
 
-      const a = await db.enqueueEvent(STEAM, 'invite');
-      const b = await db.enqueueEvent(STEAM, 'invite');
-      expect(a.duplicate).toBe(false);
-      expect(b.duplicate).toBe(false);
-      expect(a.eventId).not.toBe(b.eventId);
+      const first = await db.enqueueEvent(STEAM, 'invite');
+      expect(first.duplicate).toBe(false);
+
+      // Same profile, invite still queued/claimed: no second row.
+      const second = await db.enqueueEvent(STEAM, 'invite');
+      expect(second).toEqual({ eventId: first.eventId, duplicate: true });
+
+      const count = await db.executeForTests(
+        "SELECT COUNT(*) AS n FROM watch_events WHERE steam_id = ? AND kind = 'invite'",
+        [STEAM],
+      );
+      expect(Number(count.rows[0].n)).toBe(1);
 
       // ...but a repeated non-null search_id is still a duplicate.
       await db.enqueueEvent(STEAM, 'notify', 'search-dup');
       const dup = await db.enqueueEvent(STEAM, 'notify', 'search-dup');
       expect(dup.duplicate).toBe(true);
+    });
+
+    it('allows a new invite after the previous one settled', async () => {
+      await db.createWatchRequest(STEAM);
+      const { eventId } = await db.enqueueEvent(STEAM, 'invite');
+      const [claimed] = await db.claimNextQueuedEvents('invite', 10);
+      expect(claimed.id).toBe(eventId);
+      expect(await db.markEventSent(claimed.id)).toBe(true);
+
+      // Sent history does not block: a fresh invite goes through.
+      const next = await db.enqueueEvent(STEAM, 'invite');
+      expect(next.duplicate).toBe(false);
+      expect(next.eventId).not.toBe(eventId);
+    });
+
+    it('hasOpenInviteEvent tracks the open lifecycle end to end', async () => {
+      await db.createWatchRequest(STEAM);
+      expect(await db.hasOpenInviteEvent(STEAM)).toBe(false);
+
+      await db.enqueueEvent(STEAM, 'invite');
+      expect(await db.hasOpenInviteEvent(STEAM)).toBe(true);
+
+      const [claimed] = await db.claimNextQueuedEvents('invite', 10);
+      // Claimed still counts as open (a worker owns it right now).
+      expect(await db.hasOpenInviteEvent(STEAM)).toBe(true);
+
+      expect(await db.markEventSent(claimed.id)).toBe(true);
+      expect(await db.hasOpenInviteEvent(STEAM)).toBe(false);
     });
 
     it('requeues orphaned claims and leaves fresh ones alone', async () => {
@@ -460,6 +507,76 @@ describe('analytics db integration against real libSQL', () => {
 
       const pending = await db.listWatchedProfiles('pending');
       expect(pending.map((w) => w.steamId)).toEqual(['76561198000000001']);
+    });
+
+    it('getWatchedProfile + refreshWatchRequest round-trip on real SQL', async () => {
+      expect(await db.getWatchedProfile(STEAM)).toBeNull();
+
+      await db.createWatchRequest(STEAM, 'en');
+      await expect(db.getWatchedProfile(STEAM)).resolves.toMatchObject({
+        steamId: STEAM,
+        status: 'pending',
+        locale: 'en',
+      });
+
+      // Backdate the request, refresh, and confirm the clock moved.
+      await db.executeForTests(
+        "UPDATE watched_profiles SET requested_at = '2000-01-01T00:00:00.000Z' WHERE steam_id = ?",
+        [STEAM],
+      );
+      expect(await db.refreshWatchRequest(STEAM)).toBe(true);
+      const refreshed = await db.getWatchedProfile(STEAM);
+      expect(refreshed).not.toBeNull();
+      expect(Date.parse(refreshed!.requestedAt)).toBeGreaterThan(
+        Date.parse('2020-01-01T00:00:00.000Z'),
+      );
+
+      // Active rows and missing rows do not move.
+      await db.activateWatch(STEAM);
+      expect(await db.refreshWatchRequest(STEAM)).toBe(false);
+      expect(await db.refreshWatchRequest('76561198000000009')).toBe(false);
+    });
+
+    it('refreshWatchRequest overwrites locale when valid, keeps it otherwise', async () => {
+      await db.createWatchRequest(STEAM, 'en');
+
+      expect(await db.refreshWatchRequest(STEAM, 'pt')).toBe(true);
+      await expect(db.getWatchedProfile(STEAM)).resolves.toMatchObject({
+        locale: 'pt',
+      });
+
+      expect(await db.refreshWatchRequest(STEAM, 'xx!!')).toBe(true);
+      await expect(db.getWatchedProfile(STEAM)).resolves.toMatchObject({
+        locale: 'pt',
+      });
+
+      expect(await db.refreshWatchRequest(STEAM)).toBe(true);
+      await expect(db.getWatchedProfile(STEAM)).resolves.toMatchObject({
+        locale: 'pt',
+      });
+    });
+
+    it('recordEventAttempt counts up, requeues, then drops at the cap', async () => {
+      await db.createWatchRequest(STEAM);
+      const { eventId } = await db.enqueueEvent(STEAM, 'invite');
+      const [claimed] = await db.claimNextQueuedEvents('invite', 10);
+      expect(eventId).toBe(claimed.id);
+
+      expect(await db.recordEventAttempt(claimed.id, 3)).toBe('requeued');
+      // Requeued rows are pollable again...
+      const [reclaimed] = await db.claimNextQueuedEvents('invite', 10);
+      expect(reclaimed.id).toBe(claimed.id);
+
+      expect(await db.recordEventAttempt(claimed.id, 3)).toBe('requeued');
+      const [reclaimed2] = await db.claimNextQueuedEvents('invite', 10);
+      expect(await db.recordEventAttempt(reclaimed2.id, 3)).toBe('dropped');
+
+      // Settled rows are invisible to further attempts.
+      expect(await db.recordEventAttempt(claimed.id, 3)).toBeNull();
+
+      await expect(db.recordEventAttempt(claimed.id, 0)).rejects.toThrow(
+        /positive/,
+      );
     });
   });
 });

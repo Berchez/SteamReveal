@@ -699,15 +699,48 @@ describe('watch/outbox DAL (Epic 1)', () => {
   });
 
   it('enqueueEvent inserts invites with NULL search_id and no pre-check', async () => {
+    // PRAGMA (placeholder) + open-invite SELECT (empty) + INSERT.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
     mockExecute.mockResolvedValueOnce({ rows: [], lastInsertRowid: 3 });
 
     const { enqueueEvent } = require('./db');
     const result = await enqueueEvent(STEAM, 'invite');
 
     expect(result).toEqual({ eventId: 3, duplicate: false });
-    // PRAGMA + a single INSERT (no SELECT pre-check for invites).
-    expect(mockExecute).toHaveBeenCalledTimes(2);
-    expect(mockExecute.mock.calls[1][0].args[0]).toBeNull();
+    expect(mockExecute).toHaveBeenCalledTimes(3);
+    expect(mockExecute.mock.calls[2][0].args[0]).toBeNull();
+  });
+
+  it('enqueueEvent collapses a second invite while one is still open', async () => {
+    // PRAGMA + open-invite SELECT finds the still-queued first invite.
+    mockExecute.mockResolvedValueOnce({ rows: [{ id: 8 }] });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'invite');
+
+    expect(result).toEqual({ eventId: 8, duplicate: true });
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watch_events'),
+    );
+    expect(inserts).toHaveLength(0);
+  });
+
+  it('enqueueEvent allows a new invite after the previous one settled', async () => {
+    // PRAGMA + open-invite SELECT (sent/dropped do not block) + INSERT.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [], lastInsertRowid: 9 });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'invite');
+
+    expect(result).toEqual({ eventId: 9, duplicate: false });
+    const openCheck = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM watch_events'),
+    );
+    // Only open (queued/claimed) invites block — settled history does not.
+    expect(String(openCheck[0]?.sql ?? openCheck[0])).toContain(
+      "status IN ('queued', 'claimed')",
+    );
   });
 
   it('enqueueEvent throws on invalid kind/steamId/searchId', async () => {
@@ -942,7 +975,8 @@ describe('watch/outbox DAL (Epic 1)', () => {
     expect(String(select[0]?.sql ?? select[0])).not.toContain('WHERE');
   });
 
-  it('listWatchedProfiles filters by status and rejects anything else', async () => {    const { listWatchedProfiles } = require('./db');
+  it('listWatchedProfiles filters by status and rejects anything else', async () => {
+    const { listWatchedProfiles } = require('./db');
 
     mockExecute.mockResolvedValueOnce({ rows: [] });
     await expect(listWatchedProfiles('pending')).resolves.toEqual([]);
@@ -965,5 +999,70 @@ describe('watch/outbox DAL (Epic 1)', () => {
     const { listWatchedProfiles } = require('./db');
 
     await expect(listWatchedProfiles()).rejects.toThrow(/db:migrate/);
+  });
+
+  it('hasOpenInviteEvent reports open invites (queued/claimed only)', async () => {
+    const { hasOpenInviteEvent } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [{ 1: 1 }] });
+    await expect(hasOpenInviteEvent(STEAM)).resolves.toBe(true);
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(hasOpenInviteEvent(STEAM)).resolves.toBe(false);
+
+    await expect(hasOpenInviteEvent('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('getWatchedProfile returns the mapped row or null', async () => {    const { getWatchedProfile } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [watchRow()] });
+    await expect(getWatchedProfile(STEAM)).resolves.toMatchObject({
+      steamId: STEAM,
+      status: 'pending',
+    });
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(getWatchedProfile(STEAM)).resolves.toBeNull();
+
+    await expect(getWatchedProfile('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('refreshWatchRequest touches only pending rows', async () => {
+    const { refreshWatchRequest } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(refreshWatchRequest(STEAM)).resolves.toBe(true);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
+    );
+    expect(String(update[0]?.sql ?? update[0])).toContain(
+      "status = 'pending'",
+    );
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(refreshWatchRequest(STEAM)).resolves.toBe(false);
+
+    await expect(refreshWatchRequest('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('refreshWatchRequest overwrites locale when valid, keeps it otherwise', async () => {
+    const { refreshWatchRequest } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(refreshWatchRequest(STEAM, 'pt-BR')).resolves.toBe(true);
+    const withLocale = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
+    );
+    expect(withLocale[0].args).toEqual([expect.any(String), 'pt-BR', STEAM]);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(refreshWatchRequest(STEAM, 'pt-BR!!')).resolves.toBe(true);
+    const kept = mockExecute.mock.calls
+      .filter((call) =>
+        String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
+      )
+      .pop();
+    expect(kept[0].args).toEqual([expect.any(String), null, STEAM]);
   });
 });

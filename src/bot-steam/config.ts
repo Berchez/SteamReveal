@@ -20,6 +20,13 @@ export interface BotConfig {
   heartbeatStaleMs: number;
   reconnectBaseMs: number;
   reconnectMaxMs: number;
+  invitePollIntervalMs: number;
+  inviteBatchLimit: number;
+  inviteMaxAttempts: number;
+  /** Watchdog for a single addFriend call (a hang must fail visibly). */
+  inviteSendTimeoutMs: number;
+  staleSweepIntervalMs: number;
+  staleClaimWindowMinutes: number;
 }
 
 const DEFAULT_DATA_DIRECTORY = '.data/steam-bot';
@@ -27,6 +34,12 @@ const DEFAULT_HEARTBEAT_INTERVAL_MS = 60000;
 const DEFAULT_HEARTBEAT_STALE_MS = 180000;
 const DEFAULT_RECONNECT_BASE_MS = 1000;
 const DEFAULT_RECONNECT_MAX_MS = 60000;
+const DEFAULT_INVITE_POLL_INTERVAL_MS = 60000;
+const DEFAULT_INVITE_BATCH_LIMIT = 10;
+const DEFAULT_INVITE_MAX_ATTEMPTS = 3;
+const DEFAULT_INVITE_SEND_TIMEOUT_MS = 30000;
+const DEFAULT_STALE_SWEEP_INTERVAL_MS = 600000;
+const DEFAULT_STALE_CLAIM_WINDOW_MINUTES = 30;
 
 const readPositiveInt = (
   raw: string | undefined,
@@ -35,12 +48,14 @@ const readPositiveInt = (
 ): number => {
   if (raw === undefined || raw === '') return fallback;
   const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
+  // Integers only: a fractional "0.5" would floor to 0 and silently turn
+  // the setting into "always expired" downstream — reject it loudly here.
+  if (!Number.isInteger(parsed) || parsed <= 0) {
     throw new Error(
-      `${name} must be a positive number of milliseconds (got ${JSON.stringify(raw)})`,
+      `${name} must be a positive integer number of milliseconds (got ${JSON.stringify(raw)})`,
     );
   }
-  return Math.floor(parsed);
+  return parsed;
 };
 
 const requireSecret = (value: string | undefined, name: string): string => {
@@ -101,6 +116,36 @@ export const loadBotConfig = (
       DEFAULT_RECONNECT_MAX_MS,
       'BOT_RECONNECT_MAX_MS',
     ),
+    invitePollIntervalMs: readPositiveInt(
+      env.BOT_INVITE_POLL_INTERVAL_MS,
+      DEFAULT_INVITE_POLL_INTERVAL_MS,
+      'BOT_INVITE_POLL_INTERVAL_MS',
+    ),
+    inviteBatchLimit: readPositiveInt(
+      env.BOT_INVITE_BATCH_LIMIT,
+      DEFAULT_INVITE_BATCH_LIMIT,
+      'BOT_INVITE_BATCH_LIMIT',
+    ),
+    inviteMaxAttempts: readPositiveInt(
+      env.BOT_INVITE_MAX_ATTEMPTS,
+      DEFAULT_INVITE_MAX_ATTEMPTS,
+      'BOT_INVITE_MAX_ATTEMPTS',
+    ),
+    inviteSendTimeoutMs: readPositiveInt(
+      env.BOT_INVITE_SEND_TIMEOUT_MS,
+      DEFAULT_INVITE_SEND_TIMEOUT_MS,
+      'BOT_INVITE_SEND_TIMEOUT_MS',
+    ),
+    staleSweepIntervalMs: readPositiveInt(
+      env.BOT_STALE_SWEEP_INTERVAL_MS,
+      DEFAULT_STALE_SWEEP_INTERVAL_MS,
+      'BOT_STALE_SWEEP_INTERVAL_MS',
+    ),
+    staleClaimWindowMinutes: readPositiveInt(
+      env.BOT_STALE_CLAIM_WINDOW_MINUTES,
+      DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
+      'BOT_STALE_CLAIM_WINDOW_MINUTES',
+    ),
   };
 };
 
@@ -110,4 +155,10 @@ export const BOT_CONFIG_DEFAULTS = {
   DEFAULT_HEARTBEAT_STALE_MS,
   DEFAULT_RECONNECT_BASE_MS,
   DEFAULT_RECONNECT_MAX_MS,
+  DEFAULT_INVITE_POLL_INTERVAL_MS,
+  DEFAULT_INVITE_BATCH_LIMIT,
+  DEFAULT_INVITE_MAX_ATTEMPTS,
+  DEFAULT_INVITE_SEND_TIMEOUT_MS,
+  DEFAULT_STALE_SWEEP_INTERVAL_MS,
+  DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
 };
