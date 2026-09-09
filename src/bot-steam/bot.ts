@@ -33,6 +33,14 @@ export interface WatchBotOptions {
   reconnectMaxMs: number;
   onFriendsSnapshot?: BotSnapshotListener;
   /**
+   * Fired with the affected steamId when the bot observes a friendship
+   * REMOVAL (unfriend or block — see the friendRelationship subscription
+   * below). index.ts routes this to the WB-8 opt-out handler. Non-removal
+   * relationship changes never reach this callback. Never called with
+   * secrets; exceptions are contained and logged.
+   */
+  onFriendRemoved?: (steamId: string) => void;
+  /**
    * Fired on every successful (re)logon, after setPersona. Lets the host
    * trigger connection-gated work immediately (e.g. the first invite poll)
    * instead of waiting for the next interval tick. Never called with
@@ -68,6 +76,8 @@ export class WatchBot {
 
   private readonly onFriendsSnapshot?: BotSnapshotListener;
 
+  private readonly onFriendRemoved?: (steamId: string) => void;
+
   private readonly onConnected?: () => void;
 
   private readonly logger: BotLogger;
@@ -92,6 +102,7 @@ export class WatchBot {
     this.reconnectBaseMs = options.reconnectBaseMs;
     this.reconnectMaxMs = options.reconnectMaxMs;
     this.onFriendsSnapshot = options.onFriendsSnapshot;
+    this.onFriendRemoved = options.onFriendRemoved;
     this.onConnected = options.onConnected;
     this.logger = options.logger ?? console;
     this.generateTwoFactorCode =
@@ -196,6 +207,52 @@ export class WatchBot {
       } catch (error) {
         this.logger.error(
           `[WatchBot] friends snapshot handler failed: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    });
+
+    this.client.on('friendRelationship', (sid, relationship) => {
+      // WB-8 opt-out: only terminal non-friend states route to the removal
+      // handler. Verified against the installed steam-user v5 source
+      // (components/friends.js): this event fires on incremental
+      // relationship CHANGES with (sid: SteamID, relationship), and an
+      // unfriend arrives as None (the entry is then deleted from
+      // myFriends). Friend/RequestInitiator/etc. transitions (invites
+      // sent, requests accepted) are deliberately ignored here.
+      // NOTE: a None transition is not always an opt-out — a sent invite
+      // that was cancelled/expired before acceptance arrives as None too.
+      // That case is harmless by idempotency (no watch row exists, so the
+      // handler logs already-inactive and touches nothing), at the cost of
+      // a slightly imprecise event=friend-remove label in that log line.
+      // Blocked is included: a blocking user is gone for our purposes
+      // (no chat possible) and keeping their watch active would only burn
+      // cooldown on undeliverable messages. Ambiguous states (Ignored,
+      // IgnoredFriend, ...) never deactivate — conservative by design.
+      if (
+        relationship !== SteamUser.EFriendRelationship.None &&
+        relationship !== SteamUser.EFriendRelationship.Blocked
+      ) {
+        return;
+      }
+      if (!this.onFriendRemoved) return;
+      let steamId: string;
+      try {
+        steamId = sid.getSteamID64();
+      } catch (error) {
+        this.logger.error(
+          `[WatchBot] friend-remove ignored: unreadable steamId: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+        return;
+      }
+      try {
+        this.onFriendRemoved(steamId);
+      } catch (error) {
+        this.logger.error(
+          `[WatchBot] friend-remove handler failed: steamId=${steamId}: ${
             error instanceof Error ? error.message : String(error)
           }`,
         );

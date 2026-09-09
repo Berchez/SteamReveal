@@ -24,6 +24,7 @@ import {
 import { loadBotConfig } from './config';
 import { WatchBot } from './bot';
 import { reconcileFriendsList } from './reconcile';
+import { handleFriendRemoved } from './friendRemoved';
 import { startHeartbeat } from './heartbeat';
 import { startInvitePoller } from './invitePoller';
 import { startStaleClaimSweeper, sweepStaleClaimsOnce } from './staleSweep';
@@ -52,6 +53,14 @@ const main = (): void => {
     autoRelogin: false,
   });
 
+  // Single shared logger for the bot and all of its handlers (reconcile,
+  // friend-remove, pollers): the opt-out audit trail must flow through the
+  // same sink as everything else, so a future custom logger can be swapped
+  // in exactly one place. Console today, by explicit choice.
+  // eslint-disable-next-line no-console
+  const logger: { info: (message: string) => void; error: (message: string) => void } =
+    console;
+
   // Declared before the bot: onConnected (below) fires the first invite
   // pass, so it needs the handle — assigned further down during the same
   // synchronous setup, long before any logon can complete.
@@ -64,6 +73,7 @@ const main = (): void => {
     sharedSecret: config.sharedSecret,
     reconnectBaseMs: config.reconnectBaseMs,
     reconnectMaxMs: config.reconnectMaxMs,
+    logger,
     // reconcile() is async but the snapshot event is sync: a rejection
     // here must never become an unhandled rejection that kills the
     // process (reconcile already isolates per-row errors; this is the
@@ -96,6 +106,22 @@ const main = (): void => {
             error instanceof Error ? error.message : String(error)
           }`,
         ),
+      );
+    },
+    // WB-8 official opt-out: unfriend/block observed on the live event.
+    // Removals that happened while offline are caught by the reconcile
+    // pass instead (same deactivateWatch, no duplicated logic).
+    // handleFriendRemoved never rejects by contract (all failures resolve
+    // to { deactivated: false }); the .catch below is defensive-only, kept
+    // because dropping it would leave a floating promise.
+    onFriendRemoved: (steamId: string) => {
+      handleFriendRemoved(steamId, { deactivateWatch }, logger).catch(
+        (error: unknown) =>
+          logger.error(
+            `[WatchBot] friend-remove handling failed: steamId=${steamId}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
       );
     },
   });

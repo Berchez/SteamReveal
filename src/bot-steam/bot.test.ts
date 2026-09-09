@@ -18,7 +18,7 @@ jest.mock('steam-user', () => {
 
   class FakeSteamUser extends EE {
     static EPersonaState = { Online: 1 };
-    static EFriendRelationship = { Friend: 3 };
+    static EFriendRelationship = { None: 0, Blocked: 1, Friend: 3 };
     static EResult = { OK: 1, Fail: 2 };
 
     static created: FakeSteamUser[] = [];
@@ -212,6 +212,84 @@ describe('WatchBot', () => {
     expect(() => client.emit('friendsList')).not.toThrow();
     expect(logger.error).toHaveBeenCalledTimes(1);
     bot.stop();
+  });
+
+  it('routes unfriend events to onFriendRemoved with the steamID64', () => {
+    const onFriendRemoved = jest.fn();
+    const { bot, client } = makeBot({ onFriendRemoved });
+    bot.start();
+
+    client.emit('friendRelationship', { getSteamID64: () => '76561198000000001' }, 0);
+    expect(onFriendRemoved).toHaveBeenCalledTimes(1);
+    expect(onFriendRemoved).toHaveBeenCalledWith('76561198000000001');
+    bot.stop();
+  });
+
+  it('routes block events to onFriendRemoved too', () => {
+    const onFriendRemoved = jest.fn();
+    const { bot, client } = makeBot({ onFriendRemoved });
+    bot.start();
+
+    client.emit('friendRelationship', { getSteamID64: () => '76561198000000002' }, 1);
+    expect(onFriendRemoved).toHaveBeenCalledTimes(1);
+    expect(onFriendRemoved).toHaveBeenCalledWith('76561198000000002');
+    bot.stop();
+  });
+
+  it('ignores non-removal relationship changes (friend, pending invite)', () => {
+    const onFriendRemoved = jest.fn();
+    const { bot, client } = makeBot({ onFriendRemoved });
+    bot.start();
+
+    client.emit('friendRelationship', { getSteamID64: () => '76561198000000001' }, 3);
+    client.emit('friendRelationship', { getSteamID64: () => '76561198000000002' }, 4);
+    client.emit('friendRelationship', { getSteamID64: () => '76561198000000003' }, 2);
+    expect(onFriendRemoved).not.toHaveBeenCalled();
+    bot.stop();
+  });
+
+  it('contains an unreadable steamId and subscribes only once across reconnects', () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const onFriendRemoved = jest.fn();
+    const { bot, client } = makeBot({ onFriendRemoved, logger });
+    bot.start();
+
+    expect(() =>
+      client.emit('friendRelationship', { getSteamID64: () => { throw new Error('malformed'); } }, 0),
+    ).not.toThrow();
+    expect(onFriendRemoved).not.toHaveBeenCalled();
+
+    // Reconnect re-runs attachListeners, but the once-guard must prevent a
+    // second subscription: one event still fires exactly one callback.
+    client.emit('loggedOn', {}, {});
+    client.emit('disconnected', 2, 'x');
+    client.emit('loggedOn', {}, {});
+    client.emit('friendRelationship', { getSteamID64: () => '76561198000000009' }, 0);
+    expect(onFriendRemoved).toHaveBeenCalledTimes(1);
+    expect(onFriendRemoved).toHaveBeenCalledWith('76561198000000009');
+    bot.stop();
+  });
+
+  it('removal logs carry the steamId and no secrets', () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const seen: string[] = [];
+    const onFriendRemoved = jest.fn((steamId: string) => {
+      seen.push(steamId);
+    });
+    const { bot, client } = makeBot({ onFriendRemoved, logger });
+    bot.start();
+
+    client.emit('friendRelationship', { getSteamID64: () => '76561198000000007' }, 0);
+    bot.stop();
+
+    expect(seen).toEqual(['76561198000000007']);
+    const lines = [
+      ...logger.info.mock.calls.map((call) => String(call[0])),
+      ...logger.error.mock.calls.map((call) => String(call[0])),
+    ].join('\n');
+    for (const secret of [ACCOUNT, PASSWORD, SECRET, OTP]) {
+      expect(lines).not.toContain(secret);
+    }
   });
 
   it('TOTP failure schedules a reconnect without calling logOn', () => {
