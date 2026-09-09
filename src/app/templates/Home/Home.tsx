@@ -116,10 +116,23 @@ export default function Home({
         <LanguageSwitcher />
       </div>
       <div
-        className={`flow-root h-full w-full min-h-screen bg-no-repeat bg-cover py-8 px-4 md:p-12 text-white z-20 ${
+        className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 pt-8 md:px-12 md:pt-12 text-white z-20 ${
           hasNoDataYet
-            ? 'absolute top-1/2 transform -translate-y-1/2'
-            : 'relative'
+            ? // Home keeps its exact original box (flow-root + full padding)
+              'flow-root absolute top-1/2 transform -translate-y-1/2 pb-8 md:pb-12'
+            : // Player: sticky footer without absolute positioning (which
+              // would take the footer out of flow and reintroduce the CLS it
+              // was removed for): flex column + min-h-screen, with the
+              // sections block below marked flex-1 so it absorbs leftover
+              // space and pushes the footer down when the content is shorter
+              // than the screen. NOTE `flow-root` is deliberately dropped
+              // here — Tailwind orders it after `flex` in the cascade, so
+              // keeping both would silently resolve to display:flow-root and
+              // disable the sticky behavior. No bottom padding on this
+              // branch either: the footer must end flush with the page —
+              // wrapper bottom padding would leave a body-background gap
+              // below the full-bleed bar on short pages.
+              'flex flex-col relative'
         }`}
       >
         <div className={hasNoDataYet ? 'min-h-[70dvh]' : undefined}>
@@ -142,7 +155,13 @@ export default function Home({
           />
         )}
         {!hasNoDataYet && (
-          <div className="flex flex-col gap-16 my-8">
+          // flex-1 + mt-8 (NOT my-8): this block absorbs leftover vertical
+          // space to pin the footer down on short pages. Dropping mb-8 keeps
+          // the sections→footer gap identical to the old collapsed
+          // block-flow value (max(mb-8, mt-12) = mt-12 = 48px): in flex,
+          // margins don't collapse, so keeping mb-8 would add 32px here on
+          // every player page. Tall pages render pixel-identical.
+          <div className="flex flex-col gap-16 mt-8 flex-1">
             <LocationSection
               possibleLocationJson={possibleLocationJson}
               targetInfoJson={targetInfoJson}
@@ -155,7 +174,10 @@ export default function Home({
             px-4 md:p-12 horizontal padding so the bar spans edge-to-edge while
             staying relative (in flow) — the P2 CLS fix requires it NOT to be
             absolutely positioned. Keep these margins in sync if the parent's
-            horizontal padding ever changes. */}
+            horizontal padding ever changes. mt-12 is load-bearing too: the
+            player wrapper is flex-col (sticky footer), where margins don't
+            collapse, and the sections block above carries mt-8 WITHOUT mb-8
+            precisely so this gap stays 48px as before. */}
         <footer className="relative -mx-4 md:-mx-12 mt-12 py-6 text-center text-gray-400 text-sm border-t border-gray-700 bg-gray-800">
           <p>
             © {currentYear} SteamReveal. {translator('footer.rights')}

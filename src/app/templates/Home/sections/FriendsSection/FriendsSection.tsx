@@ -32,7 +32,11 @@ function FriendsSection({ closeFriendsJson }: FriendsSectionProps) {
   // skeleton, never nothing.
 
   return (
-    <div className="w-full mb-12">
+    // No mb here: the player wrapper is flex-col (sticky footer), where
+    // margins don't collapse — the footer below already carries mt-12, and
+    // keeping mb-12 too would stack 48+48=96px instead of the collapsed 48px
+    // this gap has always been. See Home.tsx footer comment.
+    <div className="w-full">
       <h1 className="text-2xl font-bold text-gray-100">
         {translator('friendsIRL')}
       </h1>
