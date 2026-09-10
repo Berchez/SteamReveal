@@ -645,4 +645,101 @@ describe('analytics db integration against real libSQL', () => {
       );
     });
   });
+
+  describe('WB-12 notify hook end to end (real SQL, real DAL)', () => {
+    const STEAM = '76561198000000000';
+    // The hook module talks to the SAME memoized client (no module reset
+    // in this file), so these tests prove the full gate chain — status,
+    // cooldown, idempotence — against a genuine engine, not mocks.
+    const { enqueueWatchNotification } = require('./watchNotify') as {
+      enqueueWatchNotification: (
+        steamId: string,
+        searchId: string,
+        logger?: { error: (message: string) => void },
+      ) => Promise<{
+        enqueued: boolean;
+        reason?: string;
+        eventId?: number | null;
+      }>;
+    };
+    const silentLogger = { error: jest.fn() };
+
+    const notifyCount = async (): Promise<number> => {
+      const rows = await db.executeForTests(
+        "SELECT COUNT(*) AS n FROM watch_events WHERE steam_id = ? AND kind = 'notify'",
+        [STEAM],
+      );
+      return Number(rows.rows[0].n);
+    };
+
+    it('enqueues one notify for an active watch outside cooldown', async () => {
+      await db.createWatchRequest(STEAM);
+      await db.activateWatch(STEAM);
+
+      const result = await enqueueWatchNotification(
+        STEAM,
+        'hook-search-1',
+        silentLogger,
+      );
+
+      expect(result.enqueued).toBe(true);
+      expect(await notifyCount()).toBe(1);
+      expect(silentLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('collapses a repeated search_id into duplicate (single row)', async () => {
+      await db.createWatchRequest(STEAM);
+      await db.activateWatch(STEAM);
+
+      const first = await enqueueWatchNotification(
+        STEAM,
+        'hook-search-dup',
+        silentLogger,
+      );
+      const second = await enqueueWatchNotification(
+        STEAM,
+        'hook-search-dup',
+        silentLogger,
+      );
+
+      expect(first.enqueued).toBe(true);
+      expect(second).toEqual({ enqueued: false, reason: 'duplicate' });
+      expect(await notifyCount()).toBe(1);
+    });
+
+    it('blocks a new search once the cooldown clock advanced (after a send)', async () => {
+      await db.createWatchRequest(STEAM);
+      await db.activateWatch(STEAM);
+
+      await enqueueWatchNotification(STEAM, 'hook-search-sent', silentLogger);
+      const [claimed] = await db.claimNextQueuedEvents('notify', 10);
+      expect(await db.markEventSent(claimed.id)).toBe(true);
+      expect(await db.isWithinCooldown(STEAM, 24)).toBe(true);
+
+      const blocked = await enqueueWatchNotification(
+        STEAM,
+        'hook-search-after-send',
+        silentLogger,
+      );
+
+      expect(blocked).toEqual({ enqueued: false, reason: 'cooldown' });
+      expect(await notifyCount()).toBe(1);
+    });
+
+    it('enqueues nothing for pending or unknown watches', async () => {
+      await db.createWatchRequest(STEAM);
+
+      await expect(
+        enqueueWatchNotification(STEAM, 'hook-search-pending', silentLogger),
+      ).resolves.toEqual({ enqueued: false, reason: 'not-active' });
+      await expect(
+        enqueueWatchNotification(
+          '76561198000000009',
+          'hook-search-unknown',
+          silentLogger,
+        ),
+      ).resolves.toEqual({ enqueued: false, reason: 'not-active' });
+      expect(await notifyCount()).toBe(0);
+    });
+  });
 });

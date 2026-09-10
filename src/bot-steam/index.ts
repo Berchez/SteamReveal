@@ -17,7 +17,9 @@ import {
   claimNextQueuedEvents,
   countInvitesSentSince,
   deactivateWatch,
+  getWatchedProfile,
   listWatchedProfiles,
+  markEventDropped,
   markEventSent,
   recordEventAttempt,
   resetStaleClaims,
@@ -28,8 +30,10 @@ import { WatchBot } from './bot';
 import { reconcileFriendsList } from './reconcile';
 import { handleFriendRemoved } from './friendRemoved';
 import { sendWelcomeMessage, type WelcomeChatClient } from './welcomeMessage';
+import type { NotifyChatClient } from './notifyMessage';
 import { startHeartbeat } from './heartbeat';
 import { startInvitePoller } from './invitePoller';
+import { startNotifyPoller } from './notifyPoller';
 import { startStaleClaimSweeper, sweepStaleClaimsOnce } from './staleSweep';
 
 loadEnv();
@@ -67,6 +71,7 @@ const main = (): void => {
   // pass, so it needs the handle — assigned further down during the same
   // synchronous setup, long before any logon can complete.
   let invitePoller: ReturnType<typeof startInvitePoller> | undefined;
+  let notifyPoller: ReturnType<typeof startNotifyPoller> | undefined;
 
   const bot = new WatchBot({
     client,
@@ -107,21 +112,34 @@ const main = (): void => {
         );
       });
     },
-    // Prompt first invite pass on every (re)logon instead of waiting for
-    // the next interval tick — queued invites drain right after reconnects.
-    // The poller itself re-checks connection, so a stray call is a safe
-    // no-op, never a wasted invite attempt.
+    // Prompt first passes on every (re)logon instead of waiting for the
+    // next interval ticks — queued work drains right after reconnects.
+    // The pollers re-check connection themselves, so a stray call is a
+    // safe no-op. Two INDEPENDENT guards (not one shared early return):
+    // each lane must fire even if the other handle is somehow unset.
     onConnected: () => {
-      const poller = invitePoller;
-      if (poller === undefined) return;
-      poller.pollOnce().catch((error: unknown) =>
-        // eslint-disable-next-line no-console
-        console.error(
-          `[WatchBot] post-logon invite poll failed: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        ),
-      );
+      const invites = invitePoller;
+      if (invites !== undefined) {
+        invites.pollOnce().catch((error: unknown) =>
+          // eslint-disable-next-line no-console
+          console.error(
+            `[WatchBot] post-logon invite poll failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+        );
+      }
+      const notifies = notifyPoller;
+      if (notifies !== undefined) {
+        notifies.pollOnce().catch((error: unknown) =>
+          // eslint-disable-next-line no-console
+          console.error(
+            `[WatchBot] post-logon notify poll failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+        );
+      }
     },
     // WB-8 official opt-out: unfriend/block observed on the live event.
     // Removals that happened while offline are caught by the reconcile
@@ -202,6 +220,35 @@ const main = (): void => {
     ),
   );
 
+  // WB-13 notify consumer: same lifecycle as the invite poller (single
+  // registration at startup — reconnects only trigger pollOnce, never a
+  // second driver — and stopped on shutdown below). The chat surface is
+  // the same structural sendFriendMessage the welcome flow casts to.
+  notifyPoller = startNotifyPoller({
+    chat: client.chat as unknown as NotifyChatClient,
+    dal: {
+      claimNextQueuedEvents,
+      markEventSent,
+      markEventDropped,
+      recordEventAttempt,
+      getWatchedProfile,
+    },
+    pollIntervalMs: config.notifyPollIntervalMs,
+    batchLimit: config.notifyBatchLimit,
+    maxAttempts: config.notifyMaxAttempts,
+    sendTimeoutMs: config.notifySendTimeoutMs,
+    ttlDays: config.notifyTtlDays,
+    isConnected: () => bot.isConnected(),
+  });
+  notifyPoller.pollOnce().catch((error: unknown) =>
+    // eslint-disable-next-line no-console
+    console.error(
+      `[WatchBot] initial notify poll failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    ),
+  );
+
   let shuttingDown = false;
   const shutdown = (signal: 'SIGINT' | 'SIGTERM'): void => {
     if (shuttingDown) return;
@@ -211,6 +258,7 @@ const main = (): void => {
     heartbeat.stop();
     staleSweeper.stop();
     invitePoller?.stop();
+    notifyPoller?.stop();
     bot.stop();
     // Let logOff flush, then exit. The delay is ref'd on purpose: prompt
     // shutdown still waits out this beat instead of racing process exit

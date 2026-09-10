@@ -38,6 +38,13 @@ export interface BotConfig {
   inviteMaxAttempts: number;
   /** Watchdog for a single addFriend call (a hang must fail visibly). */
   inviteSendTimeoutMs: number;
+  notifyPollIntervalMs: number;
+  notifyBatchLimit: number;
+  notifyMaxAttempts: number;
+  /** Watchdog for a single sendFriendMessage call (same rationale). */
+  notifySendTimeoutMs: number;
+  /** Notify events older than this (by persisted created_at) are dropped. */
+  notifyTtlDays: number;
   staleSweepIntervalMs: number;
   staleClaimWindowMinutes: number;
 }
@@ -52,6 +59,11 @@ const DEFAULT_INVITE_BATCH_LIMIT = 5;
 const DEFAULT_INVITE_DAILY_LIMIT = 50;
 const DEFAULT_INVITE_MAX_ATTEMPTS = 3;
 const DEFAULT_INVITE_SEND_TIMEOUT_MS = 30000;
+const DEFAULT_NOTIFY_POLL_INTERVAL_MS = 60000;
+const DEFAULT_NOTIFY_BATCH_LIMIT = 10;
+const DEFAULT_NOTIFY_MAX_ATTEMPTS = 3;
+const DEFAULT_NOTIFY_SEND_TIMEOUT_MS = 30000;
+const DEFAULT_NOTIFY_TTL_DAYS = 7;
 const DEFAULT_STALE_SWEEP_INTERVAL_MS = 600000;
 const DEFAULT_STALE_CLAIM_WINDOW_MINUTES = 30;
 
@@ -148,6 +160,31 @@ export const loadBotConfig = (
       DEFAULT_INVITE_SEND_TIMEOUT_MS,
       'BOT_INVITE_SEND_TIMEOUT_MS',
     ),
+    notifyPollIntervalMs: readPositiveInt(
+      env.BOT_NOTIFY_POLL_INTERVAL_MS,
+      DEFAULT_NOTIFY_POLL_INTERVAL_MS,
+      'BOT_NOTIFY_POLL_INTERVAL_MS',
+    ),
+    notifyBatchLimit: readPositiveInt(
+      env.BOT_NOTIFY_BATCH_LIMIT,
+      DEFAULT_NOTIFY_BATCH_LIMIT,
+      'BOT_NOTIFY_BATCH_LIMIT',
+    ),
+    notifyMaxAttempts: readPositiveInt(
+      env.BOT_NOTIFY_MAX_ATTEMPTS,
+      DEFAULT_NOTIFY_MAX_ATTEMPTS,
+      'BOT_NOTIFY_MAX_ATTEMPTS',
+    ),
+    notifySendTimeoutMs: readPositiveInt(
+      env.BOT_NOTIFY_SEND_TIMEOUT_MS,
+      DEFAULT_NOTIFY_SEND_TIMEOUT_MS,
+      'BOT_NOTIFY_SEND_TIMEOUT_MS',
+    ),
+    notifyTtlDays: readPositiveInt(
+      env.BOT_NOTIFY_TTL_DAYS,
+      DEFAULT_NOTIFY_TTL_DAYS,
+      'BOT_NOTIFY_TTL_DAYS',
+    ),
     staleSweepIntervalMs: readPositiveInt(
       env.BOT_STALE_SWEEP_INTERVAL_MS,
       DEFAULT_STALE_SWEEP_INTERVAL_MS,
@@ -172,6 +209,11 @@ export const BOT_CONFIG_DEFAULTS = {
   DEFAULT_INVITE_DAILY_LIMIT,
   DEFAULT_INVITE_MAX_ATTEMPTS,
   DEFAULT_INVITE_SEND_TIMEOUT_MS,
+  DEFAULT_NOTIFY_POLL_INTERVAL_MS,
+  DEFAULT_NOTIFY_BATCH_LIMIT,
+  DEFAULT_NOTIFY_MAX_ATTEMPTS,
+  DEFAULT_NOTIFY_SEND_TIMEOUT_MS,
+  DEFAULT_NOTIFY_TTL_DAYS,
   DEFAULT_STALE_SWEEP_INTERVAL_MS,
   DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
 };

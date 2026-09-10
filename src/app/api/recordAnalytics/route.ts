@@ -5,12 +5,16 @@ import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { recordSearch } from '@/lib/analytics/db';
+import { enqueueWatchNotification } from '@/lib/analytics/watchNotify';
 import { parseRecordBody } from '@/app/api/analytics/input';
 import redactBodyForLog from '@/app/api/analytics/redactBody';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 30;
-const writeRateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
+const writeRateLimiter = createRateLimiter(
+  RATE_LIMIT_WINDOW_MS,
+  RATE_LIMIT_MAX,
+);
 
 /**
  * Records a finished search straight into the Turso analytics DB.
@@ -79,6 +83,29 @@ export async function POST(req: Request) {
     }
 
     const record = await recordSearch(input);
+
+    // WB-12 notify hook: AWAITED deliberately, not fire-and-forget.
+    // Reason: this repo pins Next 14.2, whose next/server exports no
+    // after()/waitUntil (verified against the installed package) — a
+    // floating promise may never run after a serverless function returns,
+    // which would silently lose core-product notifications. Awaiting only
+    // the enqueue (indexed reads + one insert, ms-scale) never gates Steam
+    // delivery (bot-owned, asynchronous, retry/deadline-driven), and the
+    // hook never rejects, so the response can neither wait on delivery
+    // nor fail with the pipeline. The analytics beacon itself is
+    // fire-and-forget client-side — nothing blocks on this response.
+    // The .catch below is defensive-only (contract: never rejects), kept
+    // because the alternative failure mode would be a 500 on analytics.
+    await enqueueWatchNotification(input.profile.steamId, record.id, {
+      error: (message: string) =>
+        logRouteError('recordAnalytics', message, {
+          steamId: input.profile.steamId,
+        }),
+    }).catch((error: unknown) => {
+      logRouteError('recordAnalytics', sanitizeError(error), {
+        steamId: input.profile.steamId,
+      });
+    });
 
     // `id` lets the client attach a cheater-probability score to this same
     // search later, via /api/recordAnalytics/cheater.

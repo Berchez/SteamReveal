@@ -25,6 +25,11 @@ describe('loadBotConfig', () => {
       inviteDailyLimit: BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_DAILY_LIMIT,
       inviteMaxAttempts: BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_MAX_ATTEMPTS,
       inviteSendTimeoutMs: BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_SEND_TIMEOUT_MS,
+      notifyPollIntervalMs: BOT_CONFIG_DEFAULTS.DEFAULT_NOTIFY_POLL_INTERVAL_MS,
+      notifyBatchLimit: BOT_CONFIG_DEFAULTS.DEFAULT_NOTIFY_BATCH_LIMIT,
+      notifyMaxAttempts: BOT_CONFIG_DEFAULTS.DEFAULT_NOTIFY_MAX_ATTEMPTS,
+      notifySendTimeoutMs: BOT_CONFIG_DEFAULTS.DEFAULT_NOTIFY_SEND_TIMEOUT_MS,
+      notifyTtlDays: BOT_CONFIG_DEFAULTS.DEFAULT_NOTIFY_TTL_DAYS,
       staleSweepIntervalMs: BOT_CONFIG_DEFAULTS.DEFAULT_STALE_SWEEP_INTERVAL_MS,
       staleClaimWindowMinutes:
         BOT_CONFIG_DEFAULTS.DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
@@ -71,6 +76,11 @@ describe('loadBotConfig', () => {
     ['BOT_INVITE_DAILY_LIMIT', '0'],
     ['BOT_INVITE_MAX_ATTEMPTS', 'NaN'],
     ['BOT_INVITE_SEND_TIMEOUT_MS', '0'],
+    ['BOT_NOTIFY_POLL_INTERVAL_MS', '0'],
+    ['BOT_NOTIFY_BATCH_LIMIT', '-1'],
+    ['BOT_NOTIFY_MAX_ATTEMPTS', 'NaN'],
+    ['BOT_NOTIFY_SEND_TIMEOUT_MS', '0'],
+    ['BOT_NOTIFY_TTL_DAYS', '0'],
     ['BOT_STALE_SWEEP_INTERVAL_MS', '0'],
     ['BOT_STALE_CLAIM_WINDOW_MINUTES', '-2'],
     // Fractional values would floor to 0 downstream ("always expired") —
