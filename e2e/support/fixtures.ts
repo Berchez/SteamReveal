@@ -1,4 +1,5 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect, Page } from '@playwright/test';
+import { WATCH_IDENTITY_KEY } from '@/app/templates/Home/hooks/watch/watchIdentity';
 import { routeApiMocks } from './mocks';
 
 // Every test in this suite starts by mocking the API — so bake it into the
@@ -16,3 +17,31 @@ export const test = base.extend({
 });
 
 export { expect };
+
+/**
+ * Seeds the watch identity (`steamreveal:watch:me`) BEFORE the app's JS
+ * runs. Single source for the storage key: it is imported from the app
+ * module (not a raw string), so a key change breaks loudly here instead
+ * of silently seeding a slot the app never reads. Same single-goto
+ * caveat as seedShowThresholds in mocks.ts: only use before the first
+ * navigation of a test.
+ */
+export const seedWatchIdentity = async (page: Page, steamId: string) => {
+  await page.addInitScript(
+    ({ key, id }: { key: string; id: string }) => {
+      window.localStorage.setItem(key, id);
+    },
+    { key: WATCH_IDENTITY_KEY, id: steamId },
+  );
+};
+
+/**
+ * Fills the watch-page SteamID field and submits. The field has no
+ * test-id; the translated placeholder is the most specific stable
+ * selector (a bare textbox role would go ambiguous the day a second
+ * input appears on the page).
+ */
+export const submitWatchRequest = async (page: Page, steamId: string) => {
+  await page.getByPlaceholder('SteamID64 (17 digits)').fill(steamId);
+  await page.getByRole('button', { name: 'Watch this profile' }).click();
+};
