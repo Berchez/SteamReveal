@@ -186,6 +186,23 @@ describe('gcNameCache', () => {
       expect(getCachedGcName('bad')).toBeNull();
     });
 
+    it('starts empty silently when the file is empty or whitespace-only', () => {
+      mockExistsSync.mockReturnValue(true);
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      mockReadFileSync.mockReturnValue('');
+      expect(freshModule().getCacheSize()).toBe(0);
+
+      mockReadFileSync.mockReturnValue('   \n  ');
+      expect(freshModule().getCacheSize()).toBe(0);
+
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+      consoleErrorSpy.mockRestore();
+    });
+
     it('starts empty (without throwing) when the file contains invalid JSON', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue('{not valid json');

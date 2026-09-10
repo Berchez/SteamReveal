@@ -55,6 +55,7 @@ const loadFromDisk = (): CacheShape => {
   try {
     if (!fs.existsSync(CACHE_FILE)) return map;
     const raw = fs.readFileSync(CACHE_FILE, 'utf-8');
+    if (raw.trim() === '') return map;
     const parsed: unknown = JSON.parse(raw);
 
     if (typeof parsed !== 'object' || parsed === null) return map;
