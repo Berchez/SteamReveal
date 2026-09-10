@@ -15,13 +15,10 @@
 import SteamUser from 'steam-user';
 import { generateAuthCode } from 'steam-totp';
 
+import type { WatchBotLogger } from './logger';
+
 export interface BotSnapshotListener {
   (friendsById: Record<string, number>): void;
-}
-
-export interface BotLogger {
-  info: (message: string) => void;
-  error: (message: string) => void;
 }
 
 export interface WatchBotOptions {
@@ -47,7 +44,7 @@ export interface WatchBotOptions {
    * secrets; exceptions are contained and logged.
    */
   onConnected?: () => void;
-  logger?: BotLogger;
+  logger?: WatchBotLogger;
   /** Injected for tests (avoids real TOTP computation). */
   generateTwoFactorCode?: (sharedSecret: string) => string;
 }
@@ -56,8 +53,7 @@ export interface WatchBotOptions {
 const describeEResult = (eresult: number | undefined): string => {
   if (typeof eresult !== 'number') return 'unknown';
   const name =
-    (SteamUser.EResult as unknown as Record<number, string>)[eresult] ??
-    null;
+    (SteamUser.EResult as unknown as Record<number, string>)[eresult] ?? null;
   return name === null ? `EResult(${eresult})` : `${name}(${eresult})`;
 };
 
@@ -80,7 +76,7 @@ export class WatchBot {
 
   private readonly onConnected?: () => void;
 
-  private readonly logger: BotLogger;
+  private readonly logger: WatchBotLogger;
 
   private readonly generateTwoFactorCode: (sharedSecret: string) => string;
 
@@ -220,11 +216,15 @@ export class WatchBot {
       // relationship CHANGES with (sid: SteamID, relationship), and an
       // unfriend arrives as None (the entry is then deleted from
       // myFriends).
-      // NOTE: a None transition is not always an opt-out — a sent invite
-      // that was cancelled/expired before acceptance arrives as None too.
-      // That case is harmless by idempotency (no watch row exists, so the
-      // handler logs already-inactive and touches nothing), at the cost of
-      // a slightly imprecise event=friend-remove label in that log line.
+      // NOTE: a None transition is not always a genuine unfriend — a sent
+      // invite that was cancelled/expired server-side also arrives as None
+      // (the lib emits on ANY incremental removal). Unlike the old comment
+      // claimed, a watch row CAN exist then (status pending). Deleting it
+      // is still the right call, deliberately: with no friendship and no
+      // tracked invite, a pending row would sit 7 days blocking re-request
+      // for an invite that can never be accepted — deletion frees the user
+      // to re-request immediately and get a fresh invite. The event log
+      // (watch_events) survives for audit either way.
       // Blocked is included: a blocking user is gone for our purposes
       // (no chat possible) and keeping their watch active would only burn
       // cooldown on undeliverable messages. Ambiguous states (Ignored,

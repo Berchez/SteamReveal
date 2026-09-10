@@ -12,18 +12,15 @@
  * UPDATE, so a concurrent run is harmless by construction.
  */
 
+import type { WatchBotLogger } from './logger';
+
 export interface StaleSweepDal {
   resetStaleClaims: (olderThanMinutes: number) => Promise<number>;
 }
 
-export interface StaleSweepLogger {
-  info: (message: string) => void;
-  error: (message: string) => void;
-}
-
 export interface StaleSweepOptions {
   dal: StaleSweepDal;
-  logger?: StaleSweepLogger;
+  logger?: WatchBotLogger;
   staleWindowMinutes: number;
 }
 

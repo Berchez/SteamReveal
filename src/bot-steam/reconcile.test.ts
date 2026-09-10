@@ -79,13 +79,16 @@ describe('reconcileFriendsList', () => {
   });
 
   it('is a verified no-op rerun when nothing changed (idempotent)', async () => {
-    const dal = makeDal([
-      { steamId: '76561198000000001', status: 'active' },
-    ]);
+    const dal = makeDal([{ steamId: '76561198000000001', status: 'active' }]);
 
     const friends = { '76561198000000001': FRIEND };
     await reconcileFriendsList(friends, FRIEND, dal, silentLogger);
-    const second = await reconcileFriendsList(friends, FRIEND, dal, silentLogger);
+    const second = await reconcileFriendsList(
+      friends,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
 
     expect(dal.activated).toHaveLength(0);
     expect(dal.deactivated).toHaveLength(0);
@@ -205,9 +208,7 @@ describe('reconcileFriendsList', () => {
   });
 
   it('a failing welcome keeps the activation and records a welcomeMessage error', async () => {
-    const dal = makeDal([
-      { steamId: '76561198000000001', status: 'pending' },
-    ]);
+    const dal = makeDal([{ steamId: '76561198000000001', status: 'pending' }]);
     const onActivated = jest.fn(async () => {
       throw new Error('steam down');
     });
@@ -243,5 +244,44 @@ describe('reconcileFriendsList', () => {
     await reconcileFriendsList({}, FRIEND, dal, silentLogger, onActivated);
 
     expect(onActivated).not.toHaveBeenCalled();
+  });
+
+  it('serializes overlapping passes: one welcome for concurrent accepts', async () => {
+    // Stateful fake with REAL DAL semantics: the status map is live (a
+    // pass that commits is visible to the next reader) and activateWatch
+    // is idempotent-true (returns true even when the row is already
+    // active) — exactly the combination that double-welcomes without
+    // serialization, since the DB update alone cannot dedupe.
+    const statuses = new Map([['76561198000000001', 'pending']]);
+    const dal: ReconcileDal = {
+      listWatchedProfiles: async () =>
+        Array.from(statuses.entries()).map(([steamId, status]) => ({
+          steamId,
+          status,
+          locale: null,
+        })),
+      activateWatch: async (steamId: string) => {
+        statuses.set(steamId, 'active');
+        return true;
+      },
+      deactivateWatch: async () => true,
+    };
+    const onActivated = jest.fn();
+
+    // Full sync + accept landing at the same instant: both passes overlap
+    // in time. The second must read post-commit state and skip the welcome.
+    const friends = { '76561198000000001': FRIEND };
+    const [first, second] = await Promise.all([
+      reconcileFriendsList(friends, FRIEND, dal, silentLogger, onActivated),
+      reconcileFriendsList(friends, FRIEND, dal, silentLogger, onActivated),
+    ]);
+
+    expect(onActivated).toHaveBeenCalledTimes(1);
+    expect(onActivated).toHaveBeenCalledWith({
+      steamId: '76561198000000001',
+      locale: null,
+    });
+    expect(first.activated).toEqual(['76561198000000001']);
+    expect(second.activated).toEqual([]);
   });
 });

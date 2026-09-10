@@ -21,6 +21,14 @@ export const revalidate = 0;
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 10;
+// Per-IP AND per serverless instance (createRateLimiter is in-memory —
+// each warm instance counts separately, so this is "10/min per IP per
+// instance", not a global 10/min). Accepted explicitly (P1-2): no shared
+// KV store exists in this repo, and the global abuse bound lives at the
+// SINK instead — the bot's daily invite cap (BOT_INVITE_DAILY_LIMIT)
+// limits REAL friend requests to N/day no matter how many route instances
+// or source IPs queue them. This limiter stays as the cheap first line
+// (slows a single source, sheds casual floods); the cap is the guarantee.
 const requestRateLimiter = createRateLimiter(
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX,

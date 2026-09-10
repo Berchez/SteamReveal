@@ -7,6 +7,13 @@
  * WB-4 reconciliation — no duplicated deactivation logic anywhere) and logs
  * the outcome structurally.
  *
+ * A None event can also mean a sent invite that was cancelled/expired
+ * server-side while the watch was still pending (never a genuine
+ * unfriend). Deleting that row is still correct: with no friendship and
+ * no tracked invite it could never activate, and keeping it would block
+ * re-request for 7 days — deletion lets the user re-request a fresh
+ * invite immediately.
+ *
  * Design notes:
  * - Idempotent by construction: an already-removed watch resolves to
  *   "already inactive" (info, not error), so duplicate events are safe.
@@ -19,13 +26,10 @@
 
 import { isSteamId64 } from '@/lib/steamId';
 
+import type { WatchBotLogger } from './logger';
+
 export interface FriendRemovedDal {
   deactivateWatch: (steamId: string) => Promise<boolean>;
-}
-
-export interface FriendRemovedLogger {
-  info: (message: string) => void;
-  error: (message: string) => void;
 }
 
 export interface FriendRemovedResult {
@@ -36,7 +40,7 @@ export interface FriendRemovedResult {
 export const handleFriendRemoved = async (
   steamId: string,
   dal: FriendRemovedDal,
-  logger: FriendRemovedLogger = console,
+  logger: WatchBotLogger = console,
 ): Promise<FriendRemovedResult> => {
   if (!isSteamId64(steamId)) {
     logger.error(

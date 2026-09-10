@@ -40,11 +40,13 @@ const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
 
 const STEAM_ID = '76561198000000001';
 
-const makeRequest = (overrides: {
-  method?: string;
-  jsonBody?: unknown;
-  jsonError?: Error;
-} = {}) => {
+const makeRequest = (
+  overrides: {
+    method?: string;
+    jsonBody?: unknown;
+    jsonError?: Error;
+  } = {},
+) => {
   const { method = 'POST', jsonBody = {}, jsonError } = overrides;
   return {
     method,
@@ -147,9 +149,15 @@ describe('POST /api/watch/request', () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toMatchObject({ steamId: STEAM_ID, status: 'pending', inviteQueued: false });
+    expect(body).toMatchObject({
+      steamId: STEAM_ID,
+      status: 'pending',
+      inviteQueued: false,
+    });
     expect(body.pendingExpiresInMs).toBeGreaterThan(0);
-    expect(body.pendingExpiresInMs).toBeLessThanOrEqual(INVITE_REREQUEST_AFTER_MS);
+    expect(body.pendingExpiresInMs).toBeLessThanOrEqual(
+      INVITE_REREQUEST_AFTER_MS,
+    );
     expect(mockedDb.enqueueEvent).not.toHaveBeenCalled();
     expect(mockedDb.refreshWatchRequest).not.toHaveBeenCalled();
     expect(mockedDb.createWatchRequest).not.toHaveBeenCalled();
@@ -180,7 +188,8 @@ describe('POST /api/watch/request', () => {
     expect(mockedDb.enqueueEvent).toHaveBeenCalledWith(STEAM_ID, 'invite');
   });
 
-  it('returns active without queueing anything for an already-active watch', async () => {    mockedDb.getWatchedProfile.mockResolvedValue(
+  it('returns active without queueing anything for an already-active watch', async () => {
+    mockedDb.getWatchedProfile.mockResolvedValue(
       profileRow({ status: 'active' }),
     );
 

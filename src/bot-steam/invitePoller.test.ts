@@ -1,7 +1,4 @@
-import {
-  pollInviteQueueOnce,
-  startInvitePoller,
-} from './invitePoller';
+import { pollInviteQueueOnce, startInvitePoller } from './invitePoller';
 
 const STEAM_A = '76561198000000001';
 const STEAM_B = '76561198000000002';
@@ -11,13 +8,12 @@ const silentLogger = { info: jest.fn(), error: jest.fn() };
 type FakeEvent = { id: number; steamId: string };
 
 const makeDal = () => ({
-  claimNextQueuedEvents: jest.fn(
-    async (): Promise<FakeEvent[]> => [],
-  ),
+  claimNextQueuedEvents: jest.fn(async (): Promise<FakeEvent[]> => []),
   markEventSent: jest.fn(async (): Promise<boolean> => true),
   recordEventAttempt: jest.fn(
     async (): Promise<'requeued' | 'dropped' | null> => 'requeued',
   ),
+  countInvitesSentSince: jest.fn(async (): Promise<number> => 0),
 });
 
 const makeClient = () => ({
@@ -125,7 +121,12 @@ describe('pollInviteQueueOnce', () => {
     expect(client.addFriend).toHaveBeenCalledTimes(1);
     expect(dal.markEventSent).toHaveBeenCalledTimes(3);
     expect(dal.recordEventAttempt).not.toHaveBeenCalled();
-    expect(report).toMatchObject({ claimed: 1, sent: 0, dropped: 0, retried: 0 });
+    expect(report).toMatchObject({
+      claimed: 1,
+      sent: 0,
+      dropped: 0,
+      retried: 0,
+    });
     expect(report.errors).toHaveLength(1);
     expect(report.errors[0].message).toContain('sent but not recorded');
     expect(String(logger.error.mock.calls[0][0])).toContain(STEAM_A);
@@ -206,6 +207,76 @@ describe('pollInviteQueueOnce', () => {
     expect(dal.claimNextQueuedEvents).not.toHaveBeenCalled();
   });
 
+  it('skips claiming (nothing sent) when the daily cap is already reached', async () => {
+    const dal = makeDal();
+    const client = makeClient();
+    const logger = { info: jest.fn(), error: jest.fn() };
+    dal.countInvitesSentSince.mockResolvedValue(50);
+
+    const report = await pollInviteQueueOnce({
+      client,
+      dal,
+      logger,
+      dailyLimit: 50,
+    });
+
+    expect(report.skipped).toBe(true);
+    expect(report).toMatchObject({ claimed: 0, sent: 0 });
+    // The cap is checked BEFORE claiming: a capped pass must not claim
+    // rows it will not send (they would sit claimed until the stale sweep).
+    expect(dal.claimNextQueuedEvents).not.toHaveBeenCalled();
+    expect(client.addFriend).not.toHaveBeenCalled();
+    expect(String(logger.info.mock.calls[0][0])).toContain('daily send cap');
+  });
+
+  it('sends while under the cap, counting from UTC midnight', async () => {
+    const dal = makeDal();
+    const client = makeClient();
+    dal.countInvitesSentSince.mockResolvedValue(49);
+    dal.claimNextQueuedEvents.mockResolvedValue([inviteEvent(1, STEAM_A)]);
+
+    const report = await pollInviteQueueOnce({
+      client,
+      dal,
+      dailyLimit: 50,
+    });
+
+    expect(report).toMatchObject({ claimed: 1, sent: 1 });
+    expect(dal.countInvitesSentSince).toHaveBeenCalledTimes(1);
+    expect(dal.countInvitesSentSince).toHaveBeenCalledWith(
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}T00:00:00\.000Z$/),
+    );
+    // Clamped to the REMAINING budget (1), not the full batch (5): a pass
+    // starting at 49/50 must send exactly 1, never overshoot to 54.
+    expect(dal.claimNextQueuedEvents).toHaveBeenCalledWith('invite', 1);
+  });
+
+  it('claims the full batch while the remaining budget covers it', async () => {
+    const dal = makeDal();
+    const client = makeClient();
+    dal.countInvitesSentSince.mockResolvedValue(0);
+
+    await pollInviteQueueOnce({
+      client,
+      dal,
+      batchLimit: 5,
+      dailyLimit: 50,
+    });
+
+    expect(dal.claimNextQueuedEvents).toHaveBeenCalledWith('invite', 5);
+  });
+
+  it('fails fast on invalid dailyLimit', async () => {
+    const dal = makeDal();
+    const client = makeClient();
+
+    await expect(
+      pollInviteQueueOnce({ client, dal, dailyLimit: 0 }),
+    ).rejects.toThrow(/dailyLimit/);
+    expect(dal.countInvitesSentSince).not.toHaveBeenCalled();
+    expect(dal.claimNextQueuedEvents).not.toHaveBeenCalled();
+  });
+
   it('counts (never sends-again) when the row leaves claimed state mid-send', async () => {
     const dal = makeDal();
     const client = makeClient();
@@ -268,9 +339,9 @@ describe('startInvitePoller', () => {
     const dal = makeDal();
     const client = makeClient();
 
-    expect(() =>
-      startInvitePoller({ client, dal, pollIntervalMs: 0 }),
-    ).toThrow(/interval/);
+    expect(() => startInvitePoller({ client, dal, pollIntervalMs: 0 })).toThrow(
+      /interval/,
+    );
     expect(dal.claimNextQueuedEvents).not.toHaveBeenCalled();
   });
 
@@ -383,9 +454,7 @@ describe('startInvitePoller', () => {
     const dal = makeDal();
     const client = makeClient();
     const logger = { info: jest.fn(), error: jest.fn() };
-    dal.claimNextQueuedEvents.mockResolvedValue([
-      { id: 1, steamId: STEAM_A },
-    ]);
+    dal.claimNextQueuedEvents.mockResolvedValue([{ id: 1, steamId: STEAM_A }]);
     // Never settles: without the watchdog this pass would hang forever.
     client.addFriend.mockImplementation(() => new Promise(() => {}));
 

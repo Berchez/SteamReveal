@@ -86,7 +86,9 @@ describe('analytics db DAL', () => {
     await recordSearch(newSearchInput);
 
     mockBatch.mockRejectedValueOnce(new Error('The session is closed'));
-    await expect(recordSearch(newSearchInput)).rejects.toThrow('session is closed');
+    await expect(recordSearch(newSearchInput)).rejects.toThrow(
+      'session is closed',
+    );
 
     // The dead client must not be reused: the next call rebuilds it.
     await recordSearch(newSearchInput);
@@ -208,7 +210,11 @@ describe('attachFriendGcNames backfill', () => {
       sql: 'UPDATE friends SET gc_name = ? WHERE search_id = ? AND steam_id = ?',
       args: ['Alice', 'search-id', '76561198000000001'],
     });
-    expect(statements[1].args).toEqual(['Bob', 'search-id', '76561198000000002']);
+    expect(statements[1].args).toEqual([
+      'Bob',
+      'search-id',
+      '76561198000000002',
+    ]);
   });
 
   it('filters blank/oversized names and invalid steamIds before writing', async () => {
@@ -230,7 +236,11 @@ describe('attachFriendGcNames backfill', () => {
     expect(result).toEqual({ searchExists: true, updated: 1 });
     const statements = mockBatch.mock.calls[0][0];
     expect(statements).toHaveLength(1);
-    expect(statements[0].args).toEqual(['Ok', 'search-id', '76561198000000001']);
+    expect(statements[0].args).toEqual([
+      'Ok',
+      'search-id',
+      '76561198000000001',
+    ]);
   });
 
   it('treats an empty batch as a successful no-op', async () => {
@@ -371,7 +381,14 @@ describe('getSearchRecords read path', () => {
         ],
       },
       {
-        rows: [{ search_id: searchId, id: 1, name: 'Counter-Strike 2', playtime_hours: 120.5 }],
+        rows: [
+          {
+            search_id: searchId,
+            id: 1,
+            name: 'Counter-Strike 2',
+            playtime_hours: 120.5,
+          },
+        ],
       },
       {
         rows: [
@@ -412,7 +429,10 @@ describe('getSearchRecords read path', () => {
       { name: 'Counter-Strike 2', playtimeHours: 120.5 },
     ]);
     expect(record.locationGuess).toEqual([
-      { location: { cityName: 'Sao Paulo', countryCode: 'BR' }, probability: 87.5 },
+      {
+        location: { cityName: 'Sao Paulo', countryCode: 'BR' },
+        probability: 87.5,
+      },
     ]);
     expect(record.cheater).toEqual({
       score: 72,
@@ -424,7 +444,9 @@ describe('getSearchRecords read path', () => {
   it('maps is_cs_active NULL / invalid device to null instead of crashing', async () => {
     mockBatch.mockResolvedValueOnce([
       {
-        rows: [{ ...searchRow, is_cs_active: null, device: 'potato', city_id: null }],
+        rows: [
+          { ...searchRow, is_cs_active: null, device: 'potato', city_id: null },
+        ],
       },
       { rows: [] },
       { rows: [] },
@@ -478,8 +500,16 @@ describe('getSearchRecords read path', () => {
     mockBatch.mockResolvedValueOnce([
       {
         rows: [
-          { id: 'orphan-1', searched_at: '2026-09-04T20:00:00.000Z', steam_id: null },
-          { id: 'orphan-2', searched_at: '2026-09-04T21:00:00.000Z', steam_id: '' },
+          {
+            id: 'orphan-1',
+            searched_at: '2026-09-04T20:00:00.000Z',
+            steam_id: null,
+          },
+          {
+            id: 'orphan-2',
+            searched_at: '2026-09-04T21:00:00.000Z',
+            steam_id: '',
+          },
           searchRow,
         ],
       },
@@ -560,7 +590,12 @@ describe('watch/outbox DAL (Epic 1)', () => {
   it('createWatchRequest returns the existing row untouched on duplicate (no second insert possible)', async () => {
     mockExecute.mockResolvedValueOnce({ rows: [] });
     mockExecute.mockResolvedValueOnce({
-      rows: [watchRow({ status: 'active', activated_at: '2026-09-08T01:00:00.000Z' })],
+      rows: [
+        watchRow({
+          status: 'active',
+          activated_at: '2026-09-08T01:00:00.000Z',
+        }),
+      ],
     });
 
     const { createWatchRequest } = require('./db');
@@ -750,9 +785,7 @@ describe('watch/outbox DAL (Epic 1)', () => {
       /event kind/,
     );
     await expect(enqueueEvent('short', 'notify')).rejects.toThrow(/17 digits/);
-    await expect(enqueueEvent(STEAM, 'notify', '')).rejects.toThrow(
-      /searchId/,
-    );
+    await expect(enqueueEvent(STEAM, 'notify', '')).rejects.toThrow(/searchId/);
     // All validation runs before any client is built (fail-fast, no wasted
     // connections — matters on serverless).
     expect(mockCreateClient).not.toHaveBeenCalled();
@@ -771,6 +804,56 @@ describe('watch/outbox DAL (Epic 1)', () => {
     const result = await enqueueEvent(STEAM, 'notify', 'search-race');
 
     expect(result).toEqual({ eventId: 11, duplicate: true });
+  });
+
+  it('enqueueEvent collapses a concurrent invite race via the open-invite index', async () => {
+    // PRAGMA, pre-check SELECT (miss — rival not yet visible), INSERT
+    // (loses the race on idx_watch_events_open_invite)...
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(
+      new Error('UNIQUE constraint failed: watch_events.steam_id'),
+    );
+    // ...re-read finds the winner's open row.
+    mockExecute.mockResolvedValueOnce({ rows: [{ id: 12 }] });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'invite');
+
+    expect(result).toEqual({ eventId: 12, duplicate: true });
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watch_events'),
+    );
+    expect(inserts).toHaveLength(1);
+  });
+
+  it('enqueueEvent rethrows non-unique invite INSERT failures untouched', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(new Error('db down'));
+
+    const { enqueueEvent } = require('./db');
+    await expect(enqueueEvent(STEAM, 'invite')).rejects.toThrow('db down');
+  });
+
+  it('countInvitesSentSince counts sent invites at/after the boundary', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 7 }] });
+
+    const { countInvitesSentSince } = require('./db');
+    await expect(
+      countInvitesSentSince('2026-01-01T00:00:00.000Z'),
+    ).resolves.toBe(7);
+    const call = mockExecute.mock.calls.find((c) =>
+      String(c[0]?.sql ?? c[0]).includes('COUNT(*)'),
+    );
+    expect(String(call[0]?.sql ?? call[0])).toContain('sent_at IS NOT NULL');
+    expect(call[0]?.args).toEqual(['2026-01-01T00:00:00.000Z']);
+  });
+
+  it('countInvitesSentSince throws on a non-ISO boundary', async () => {
+    const { countInvitesSentSince } = require('./db');
+    await expect(countInvitesSentSince('yesterday')).rejects.toThrow(
+      /ISO-8601/,
+    );
+    expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
   it('enqueueEvent rethrows non-unique INSERT failures untouched', async () => {
@@ -940,9 +1023,7 @@ describe('watch/outbox DAL (Epic 1)', () => {
     mockExecute.mockResolvedValueOnce({ rows: [] });
     await expect(isWithinCooldown(STEAM, 24)).resolves.toBe(false);
 
-    await expect(isWithinCooldown(STEAM, 0)).rejects.toThrow(
-      /positive hours/,
-    );
+    await expect(isWithinCooldown(STEAM, 0)).rejects.toThrow(/positive hours/);
     await expect(isWithinCooldown('short', 24)).rejects.toThrow(/17 digits/);
   });
 
@@ -983,19 +1064,19 @@ describe('watch/outbox DAL (Epic 1)', () => {
     const select = mockExecute.mock.calls.find((call) =>
       String(call[0]?.sql ?? call[0]).includes('FROM watched_profiles'),
     );
-    expect(String(select[0]?.sql ?? select[0])).toContain(
-      'WHERE status = ?',
-    );
+    expect(String(select[0]?.sql ?? select[0])).toContain('WHERE status = ?');
     expect(select[0].args).toEqual(['pending']);
 
-    await expect(
-      listWatchedProfiles('banned' as never),
-    ).rejects.toThrow(/status filter/);
+    await expect(listWatchedProfiles('banned' as never)).rejects.toThrow(
+      /status filter/,
+    );
   });
 
   it('hints db:migrate when listWatchedProfiles hits a missing schema', async () => {
     // PRAGMA placeholder comes from beforeEach; the SELECT itself rejects.
-    mockExecute.mockRejectedValueOnce(new Error('no such table: watched_profiles'));
+    mockExecute.mockRejectedValueOnce(
+      new Error('no such table: watched_profiles'),
+    );
     const { listWatchedProfiles } = require('./db');
 
     await expect(listWatchedProfiles()).rejects.toThrow(/db:migrate/);
@@ -1013,7 +1094,8 @@ describe('watch/outbox DAL (Epic 1)', () => {
     await expect(hasOpenInviteEvent('short')).rejects.toThrow(/17 digits/);
   });
 
-  it('getWatchedProfile returns the mapped row or null', async () => {    const { getWatchedProfile } = require('./db');
+  it('getWatchedProfile returns the mapped row or null', async () => {
+    const { getWatchedProfile } = require('./db');
 
     mockExecute.mockResolvedValueOnce({ rows: [watchRow()] });
     await expect(getWatchedProfile(STEAM)).resolves.toMatchObject({
@@ -1036,9 +1118,7 @@ describe('watch/outbox DAL (Epic 1)', () => {
     const update = mockExecute.mock.calls.find((call) =>
       String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
     );
-    expect(String(update[0]?.sql ?? update[0])).toContain(
-      "status = 'pending'",
-    );
+    expect(String(update[0]?.sql ?? update[0])).toContain("status = 'pending'");
 
     mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
     await expect(refreshWatchRequest(STEAM)).resolves.toBe(false);

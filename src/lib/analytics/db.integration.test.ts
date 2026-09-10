@@ -40,6 +40,11 @@ const WATCH_ATTEMPTS_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const WATCH_INVITE_UNIQUE_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '004_watch_invite_open_unique.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -68,6 +73,7 @@ type DbApi = {
   markEventSent: typeof import('./db').markEventSent;
   markEventDropped: typeof import('./db').markEventDropped;
   resetStaleClaims: typeof import('./db').resetStaleClaims;
+  countInvitesSentSince: typeof import('./db').countInvitesSentSince;
   isWithinCooldown: typeof import('./db').isWithinCooldown;
 };
 
@@ -90,6 +96,11 @@ describe('analytics db integration against real libSQL', () => {
       await db.executeForTests(statement);
     }
     for (const statement of splitSqlStatements(WATCH_ATTEMPTS_MIGRATION_SQL)) {
+      await db.executeForTests(statement);
+    }
+    for (const statement of splitSqlStatements(
+      WATCH_INVITE_UNIQUE_MIGRATION_SQL,
+    )) {
       await db.executeForTests(statement);
     }
   });
@@ -127,7 +138,10 @@ describe('analytics db integration against real libSQL', () => {
       ],
       gamesSnapshot: [{ name: 'Counter-Strike 2', playtimeHours: 120.5 }],
       locationGuess: [
-        { location: { cityName: 'Sao Paulo', countryCode: 'BR' }, probability: 0.93 },
+        {
+          location: { cityName: 'Sao Paulo', countryCode: 'BR' },
+          probability: 0.93,
+        },
       ],
       isCSActive: true,
       requesterLocale: 'pt',
@@ -170,7 +184,10 @@ describe('analytics db integration against real libSQL', () => {
       { name: 'Counter-Strike 2', playtimeHours: 120.5 },
     ]);
     expect(read.locationGuess).toEqual([
-      { location: { cityName: 'Sao Paulo', countryCode: 'BR' }, probability: 0.93 },
+      {
+        location: { cityName: 'Sao Paulo', countryCode: 'BR' },
+        probability: 0.93,
+      },
     ]);
     expect(read.cheater).toBeNull();
   });
@@ -265,7 +282,9 @@ describe('analytics db integration against real libSQL', () => {
       expect(await childCount(table)).toBe(0);
     }
 
-    const remaining = await db.executeForTests('SELECT COUNT(*) AS n FROM searches');
+    const remaining = await db.executeForTests(
+      'SELECT COUNT(*) AS n FROM searches',
+    );
     expect(Number(remaining.rows[0].n)).toBe(0);
   });
 
@@ -303,9 +322,7 @@ describe('analytics db integration against real libSQL', () => {
       });
 
       // Claimed rows are invisible to the next poller (no double delivery).
-      await expect(db.claimNextQueuedEvents('notify', 10)).resolves.toEqual(
-        [],
-      );
+      await expect(db.claimNextQueuedEvents('notify', 10)).resolves.toEqual([]);
 
       expect(await db.markEventSent(claimed[0].id)).toBe(true);
       expect(await db.isWithinCooldown(STEAM, 24)).toBe(true);
@@ -394,6 +411,55 @@ describe('analytics db integration against real libSQL', () => {
         ['search-race-real'],
       );
       expect(Number(count.rows[0].n)).toBe(1);
+    });
+
+    it('concurrent invite enqueues collapse to one open row + duplicate', async () => {
+      // Same shape as the notify race above, but for the invite lane: both
+      // submissions fly without awaiting in between, so on real SQL the
+      // partial-unique-index catch backstop (not just the pre-check) is
+      // exercised against a genuine engine constraint violation.
+      await db.createWatchRequest(STEAM);
+      const [first, second] = await Promise.all([
+        db.enqueueEvent(STEAM, 'invite'),
+        db.enqueueEvent(STEAM, 'invite'),
+      ]);
+
+      const created = [first, second].filter((r) => !r.duplicate);
+      const dups = [first, second].filter((r) => r.duplicate);
+      expect(created).toHaveLength(1);
+      expect(dups).toHaveLength(1);
+      expect(dups[0].eventId).toBe(created[0].eventId);
+
+      const count = await db.executeForTests(
+        "SELECT COUNT(*) AS n FROM watch_events WHERE steam_id = ? AND kind = 'invite' AND status IN ('queued', 'claimed')",
+        [STEAM],
+      );
+      expect(Number(count.rows[0].n)).toBe(1);
+      expect(await db.hasOpenInviteEvent(STEAM)).toBe(true);
+    });
+
+    it('countInvitesSentSince counts only sent invites at/after the boundary', async () => {
+      await db.createWatchRequest(STEAM);
+      expect(await db.countInvitesSentSince('2000-01-01T00:00:00.000Z')).toBe(
+        0,
+      );
+
+      const { eventId } = await db.enqueueEvent(STEAM, 'invite');
+      const [claimed] = await db.claimNextQueuedEvents('invite', 10);
+      expect(claimed.id).toBe(eventId);
+      // Queued-but-unsent does not count.
+      expect(await db.countInvitesSentSince('2000-01-01T00:00:00.000Z')).toBe(
+        0,
+      );
+
+      expect(await db.markEventSent(claimed.id)).toBe(true);
+      expect(await db.countInvitesSentSince('2000-01-01T00:00:00.000Z')).toBe(
+        1,
+      );
+      // A boundary after the send excludes it (ISO comparison is exact).
+      expect(await db.countInvitesSentSince('2999-01-01T00:00:00.000Z')).toBe(
+        0,
+      );
     });
 
     it('collapses sequential duplicate invites while one is still open', async () => {

@@ -16,31 +16,34 @@
 import fs from 'fs';
 
 import { loadEnv } from '../src/lib/env';
+import { BOT_CONFIG_DEFAULTS } from '../src/bot-steam/config';
 import { evaluateHeartbeat } from '../src/bot-steam/heartbeat';
+import parsePositiveInt from '../src/bot-steam/parsePositiveInt';
 
-// Mirror the bot defaults without importing its config module (which would
-// require bot credentials env vars just to check health — the healthcheck
-// must work from monitoring contexts that don't have them).
+// Defaults come from the bot's own BOT_CONFIG_DEFAULTS (a pure object —
+// importing the config MODULE needs no credentials; only calling
+// loadBotConfig would require them). One source of truth, so a default
+// change in config.ts cannot silently desync the healthcheck.
 const resolveHeartbeatPath = (): string => {
   if (process.env.BOT_HEARTBEAT_PATH) return process.env.BOT_HEARTBEAT_PATH;
-  const dataDir = process.env.BOT_DATA_DIR || '.data/steam-bot';
+  const dataDir =
+    process.env.BOT_DATA_DIR || BOT_CONFIG_DEFAULTS.DEFAULT_DATA_DIRECTORY;
   return `${dataDir}/heartbeat.json`;
 };
 
 const resolveStaleMs = (): number => {
-  const raw = process.env.BOT_HEARTBEAT_STALE_MS;
-  if (raw === undefined || raw === '') return 180000;
-  const parsed = Number(raw);
-  // Integers only (same contract as the bot's readPositiveInt): a
-  // fractional "0.5" would floor to a 0ms threshold and fail every check.
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    // eslint-disable-next-line no-console
-    console.error(
-      `BOT_HEARTBEAT_STALE_MS must be a positive integer number of milliseconds (got ${JSON.stringify(raw)})`,
+  try {
+    return (
+      parsePositiveInt(
+        process.env.BOT_HEARTBEAT_STALE_MS,
+        'BOT_HEARTBEAT_STALE_MS',
+      ) ?? BOT_CONFIG_DEFAULTS.DEFAULT_HEARTBEAT_STALE_MS
     );
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(error instanceof Error ? error.message : String(error));
     process.exit(2);
   }
-  return parsed;
 };
 
 async function main(): Promise<void> {

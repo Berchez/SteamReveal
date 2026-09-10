@@ -18,6 +18,8 @@
 
 import withTimeout from '../lib/withTimeout';
 
+import type { WatchBotLogger } from './logger';
+
 export interface InvitePollerClient {
   addFriend: (steamId: string) => Promise<unknown>;
 }
@@ -32,11 +34,12 @@ export interface InvitePollerDal {
     id: number,
     maxAttempts: number,
   ) => Promise<'requeued' | 'dropped' | null>;
-}
-
-export interface InvitePollerLogger {
-  info: (message: string) => void;
-  error: (message: string) => void;
+  /**
+   * Invites sent at/after an ISO-8601 timestamp. Feeds the daily send cap
+   * (P1-1): DB-backed, so the count survives bot restarts instead of
+   * resetting "since this boot".
+   */
+  countInvitesSentSince: (sinceIso: string) => Promise<number>;
 }
 
 export interface InvitePollReport {
@@ -46,15 +49,23 @@ export interface InvitePollReport {
   dropped: number;
   errors: Array<{ eventId: number; message: string }>;
   durationMs: number;
-  /** True when the pass did no work (overlap skip or not-connected skip). */
+  /** True when the pass did no work (overlap / not-connected / cap skip). */
   skipped: boolean;
 }
 
 export interface PollInviteQueueOptions {
   client: InvitePollerClient;
   dal: InvitePollerDal;
-  logger?: InvitePollerLogger;
+  logger?: WatchBotLogger;
   batchLimit?: number;
+  /**
+   * Global cap on REAL friend invites sent per UTC day (P1-1 abuse bound —
+   * see BotConfig.inviteDailyLimit). Checked BEFORE claiming, so a capped
+   * pass claims nothing (claimed-but-unsent rows would only sit until the
+   * stale sweep requeues them). Undefined disables the cap — production
+   * always sets it via loadBotConfig; keep it that way.
+   */
+  dailyLimit?: number;
   maxAttempts?: number;
   /** Watchdog for a single addFriend call (a hang must fail visibly). */
   sendTimeoutMs?: number;
@@ -67,12 +78,16 @@ export interface PollInviteQueueOptions {
   isConnected?: () => boolean;
 }
 
-const DEFAULT_BATCH_LIMIT = 10;
+const DEFAULT_BATCH_LIMIT = 5;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_SEND_TIMEOUT_MS = 30000;
 // Settle retries after a successful send: a single DB timeout blip must
 // not manufacture a duplicate invite (or a lost one) for free.
 const SETTLE_RETRIES = 3;
+
+/** UTC-midnight ISO for `nowMs` — the daily-cap window boundary. */
+const utcDayStartIso = (nowMs: number): string =>
+  `${new Date(nowMs).toISOString().slice(0, 10)}T00:00:00.000Z`;
 
 const settleSentWithRetry = async (
   dal: InvitePollerDal,
@@ -99,6 +114,7 @@ export const pollInviteQueueOnce = async (
     dal,
     logger = console,
     batchLimit = DEFAULT_BATCH_LIMIT,
+    dailyLimit,
     maxAttempts = DEFAULT_MAX_ATTEMPTS,
     sendTimeoutMs = DEFAULT_SEND_TIMEOUT_MS,
     isConnected,
@@ -125,7 +141,34 @@ export const pollInviteQueueOnce = async (
     return { ...report, skipped: true };
   }
 
-  const events = await dal.claimNextQueuedEvents('invite', batchLimit);
+  // Uncapped passes claim the full batch; capped passes claim at most the
+  // REMAINING budget (see below).
+  let claimLimit = batchLimit;
+  if (dailyLimit !== undefined) {
+    if (!Number.isInteger(dailyLimit) || dailyLimit < 1) {
+      throw new Error(
+        'Invalid invite poller dailyLimit: expected positive integer',
+      );
+    }
+    // Sink-side abuse bound: the count comes from the DB (restart-proof),
+    // and the check runs BEFORE claiming — a capped pass must not claim
+    // rows it will not send.
+    const dayStart = utcDayStartIso(Date.now());
+    const sentToday = await dal.countInvitesSentSince(dayStart);
+    if (sentToday >= dailyLimit) {
+      logger.info(
+        `[WatchBot] invite poll skipped (daily send cap reached: ${sentToday}/${dailyLimit})`,
+      );
+      return { ...report, skipped: true };
+    }
+    // Clamp the claim to the REMAINING budget, not the full batch: without
+    // this, a pass starting at 49/50 would still claim 5 and send 5,
+    // overshooting the "at most N/day" guarantee this cap exists to give.
+    // remaining >= 1 here (the early return above handles the rest).
+    claimLimit = Math.min(batchLimit, dailyLimit - sentToday);
+  }
+
+  const events = await dal.claimNextQueuedEvents('invite', claimLimit);
   report.claimed = events.length;
 
   // Sequential per-row awaits are intentional: invite sends are
@@ -161,8 +204,7 @@ export const pollInviteQueueOnce = async (
       }
       report.sent += 1;
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
       if (inviteSent) {
         // addFriend SUCCEEDED but the bookkeeping never landed: do NOT
         // call recordEventAttempt (it would requeue and re-send). Loud

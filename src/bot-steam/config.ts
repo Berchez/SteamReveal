@@ -6,6 +6,8 @@
  * interpolate any of these values. Tests assert that.
  */
 
+import parsePositiveInt from './parsePositiveInt';
+
 export interface BotConfig {
   accountName: string;
   /** Steam password (used on every logon together with a fresh TOTP code). */
@@ -22,6 +24,17 @@ export interface BotConfig {
   reconnectMaxMs: number;
   invitePollIntervalMs: number;
   inviteBatchLimit: number;
+  /**
+   * Global cap on REAL friend invites sent per UTC day (P1-1 abuse bound).
+   * Requesting needs no login (acceptance itself is the opt-in proof), so
+   * anyone can queue invites for arbitrary profiles — the per-IP route
+   * limiter only slows one source, and serverless fan-out weakens even
+   * that. This cap bounds the GLOBAL blast radius at the sink (the only
+   * place that actually touches Steam): with the defaults below, one bot
+   * can send at most 5/min and 50/day no matter how many requests arrive.
+   * Tune both numbers as one explicit product decision, not in isolation.
+   */
+  inviteDailyLimit: number;
   inviteMaxAttempts: number;
   /** Watchdog for a single addFriend call (a hang must fail visibly). */
   inviteSendTimeoutMs: number;
@@ -35,7 +48,8 @@ const DEFAULT_HEARTBEAT_STALE_MS = 180000;
 const DEFAULT_RECONNECT_BASE_MS = 1000;
 const DEFAULT_RECONNECT_MAX_MS = 60000;
 const DEFAULT_INVITE_POLL_INTERVAL_MS = 60000;
-const DEFAULT_INVITE_BATCH_LIMIT = 10;
+const DEFAULT_INVITE_BATCH_LIMIT = 5;
+const DEFAULT_INVITE_DAILY_LIMIT = 50;
 const DEFAULT_INVITE_MAX_ATTEMPTS = 3;
 const DEFAULT_INVITE_SEND_TIMEOUT_MS = 30000;
 const DEFAULT_STALE_SWEEP_INTERVAL_MS = 600000;
@@ -45,18 +59,7 @@ const readPositiveInt = (
   raw: string | undefined,
   fallback: number,
   name: string,
-): number => {
-  if (raw === undefined || raw === '') return fallback;
-  const parsed = Number(raw);
-  // Integers only: a fractional "0.5" would floor to 0 and silently turn
-  // the setting into "always expired" downstream — reject it loudly here.
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(
-      `${name} must be a positive integer number of milliseconds (got ${JSON.stringify(raw)})`,
-    );
-  }
-  return parsed;
-};
+): number => parsePositiveInt(raw, name) ?? fallback;
 
 const requireSecret = (value: string | undefined, name: string): string => {
   if (typeof value !== 'string' || value.length === 0) {
@@ -75,7 +78,10 @@ const requireSecret = (value: string | undefined, name: string): string => {
 export const loadBotConfig = (
   env: Record<string, string | undefined> = process.env,
 ): BotConfig => {
-  const accountName = requireSecret(env.STEAM_BOT_USERNAME, 'STEAM_BOT_USERNAME');
+  const accountName = requireSecret(
+    env.STEAM_BOT_USERNAME,
+    'STEAM_BOT_USERNAME',
+  );
   const password = requireSecret(env.STEAM_BOT_PASSWORD, 'STEAM_BOT_PASSWORD');
   const sharedSecret = requireSecret(
     env.STEAM_BOT_SHARED_SECRET,
@@ -93,7 +99,8 @@ export const loadBotConfig = (
     sharedSecret,
     dataDirectory,
     heartbeatPath:
-      typeof env.BOT_HEARTBEAT_PATH === 'string' && env.BOT_HEARTBEAT_PATH !== ''
+      typeof env.BOT_HEARTBEAT_PATH === 'string' &&
+      env.BOT_HEARTBEAT_PATH !== ''
         ? env.BOT_HEARTBEAT_PATH
         : `${dataDirectory}/heartbeat.json`,
     heartbeatIntervalMs: readPositiveInt(
@@ -126,6 +133,11 @@ export const loadBotConfig = (
       DEFAULT_INVITE_BATCH_LIMIT,
       'BOT_INVITE_BATCH_LIMIT',
     ),
+    inviteDailyLimit: readPositiveInt(
+      env.BOT_INVITE_DAILY_LIMIT,
+      DEFAULT_INVITE_DAILY_LIMIT,
+      'BOT_INVITE_DAILY_LIMIT',
+    ),
     inviteMaxAttempts: readPositiveInt(
       env.BOT_INVITE_MAX_ATTEMPTS,
       DEFAULT_INVITE_MAX_ATTEMPTS,
@@ -157,6 +169,7 @@ export const BOT_CONFIG_DEFAULTS = {
   DEFAULT_RECONNECT_MAX_MS,
   DEFAULT_INVITE_POLL_INTERVAL_MS,
   DEFAULT_INVITE_BATCH_LIMIT,
+  DEFAULT_INVITE_DAILY_LIMIT,
   DEFAULT_INVITE_MAX_ATTEMPTS,
   DEFAULT_INVITE_SEND_TIMEOUT_MS,
   DEFAULT_STALE_SWEEP_INTERVAL_MS,

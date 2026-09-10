@@ -15,6 +15,7 @@ import { loadEnv } from '../lib/env';
 import {
   activateWatch,
   claimNextQueuedEvents,
+  countInvitesSentSince,
   deactivateWatch,
   listWatchedProfiles,
   markEventSent,
@@ -22,13 +23,11 @@ import {
   resetStaleClaims,
 } from '../lib/analytics/db';
 import { loadBotConfig } from './config';
+import type { WatchBotLogger } from './logger';
 import { WatchBot } from './bot';
 import { reconcileFriendsList } from './reconcile';
 import { handleFriendRemoved } from './friendRemoved';
-import {
-  sendWelcomeMessage,
-  type WelcomeChatClient,
-} from './welcomeMessage';
+import { sendWelcomeMessage, type WelcomeChatClient } from './welcomeMessage';
 import { startHeartbeat } from './heartbeat';
 import { startInvitePoller } from './invitePoller';
 import { startStaleClaimSweeper, sweepStaleClaimsOnce } from './staleSweep';
@@ -62,8 +61,7 @@ const main = (): void => {
   // same sink as everything else, so a future custom logger can be swapped
   // in exactly one place. Console today, by explicit choice.
   // eslint-disable-next-line no-console
-  const logger: { info: (message: string) => void; error: (message: string) => void } =
-    console;
+  const logger: WatchBotLogger = console;
 
   // Declared before the bot: onConnected (below) fires the first invite
   // pass, so it needs the handle — assigned further down during the same
@@ -179,9 +177,15 @@ const main = (): void => {
 
   invitePoller = startInvitePoller({
     client,
-    dal: { claimNextQueuedEvents, markEventSent, recordEventAttempt },
+    dal: {
+      claimNextQueuedEvents,
+      markEventSent,
+      recordEventAttempt,
+      countInvitesSentSince,
+    },
     pollIntervalMs: config.invitePollIntervalMs,
     batchLimit: config.inviteBatchLimit,
+    dailyLimit: config.inviteDailyLimit,
     maxAttempts: config.inviteMaxAttempts,
     sendTimeoutMs: config.inviteSendTimeoutMs,
     isConnected: () => bot.isConnected(),
@@ -189,16 +193,14 @@ const main = (): void => {
   // Explicit first pass (the poller itself only schedules the interval, so
   // startup ordering stays visible here). A failure rejects into the log,
   // never into an unhandled rejection.
-  invitePoller
-    .pollOnce()
-    .catch((error: unknown) =>
-      // eslint-disable-next-line no-console
-      console.error(
-        `[WatchBot] initial invite poll failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      ),
-    );
+  invitePoller.pollOnce().catch((error: unknown) =>
+    // eslint-disable-next-line no-console
+    console.error(
+      `[WatchBot] initial invite poll failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    ),
+  );
 
   let shuttingDown = false;
   const shutdown = (signal: 'SIGINT' | 'SIGTERM'): void => {

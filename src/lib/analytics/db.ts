@@ -116,7 +116,10 @@ const withSchemaHint = async <T>(operation: Promise<T>): Promise<T> => {
   try {
     return await operation;
   } catch (error) {
-    if (error instanceof Error && SCHEMA_MISSING_TABLE_PATTERN.test(error.message)) {
+    if (
+      error instanceof Error &&
+      SCHEMA_MISSING_TABLE_PATTERN.test(error.message)
+    ) {
       throw new Error(
         'Analytics database schema is missing — run `pnpm run db:migrate` first.',
       );
@@ -230,42 +233,42 @@ export const recordSearch = async (
   filterValidFriends(record.friends)
     .slice(0, MAX_FRIENDS)
     .forEach((f) => {
-    statements.push({
-      sql: `INSERT INTO friends
+      statements.push({
+        sql: `INSERT INTO friends
             (search_id, steam_id, nickname, gc_name,
              mutual_count, probability, country_code)
             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      args: [
-        id,
-        f.steamId,
-        f.nickname ?? null,
-        f.gcName ?? null,
-        f.mutualCount ?? null,
-        f.probability ?? null,
-        f.countryCode ?? null,
-      ],
+        args: [
+          id,
+          f.steamId,
+          f.nickname ?? null,
+          f.gcName ?? null,
+          f.mutualCount ?? null,
+          f.probability ?? null,
+          f.countryCode ?? null,
+        ],
+      });
     });
-  });
 
   // 5. Games snapshot (N:1)
   filterValidGames(record.gamesSnapshot ?? [])
     .slice(0, MAX_GAMES_SNAPSHOT)
     .forEach((g) => {
-    statements.push({
-      sql: 'INSERT INTO games_snapshot (search_id, name, playtime_hours) VALUES (?, ?, ?)',
-      args: [id, g.name, g.playtimeHours],
+      statements.push({
+        sql: 'INSERT INTO games_snapshot (search_id, name, playtime_hours) VALUES (?, ?, ?)',
+        args: [id, g.name, g.playtimeHours],
+      });
     });
-  });
 
   // 6. Location guesses (N:1) — location is a JSON-serialized object
   filterValidLocations(record.locationGuess ?? [])
     .slice(0, MAX_LOCATION_GUESSES)
     .forEach((lg) => {
-    statements.push({
-      sql: 'INSERT INTO location_guesses (search_id, location, probability) VALUES (?, ?, ?)',
-      args: [id, JSON.stringify(lg.location), lg.probability],
+      statements.push({
+        sql: 'INSERT INTO location_guesses (search_id, location, probability) VALUES (?, ?, ?)',
+        args: [id, JSON.stringify(lg.location), lg.probability],
+      });
     });
-  });
 
   await withSchemaHint(db.batch(statements));
 
@@ -423,13 +426,11 @@ const assertSteamId64 = (steamId: string): void => {
   }
 };
 
-const assertWatchEventKind: (
-  kind: string,
-) => asserts kind is WatchEventKind = (kind) => {
+const assertWatchEventKind: (kind: string) => asserts kind is WatchEventKind = (
+  kind,
+) => {
   if (kind !== 'invite' && kind !== 'notify') {
-    throw new Error(
-      "Invalid watch event kind: expected 'invite' | 'notify'",
-    );
+    throw new Error("Invalid watch event kind: expected 'invite' | 'notify'");
   }
 };
 
@@ -647,14 +648,39 @@ export interface EnqueueWatchEventResult {
  * of parsing a UNIQUE violation, repo convention) — PLUS a catch backstop
  * for the concurrent-duplicate race below, so the idempotency guarantee
  * holds under concurrency, not just sequentially. Invite events carry no
- * search (null) - SQLite UNIQUE permits multiple NULLs, so invites always
- * insert; per-profile invite discipline lives in the Epic 3+ endpoint,
- * which checks getWatchStatus before enqueueing (createWatchRequest only
- * dedupes profile rows, not invite events).
+ * search (null); per-profile invite discipline is "at most one OPEN invite
+ * per profile", enforced by the partial unique index
+ * idx_watch_events_open_invite (004 migration) with the same
+ * catch-and-re-read backstop for the race the index turns into a UNIQUE
+ * violation. Epic 3+ endpoint policy (getWatchStatus before enqueueing)
+ * sits on top of this guarantee, not instead of it.
  *
  * NOTE: this does not check watch status — the Epic 4 hook gates on
  * getWatchStatus + isWithinCooldown before enqueueing.
  */
+// Single source of truth for "an invite event is still open" (queued or
+// claimed — sent/dropped history never blocks a fresh invite). Shared by
+// the enqueueEvent dedupe pre-check, the race catch below, and
+// hasOpenInviteEvent, so the three WHERE clauses cannot drift apart.
+const OPEN_INVITE_PREDICATE_SQL = `kind = 'invite' AND status IN ('queued', 'claimed')`;
+
+/** Open invite id for this profile, or null when none is open. */
+const readOpenInviteId = async (
+  db: Client,
+  steamId: string,
+): Promise<number | null> => {
+  const open = await withSchemaHint(
+    db.execute({
+      sql: `SELECT id FROM watch_events
+            WHERE steam_id = ? AND ${OPEN_INVITE_PREDICATE_SQL}
+            LIMIT 1`,
+      args: [steamId],
+    }),
+  );
+  if (open.rows.length === 0) return null;
+  return Number(open.rows[0].id);
+};
+
 export const enqueueEvent = async (
   steamId: string,
   kind: WatchEventKind,
@@ -664,7 +690,9 @@ export const enqueueEvent = async (
   assertWatchEventKind(kind);
   if (searchId !== undefined && searchId !== null) {
     if (typeof searchId !== 'string' || searchId.length === 0) {
-      throw new Error('Invalid searchId for watch event: expected non-empty string');
+      throw new Error(
+        'Invalid searchId for watch event: expected non-empty string',
+      );
     }
   }
   const db = await getClient();
@@ -686,34 +714,24 @@ export const enqueueEvent = async (
     // profile. Sequential duplicates (double-click, client retry, refresh
     // then re-request) collapse here instead of producing a second
     // addFriend for the same target. A genuinely concurrent double-submit
-    // can still slip two rows past this read (no unique constraint covers
-    // it — adding one would couple the schema to poller timing); that
-    // residual window is microseconds wide and Steam dedupes pending
-    // invites server-side. Events already sent/dropped do NOT block: a new
-    // invite after expiry must go through.
-    const open = await withSchemaHint(
-      db.execute({
-        sql: `SELECT id FROM watch_events
-              WHERE steam_id = ? AND kind = 'invite' AND status IN ('queued', 'claimed')
-              LIMIT 1`,
-        args: [steamId],
-      }),
-    );
-    if (open.rows.length > 0) {
-      return { eventId: Number(open.rows[0].id), duplicate: true };
+    // that slips past this read hits the partial unique index instead and
+    // is collapsed in the catch below. Events already sent/dropped do NOT
+    // block: a new invite after expiry must go through.
+    const openId = await readOpenInviteId(db, steamId);
+    if (openId !== null) {
+      return { eventId: openId, duplicate: true };
     }
   }
 
   const now = new Date().toISOString();
+  const insertSql = `INSERT INTO watch_events
+              (search_id, steam_id, kind, status, created_at, claimed_at, sent_at)
+              VALUES (?, ?, ?, 'queued', ?, NULL, NULL)`;
+  const insertArgs: (string | null)[] = [searchId ?? null, steamId, kind, now];
   let inserted;
   try {
     inserted = await withSchemaHint(
-      db.execute({
-        sql: `INSERT INTO watch_events
-              (search_id, steam_id, kind, status, created_at, claimed_at, sent_at)
-              VALUES (?, ?, ?, 'queued', ?, NULL, NULL)`,
-        args: [searchId ?? null, steamId, kind, now],
-      }),
+      db.execute({ sql: insertSql, args: insertArgs }),
     );
   } catch (error) {
     // Two callers can both pass the pre-check above and collide on
@@ -723,25 +741,51 @@ export const enqueueEvent = async (
     // fire-and-forget: an unhandled rejection there is worse than anywhere
     // else this pre-check pattern is used. Anything that is NOT a unique
     // violation still propagates untouched.
-    if (!isUniqueViolation(error) || searchId == null) throw error;
-    const winner = await withSchemaHint(
-      db.execute({
-        sql: 'SELECT id FROM watch_events WHERE search_id = ?',
-        args: [searchId],
-      }),
-    );
-    if (winner.rows.length === 0) {
-      // Vanished between the failed INSERT and this read (nothing in the
-      // app deletes events). Report duplicate anyway: the search was
-      // provably seen, and proceeding untracked would risk a second send
-      // with no idempotency row.
-      return { eventId: null, duplicate: true };
+    if (!isUniqueViolation(error)) throw error;
+    if (searchId != null) {
+      const winner = await withSchemaHint(
+        db.execute({
+          sql: 'SELECT id FROM watch_events WHERE search_id = ?',
+          args: [searchId],
+        }),
+      );
+      if (winner.rows.length === 0) {
+        // Vanished between the failed INSERT and this read (nothing in the
+        // app deletes events). Report duplicate anyway: the search was
+        // provably seen, and proceeding untracked would risk a second send
+        // with no idempotency row.
+        return { eventId: null, duplicate: true };
+      }
+      return { eventId: Number(winner.rows[0].id), duplicate: true };
     }
-    return { eventId: Number(winner.rows[0].id), duplicate: true };
+    // Invite race loser (partial unique index idx_watch_events_open_invite):
+    // the winner's open row is the duplicate to report. If it settled
+    // (sent/dropped) in the microseconds between the violation and this
+    // read, the path is clear again — retry the INSERT once rather than
+    // reporting a phantom duplicate over a row that no longer blocks.
+    const winnerId = await readOpenInviteId(db, steamId);
+    if (winnerId !== null) {
+      return { eventId: winnerId, duplicate: true };
+    }
+    try {
+      inserted = await withSchemaHint(
+        db.execute({ sql: insertSql, args: insertArgs }),
+      );
+    } catch (retryError) {
+      if (!isUniqueViolation(retryError)) throw retryError;
+      // A second consecutive violation means a new open row landed under
+      // us — report whatever is open now (null is practically unreachable
+      // here, but keeps the return type honest instead of throwing on a
+      // state the caller cannot act on).
+      return { eventId: await readOpenInviteId(db, steamId), duplicate: true };
+    }
   }
 
   const eventId = Number(inserted.lastInsertRowid ?? NaN);
-  return { eventId: Number.isFinite(eventId) ? eventId : null, duplicate: false };
+  return {
+    eventId: Number.isFinite(eventId) ? eventId : null,
+    duplicate: false,
+  };
 };
 
 /**
@@ -858,7 +902,9 @@ export const resetStaleClaims = async (
   olderThanMinutes = 30,
 ): Promise<number> => {
   if (!Number.isFinite(olderThanMinutes) || olderThanMinutes <= 0) {
-    throw new Error('Invalid resetStaleClaims window: expected positive minutes');
+    throw new Error(
+      'Invalid resetStaleClaims window: expected positive minutes',
+    );
   }
   const db = await getClient();
   const cutoff = new Date(Date.now() - olderThanMinutes * 60000).toISOString();
@@ -924,8 +970,9 @@ export const getWatchedProfile = async (
 /**
  * Whether an invite event is currently open (queued or claimed) for this
  * profile. Used by the WB-6 compensation path (never roll back a row
- * someone else just queued an invite for) and mirrors the dedupe predicate
- * in enqueueEvent — keep the two WHERE clauses in sync.
+ * someone else just queued an invite for). The predicate is shared with
+ * enqueueEvent (OPEN_INVITE_PREDICATE_SQL) — a single constant, not two
+ * WHERE clauses to keep in sync.
  */
 export const hasOpenInviteEvent = async (steamId: string): Promise<boolean> => {
   assertSteamId64(steamId);
@@ -934,12 +981,40 @@ export const hasOpenInviteEvent = async (steamId: string): Promise<boolean> => {
   const row = await withSchemaHint(
     db.execute({
       sql: `SELECT 1 FROM watch_events
-            WHERE steam_id = ? AND kind = 'invite' AND status IN ('queued', 'claimed')
+            WHERE steam_id = ? AND ${OPEN_INVITE_PREDICATE_SQL}
             LIMIT 1`,
       args: [steamId],
     }),
   );
   return row.rows.length > 0;
+};
+
+/**
+ * How many invite events were SENT at or after `sinceIso` (an ISO-8601
+ * timestamp — lexicographic comparison works because every sent_at is
+ * written in the same UTC ISO format). Feeds the bot's daily send cap
+ * (P1-1): the count lives in the database, not in poller memory, so it
+ * survives bot restarts and is exact rather than "since this boot".
+ */
+export const countInvitesSentSince = async (
+  sinceIso: string,
+): Promise<number> => {
+  if (!Number.isFinite(Date.parse(sinceIso))) {
+    throw new Error(
+      `Invalid since timestamp for invite count: expected ISO-8601 (got ${JSON.stringify(sinceIso)})`,
+    );
+  }
+  const db = await getClient();
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT COUNT(*) AS n FROM watch_events
+            WHERE kind = 'invite' AND sent_at IS NOT NULL AND sent_at >= ?`,
+      args: [sinceIso],
+    }),
+  );
+  const count = Number(row.rows[0]?.n ?? 0);
+  return Number.isFinite(count) ? count : 0;
 };
 
 /**
@@ -1032,7 +1107,9 @@ const parseLocationGuesses = (rows: Row[]): LocationGuess[] => {
   rows.forEach((row) => {
     try {
       guesses.push({
-        location: JSON.parse(row.location as string) as LocationGuess['location'],
+        location: JSON.parse(
+          row.location as string,
+        ) as LocationGuess['location'],
         probability: typeof row.probability === 'number' ? row.probability : 0,
       });
     } catch {
@@ -1095,7 +1172,10 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
     const list = gamesBySearch.get(searchId) ?? [];
     list.push({
       name: row.name as string,
-      playtimeHours: typeof row.playtime_hours === 'number' ? row.playtime_hours : Number(row.playtime_hours ?? 0),
+      playtimeHours:
+        typeof row.playtime_hours === 'number'
+          ? row.playtime_hours
+          : Number(row.playtime_hours ?? 0),
     });
     gamesBySearch.set(searchId, list);
   });
@@ -1132,40 +1212,43 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
       }
 
       const profile: ProfileRecord = {
-      steamId: row.steam_id as string,
-      steamUrl: toNullableString(row.steam_url),
-      nickname: toNullableString(row.nickname),
-      gcName: toNullableString(row.gc_name),
-      countryCode: toNullableString(row.country_code),
-      stateCode: toNullableString(row.state_code),
-      cityId: toNullableString(row.city_id),
-    };
+        steamId: row.steam_id as string,
+        steamUrl: toNullableString(row.steam_url),
+        nickname: toNullableString(row.nickname),
+        gcName: toNullableString(row.gc_name),
+        countryCode: toNullableString(row.country_code),
+        stateCode: toNullableString(row.state_code),
+        cityId: toNullableString(row.city_id),
+      };
 
-    const { is_cs_active: isActive, device } = row;
-    const cheater = cheatersBySearch.get(searchId) ?? null;
+      const { is_cs_active: isActive, device } = row;
+      const cheater = cheatersBySearch.get(searchId) ?? null;
 
-    return {
-      id: searchId,
-      searchedAt: row.searched_at as string,
-      profile,
-      // An empty child table reads back as arrays/nulls regardless of whether
-      // the source sent `[]` or `undefined` (both store zero rows) — fine, the
-      // dashboard treats null and [] the same (it maps over `?? []`).
-      friends: friendsBySearch.get(searchId) ?? [],
-      gamesSnapshot: gamesBySearch.get(searchId) ?? null,
-      isCSActive: typeof isActive === 'number' && (isActive === 0 || isActive === 1)
-        ? isActive === 1
-        : null,
-      requesterLocale: toNullableString(row.requester_locale),
-      requesterCountry: toNullableString(row.requester_country),
-      requesterBrowserLanguage: toNullableString(row.requester_browser_language),
-      device: (device === 'mobile' || device === 'desktop'
-        ? device
-        : null) as 'mobile' | 'desktop' | null,
-      locationGuess: locationsBySearch.get(searchId) ?? null,
-      cheater,
-      durationMs: toNullableNumber(row.duration_ms),
-    };
+      return {
+        id: searchId,
+        searchedAt: row.searched_at as string,
+        profile,
+        // An empty child table reads back as arrays/nulls regardless of whether
+        // the source sent `[]` or `undefined` (both store zero rows) — fine, the
+        // dashboard treats null and [] the same (it maps over `?? []`).
+        friends: friendsBySearch.get(searchId) ?? [],
+        gamesSnapshot: gamesBySearch.get(searchId) ?? null,
+        isCSActive:
+          typeof isActive === 'number' && (isActive === 0 || isActive === 1)
+            ? isActive === 1
+            : null,
+        requesterLocale: toNullableString(row.requester_locale),
+        requesterCountry: toNullableString(row.requester_country),
+        requesterBrowserLanguage: toNullableString(
+          row.requester_browser_language,
+        ),
+        device: (device === 'mobile' || device === 'desktop'
+          ? device
+          : null) as 'mobile' | 'desktop' | null,
+        locationGuess: locationsBySearch.get(searchId) ?? null,
+        cheater,
+        durationMs: toNullableNumber(row.duration_ms),
+      };
     })
     .filter((record) => record !== null);
 };

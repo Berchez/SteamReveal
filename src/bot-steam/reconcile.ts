@@ -17,6 +17,17 @@
  * Re-running with no changes is a verified no-op (idempotency is
  * unit-tested, not just claimed).
  *
+ * Passes are SERIALIZED across callers (promise chain below): snapshots
+ * arrive both on full syncs and on individual accepts, so two passes can
+ * overlap in time — and overlapping passes both read pre-commit state,
+ * which would fire onActivated (welcome message) twice for the same
+ * profile. The DB update alone cannot dedupe that (activateWatch is
+ * idempotent-true by contract). Chaining means every pass reads
+ * post-commit state, so the loser sees 'active' and skips the welcome.
+ * Skipping (drop-if-busy) would be wrong here, unlike the poller: a
+ * dropped accept snapshot might never reconcile (no further event may
+ * come), so every snapshot waits its turn instead.
+ *
  * The optional onActivated hook fires once per newly-activated watch with
  * its stored locale (WB-11 welcome message). It runs AFTER activateWatch
  * commits, and its failures are isolated per row without rolling the
@@ -26,17 +37,14 @@
  * not a 17-digit id is skipped and counted, never passed to the DAL.
  */
 
+import type { WatchBotLogger } from './logger';
+
 export interface ReconcileDal {
   listWatchedProfiles: () => Promise<
     Array<{ steamId: string; status: string; locale: string | null }>
   >;
   activateWatch: (steamId: string) => Promise<boolean>;
   deactivateWatch: (steamId: string) => Promise<boolean>;
-}
-
-export interface ReconcileLogger {
-  info: (message: string) => void;
-  error: (message: string) => void;
 }
 
 export interface ReconcileReport {
@@ -63,11 +71,11 @@ export type ActivatedHandler = (profile: {
 
 const STEAM_ID64_RE = /^\d{17}$/;
 
-export const reconcileFriendsList = async (
+const runReconcilePass = async (
   friendsById: Record<string, number>,
   friendRelationshipValue: number,
   dal: ReconcileDal,
-  logger: ReconcileLogger = console,
+  logger: WatchBotLogger = console,
   onActivated: ActivatedHandler | undefined = undefined,
 ): Promise<ReconcileReport> => {
   const startedAt = Date.now();
@@ -120,8 +128,7 @@ export const reconcileFriendsList = async (
               report.errors.push({
                 steamId: watch.steamId,
                 operation: 'welcomeMessage',
-                message:
-                  error instanceof Error ? error.message : String(error),
+                message: error instanceof Error ? error.message : String(error),
               });
             }
           }
@@ -157,4 +164,33 @@ export const reconcileFriendsList = async (
   }
 
   return report;
+};
+
+// Serial pass chain (see the header doc): every call waits for the
+// previous pass to settle, then runs against post-commit state. A rejected
+// pass must not poison the chain — the tail swallows the rejection (the
+// caller still receives it via their own promise).
+let reconcileTail: Promise<void> = Promise.resolve();
+
+export const reconcileFriendsList = (
+  friendsById: Record<string, number>,
+  friendRelationshipValue: number,
+  dal: ReconcileDal,
+  logger: WatchBotLogger = console,
+  onActivated: ActivatedHandler | undefined = undefined,
+): Promise<ReconcileReport> => {
+  const run = reconcileTail.then(() =>
+    runReconcilePass(
+      friendsById,
+      friendRelationshipValue,
+      dal,
+      logger,
+      onActivated,
+    ),
+  );
+  reconcileTail = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 };

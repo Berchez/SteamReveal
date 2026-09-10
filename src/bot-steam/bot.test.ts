@@ -219,7 +219,11 @@ describe('WatchBot', () => {
     const { bot, client } = makeBot({ onFriendRemoved });
     bot.start();
 
-    client.emit('friendRelationship', { getSteamID64: () => '76561198000000001' }, 0);
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000001' },
+      0,
+    );
     expect(onFriendRemoved).toHaveBeenCalledTimes(1);
     expect(onFriendRemoved).toHaveBeenCalledWith('76561198000000001');
     bot.stop();
@@ -230,7 +234,11 @@ describe('WatchBot', () => {
     const { bot, client } = makeBot({ onFriendRemoved });
     bot.start();
 
-    client.emit('friendRelationship', { getSteamID64: () => '76561198000000002' }, 1);
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000002' },
+      1,
+    );
     expect(onFriendRemoved).toHaveBeenCalledTimes(1);
     expect(onFriendRemoved).toHaveBeenCalledWith('76561198000000002');
     bot.stop();
@@ -241,9 +249,21 @@ describe('WatchBot', () => {
     const { bot, client } = makeBot({ onFriendRemoved });
     bot.start();
 
-    client.emit('friendRelationship', { getSteamID64: () => '76561198000000001' }, 3);
-    client.emit('friendRelationship', { getSteamID64: () => '76561198000000002' }, 4);
-    client.emit('friendRelationship', { getSteamID64: () => '76561198000000003' }, 2);
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000001' },
+      3,
+    );
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000002' },
+      4,
+    );
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000003' },
+      2,
+    );
     expect(onFriendRemoved).not.toHaveBeenCalled();
     bot.stop();
   });
@@ -279,7 +299,15 @@ describe('WatchBot', () => {
     bot.start();
 
     expect(() =>
-      client.emit('friendRelationship', { getSteamID64: () => { throw new Error('malformed'); } }, 0),
+      client.emit(
+        'friendRelationship',
+        {
+          getSteamID64: () => {
+            throw new Error('malformed');
+          },
+        },
+        0,
+      ),
     ).not.toThrow();
     expect(onFriendRemoved).not.toHaveBeenCalled();
 
@@ -288,7 +316,11 @@ describe('WatchBot', () => {
     client.emit('loggedOn', {}, {});
     client.emit('disconnected', 2, 'x');
     client.emit('loggedOn', {}, {});
-    client.emit('friendRelationship', { getSteamID64: () => '76561198000000009' }, 0);
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000009' },
+      0,
+    );
     expect(onFriendRemoved).toHaveBeenCalledTimes(1);
     expect(onFriendRemoved).toHaveBeenCalledWith('76561198000000009');
     bot.stop();
@@ -303,7 +335,11 @@ describe('WatchBot', () => {
     const { bot, client } = makeBot({ onFriendRemoved, logger });
     bot.start();
 
-    client.emit('friendRelationship', { getSteamID64: () => '76561198000000007' }, 0);
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000007' },
+      0,
+    );
     bot.stop();
 
     expect(seen).toEqual(['76561198000000007']);
