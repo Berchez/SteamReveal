@@ -2,7 +2,10 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import WatchManager from './WatchManager';
-import { WATCH_IDENTITY_KEY } from '@/app/templates/Home/hooks/watch/watchIdentity';
+import {
+  WATCH_IDENTITY_EVENT,
+  WATCH_IDENTITY_KEY,
+} from '@/app/templates/Home/hooks/watch/watchIdentity';
 
 jest.mock('react-toastify', () => ({
   toast: { error: jest.fn(), success: jest.fn() },
@@ -110,6 +113,84 @@ describe('WatchManager', () => {
     expect(screen.getByText('watchPendingHint')).toBeInTheDocument();
   });
 
+  it('broadcasts identity changes so same-tab siblings resync without reload', async () => {
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      if (String(url).includes('/api/watch/request')) return postOk();
+      return statusResponse('pending');
+    });
+    const seen: string[] = [];
+    const listener = (event: Event): void => {
+      seen.push(event.type);
+    };
+    window.addEventListener(WATCH_IDENTITY_EVENT, listener);
+    try {
+      render(<WatchManager />);
+      await settle();
+
+      // Successful submit: stored + broadcast (WatchInbox listens).
+      fireEvent.change(screen.getByPlaceholderText('watchInputPlaceholder'), {
+        target: { value: STEAM_ID },
+      });
+      fireEvent.click(screen.getByText('watchSubmit'));
+      await settle();
+      expect(seen).toEqual([WATCH_IDENTITY_EVENT]);
+    } finally {
+      window.removeEventListener(WATCH_IDENTITY_EVENT, listener);
+    }
+  });
+
+  it('skips the broadcast when storage refuses the write (no phantom ping)', async () => {
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      if (String(url).includes('/api/watch/request')) return postOk();
+      return statusResponse('pending');
+    });
+    // Direct `window.localStorage.setItem = ...` assignment does not stick
+    // in this jsdom (same reason the watchIdentity hostile test replaces
+    // the whole property): swap the property, restore afterwards.
+    const originalLocalStorage = window.localStorage;
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: () => null,
+        setItem: () => {
+          throw new Error('private mode');
+        },
+        removeItem: () => {},
+        clear: () => {},
+        get length() {
+          return 0;
+        },
+        key: () => null,
+      },
+    });
+    const seen: string[] = [];
+    const listener = (event: Event): void => {
+      seen.push(event.type);
+    };
+    window.addEventListener(WATCH_IDENTITY_EVENT, listener);
+    try {
+      render(<WatchManager />);
+      await settle();
+
+      fireEvent.change(screen.getByPlaceholderText('watchInputPlaceholder'), {
+        target: { value: STEAM_ID },
+      });
+      fireEvent.click(screen.getByText('watchSubmit'));
+      await settle();
+
+      // Session still proceeds (polling reads React state, not storage),
+      // but no sibling is pinged toward a slot that was never written.
+      expect(seen).toEqual([]);
+      expect(screen.getByText('watchPendingTitle')).toBeInTheDocument();
+    } finally {
+      window.removeEventListener(WATCH_IDENTITY_EVENT, listener);
+      Object.defineProperty(window, 'localStorage', {
+        configurable: true,
+        value: originalLocalStorage,
+      });
+    }
+  });
+
   it('shows the leave instructions when active, and forgets on remove', async () => {
     window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_ID);
     fetchMock.mockImplementation((url: string) => {
@@ -123,10 +204,20 @@ describe('WatchManager', () => {
     expect(screen.getByText('watchActiveTitle')).toBeInTheDocument();
     expect(screen.getByText('watchActiveHint')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('watchRemoveLocal'));
-    await settle();
+    const seen: string[] = [];
+    const listener = (event: Event): void => {
+      seen.push(event.type);
+    };
+    window.addEventListener(WATCH_IDENTITY_EVENT, listener);
+    try {
+      fireEvent.click(screen.getByText('watchRemoveLocal'));
+      await settle();
+    } finally {
+      window.removeEventListener(WATCH_IDENTITY_EVENT, listener);
+    }
 
     expect(window.localStorage.getItem(WATCH_IDENTITY_KEY)).toBeNull();
+    expect(seen).toEqual([WATCH_IDENTITY_EVENT]);
     expect(screen.getByText('watchTitle')).toBeInTheDocument();
   });
 

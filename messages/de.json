@@ -1,4 +1,4 @@
-﻿{
+{
   "General": {
     "search": "Suchen"
   },
@@ -182,6 +182,12 @@
     "watchActiveHint": "Zum Abbestellen entferne diesen Bot einfach auf Steam aus deiner Freundesliste. Sonst ist nichts nötig.",
     "watchRemoveLocal": "In diesem Browser vergessen",
     "watchErrorInvalid": "Gib eine gültige 17-stellige SteamID64 ein.",
-    "watchErrorFailed": "Beobachtung konnte nicht gestartet werden. Versuche es gleich noch einmal."
+    "watchErrorFailed": "Beobachtung konnte nicht gestartet werden. Versuche es gleich noch einmal.",
+    "watchInboxTitle": "Benachrichtigungen",
+    "watchInboxBellLabel": "Watch-Benachrichtigungen, {count} ungelesen",
+    "watchInboxEmpty": "Noch keine Benachrichtigungen. Du siehst hier eine Nachricht, sobald dein beobachtetes Profil abgerufen wird.",
+    "watchInboxLoading": "Benachrichtigungen werden geladen…",
+    "watchInboxError": "Benachrichtigungen konnten nicht geladen werden.",
+    "watchInboxRetry": "Erneut versuchen"
   }
 }

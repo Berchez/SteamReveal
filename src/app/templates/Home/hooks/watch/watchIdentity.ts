@@ -15,6 +15,27 @@ import { isSteamId64 } from '@/lib/steamId';
 
 export const WATCH_IDENTITY_KEY = 'steamreveal:watch:me';
 
+/**
+ * Same-tab identity broadcast. The native `storage` event only fires in
+ * OTHER tabs, so sibling components on the same page (WatchManager writes,
+ * WatchInbox reads) would otherwise desync until reload. Writers dispatch
+ * this after every successful set/clear; readers re-read on it. No payload
+ * (readers call getWatchIdentity() themselves) — the event is purely a
+ * "re-read now" ping, SSR-safe and never throwing.
+ */
+export const WATCH_IDENTITY_EVENT = 'watch:identity-changed';
+
+/** Broadcasts a same-tab identity change. Never throws. */
+export const notifyWatchIdentityChanged = (): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new Event(WATCH_IDENTITY_EVENT));
+  } catch {
+    // Hostile DOM: readers fall back to mount-time identity + cross-tab
+    // storage events — degraded, never broken.
+  }
+};
+
 /** SteamID64 shape check shared by the setter (fail fast) and polling. */
 export const isValidWatchIdentity = (value: unknown): value is string =>
   isSteamId64(value);

@@ -1,4 +1,4 @@
-﻿{
+{
   "General": {
     "search": "Buscar"
   },
@@ -182,6 +182,12 @@
     "watchActiveHint": "Para detenerlos, solo elimina a este bot de tus amigos en Steam. Nada más es necesario.",
     "watchRemoveLocal": "Olvidar en este navegador",
     "watchErrorInvalid": "Introduce un SteamID64 válido de 17 dígitos.",
-    "watchErrorFailed": "No se pudo iniciar la vigilancia. Inténtalo de nuevo en un momento."
+    "watchErrorFailed": "No se pudo iniciar la vigilancia. Inténtalo de nuevo en un momento.",
+    "watchInboxTitle": "Notificaciones",
+    "watchInboxBellLabel": "Notificaciones de vigilancia, {count} sin leer",
+    "watchInboxEmpty": "Aún no hay notificaciones. Verás un mensaje aquí cada vez que se busque tu perfil vigilado.",
+    "watchInboxLoading": "Cargando notificaciones…",
+    "watchInboxError": "No se pudieron cargar las notificaciones.",
+    "watchInboxRetry": "Reintentar"
   }
 }

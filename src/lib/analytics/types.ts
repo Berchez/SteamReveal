@@ -89,7 +89,10 @@ export interface SearchRecord {
   durationMs?: number | null;
 }
 
-export type NewSearchInput = Omit<SearchRecord, 'id' | 'searchedAt' | 'cheater'>;
+export type NewSearchInput = Omit<
+  SearchRecord,
+  'id' | 'searchedAt' | 'cheater'
+>;
 
 // ---------------------------------------------------------------------------
 // Watch Bot (Epic: notify user when their profile is searched).
@@ -131,4 +134,16 @@ export interface WatchEvent {
   createdAt: string;
   claimedAt: string | null;
   sentAt: string | null;
+}
+
+/**
+ * Inbox row (WB-14): the minimal projection of a delivered notify event.
+ * steamId is the query key (echoed by the route, not repeated per row);
+ * only id + delivery timestamp travel — no message text is stored (the
+ * inbox renders the shared WB-15 base text for the event instead).
+ */
+export interface WatchNotification {
+  id: number;
+  /** Delivery timestamp (sent_at, always set for status='sent' rows). */
+  sentAt: string;
 }

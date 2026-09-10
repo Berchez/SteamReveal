@@ -23,10 +23,15 @@ import type {
   LocationGuess,
   WatchStatus,
   WatchEventKind,
+  WatchNotification,
   WatchedProfile,
   WatchEvent,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
+import {
+  WATCH_INBOX_DEFAULT_LIMIT,
+  WATCH_INBOX_MAX_LIMIT,
+} from '../watch/limits';
 import { requireRemoteTursoToken } from '../env';
 import {
   filterValidFriends,
@@ -591,6 +596,116 @@ export const listWatchedProfiles = async (
   return rows.rows.map((row) =>
     toWatchedProfile(row as Record<string, unknown>),
   );
+};
+
+// Single source of truth for "a delivered notify" (WB-14 inbox predicate),
+// shared by the list and the count so the two can never disagree on what
+// counts as delivered (same principle as OPEN_INVITE_PREDICATE_SQL).
+const DELIVERED_NOTIFY_PREDICATE_SQL = `kind = 'notify' AND status = 'sent'`;
+
+/**
+ * Inbox read side (WB-14): delivered notifies for one profile, newest
+ * first. ONLY kind='notify' + status='sent' rows qualify — queued (not
+ * yet delivered) and dropped (expired/failed/superseded) events must
+ * never render as delivered notifications. The sent_at IS NOT NULL guard
+ * excludes hand-edited rows (markEventSent always writes sent_at).
+ *
+ * Minimal projection by design (id + delivery timestamp): the inbox
+ * renders message text from the shared WB-15 base, and search contents
+ * stay out of the read path. Limit defaults to WATCH_INBOX_DEFAULT_LIMIT,
+ * clamps to [1, WATCH_INBOX_MAX_LIMIT] — an inbox is a recent-history
+ * view, not a full export.
+ *
+ * SCALING NOTE: filters on (steam_id, kind, status) + ORDER BY sent_at,
+ * but the 002 indexes only cover (steam_id, status) and (kind, status) —
+ * no composite reaches sent_at. Irrelevant at current volume (one bot,
+ * ~250 watches, 1 notify/24h/profile), but if watch_events grows unbounded
+ * (no TTL cleanup on sent/dropped history by design — Epic 8/runbook
+ * territory), add a (steam_id, kind, status, sent_at) covering index via a
+ * new forward migration.
+ */
+export const listSentNotifications = async (
+  steamId: string,
+  limit = WATCH_INBOX_DEFAULT_LIMIT,
+): Promise<WatchNotification[]> => {
+  assertSteamId64(steamId);
+  if (!Number.isFinite(limit)) {
+    throw new Error('Invalid notification limit: expected a finite number');
+  }
+  const n = Math.max(1, Math.min(WATCH_INBOX_MAX_LIMIT, Math.floor(limit)));
+  const db = await getClient();
+
+  const rows = await withSchemaHint(
+    db.execute({
+      sql: `SELECT id, sent_at FROM watch_events
+            WHERE steam_id = ? AND ${DELIVERED_NOTIFY_PREDICATE_SQL}
+              AND sent_at IS NOT NULL
+            ORDER BY sent_at DESC, id DESC LIMIT ?`,
+      args: [steamId, n],
+    }),
+  );
+
+  return rows.rows.map((row) => ({
+    id: Number((row as Record<string, unknown>).id),
+    sentAt: (row as Record<string, unknown>).sent_at as string,
+  }));
+};
+
+/**
+ * Unread-count side of the inbox (WB-14): how many delivered notifies sit
+ * past a client-supplied delivery watermark (a sent_at ISO, null for
+ * "never opened"). Same predicate as listSentNotifications — the two can
+ * never disagree on what counts as delivered.
+ *
+ * The cursor is sent_at, NOT id, deliberately: ids are creation-ordered
+ * while deliveries are not. A requeued event keeps its old id but lands a
+ * fresh sent_at — an id-cursor would silently skip a late-delivered retry
+ * that arrived after a newer id was already seen. sent_at ordering matches
+ * the inbox list ordering (sent_at DESC), keeping cursor and display
+ * consistent by construction. (Same-millisecond ties across two sends to
+ * one profile are the residual micro-window — Turso roundtrips separate
+ * consecutive sends by ms in practice; the alternative, a composite
+ * (sent_at, id) cursor, was judged not worth doubling the cursor surface.)
+ *
+ * Why server-side: the inbox page is capped (limit ≤ 50), so a client-side
+ * filter undercounts once the backlog exceeds the window (30 delivered,
+ * 20 returned → badge would read 20). The client sends its local watermark
+ * as sinceSentAt; no `read_at` column needed — the delivery timestamp IS
+ * the cursor.
+ */
+export const countNotificationsSince = async (
+  steamId: string,
+  sinceSentAt: string | null = null,
+): Promise<number> => {
+  assertSteamId64(steamId);
+  if (
+    sinceSentAt !== null &&
+    (typeof sinceSentAt !== 'string' ||
+      !Number.isFinite(Date.parse(sinceSentAt)))
+  ) {
+    throw new Error(
+      'Invalid sinceSentAt for notification count: expected an ISO-8601 timestamp or null',
+    );
+  }
+  const db = await getClient();
+
+  const row = await withSchemaHint(
+    sinceSentAt === null
+      ? db.execute({
+          sql: `SELECT COUNT(*) AS n FROM watch_events
+            WHERE steam_id = ? AND ${DELIVERED_NOTIFY_PREDICATE_SQL}
+              AND sent_at IS NOT NULL`,
+          args: [steamId],
+        })
+      : db.execute({
+          sql: `SELECT COUNT(*) AS n FROM watch_events
+            WHERE steam_id = ? AND ${DELIVERED_NOTIFY_PREDICATE_SQL}
+              AND sent_at > ?`,
+          args: [steamId, sinceSentAt],
+        }),
+  );
+  const count = Number(row.rows[0]?.n ?? 0);
+  return Number.isFinite(count) ? count : 0;
 };
 
 /**

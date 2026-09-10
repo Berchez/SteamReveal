@@ -2,32 +2,30 @@
  * Watch Bot welcome message (WB-11) — sent over Steam chat right after a
  * watch flips pending -> active.
  *
- * Templates live here (not in next-intl messages/*.json): the bot process
- * has no React/intl provider, and these strings are keyed by the
- * requester locale stored on watched_profiles, not by any page locale.
+ * Templates live in @/lib/watch/notificationText (WB-15 shared base, not
+ * in next-intl messages/*.json): the bot process has no React/intl
+ * provider, the inbox renders the same base text, and these strings are
+ * keyed by the requester locale stored on watched_profiles, not by any
+ * page locale.
  *
  * Content contract (per ticket): explains what the watch does AND how to
  * leave (unfriend the bot). Keep every template free of `[` characters:
  * steam-user escapes them as BBCode and they would render mangled.
  */
 
-const WELCOME_TEMPLATES: Record<string, string> = {
-  en: 'SteamReveal Watch is now active for your profile. You will get a Steam message here whenever someone looks it up. To stop these messages, just unfriend this bot — nothing else is needed.',
-  pt: 'O monitoramento SteamReveal do seu perfil está ativo. Você vai receber uma mensagem aqui na Steam sempre que alguém consultá-lo. Para parar, basta desfazer a amizade com este bot — mais nada é preciso.',
-  es: 'La vigilancia de SteamReveal para tu perfil está activa. Recibirás un mensaje aquí en Steam cada vez que alguien lo consulte. Para detenerlos, solo elimina a este bot de tus amigos.',
-  de: 'Die SteamReveal-Beobachtung deines Profils ist aktiv. Du erhältst hier auf Steam eine Nachricht, sobald es jemand abruft. Zum Abbestellen entferne diesen Bot einfach aus deiner Freundesliste.',
-  ru: 'Наблюдение SteamReveal за вашим профилем активно. Вы будете получать сообщение здесь в Steam каждый раз, когда его будут просматривать. Чтобы отписаться, просто удалите этого бота из друзей.',
-};
+import {
+  DEFAULT_WATCH_LOCALE,
+  getWelcomeText,
+} from '@/lib/watch/notificationText';
 
-export const DEFAULT_WELCOME_LOCALE = 'en';
+export const DEFAULT_WELCOME_LOCALE = DEFAULT_WATCH_LOCALE;
 
 /**
  * Resolves the template for a requester locale ('pt-BR' -> 'pt'),
  * falling back to English for anything unknown or absent.
  */
 export const getWelcomeMessage = (locale: string | null | undefined): string =>
-  WELCOME_TEMPLATES[(locale ?? '').slice(0, 2).toLowerCase()] ??
-  WELCOME_TEMPLATES[DEFAULT_WELCOME_LOCALE];
+  getWelcomeText(locale);
 
 /**
  * Minimal structural surface of the Steam chat sender (steam-user's

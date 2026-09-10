@@ -182,6 +182,12 @@
     "watchActiveHint": "Para parar, basta desfazer a amizade com o bot na Steam. Nada mais é preciso.",
     "watchRemoveLocal": "Esquecer neste navegador",
     "watchErrorInvalid": "Digite um SteamID64 válido de 17 dígitos.",
-    "watchErrorFailed": "Não foi possível iniciar o monitoramento. Tente de novo em instantes."
+    "watchErrorFailed": "Não foi possível iniciar o monitoramento. Tente de novo em instantes.",
+    "watchInboxTitle": "Notificações",
+    "watchInboxBellLabel": "Notificações do monitoramento, {count} não lidas",
+    "watchInboxEmpty": "Nenhuma notificação ainda. Você verá uma mensagem aqui sempre que seu perfil monitorado for buscado.",
+    "watchInboxLoading": "Carregando notificações…",
+    "watchInboxError": "Não foi possível carregar as notificações.",
+    "watchInboxRetry": "Tentar novamente"
   }
 }

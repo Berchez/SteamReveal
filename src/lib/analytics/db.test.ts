@@ -1082,6 +1082,96 @@ describe('watch/outbox DAL (Epic 1)', () => {
     await expect(listWatchedProfiles()).rejects.toThrow(/db:migrate/);
   });
 
+  it('listSentNotifications projects sent notifies newest-first', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        { id: 9, sent_at: '2026-06-02T00:00:00.000Z' },
+        { id: 7, sent_at: '2026-06-01T00:00:00.000Z' },
+      ],
+    });
+
+    const { listSentNotifications } = require('./db');
+    const rows = await listSentNotifications(STEAM, 5);
+
+    expect(rows).toEqual([
+      { id: 9, sentAt: '2026-06-02T00:00:00.000Z' },
+      { id: 7, sentAt: '2026-06-01T00:00:00.000Z' },
+    ]);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM watch_events'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    // Only delivered notifies qualify — queued/dropped/invites excluded.
+    expect(sql).toContain("kind = 'notify'");
+    expect(sql).toContain("status = 'sent'");
+    expect(sql).toContain('sent_at IS NOT NULL');
+    expect(sql).toContain('ORDER BY sent_at DESC');
+    expect(select[0].args).toEqual([STEAM, 5]);
+  });
+
+  it('listSentNotifications clamps the limit and validates inputs', async () => {
+    const { listSentNotifications } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(listSentNotifications(STEAM, 500)).resolves.toEqual([]);
+    const clamped = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM watch_events'),
+    );
+    expect(clamped[0].args).toEqual([STEAM, 50]);
+
+    await expect(listSentNotifications('short')).rejects.toThrow(/17 digits/);
+    await expect(listSentNotifications(STEAM, NaN)).rejects.toThrow(/finite/);
+  });
+
+  it('countNotificationsSince counts delivered rows past the watermark', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 30 }] });
+
+    const { countNotificationsSince } = require('./db');
+    await expect(
+      countNotificationsSince(STEAM, '2026-06-01T00:00:00.000Z'),
+    ).resolves.toBe(30);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    // Same delivered predicate as the inbox read — the two can never
+    // disagree on what counts. Delivery-timestamp cursor (NOT id): retries
+    // keep old ids but land fresh sent_at values.
+    expect(sql).toContain("kind = 'notify'");
+    expect(sql).toContain("status = 'sent'");
+    expect(sql).toContain('sent_at > ?');
+    expect(select[0].args).toEqual([STEAM, '2026-06-01T00:00:00.000Z']);
+  });
+
+  it('countNotificationsSince counts everything without a watermark', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 7 }] });
+
+    const { countNotificationsSince } = require('./db');
+    await expect(countNotificationsSince(STEAM)).resolves.toBe(7);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    expect(String(select[0]?.sql ?? select[0])).not.toContain('sent_at > ?');
+    expect(select[0].args).toEqual([STEAM]);
+  });
+
+  it('countNotificationsSince validates inputs before touching the client', async () => {
+    const { countNotificationsSince } = require('./db');
+    const callsBefore = mockExecute.mock.calls.length;
+
+    await expect(countNotificationsSince('short', null)).rejects.toThrow(
+      /17 digits/,
+    );
+    await expect(countNotificationsSince(STEAM, 'nope')).rejects.toThrow(
+      /sinceSentAt/,
+    );
+    await expect(countNotificationsSince(STEAM, '')).rejects.toThrow(
+      /sinceSentAt/,
+    );
+
+    expect(mockExecute.mock.calls.length).toBe(callsBefore);
+  });
+
   it('hasOpenInviteEvent reports open invites (queued/claimed only)', async () => {
     const { hasOpenInviteEvent } = require('./db');
 

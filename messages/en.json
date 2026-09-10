@@ -1,4 +1,4 @@
-﻿{
+{
   "General": {
     "search": "Search"
   },
@@ -182,6 +182,12 @@
     "watchActiveHint": "To stop, just unfriend the bot on Steam. Nothing else is needed.",
     "watchRemoveLocal": "Forget this browser",
     "watchErrorInvalid": "Enter a valid 17-digit SteamID64.",
-    "watchErrorFailed": "Could not start watching. Try again in a moment."
+    "watchErrorFailed": "Could not start watching. Try again in a moment.",
+    "watchInboxTitle": "Notifications",
+    "watchInboxBellLabel": "Watch notifications, {count} unread",
+    "watchInboxEmpty": "No notifications yet. You will see a message here each time your watched profile is searched.",
+    "watchInboxLoading": "Loading notifications…",
+    "watchInboxError": "Could not load notifications.",
+    "watchInboxRetry": "Try again"
   }
 }

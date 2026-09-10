@@ -2,36 +2,19 @@
  * Watch Bot notify message (WB-13) — sent over Steam chat for every consumed
  * `notify` event.
  *
- * Same i18n precedent as welcomeMessage.ts: templates live here (not in
- * next-intl messages/*.json) because the bot process has no React/intl
- * provider, and the language comes from the locale stored on
- * watched_profiles, not from any page locale.
- *
- * Content contract: states that the watched profile was just looked up,
- * names the profile (Steam URL with the watched SteamID64, so the message
- * is unambiguous when one user watches several profiles), and repeats how
- * to leave (unfriend the bot). Keep every template free of `[`
- * characters: steam-user escapes them as BBCode and they would render
- * mangled.
+ * Templates live in @/lib/watch/notificationText (WB-15 shared base, not
+ * in next-intl messages/*.json): the bot process has no React/intl
+ * provider, the site inbox renders the same base text for the same event,
+ * and the language comes from the locale stored on watched_profiles, not
+ * from any page locale. See the base module for the content contract.
  */
 
-const profileUrl = (steamId: string): string =>
-  `https://steamcommunity.com/profiles/${steamId}`;
+import {
+  DEFAULT_WATCH_LOCALE,
+  getNotifyText,
+} from '@/lib/watch/notificationText';
 
-const NOTIFY_TEMPLATES: Record<string, (steamId: string) => string> = {
-  en: (steamId: string) =>
-    `Someone just looked up the Steam profile you are watching: ${profileUrl(steamId)}. This is your SteamReveal Watch notification. To stop these messages, just unfriend this bot.`,
-  pt: (steamId: string) =>
-    `Alguém acabou de consultar o perfil Steam que você monitora: ${profileUrl(steamId)}. Esta é sua notificação do SteamReveal Watch. Para parar de receber, basta desfazer a amizade com este bot.`,
-  es: (steamId: string) =>
-    `Alguien acaba de consultar el perfil de Steam que vigilas: ${profileUrl(steamId)}. Esta es tu notificación de SteamReveal Watch. Para dejar de recibirlas, solo elimina a este bot de tus amigos.`,
-  de: (steamId: string) =>
-    `Jemand hat gerade das Steam-Profil abgerufen, das du beobachtest: ${profileUrl(steamId)}. Dies ist deine Benachrichtigung für SteamReveal Watch. Zum Abbestellen entferne diesen Bot einfach aus deiner Freundesliste.`,
-  ru: (steamId: string) =>
-    `Кто-то только что просмотрел профиль Steam, за которым вы наблюдаете: ${profileUrl(steamId)}. Это уведомление SteamReveal Watch. Чтобы отписаться, просто удалите этого бота из друзей.`,
-};
-
-export const DEFAULT_NOTIFY_LOCALE = 'en';
+export const DEFAULT_NOTIFY_LOCALE = DEFAULT_WATCH_LOCALE;
 
 /**
  * Resolves the notify text for a requester locale ('pt-BR' -> 'pt'),
@@ -41,11 +24,7 @@ export const DEFAULT_NOTIFY_LOCALE = 'en';
 export const getNotifyMessage = (
   locale: string | null | undefined,
   steamId: string,
-): string =>
-  (
-    NOTIFY_TEMPLATES[(locale ?? '').slice(0, 2).toLowerCase()] ??
-    NOTIFY_TEMPLATES[DEFAULT_NOTIFY_LOCALE]
-  )(steamId);
+): string => getNotifyText(locale, steamId);
 
 /**
  * Minimal structural surface of the Steam chat sender (steam-user's

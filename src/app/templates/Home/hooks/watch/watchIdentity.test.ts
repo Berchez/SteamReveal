@@ -1,7 +1,9 @@
 import {
+  WATCH_IDENTITY_EVENT,
   WATCH_IDENTITY_KEY,
   isValidWatchIdentity,
   getWatchIdentity,
+  notifyWatchIdentityChanged,
   setWatchIdentity,
   clearWatchIdentity,
 } from './watchIdentity';
@@ -28,7 +30,13 @@ describe('watchIdentity', () => {
   });
 
   it('refuses to store invalid ids (and stores nothing)', () => {
-    for (const bad of ['', 'short', 123 as unknown as string, null, undefined]) {
+    for (const bad of [
+      '',
+      'short',
+      123 as unknown as string,
+      null,
+      undefined,
+    ]) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(setWatchIdentity(bad as any)).toBe(false);
     }
@@ -90,5 +98,30 @@ describe('watchIdentity', () => {
     expect(WATCH_IDENTITY_KEY).toBe('steamreveal:watch:me');
     expect(isValidWatchIdentity(STEAM_ID)).toBe(true);
     expect(isValidWatchIdentity('')).toBe(false);
+  });
+
+  it('broadcasts same-tab identity changes without payload or throws', () => {
+    const seen: string[] = [];
+    const listener = (event: Event): void => {
+      seen.push(event.type);
+    };
+    window.addEventListener(WATCH_IDENTITY_EVENT, listener);
+    try {
+      expect(() => notifyWatchIdentityChanged()).not.toThrow();
+      expect(seen).toEqual([WATCH_IDENTITY_EVENT]);
+    } finally {
+      window.removeEventListener(WATCH_IDENTITY_EVENT, listener);
+    }
+  });
+
+  it('broadcast is a no-op on the server', () => {
+    const realWindow = globalThis.window;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).window;
+    try {
+      expect(() => notifyWatchIdentityChanged()).not.toThrow();
+    } finally {
+      globalThis.window = realWindow;
+    }
   });
 });

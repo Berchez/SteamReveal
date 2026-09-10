@@ -74,6 +74,8 @@ type DbApi = {
   markEventDropped: typeof import('./db').markEventDropped;
   resetStaleClaims: typeof import('./db').resetStaleClaims;
   countInvitesSentSince: typeof import('./db').countInvitesSentSince;
+  countNotificationsSince: typeof import('./db').countNotificationsSince;
+  listSentNotifications: typeof import('./db').listSentNotifications;
   isWithinCooldown: typeof import('./db').isWithinCooldown;
 };
 
@@ -740,6 +742,153 @@ describe('analytics db integration against real libSQL', () => {
         ),
       ).resolves.toEqual({ enqueued: false, reason: 'not-active' });
       expect(await notifyCount()).toBe(0);
+    });
+  });
+
+  describe('listSentNotifications inbox read (real SQL)', () => {
+    const STEAM = '76561198000000000';
+
+    it('returns only sent notifies, newest first, honoring the limit', async () => {
+      await db.createWatchRequest(STEAM);
+      await db.activateWatch(STEAM);
+
+      // One of each: sent, queued, dropped notify + a queued invite.
+      await db.enqueueEvent(STEAM, 'notify', 'inbox-sent-1');
+      await db.enqueueEvent(STEAM, 'notify', 'inbox-queued');
+      await db.enqueueEvent(STEAM, 'notify', 'inbox-dropped');
+      await db.enqueueEvent(STEAM, 'invite');
+      const [first, , toDrop] = await db.claimNextQueuedEvents('notify', 10);
+      expect(await db.markEventSent(first.id)).toBe(true);
+      expect(await db.markEventDropped(toDrop.id)).toBe(true);
+
+      // A second sent row, strictly newer (backdate the first send so the
+      // ordering assertion cannot tie on millisecond timestamps).
+      await db.enqueueEvent(STEAM, 'notify', 'inbox-sent-2');
+      const [second] = await db.claimNextQueuedEvents('notify', 10);
+      expect(await db.markEventSent(second.id)).toBe(true);
+      await db.executeForTests(
+        "UPDATE watch_events SET sent_at = '2000-01-01T00:00:00.000Z' WHERE id = ?",
+        [first.id],
+      );
+
+      const all = await db.listSentNotifications(STEAM);
+      expect(all).toEqual([
+        { id: second.id, sentAt: expect.any(String) },
+        { id: first.id, sentAt: '2000-01-01T00:00:00.000Z' },
+      ]);
+
+      // Queued/dropped/invite rows never surface; limit truncates.
+      expect(all).toHaveLength(2);
+      const one = await db.listSentNotifications(STEAM, 1);
+      expect(one).toEqual([{ id: second.id, sentAt: expect.any(String) }]);
+    });
+
+    it('returns [] for profiles with no delivered notifies', async () => {
+      await db.createWatchRequest(STEAM);
+      await expect(db.listSentNotifications(STEAM)).resolves.toEqual([]);
+      await expect(
+        db.listSentNotifications('76561198000000009'),
+      ).resolves.toEqual([]);
+    });
+
+    it('list and count agree on hand-corrupted sent rows (NULL sent_at)', async () => {
+      // A status='sent' row with NULL sent_at (hand edit — the write path
+      // always stamps it) must be invisible to BOTH inbox queries, or the
+      // "never disagree" guarantee between list and count breaks.
+      await db.createWatchRequest(STEAM);
+      await db.activateWatch(STEAM);
+
+      await db.enqueueEvent(STEAM, 'notify', 'inbox-corrupt');
+      const [claimed] = await db.claimNextQueuedEvents('notify', 10);
+      expect(await db.markEventSent(claimed.id)).toBe(true);
+      await db.executeForTests(
+        'UPDATE watch_events SET sent_at = NULL WHERE id = ?',
+        [claimed.id],
+      );
+
+      await expect(db.listSentNotifications(STEAM)).resolves.toEqual([]);
+      await expect(
+        db.countNotificationsSince(STEAM, null),
+      ).resolves.toBe(0);
+      await expect(
+        db.countNotificationsSince(STEAM, '2000-01-01T00:00:00.000Z'),
+      ).resolves.toBe(0);
+    });
+
+    it('counts delivered rows past a watermark (backlog beyond the window)', async () => {
+      await db.createWatchRequest(STEAM);
+      await db.activateWatch(STEAM);
+
+      // 25 delivered notifies: the read window (limit 20) cannot see them
+      // all, but the count must stay exact for the badge.
+      for (let i = 0; i < 25; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await db.enqueueEvent(STEAM, 'notify', `ct-${i}`);
+      }
+      const claimed = await db.claimNextQueuedEvents('notify', 25);
+      for (const event of claimed) {
+        // eslint-disable-next-line no-await-in-loop
+        await db.markEventSent(event.id);
+      }
+      // Pin distinct delivery timestamps (a back-to-back burst could share
+      // a millisecond, which would tie on strict > and flake the count).
+      const delivered = await db.listSentNotifications(STEAM, 25);
+      for (let i = 0; i < delivered.length; i += 1) {
+        const stamped = `2026-06-01T00:00:${String(i).padStart(2, '0')}.000Z`;
+        // eslint-disable-next-line no-await-in-loop
+        await db.executeForTests(
+          'UPDATE watch_events SET sent_at = ? WHERE id = ?',
+          [stamped, delivered[i].id],
+        );
+      }
+      const sentAts: string[] = [];
+      const restamped = await db.listSentNotifications(STEAM, 25);
+      restamped.forEach((row) => sentAts.push(row.sentAt));
+
+      expect(await db.countNotificationsSince(STEAM, null)).toBe(25);
+      expect(await db.countNotificationsSince(STEAM)).toBe(25);
+      const watermark = [...sentAts].sort().reverse()[0];
+      expect(await db.countNotificationsSince(STEAM, watermark)).toBe(0);
+
+      const window = await db.listSentNotifications(STEAM, 20);
+      expect(window).toHaveLength(20);
+      // sentAts sorted ascending: the 5 oldest sit below the window, yet
+      // the count past the 5th timestamp still sees the exact visible
+      // suffix — count and window agree by construction.
+      const ascending = [...sentAts].sort();
+      expect(await db.countNotificationsSince(STEAM, ascending[4])).toBe(20);
+    });
+
+    it('catches a late-delivered retry past an id-newer watermark', async () => {
+      // The exact P1 scenario: id=5 fails and requeues while id=6 sends
+      // first and gets seen. An id-cursor (id > 6) would skip id=5 forever
+      // even though it delivers LATER (fresher sent_at) — the sent_at
+      // cursor catches it because delivery order, not creation order, is
+      // what the badge tracks.
+      await db.createWatchRequest(STEAM);
+      await db.activateWatch(STEAM);
+
+      await db.enqueueEvent(STEAM, 'notify', 'retry-first');
+      await db.enqueueEvent(STEAM, 'notify', 'retry-second');
+      const [first, second] = await db.claimNextQueuedEvents('notify', 10);
+      // Second delivers first (as if the first needed a retry round).
+      // Backdate it so the later delivery is strictly greater by
+      // construction (two real sends could share a millisecond).
+      expect(await db.markEventSent(second.id)).toBe(true);
+      await db.executeForTests(
+        "UPDATE watch_events SET sent_at = '2026-01-01T00:00:00.000Z' WHERE id = ?",
+        [second.id],
+      );
+      const seen = '2026-01-01T00:00:00.000Z';
+
+      // User opens the inbox now: watermark = second delivery.
+      expect(await db.countNotificationsSince(STEAM, seen)).toBe(0);
+
+      // The retry finally delivers — strictly later, strictly greater
+      // sent_at, SMALLER id. The badge must show 1, not 0.
+      expect(await db.markEventSent(first.id)).toBe(true);
+      expect(await db.countNotificationsSince(STEAM, seen)).toBe(1);
+      expect(first.id).toBeLessThan(second.id);
     });
   });
 });

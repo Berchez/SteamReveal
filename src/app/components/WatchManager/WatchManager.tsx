@@ -8,6 +8,7 @@ import { useWatchStatus } from '@/app/templates/Home/hooks/watch/useWatchStatus'
 import {
   clearWatchIdentity,
   getWatchIdentity,
+  notifyWatchIdentityChanged,
   setWatchIdentity,
 } from '@/app/templates/Home/hooks/watch/watchIdentity';
 
@@ -76,7 +77,13 @@ function WatchManager() {
       }
       // Persist FIRST, then hand over: the polling hook reads identity on
       // the next render, so ordering here is the whole integration.
-      setWatchIdentity(value);
+      // Broadcast only when the write actually landed (private-mode
+      // storage failure returns false) — siblings re-read storage on the
+      // ping, and pinging them toward an empty slot would only hide a bell
+      // that has nothing to show yet anyway.
+      if (setWatchIdentity(value)) {
+        notifyWatchIdentityChanged();
+      }
       setIdentity(value);
     } catch {
       setRequestError(translator('watchErrorFailed'));
@@ -87,6 +94,7 @@ function WatchManager() {
 
   const handleRemoveLocal = useCallback(() => {
     clearWatchIdentity();
+    notifyWatchIdentityChanged();
     setIdentity(null);
   }, []);
 
