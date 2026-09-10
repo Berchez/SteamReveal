@@ -25,6 +25,10 @@ import { loadBotConfig } from './config';
 import { WatchBot } from './bot';
 import { reconcileFriendsList } from './reconcile';
 import { handleFriendRemoved } from './friendRemoved';
+import {
+  sendWelcomeMessage,
+  type WelcomeChatClient,
+} from './welcomeMessage';
 import { startHeartbeat } from './heartbeat';
 import { startInvitePoller } from './invitePoller';
 import { startStaleClaimSweeper, sweepStaleClaimsOnce } from './staleSweep';
@@ -83,6 +87,19 @@ const main = (): void => {
         friendsById,
         SteamUser.EFriendRelationship.Friend,
         { listWatchedProfiles, activateWatch, deactivateWatch },
+        logger,
+        // WB-11: welcome chat message on every fresh activation, in the
+        // stored requester locale. Runs after activateWatch commits; a send
+        // failure is isolated per row by reconcile (activation stands).
+        // The cast is contained here: @types/steam-user does not declare
+        // chat.sendFriendMessage (verified present at runtime in the
+        // installed v5), so the structural WelcomeChatClient carries it.
+        ({ steamId, locale }) =>
+          sendWelcomeMessage(
+            client.chat as unknown as WelcomeChatClient,
+            steamId,
+            locale,
+          ),
       ).catch((error) => {
         // eslint-disable-next-line no-console
         console.error(

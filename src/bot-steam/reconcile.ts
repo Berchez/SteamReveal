@@ -8,10 +8,19 @@
  *   - active + SteamID is NOT a friend -> deactivateWatch()
  *   - everything else                   -> untouched
  *
- * This is intentionally NOT a live friend-event listener (that is Epic 6):
- * it recovers exactly the cases events miss — friendships accepted or
- * removed while the bot was offline. Re-running with no changes is a
- * verified no-op (idempotency is unit-tested, not just claimed).
+ * This is snapshot-driven (not polled): callers feed it the friendsList
+ * snapshot on boot, reconnect, and live accept events (bot.ts forwards
+ * Friend transitions with the accepted id merged in, because the library
+ * emits before updating its own map). Removals have a dedicated live
+ * listener instead (Epic 6, friendRemoved.ts) — reconcile is their offline
+ * backstop, sharing the same deactivateWatch call.
+ * Re-running with no changes is a verified no-op (idempotency is
+ * unit-tested, not just claimed).
+ *
+ * The optional onActivated hook fires once per newly-activated watch with
+ * its stored locale (WB-11 welcome message). It runs AFTER activateWatch
+ * commits, and its failures are isolated per row without rolling the
+ * activation back.
  *
  * SteamIDs arrive as strings (object keys of myFriends). Anything that is
  * not a 17-digit id is skipped and counted, never passed to the DAL.
@@ -19,7 +28,7 @@
 
 export interface ReconcileDal {
   listWatchedProfiles: () => Promise<
-    Array<{ steamId: string; status: string }>
+    Array<{ steamId: string; status: string; locale: string | null }>
   >;
   activateWatch: (steamId: string) => Promise<boolean>;
   deactivateWatch: (steamId: string) => Promise<boolean>;
@@ -40,6 +49,18 @@ export interface ReconcileReport {
   durationMs: number;
 }
 
+/**
+ * Fired once per newly-activated watch, AFTER activateWatch resolves.
+ * The host uses it for post-activation side effects that need a live
+ * Steam session (WB-11: the welcome chat message). Failures are isolated
+ * per row into errors[] with operation 'welcomeMessage' — the activation
+ * itself already committed and is never rolled back for a send failure.
+ */
+export type ActivatedHandler = (profile: {
+  steamId: string;
+  locale: string | null;
+}) => Promise<void> | void;
+
 const STEAM_ID64_RE = /^\d{17}$/;
 
 export const reconcileFriendsList = async (
@@ -47,6 +68,7 @@ export const reconcileFriendsList = async (
   friendRelationshipValue: number,
   dal: ReconcileDal,
   logger: ReconcileLogger = console,
+  onActivated: ActivatedHandler | undefined = undefined,
 ): Promise<ReconcileReport> => {
   const startedAt = Date.now();
   const report: ReconcileReport = {
@@ -87,6 +109,22 @@ export const reconcileFriendsList = async (
           // eslint-disable-next-line no-await-in-loop
           await dal.activateWatch(watch.steamId);
           report.activated.push(watch.steamId);
+          if (onActivated) {
+            try {
+              // eslint-disable-next-line no-await-in-loop
+              await onActivated({
+                steamId: watch.steamId,
+                locale: watch.locale ?? null,
+              });
+            } catch (error) {
+              report.errors.push({
+                steamId: watch.steamId,
+                operation: 'welcomeMessage',
+                message:
+                  error instanceof Error ? error.message : String(error),
+              });
+            }
+          }
         } else if (watch.status === 'active' && !friends.has(watch.steamId)) {
           // eslint-disable-next-line no-await-in-loop
           await dal.deactivateWatch(watch.steamId);

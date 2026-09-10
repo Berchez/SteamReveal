@@ -2,7 +2,8 @@
  * @jest-environment node
  */
 
-import { POST, INVITE_REREQUEST_AFTER_MS } from './route';
+import { POST } from './route';
+import INVITE_REREQUEST_AFTER_MS from '@/lib/watchInviteCooldown';
 
 jest.mock('@/lib/analytics/db', () => ({
   createWatchRequest: jest.fn(),

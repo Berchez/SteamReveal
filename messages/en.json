@@ -164,6 +164,24 @@
       "description": "See {nickname}'s public Steam data, possible location and friends analysis on SteamReveal.",
       "fallbackTitle": "SteamReveal - Analyze Steam Profiles",
       "fallbackDescription": "SteamReveal is an OSINT tool designed for the Steam community. Analyze Steam profiles, discover real friends, and locate players using public data."
+    },
+    "Watch": {
+      "title": "Watch a Steam profile | SteamReveal",
+      "description": "Get notified on Steam whenever a Steam profile is searched."
     }
+  },
+  "Watch": {
+    "watchWelcome": "Watch active! The bot will message you on Steam when this profile is searched.",
+    "watchTitle": "Watch a Steam profile",
+    "watchDescription": "Get a Steam message from our bot whenever this profile is searched. No login needed — accepting the bot friend request is the opt-in.",
+    "watchInputPlaceholder": "SteamID64 (17 digits)",
+    "watchSubmit": "Watch this profile",
+    "watchPendingTitle": "Invite sent",
+    "watchPendingHint": "Accept the SteamReveal bot friend request in Steam to activate notifications.",
+    "watchActiveTitle": "Watching",
+    "watchActiveHint": "To stop, just unfriend the bot on Steam. Nothing else is needed.",
+    "watchRemoveLocal": "Forget this browser",
+    "watchErrorInvalid": "Enter a valid 17-digit SteamID64.",
+    "watchErrorFailed": "Could not start watching. Try again in a moment."
   }
 }

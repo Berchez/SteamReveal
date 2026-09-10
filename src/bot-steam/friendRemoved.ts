@@ -17,6 +17,8 @@
  *   there is nothing sensitive to leak into logs by construction.
  */
 
+import { isSteamId64 } from '@/lib/steamId';
+
 export interface FriendRemovedDal {
   deactivateWatch: (steamId: string) => Promise<boolean>;
 }
@@ -31,14 +33,12 @@ export interface FriendRemovedResult {
   deactivated: boolean;
 }
 
-const STEAM_ID64_RE = /^\d{17}$/;
-
 export const handleFriendRemoved = async (
   steamId: string,
   dal: FriendRemovedDal,
   logger: FriendRemovedLogger = console,
 ): Promise<FriendRemovedResult> => {
-  if (!STEAM_ID64_RE.test(steamId)) {
+  if (!isSteamId64(steamId)) {
     logger.error(
       `[WatchBot] friend-remove ignored: malformed steamId ${JSON.stringify(steamId)}`,
     );

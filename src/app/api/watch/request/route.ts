@@ -4,6 +4,8 @@ import { errorResponse } from '@/lib/apiError';
 import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
+import { isSteamId64 } from '@/lib/steamId';
+import INVITE_REREQUEST_AFTER_MS from '@/lib/watchInviteCooldown';
 import {
   createWatchRequest,
   deactivateWatch,
@@ -17,20 +19,12 @@ export const runtime = 'nodejs';
 
 export const revalidate = 0;
 
-// Re-request cooldown: a pending invite that was never accepted can only
-// be re-queued after this long. Prevents invite spam against both Steam
-// (throttling/ban risk for the bot account) and the target user, while
-// still letting a genuinely missed invite be retried after a week.
-export const INVITE_REREQUEST_AFTER_MS = 7 * 24 * 3600 * 1000;
-
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 10;
 const requestRateLimiter = createRateLimiter(
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX,
 );
-
-const STEAM_ID64_RE = /^\d{17}$/;
 
 // A row this request created/refreshed moments ago (see below).
 const FRESH_ROW_MAX_AGE_MS = 60000;
@@ -112,6 +106,8 @@ type WatchRequestBody = {
  * profile is harmless — they simply ignore it and nothing activates.
  */
 export async function POST(req: Request) {
+  // App Router only routes POST here; kept as defense-in-depth (and so unit
+  // tests can invoke POST() directly with other methods).
   if (req.method !== 'POST') {
     return errorResponse('Method not allowed.', 405, 'METHOD_NOT_ALLOWED');
   }
@@ -136,7 +132,7 @@ export async function POST(req: Request) {
   }
 
   const { steamId, locale } = body ?? {};
-  if (typeof steamId !== 'string' || !STEAM_ID64_RE.test(steamId)) {
+  if (!isSteamId64(steamId)) {
     return errorResponse(
       'Invalid steamId: expected 17-digit SteamID64.',
       400,

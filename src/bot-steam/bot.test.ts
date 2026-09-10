@@ -248,6 +248,30 @@ describe('WatchBot', () => {
     bot.stop();
   });
 
+  it('forwards live accept events as a snapshot including the new friend', () => {
+    const onFriendRemoved = jest.fn();
+    const onFriendsSnapshot = jest.fn();
+    const { bot, client } = makeBot({ onFriendRemoved, onFriendsSnapshot });
+    bot.start();
+
+    // myFriends does NOT contain the accepted id yet (the library emits
+    // before updating its own map) — the forwarded snapshot must merge it.
+    client.myFriends = { '76561198000000001': 3 };
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000002' },
+      3,
+    );
+
+    expect(onFriendRemoved).not.toHaveBeenCalled();
+    expect(onFriendsSnapshot).toHaveBeenCalledTimes(1);
+    expect(onFriendsSnapshot).toHaveBeenCalledWith({
+      '76561198000000001': 3,
+      '76561198000000002': 3,
+    });
+    bot.stop();
+  });
+
   it('contains an unreadable steamId and subscribes only once across reconnects', () => {
     const logger = { info: jest.fn(), error: jest.fn() };
     const onFriendRemoved = jest.fn();

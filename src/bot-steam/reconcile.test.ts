@@ -9,7 +9,7 @@ const STRANGER = 0;
 const silentLogger = { info: jest.fn(), error: jest.fn() };
 
 const makeDal = (
-  watches: Array<{ steamId: string; status: string }>,
+  watches: Array<{ steamId: string; status: string; locale?: string | null }>,
 ): ReconcileDal & {
   activated: string[];
   deactivated: string[];
@@ -22,7 +22,9 @@ const makeDal = (
   };
   return {
     ...state,
-    listWatchedProfiles: jest.fn(async () => watches.map((w) => ({ ...w }))),
+    listWatchedProfiles: jest.fn(async () =>
+      watches.map((w) => ({ locale: null, ...w })),
+    ),
     activateWatch: jest.fn(async (steamId: string) => {
       if (state.failOn.has(`activate:${steamId}`)) {
         throw new Error(`activate boom for ${steamId}`);
@@ -165,5 +167,81 @@ describe('reconcileFriendsList', () => {
     expect(line).toContain('watches=1');
     expect(line).toContain('deactivated=1');
     expect(line).toContain('durationMs=');
+  });
+
+  it('calls onActivated with steamId+locale for every fresh activation', async () => {
+    const dal = makeDal([
+      { steamId: '76561198000000001', status: 'pending', locale: 'pt' },
+      { steamId: '76561198000000002', status: 'pending', locale: null },
+      { steamId: '76561198000000003', status: 'active' },
+    ]);
+    const onActivated = jest.fn();
+
+    const report = await reconcileFriendsList(
+      {
+        '76561198000000001': FRIEND,
+        '76561198000000002': FRIEND,
+        '76561198000000003': FRIEND,
+      },
+      FRIEND,
+      dal,
+      silentLogger,
+      onActivated,
+    );
+
+    expect(report.activated).toEqual([
+      '76561198000000001',
+      '76561198000000002',
+    ]);
+    expect(onActivated).toHaveBeenCalledTimes(2);
+    expect(onActivated).toHaveBeenCalledWith({
+      steamId: '76561198000000001',
+      locale: 'pt',
+    });
+    expect(onActivated).toHaveBeenCalledWith({
+      steamId: '76561198000000002',
+      locale: null,
+    });
+  });
+
+  it('a failing welcome keeps the activation and records a welcomeMessage error', async () => {
+    const dal = makeDal([
+      { steamId: '76561198000000001', status: 'pending' },
+    ]);
+    const onActivated = jest.fn(async () => {
+      throw new Error('steam down');
+    });
+
+    const report = await reconcileFriendsList(
+      { '76561198000000001': FRIEND },
+      FRIEND,
+      dal,
+      silentLogger,
+      onActivated,
+    );
+
+    // Activation committed before the callback ran: still reported.
+    expect(report.activated).toEqual(['76561198000000001']);
+    expect(report.errors).toHaveLength(1);
+    expect(report.errors[0]).toMatchObject({
+      steamId: '76561198000000001',
+      operation: 'welcomeMessage',
+    });
+  });
+
+  it('never calls onActivated without an activation', async () => {
+    const dal = makeDal([{ steamId: '76561198000000001', status: 'active' }]);
+    const onActivated = jest.fn();
+
+    await reconcileFriendsList(
+      { '76561198000000001': FRIEND },
+      FRIEND,
+      dal,
+      silentLogger,
+      onActivated,
+    );
+    await reconcileFriendsList({}, FRIEND, dal, silentLogger, onActivated);
+
+    expect(onActivated).not.toHaveBeenCalled();
   });
 });
