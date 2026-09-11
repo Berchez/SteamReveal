@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { errorResponse } from '@/lib/apiError';
@@ -5,7 +6,7 @@ import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { getWatchStatus } from '@/lib/analytics/db';
-import { isSteamId64 } from '@/lib/steamId';
+import { resolveWatchSession } from '@/lib/watch/session';
 
 export const runtime = 'nodejs';
 
@@ -24,14 +25,19 @@ const statusRateLimiter = createRateLimiter(
 );
 
 /**
- * Returns the current watch state for a Steam profile — exclusively one
- * of 'pending' | 'active' | 'none' ('none' covers never-requested AND
+ * Returns the current watch state for the LOGGED-IN profile — exclusively
+ * one of 'pending' | 'active' | 'none' ('none' covers never-requested AND
  * opted-out/deactivated: both mean "no watch", and the distinction is
  * internal state the API deliberately does not expose).
  *
- * Strictly read-only: no login, no session, no state mutation (the only
- * DAL call is getWatchStatus). Used by the frontend polling loop after a
- * watch request.
+ * Self-scoped: identity comes EXCLUSIVELY from the Steam OpenID session —
+ * the old `?steamId=` parameter is gone entirely (a present-but-ignored
+ * id would be a third-party lookup footgun, so its presence is a 400).
+ * Unauthenticated callers get 401.
+ *
+ * Strictly read-only: no state mutation (the only DAL call is
+ * getWatchStatus). Used by the frontend polling loop after a watch
+ * request.
  */
 export async function GET(req: Request) {
   // App Router only routes GET here; kept as defense-in-depth (and so unit
@@ -44,14 +50,27 @@ export async function GET(req: Request) {
     return errorResponse('Too many requests.', 429, 'RATE_LIMITED');
   }
 
-  const steamId = new URL(req.url).searchParams.get('steamId');
-  if (!isSteamId64(steamId)) {
+  if (new URL(req.url).searchParams.has('steamId')) {
     return errorResponse(
-      'Invalid steamId: expected ?steamId=<17-digit SteamID64>.',
+      'Invalid request: steamId comes from the login session, not the query string.',
       400,
       'INVALID_REQUEST',
     );
   }
+
+  const session = await resolveWatchSession(cookies());
+  if (session.status === 'error') {
+    logRouteError('watchStatus', sanitizeError(session.error));
+    return errorResponse(
+      'Internal server error while reading watch status.',
+      500,
+      'INTERNAL_ERROR',
+    );
+  }
+  if (session.status === 'unauthenticated') {
+    return errorResponse('Login required.', 401, 'UNAUTHENTICATED');
+  }
+  const { steamId } = session;
 
   try {
     const status = await getWatchStatus(steamId);

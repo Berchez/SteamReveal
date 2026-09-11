@@ -16,7 +16,8 @@
  * sync would need server-side read state, which is out of scope — a second
  * device simply counts from its own first open.
  *
- * Same safety contract as watchIdentity: SSR-safe (typeof window guard),
+ * Same safety contract as the old watchIdentity module (retired with the
+ * Steam OpenID migration): SSR-safe (typeof window guard),
  * private-mode-safe (try/catch), never throws, invalid ids are no-ops.
  */
 

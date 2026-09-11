@@ -25,13 +25,13 @@ export interface BotConfig {
   invitePollIntervalMs: number;
   inviteBatchLimit: number;
   /**
-   * Global cap on REAL friend invites sent per UTC day (P1-1 abuse bound).
-   * Requesting needs no login (acceptance itself is the opt-in proof), so
-   * anyone can queue invites for arbitrary profiles — the per-IP route
-   * limiter only slows one source, and serverless fan-out weakens even
-   * that. This cap bounds the GLOBAL blast radius at the sink (the only
-   * place that actually touches Steam): with the defaults below, one bot
-   * can send at most 5/min and 50/day no matter how many requests arrive.
+   * Global cap on REAL friend invites sent per UTC day (abuse bound).
+   * Since Steam OpenID login, a request always targets the requester's OWN
+   * profile (session id) — unsolicited invites to third parties are
+   * impossible by construction, which retired the old P1-1 anonymous-abuse
+   * model. The cap stays as the flood-control backstop at the sink (the
+   * only place that actually touches Steam): with the defaults below, one
+   * bot sends at most 5/min and 50/day no matter how many requests arrive.
    * Tune both numbers as one explicit product decision, not in isolation.
    */
   inviteDailyLimit: number;

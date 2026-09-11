@@ -46,10 +46,12 @@ describe('useWatchStatus', () => {
     jest.restoreAllMocks();
   });
 
-  const render = (props: {
-    steamId?: string | null;
-    enabled?: boolean;
-  } = {}) =>
+  const render = (
+    props: {
+      steamId?: string | null;
+      enabled?: boolean;
+    } = {},
+  ) =>
     renderHook(
       ({ steamId, enabled }) =>
         useWatchStatus({ steamId, enabled, pollIntervalMs: 5000 }),
@@ -87,8 +89,7 @@ describe('useWatchStatus', () => {
       if (original) {
         Object.defineProperty(document, 'visibilityState', original);
       } else {
-        delete (document as unknown as Record<string, unknown>)
-          .visibilityState;
+        delete (document as unknown as Record<string, unknown>).visibilityState;
       }
     };
 
@@ -121,6 +122,19 @@ describe('useWatchStatus', () => {
     });
     await flushInitialFetch();
   };
+
+  it('stops and reports session-expired on 401 (logged out mid-use)', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 401 });
+
+    const { result } = render();
+
+    await flushInitialFetch();
+    expect(result.current).toEqual({ status: null, error: 'session-expired' });
+    // Polling stopped: no more fetches no matter how long we wait.
+    const calls = fetchMock.mock.calls.length;
+    await flushPolls(3);
+    expect(fetchMock.mock.calls.length).toBe(calls);
+  });
 
   it('fires the welcome toast exactly once on pending -> active', async () => {
     fetchMock

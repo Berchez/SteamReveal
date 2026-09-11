@@ -1,7 +1,8 @@
 /**
  * SteamID64 shape check — single source of truth shared by the watch API
- * routes and the watch frontend identity. Do NOT fork this regex per call
- * site: a drift silently accepts in one layer what another rejects.
+ * routes, the session layer, and the watch frontend. Do NOT fork this
+ * regex per call site: a drift silently accepts in one layer what another
+ * rejects.
  *
  * Deliberately shape-only (17 digits, NO 7656119... prefix requirement).
  * Individual universe-1 accounts span 76561197960… through 76561202255…

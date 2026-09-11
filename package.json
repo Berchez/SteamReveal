@@ -38,6 +38,7 @@
     "cheerio": "^1.1.0",
     "express": "^5.2.1",
     "framer-motion": "^12.23.26",
+    "iron-session": "^9.0.1",
     "next": "14.2.10",
     "next-intl": "^3.9.1",
     "react": "^18",

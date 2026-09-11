@@ -39,6 +39,16 @@ export default defineConfig({
       DEV_TEST_MODE: '1',
       PORT: '3100',
       LOCAL_PROXY_URL: '',
+      // Test-only session secret (mirrors the documented local-dev value
+      // shape): lets the WB e2e suite seal real iron-session cookies via
+      // the mock-gated /api/auth/test-login route. Never used outside
+      // localhost e2e — production reads SESSION_SECRET from its own env.
+      SESSION_SECRET: 'e2e-test-session-secret-32-chars-min!!',
+      // Second test-login gate layer (mirrors E2E_TEST_SECRET_VALUE in
+      // e2e/support/fixtures.ts): the ONLY server env that carries it.
+      // Deliberately absent from .env.example — without it, the route 404s
+      // even if the mock-mode env gate somehow passed on a real host.
+      E2E_TEST_SECRET: 'e2e-only-test-login-secret',
     },
   },
 });

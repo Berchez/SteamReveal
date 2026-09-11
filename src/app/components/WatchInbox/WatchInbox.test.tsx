@@ -2,10 +2,6 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import WatchInbox from './WatchInbox';
-import {
-  WATCH_IDENTITY_EVENT,
-  WATCH_IDENTITY_KEY,
-} from '@/app/templates/Home/hooks/watch/watchIdentity';
 import { WATCH_SEEN_KEY_PREFIX } from '@/app/templates/Home/hooks/watch/watchReadState';
 
 // Interpolation-aware (unlike the key-echo mock in WatchManager tests):
@@ -60,75 +56,35 @@ describe('WatchInbox', () => {
     await settle();
   };
 
-  it('renders nothing and never fetches without an identity', async () => {
-    const { container } = render(<WatchInbox />);
-    await settle();
-
-    expect(container).toBeEmptyDOMElement();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('renders nothing for an invalid stored identity', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, 'not-an-id');
-    const { container } = render(<WatchInbox />);
-    await settle();
-
-    expect(container).toBeEmptyDOMElement();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('appears without reload when the identity lands mid-session', async () => {
-    // The core same-tab flow: WatchManager stores the id after a
-    // successful request and broadcasts (native storage events never
-    // fire in the writing document). The bell must show up with no F5.
-    const { container } = render(<WatchInbox />);
-    await settle();
-    expect(container).toBeEmptyDOMElement();
-    expect(fetchMock).not.toHaveBeenCalled();
-
+  it('fetches history for the session profile on mount (no steamId param)', async () => {
     fetchMock.mockResolvedValue(notificationsResponse([]));
-    await act(async () => {
-      window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
-      window.dispatchEvent(new Event(WATCH_IDENTITY_EVENT));
-    });
-    await settle();
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `/api/watch/notifications?steamId=${STEAM_A}&limit=20`,
-    );
-    expect(screen.getByRole('button')).toBeInTheDocument();
-  });
-
-  it('fetches history for the stored identity on mount', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
-    fetchMock.mockResolvedValue(
-      notificationsResponse([row(2, '2026-06-02T00:00:00.000Z')]),
-    );
-
-    render(<WatchInbox />);
+    render(<WatchInbox steamId={STEAM_A} />);
     await settle();
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      `/api/watch/notifications?steamId=${STEAM_A}&limit=20`,
-    );
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).toContain('/api/watch/notifications?');
+    expect(url).not.toContain('steamId=');
   });
 
   it('shows the unread count on the bell and clears it on open', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
     fetchMock.mockResolvedValue(
-      notificationsResponse([
-        row(2, '2026-06-02T00:00:00.000Z'),
-        row(1, '2026-06-01T00:00:00.000Z'),
-      ]),
+      notificationsResponse(
+        [
+          row(2, '2026-06-02T00:00:00.000Z'),
+          row(1, '2026-06-01T00:00:00.000Z'),
+        ],
+        2,
+      ),
     );
 
-    render(<WatchInbox />);
+    render(<WatchInbox steamId={STEAM_A} />);
     await settle();
 
     const bell = screen.getByRole('button');
-    // Two rows, no watermark yet: both unread, announced in the label
-    // (the badge itself is aria-hidden — no double announcement).
+    // Both unread, announced in the label (the badge itself is
+    // aria-hidden — no double announcement).
     expect(bell).toHaveAttribute(
       'aria-label',
       'watchInboxBellLabel:{"count":2}',
@@ -159,16 +115,15 @@ describe('WatchInbox', () => {
   });
 
   it('keeps read state per steamId (no cross-profile leaks)', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
     window.localStorage.setItem(
       `${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`,
       '2026-06-03T00:00:00.000Z',
     );
     fetchMock.mockResolvedValue(
-      notificationsResponse([row(9, '2026-06-02T00:00:00.000Z')]),
+      notificationsResponse([row(9, '2026-06-02T00:00:00.000Z')], 0),
     );
 
-    render(<WatchInbox />);
+    const { rerender } = render(<WatchInbox steamId={STEAM_A} />);
     await settle();
 
     // Watermark (06-03) covers the 06-02 event: nothing unread for A…
@@ -179,16 +134,13 @@ describe('WatchInbox', () => {
 
     // …and B starts clean even though A was fully read.
     fetchMock.mockResolvedValue(
-      notificationsResponse([row(3, '2026-06-03T00:00:00.000Z')]),
+      notificationsResponse([row(3, '2026-06-03T00:00:00.000Z')], 1),
     );
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_B);
-    await act(async () => {
-      window.dispatchEvent(new window.StorageEvent('storage'));
-    });
+    rerender(<WatchInbox steamId={STEAM_B} />);
     await settle();
 
     expect(fetchMock).toHaveBeenLastCalledWith(
-      `/api/watch/notifications?steamId=${STEAM_B}&limit=20`,
+      expect.stringContaining('/api/watch/notifications?'),
     );
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
@@ -205,19 +157,21 @@ describe('WatchInbox', () => {
   });
 
   it('survives reloads: opened notifications stay read', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
     window.localStorage.setItem(
       `${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`,
       '2026-06-01T12:00:00.000Z',
     );
     fetchMock.mockResolvedValue(
-      notificationsResponse([
-        row(6, '2026-06-02T00:00:00.000Z'),
-        row(5, '2026-06-01T00:00:00.000Z'),
-      ]),
+      notificationsResponse(
+        [
+          row(6, '2026-06-02T00:00:00.000Z'),
+          row(5, '2026-06-01T00:00:00.000Z'),
+        ],
+        1,
+      ),
     );
 
-    const { unmount } = render(<WatchInbox />);
+    const { unmount } = render(<WatchInbox steamId={STEAM_A} />);
     await settle();
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
@@ -225,8 +179,8 @@ describe('WatchInbox', () => {
     );
     unmount();
 
-    // Remount (reload): only event 6 is still unread.
-    render(<WatchInbox />);
+    // Remount (reload): only the 06-02 event is still unread.
+    render(<WatchInbox steamId={STEAM_A} />);
     await settle();
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
@@ -238,19 +192,16 @@ describe('WatchInbox', () => {
     // 30 delivered, window of 20: a client-side filter would read 20.
     // The server counts past the cap, so the badge must read 30 — and the
     // sinceSentAt cursor actually travels (watermark-first fetch omits it).
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
     const rows = Array.from({ length: 20 }, (_, i) => ({
       id: 30 - i,
       sentAt: '2026-06-02T00:00:00.000Z',
     }));
     fetchMock.mockResolvedValue(notificationsResponse(rows, 30));
 
-    render(<WatchInbox />);
+    render(<WatchInbox steamId={STEAM_A} />);
     await settle();
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `/api/watch/notifications?steamId=${STEAM_A}&limit=20`,
-    );
+    expect(fetchMock).toHaveBeenCalledWith('/api/watch/notifications?limit=20');
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
       'watchInboxBellLabel:{"count":30}',
@@ -275,7 +226,7 @@ describe('WatchInbox', () => {
     await settle();
 
     expect(fetchMock).toHaveBeenLastCalledWith(
-      `/api/watch/notifications?steamId=${STEAM_A}&limit=20&sinceSentAt=2026-06-02T00%3A00%3A00.000Z`,
+      '/api/watch/notifications?limit=20&sinceSentAt=2026-06-02T00%3A00%3A00.000Z',
     );
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
@@ -284,10 +235,9 @@ describe('WatchInbox', () => {
   });
 
   it('shows the empty state when nothing was delivered', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
     fetchMock.mockResolvedValue(notificationsResponse([]));
 
-    render(<WatchInbox />);
+    render(<WatchInbox steamId={STEAM_A} />);
     await settle();
     await openInbox();
 
@@ -299,7 +249,6 @@ describe('WatchInbox', () => {
   });
 
   it('shows loading, then content', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
     let resolveFetch!: (value: Response) => void;
     fetchMock.mockReturnValue(
       new Promise<Response>((resolve) => {
@@ -307,14 +256,16 @@ describe('WatchInbox', () => {
       }),
     );
 
-    render(<WatchInbox />);
+    render(<WatchInbox steamId={STEAM_A} />);
     await settle();
     // Bell is up (mount fetch pending); open to see the loading state.
     await openInbox();
     expect(screen.getByText('watchInboxLoading')).toBeInTheDocument();
 
     await act(async () => {
-      resolveFetch(notificationsResponse([row(1, '2026-06-01T00:00:00.000Z')]));
+      resolveFetch(
+        notificationsResponse([row(1, '2026-06-01T00:00:00.000Z')], 1),
+      );
     });
     await settle();
     expect(screen.queryByText('watchInboxLoading')).not.toBeInTheDocument();
@@ -322,10 +273,9 @@ describe('WatchInbox', () => {
   });
 
   it('shows an error with retry, and recovers', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
     fetchMock.mockRejectedValue(new Error('network down'));
 
-    render(<WatchInbox />);
+    render(<WatchInbox steamId={STEAM_A} />);
     await settle();
     await openInbox();
 
@@ -333,7 +283,7 @@ describe('WatchInbox', () => {
     expect(screen.queryByText(/stack|Error: network/)).not.toBeInTheDocument();
 
     fetchMock.mockResolvedValue(
-      notificationsResponse([row(1, '2026-06-01T00:00:00.000Z')]),
+      notificationsResponse([row(1, '2026-06-01T00:00:00.000Z')], 1),
     );
     fireEvent.click(screen.getByText('watchInboxRetry'));
     await settle();
@@ -342,8 +292,83 @@ describe('WatchInbox', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
   });
 
+  it('offers the login gate when the session died mid-use', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 401 });
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    const loginLink = screen.getByText('watchLoginButton');
+    expect(loginLink.closest('a')).toHaveAttribute(
+      'href',
+      expect.stringContaining('/api/auth/steam/login'),
+    );
+    // No badge arithmetic on an unauthenticated lane.
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'aria-label',
+      'watchInboxBellLabel:{"count":0}',
+    );
+  });
+
+  it('clears stale rows and count when the session dies after content loaded', async () => {
+    fetchMock.mockResolvedValue(
+      notificationsResponse(
+        [row(2, '2026-06-02T00:00:00.000Z')],
+        1,
+      ),
+    );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'aria-label',
+      'watchInboxBellLabel:{"count":1}',
+    );
+
+    // Session dies on the next fetch: the lane resets instead of showing
+    // yesterday's rows next to a login prompt.
+    fetchMock.mockResolvedValue({ ok: false, status: 401 });
+    await openInbox();
+
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'aria-label',
+      'watchInboxBellLabel:{"count":0}',
+    );
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+    expect(screen.getByText('watchLoginButton')).toBeInTheDocument();
+  });
+
+  it('recovers the lane when the session comes back (expiry flag resets)', async () => {
+    // 401 first: login prompt, badge zeroed…
+    fetchMock.mockResolvedValue({ ok: false, status: 401 });
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+    expect(screen.getByText('watchLoginButton')).toBeInTheDocument();
+
+    // …then a successful fetch (re-login elsewhere) clears the prompt and
+    // restores rows instead of sticking on the login state. (Unnamed
+    // button query: the key-echo mock translator lowercases the label,
+    // so no name filter can match it — the bell is the only <button>
+    // while the panel shows rows or the login link.)
+    fetchMock.mockResolvedValue(
+      notificationsResponse(
+        [row(3, '2026-06-03T00:00:00.000Z')],
+        1,
+      ),
+    );
+    fireEvent.click(screen.getByRole('button'));
+    await settle();
+    fireEvent.click(screen.getByRole('button'));
+    await settle();
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.queryByText('watchLoginButton')).not.toBeInTheDocument();
+  });
+
   it('drops malformed rows instead of crashing', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -355,10 +380,11 @@ describe('WatchInbox', () => {
           null,
           'nope',
         ],
+        unreadCount: 1,
       }),
     } as Response);
 
-    render(<WatchInbox />);
+    render(<WatchInbox steamId={STEAM_A} />);
     await settle();
     await openInbox();
 
@@ -366,10 +392,9 @@ describe('WatchInbox', () => {
   });
 
   it('supports keyboard: aria-expanded, Escape closes, focus moves', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_A);
     fetchMock.mockResolvedValue(notificationsResponse([]));
 
-    render(<WatchInbox />);
+    render(<WatchInbox steamId={STEAM_A} />);
     await settle();
 
     const bell = screen.getByRole('button');

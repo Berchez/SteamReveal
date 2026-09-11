@@ -96,8 +96,8 @@ export type NewSearchInput = Omit<
 
 // ---------------------------------------------------------------------------
 // Watch Bot (Epic: notify user when their profile is searched).
-// No email anywhere by design — the Steam friendship is the opt-in proof
-// and Steam chat is the delivery channel.
+// No email anywhere by design — the Steam OpenID login is the opt-in proof
+// and Steam chat (via the bot friendship) is the delivery channel.
 // ---------------------------------------------------------------------------
 
 /** Lifecycle of a watched profile: invite sent vs friendship observed. */

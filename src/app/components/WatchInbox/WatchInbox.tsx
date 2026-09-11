@@ -12,10 +12,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import { getNotifyText } from '@/lib/watch/notificationText';
 import { WATCH_INBOX_DEFAULT_LIMIT } from '@/lib/watch/limits';
 import {
-  WATCH_IDENTITY_EVENT,
-  getWatchIdentity,
-} from '@/app/templates/Home/hooks/watch/watchIdentity';
-import {
   getLastSeenSentAt,
   latestSentAt,
   setLastSeenSentAt,
@@ -31,8 +27,8 @@ const NOTIFICATIONS_LIMIT = WATCH_INBOX_DEFAULT_LIMIT;
 /**
  * Watch inbox bell + dropdown (WB-14).
  *
- * Reads delivered notifies (kind='notify', status='sent') for the SteamID
- * stored by the Epic 4 identity flow and presents them newest-first. The
+ * Reads delivered notifies (kind='notify', status='sent') for the session
+ * SteamID prop and presents them newest-first. The
  * item text is the shared WB-15 base (same function family the bot sends
  * with). Language note: items render in the PAGE locale, while the bot
  * sent in the stored requester locale — same base text, viewer language.
@@ -44,56 +40,39 @@ const NOTIFICATIONS_LIMIT = WATCH_INBOX_DEFAULT_LIMIT;
  * stored) — that is the intended look, not a rendering bug.
  *
  * Unread state is a local per-profile watermark (max delivered sent_at in
- * localStorage — no `read_at` column): opening the inbox marks everything
- * visible as seen. Timestamp (not id) cursor: retries keep old ids but land
- * fresh sent_at values. No interval polling by design (fetch on
- * mount/identity change, refetch on open and on manual retry only).
+ * localStorage — no `read_at` column), keyed by the session SteamID prop:
+ * opening the inbox marks everything visible as seen. Timestamp (not id)
+ * cursor: retries keep old ids but land fresh sent_at values. No interval
+ * polling by design (fetch on mount/prop change, refetch on open and on
+ * manual retry only). A 401 (session died mid-use) swaps the panel for a
+ * login link instead of failing silently.
  *
  * Accessibility: real <button> with an interpolated aria-label (the count
  * never relies on color alone), aria-expanded, Escape closes, click-outside
  * closes, focus moves into the panel on open and back to the bell on
  * close, error/empty states are role="alert"/plain text (never silent).
  */
-function WatchInbox() {
+function WatchInbox({ steamId }: { steamId: string }) {
   const translator = useTranslations('Watch');
   // Page locale drives item language AND timestamp formatting (the bot may
   // have sent in the stored requester locale — same base text family).
   const locale = useLocale();
-  const [identity, setIdentity] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<InboxNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const headingRef = useRef<HTMLHeadingElement | null>(null);
   const fetchSeqRef = useRef(0);
 
-  // Identity lives in localStorage, which does not exist during SSR — read
-  // it post-mount and render nothing until then to avoid a hydration
-  // mismatch (same pattern as WatchManager). Two sync channels: the native
-  // 'storage' event for OTHER tabs, and WATCH_IDENTITY_EVENT for this tab's
-  // own writes (native storage events never fire in the writing document —
-  // without the broadcast, a WatchManager submit on this page would leave
-  // the bell hidden until reload).
-  useEffect(() => {
-    setIdentity(getWatchIdentity());
-    setHydrated(true);
-    const resync = (): void => {
-      setIdentity(getWatchIdentity());
-    };
-    window.addEventListener('storage', resync);
-    window.addEventListener(WATCH_IDENTITY_EVENT, resync);
-    return () => {
-      window.removeEventListener('storage', resync);
-      window.removeEventListener(WATCH_IDENTITY_EVENT, resync);
-    };
-  }, []);
-
+  // The SteamID arrives as a server-verified prop (login session) — no
+  // localStorage identity, no sync listeners. A prop change resets
+  // everything (never mix profiles).
   const fetchNotifications = useCallback(
-    async (steamId: string, markVisibleAsSeen: boolean): Promise<void> => {
+    async (markVisibleAsSeen: boolean): Promise<void> => {
       const seq = fetchSeqRef.current + 1;
       fetchSeqRef.current = seq;
       setLoading(true);
@@ -106,13 +85,27 @@ function WatchInbox() {
       const watermark = getLastSeenSentAt(steamId);
       try {
         const res = await fetch(
-          `/api/watch/notifications?steamId=${encodeURIComponent(steamId)}&limit=${NOTIFICATIONS_LIMIT}${
+          `/api/watch/notifications?limit=${NOTIFICATIONS_LIMIT}${
             watermark === null
               ? ''
               : `&sinceSentAt=${encodeURIComponent(watermark)}`
           }`,
         );
+        if (res.status === 401) {
+          // Session died mid-use (logout elsewhere, expiry): drop the lane
+          // state (stale rows + a stale count next to a login prompt would
+          // lie) and offer the way back in. finally below clears loading.
+          if (fetchSeqRef.current !== seq) return;
+          setSessionExpired(true);
+          setNotifications([]);
+          setUnreadCount(0);
+          return;
+        }
         if (!res.ok) throw new Error(`notifications fetch: ${res.status}`);
+        // A success clears a previous expiry: the session is demonstrably
+        // alive again (re-login in another tab), so the login prompt must
+        // not stick around next to fresh rows.
+        setSessionExpired(false);
         const body = (await res.json().catch(() => null)) as {
           notifications?: unknown;
           unreadCount?: unknown;
@@ -162,21 +155,19 @@ function WatchInbox() {
         if (fetchSeqRef.current === seq) setLoading(false);
       }
     },
-    [],
+    [steamId],
   );
 
-  // Fresh history per identity; a switch resets everything (never mix
-  // profiles) and skips invalid/absent ids entirely (no fetch at all).
+  // Fresh history per session id; a switch resets everything (never mix
+  // profiles).
   useEffect(() => {
     setNotifications([]);
     setUnreadCount(0);
     setError(false);
+    setSessionExpired(false);
     setOpen(false);
-    if (identity === null) {
-      return;
-    }
-    fetchNotifications(identity, false);
-  }, [identity, fetchNotifications]);
+    fetchNotifications(false);
+  }, [steamId, fetchNotifications]);
 
   const handleToggle = useCallback(() => {
     setOpen((wasOpen) => !wasOpen);
@@ -185,10 +176,10 @@ function WatchInbox() {
   // Refetch on every open: cheap, and the only refresh path (no interval
   // polling by design). Visible rows mark as seen via the fetch itself.
   useEffect(() => {
-    if (open && identity !== null) {
-      fetchNotifications(identity, true);
+    if (open) {
+      fetchNotifications(true);
     }
-  }, [open, identity, fetchNotifications]);
+  }, [open, fetchNotifications]);
 
   // Focus stewardship for keyboard users: into the panel on open, back to
   // the bell on close. Skipped on mount (both refs start closed).
@@ -252,16 +243,26 @@ function WatchInbox() {
     [dateFormatter],
   );
 
-  if (!hydrated || identity === null) {
-    // No identity, no inbox: never fetch without a valid SteamID.
-    return null;
-  }
-
-  // Panel body as early returns (no nested ternaries): loading only
-  // matters before the first rows land; a later error keeps stale rows
-  // visible instead of swapping them for an error screen. Defined after
-  // the identity guard so `identity` is narrowed to string here.
+  // Panel body as early returns (no nested ternaries): expired sessions
+  // first (login link, not silence), then loading only before the first
+  // rows land; a later error keeps stale rows visible instead of swapping
+  // them for an error screen.
   const renderPanelBody = (): React.ReactNode => {
+    if (sessionExpired) {
+      return (
+        <div className="flex flex-col gap-2">
+          <p role="alert" className="text-sm text-red-400">
+            {translator('watchLoginError')}
+          </p>
+          <a
+            href={`/api/auth/steam/login?next=${encodeURIComponent(`/${locale}/watch`)}`}
+            className="inline-block h-9 rounded-full border border-gray-500 px-4 text-sm leading-9 text-gray-200 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          >
+            {translator('watchLoginButton')}
+          </a>
+        </div>
+      );
+    }
     if (loading && notifications.length === 0) {
       return (
         <p className="animate-pulse text-sm text-gray-400">
@@ -277,7 +278,7 @@ function WatchInbox() {
           </p>
           <button
             type="button"
-            onClick={() => fetchNotifications(identity, true)}
+            onClick={() => fetchNotifications(true)}
             className="h-9 rounded-full border border-gray-500 px-4 text-sm text-gray-200 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           >
             {translator('watchInboxRetry')}
@@ -295,7 +296,7 @@ function WatchInbox() {
         {notifications.map((item) => (
           <li key={item.id} className="rounded-xl border border-gray-700 p-3">
             <p className="text-sm text-gray-200">
-              {getNotifyText(locale, identity)}
+              {getNotifyText(locale, steamId)}
             </p>
             <time
               dateTime={item.sentAt}

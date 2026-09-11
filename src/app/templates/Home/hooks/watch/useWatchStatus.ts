@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 
 import type { WatchStatusValue } from '@/lib/watchStatus';
 
-import { isValidWatchIdentity } from './watchIdentity';
+import { isSteamId64 } from '@/lib/steamId';
 
 /** Default poll cadence: 12/min, far below the 30/min per-IP route cap. */
 export const WATCH_POLL_INTERVAL_MS = 5000;
@@ -20,8 +20,10 @@ interface UseWatchStatusOptions {
 
 interface UseWatchStatusResult {
   status: WatchStatusValue | null;
-  /** Only definitive failures surface here ('invalid' id); transient
-   * network errors keep polling silently until unmount. */
+  /** Only definitive failures surface here: 'invalid' id, or
+   * 'session-expired' (logged out / expired mid-use — callers show the
+   * login gate). Transient network errors keep polling silently until
+   * unmount. */
   error: string | null;
 }
 
@@ -67,9 +69,7 @@ export const useWatchStatus = ({
     async (id: string): Promise<'ok' | 'backoff' | 'stop'> => {
       let res: Response;
       try {
-        res = await fetch(
-          `/api/watch/status?steamId=${encodeURIComponent(id)}`,
-        );
+        res = await fetch('/api/watch/status');
       } catch {
         // Transient network failure: back off and keep polling (the
         // unmount cleanup bounds the loop; only definitive errors stop it).
@@ -78,6 +78,13 @@ export const useWatchStatus = ({
       if (!res.ok) {
         if (res.status === 400) {
           setError('invalid');
+          return 'stop';
+        }
+        if (res.status === 401) {
+          // Session died mid-use (logout elsewhere, expiry): stop polling
+          // and surface the login gate — retrying an unauthenticated poll
+          // would only burn the rate-limit budget.
+          setError('session-expired');
           return 'stop';
         }
         // 429/5xx: back off instead of hammering at full cadence (several
@@ -113,7 +120,9 @@ export const useWatchStatus = ({
     setError(null);
     clearTimer();
     if (!enabled || !steamId) return undefined;
-    if (!isValidWatchIdentity(steamId)) {
+    // Defense-in-depth: the id arrives server-verified via page props, but
+    // a malformed prop must fail loudly ('invalid') instead of polling.
+    if (!isSteamId64(steamId)) {
       setError('invalid');
       return undefined;
     }
@@ -135,7 +144,7 @@ export const useWatchStatus = ({
         if (action === 'backoff') {
           consecutiveFailures += 1;
           delayMs = Math.min(
-            pollIntervalMs * (2 ** consecutiveFailures),
+            pollIntervalMs * 2 ** consecutiveFailures,
             BACKOFF_CAP_MS,
           );
         } else {

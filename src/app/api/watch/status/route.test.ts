@@ -24,6 +24,14 @@ jest.mock('@/lib/rateLimit', () => {
   };
 });
 
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(),
+}));
+
+jest.mock('@/lib/watch/session', () => ({
+  resolveWatchSession: jest.fn(),
+}));
+
 const mockedDb = jest.requireMock('@/lib/analytics/db') as {
   createWatchRequest: jest.Mock;
   deactivateWatch: jest.Mock;
@@ -37,9 +45,13 @@ const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
   __testIsRateLimited: jest.Mock;
 };
 
+const { resolveWatchSession } = jest.requireMock('@/lib/watch/session') as {
+  resolveWatchSession: jest.Mock;
+};
+
 const STEAM_ID = '76561198000000001';
 
-const makeRequest = (searchParams: string, method = 'GET') =>
+const makeRequest = (searchParams = '', method = 'GET') =>
   ({
     method,
     url: `http://localhost/api/watch/status${searchParams}`,
@@ -50,21 +62,23 @@ describe('GET /api/watch/status', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __testIsRateLimited.mockReturnValue(false);
+    resolveWatchSession.mockResolvedValue({ status: 'authenticated', steamId: STEAM_ID });
   });
 
   it('returns pending for a pending watch', async () => {
     mockedDb.getWatchStatus.mockResolvedValue('pending');
 
-    const res = await GET(makeRequest(`?steamId=${STEAM_ID}`));
+    const res = await GET(makeRequest());
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ steamId: STEAM_ID, status: 'pending' });
+    expect(mockedDb.getWatchStatus).toHaveBeenCalledWith(STEAM_ID);
   });
 
   it('returns active for an active watch', async () => {
     mockedDb.getWatchStatus.mockResolvedValue('active');
 
-    const res = await GET(makeRequest(`?steamId=${STEAM_ID}`));
+    const res = await GET(makeRequest());
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ steamId: STEAM_ID, status: 'active' });
@@ -73,7 +87,7 @@ describe('GET /api/watch/status', () => {
   it('returns none when no watch was ever requested', async () => {
     mockedDb.getWatchStatus.mockResolvedValue(null);
 
-    const res = await GET(makeRequest(`?steamId=${STEAM_ID}`));
+    const res = await GET(makeRequest());
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ steamId: STEAM_ID, status: 'none' });
@@ -86,19 +100,31 @@ describe('GET /api/watch/status', () => {
     // distinction is internal state this API deliberately hides).
     mockedDb.getWatchStatus.mockResolvedValue(null);
 
-    const res = await GET(makeRequest(`?steamId=${STEAM_ID}`));
+    const res = await GET(makeRequest());
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ steamId: STEAM_ID, status: 'none' });
   });
 
-  it('rejects missing/malformed steamId without touching the DAL', async () => {
+  it('returns 401 without a login session (never touches the DAL)', async () => {
+    resolveWatchSession.mockResolvedValue({ status: 'unauthenticated' });
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: 'UNAUTHENTICATED' }),
+      }),
+    );
+    expect(mockedDb.getWatchStatus).not.toHaveBeenCalled();
+  });
+
+  it('rejects any ?steamId= outright (self-scoped, no third-party lookups)', async () => {
     for (const searchParams of [
-      '',
-      '?steamId=',
+      `?steamId=${STEAM_ID}`,
       '?steamId=short',
-      '?steamId=7656119800000000a',
-      '?other=123',
+      '?steamId=',
     ]) {
       const res = await GET(makeRequest(searchParams));
 
@@ -115,14 +141,14 @@ describe('GET /api/watch/status', () => {
   it('returns 429 when rate limited', async () => {
     __testIsRateLimited.mockReturnValue(true);
 
-    const res = await GET(makeRequest(`?steamId=${STEAM_ID}`));
+    const res = await GET(makeRequest());
 
     expect(res.status).toBe(429);
     expect(mockedDb.getWatchStatus).not.toHaveBeenCalled();
   });
 
   it('rejects non-GET methods', async () => {
-    const res = await GET(makeRequest(`?steamId=${STEAM_ID}`, 'POST'));
+    const res = await GET(makeRequest('', 'POST'));
 
     expect(res.status).toBe(405);
     expect(mockedDb.getWatchStatus).not.toHaveBeenCalled();
@@ -131,15 +157,27 @@ describe('GET /api/watch/status', () => {
   it('returns 500 when the DAL throws', async () => {
     mockedDb.getWatchStatus.mockRejectedValue(new Error('db down'));
 
-    const res = await GET(makeRequest(`?steamId=${STEAM_ID}`));
+    const res = await GET(makeRequest());
 
     expect(res.status).toBe(500);
+  });
+
+  it('returns 500 when the session layer blows up (loud, not silent)', async () => {
+    resolveWatchSession.mockResolvedValue({
+      status: 'error',
+      error: new Error('SESSION_SECRET exploded'),
+    });
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(500);
+    expect(mockedDb.getWatchStatus).not.toHaveBeenCalled();
   });
 
   it('never mutates watch state (read-only contract)', async () => {
     mockedDb.getWatchStatus.mockResolvedValue('pending');
 
-    const res = await GET(makeRequest(`?steamId=${STEAM_ID}`));
+    const res = await GET(makeRequest());
 
     expect(res.status).toBe(200);
     expect(mockedDb.createWatchRequest).not.toHaveBeenCalled();

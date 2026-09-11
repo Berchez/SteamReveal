@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { errorResponse } from '@/lib/apiError';
@@ -8,7 +9,7 @@ import {
   countNotificationsSince,
   listSentNotifications,
 } from '@/lib/analytics/db';
-import { isSteamId64 } from '@/lib/steamId';
+import { resolveWatchSession } from '@/lib/watch/session';
 import {
   WATCH_INBOX_DEFAULT_LIMIT,
   WATCH_INBOX_MAX_LIMIT,
@@ -50,16 +51,10 @@ const MAX_LIMIT = WATCH_INBOX_MAX_LIMIT;
  * the server only counts past it.
  *
  * Strictly read-only: the inbox presents history, it never creates or
- * mutates notifications. steamId is public data (searchable on the site)
- * and rows carry no PII beyond it (id + delivery timestamp only). On the
- * exposure question: an observer polling this endpoint learns that new
- * rows EXIST for a target (search activity), but that is inherent to the
- * no-login product decision — identical in kind to GET /api/watch/status
- * (which exposes watch state for any steamId). Timestamp precision adds
- * nothing over row existence itself (a 1/min poller timestamps arrivals
- * regardless), so the guards stay what they are everywhere else:
- * SteamID64 validation + per-IP rate limiting. No login, by product
- * design (acceptance is the opt-in proof).
+ * mutates notifications. Self-scoped via the Steam OpenID session: each
+ * user reads ONLY their own history (the pre-login `?steamId=` parameter
+ * is gone — its presence is a 400). Rows carry no PII beyond the
+ * requester's own id (delivery timestamps only).
  */
 export async function GET(req: Request) {
   // App Router only routes GET here; kept as defense-in-depth (and so unit
@@ -73,14 +68,27 @@ export async function GET(req: Request) {
   }
 
   const params = new URL(req.url).searchParams;
-  const steamId = params.get('steamId');
-  if (!isSteamId64(steamId)) {
+  if (params.has('steamId')) {
     return errorResponse(
-      'Invalid steamId: expected ?steamId=<17-digit SteamID64>.',
+      'Invalid request: steamId comes from the login session, not the query string.',
       400,
       'INVALID_REQUEST',
     );
   }
+
+  const session = await resolveWatchSession(cookies());
+  if (session.status === 'error') {
+    logRouteError('watchNotifications', sanitizeError(session.error));
+    return errorResponse(
+      'Internal server error while reading notifications.',
+      500,
+      'INTERNAL_ERROR',
+    );
+  }
+  if (session.status === 'unauthenticated') {
+    return errorResponse('Login required.', 401, 'UNAUTHENTICATED');
+  }
+  const { steamId } = session;
 
   const rawLimit = params.get('limit');
   let limit = DEFAULT_LIMIT;

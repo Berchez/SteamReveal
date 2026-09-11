@@ -1,146 +1,127 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { isSteamId64 } from '@/lib/steamId';
 import { useWatchStatus } from '@/app/templates/Home/hooks/watch/useWatchStatus';
-import {
-  clearWatchIdentity,
-  getWatchIdentity,
-  notifyWatchIdentityChanged,
-  setWatchIdentity,
-} from '@/app/templates/Home/hooks/watch/watchIdentity';
 
 /**
- * Watch status page body (Epic 4, WB-10): the three states from the ticket —
- * no registration (form), pending (accept-the-invite instruction), active
- * (unfriend-to-leave instruction) — driven by the local identity plus the
- * WB-9 polling hook. No login, no session: submitting the form POSTs
- * /api/watch/request and stores the id locally, which is what starts the
- * polling and, later, the welcome toast.
+ * Watch status screen (Steam OpenID era): the SteamID arrives as a prop
+ * from the server-rendered page (verified login session).
+ *
+ * Creation is EXPLICIT, never automatic: a fresh mount only polls status.
+ * `none` (never requested, or opted out via unfriend — both delete the
+ * row, deliberately indistinguishable) renders a Start button; the watch
+ * request POSTs only on click. Auto-creating on mount would silently
+ * re-subscribe users right after they opted out, and since the endpoint
+ * is idempotent-but-writeful (create + invite enqueue), mounting must
+ * stay read-only. Logout clears the server session and reloads into the
+ * login gate.
  */
-function WatchManager() {
+function WatchManager({ steamId }: { steamId: string }) {
   const translator = useTranslations('Watch');
   // Requester locale travels with the watch request so the bot's welcome
   // message (WB-11) is composed in the user's language, not the default.
   const locale = useLocale();
-  const [identity, setIdentity] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
-  const [input, setInput] = useState('');
   const [requesting, setRequesting] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  // Identity lives in localStorage, which does not exist during SSR — read
-  // it post-mount and render nothing until then to avoid a hydration
-  // mismatch (server renders empty, client would render stored identity).
-  useEffect(() => {
-    setIdentity(getWatchIdentity());
-    setHydrated(true);
-  }, []);
-
-  const { status } = useWatchStatus({
-    steamId: identity,
-    enabled: identity !== null,
+  const { status, error: statusError } = useWatchStatus({
+    steamId,
+    enabled: true,
   });
 
-  // A stored identity whose watch is gone server-side (opted out on another
-  // device, row never existed): heal back to the registration form instead
-  // of showing a stale pending screen forever.
-  useEffect(() => {
-    if (identity !== null && status === 'none') {
-      clearWatchIdentity();
-      setIdentity(null);
-    }
-  }, [identity, status]);
-
-  const handleSubmit = useCallback(async () => {
-    // No concurrent submits: the input+button are disabled while requesting,
-    // and this guard covers the race where two submits interleave anyway.
+  const handleStart = useCallback(async () => {
     if (requesting) return;
-    const value = input.trim();
-    if (!isSteamId64(value)) {
-      setRequestError(translator('watchErrorInvalid'));
-      return;
-    }
     setRequesting(true);
     setRequestError(null);
     try {
       const res = await fetch('/api/watch/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ steamId: value, locale }),
+        body: JSON.stringify({ locale }),
       });
       if (!res.ok) {
         setRequestError(translator('watchErrorFailed'));
-        return;
       }
-      // Persist FIRST, then hand over: the polling hook reads identity on
-      // the next render, so ordering here is the whole integration.
-      // Broadcast only when the write actually landed (private-mode
-      // storage failure returns false) — siblings re-read storage on the
-      // ping, and pinging them toward an empty slot would only hide a bell
-      // that has nothing to show yet anyway.
-      if (setWatchIdentity(value)) {
-        notifyWatchIdentityChanged();
-      }
-      setIdentity(value);
+      // Success needs no local state: the status poll picks up
+      // pending/active on its next tick by itself.
     } catch {
       setRequestError(translator('watchErrorFailed'));
     } finally {
       setRequesting(false);
     }
-  }, [input, locale, requesting, translator]);
+  }, [requesting, locale, translator]);
 
-  const handleRemoveLocal = useCallback(() => {
-    clearWatchIdentity();
-    notifyWatchIdentityChanged();
-    setIdentity(null);
-  }, []);
+  const handleLogout = useCallback(async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Logout is best-effort client-side: the reload below lands on the
+      // login gate either way when the cookie is gone, and shows this
+      // screen again (with a fresh session read) when it is not.
+    } finally {
+      window.location.reload();
+    }
+  }, [loggingOut]);
 
-  if (!hydrated) {
-    return null;
-  }
-
-  if (identity === null) {
+  if (statusError === 'session-expired') {
     return (
       <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
-        <h1 className="text-2xl font-bold text-gray-100">
-          {translator('watchTitle')}
-        </h1>
-        <p className="text-gray-300">{translator('watchDescription')}</p>
-        <div className="flex flex-col md:flex-row gap-3 items-stretch justify-center">
-          <input
-            className="flex-1 h-12 px-4 text-white text-sm bg-gray-800/75 border border-gray-500 rounded-full placeholder:text-gray-400 focus:border-blue-500 focus:outline-none disabled:opacity-50"
-            placeholder={translator('watchInputPlaceholder')}
-            value={input}
-            disabled={requesting}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key !== 'Enter') return;
-              handleSubmit();
-            }}
-            aria-label={translator('watchInputPlaceholder')}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              handleSubmit();
-            }}
-            disabled={requesting}
-            className="h-12 px-6 rounded-full bg-purple-600 hover:bg-purple-700/90 disabled:opacity-50 text-white font-semibold text-sm"
+        <p role="alert" className="text-red-400 text-sm">
+          {translator('watchLoginError')}
+        </p>
+        <div>
+          <a
+            href={`/api/auth/steam/login?next=${encodeURIComponent(`/${locale}/watch`)}`}
+            className="inline-block h-12 px-6 rounded-full bg-purple-600 hover:bg-purple-700/90 text-white font-semibold text-sm leading-[3rem]"
           >
-            {translator('watchSubmit')}
-          </button>
+            {translator('watchLoginButton')}
+          </a>
         </div>
-        {requestError !== null && (
-          <p role="alert" className="text-red-400 text-sm">
-            {requestError}
-          </p>
-        )}
       </div>
     );
   }
+
+  if (statusError !== null) {
+    // Defensive branch: the id arrives server-verified, so 'invalid' (or
+    // any future hook error) means a bug, not user input — say so plainly
+    // instead of rendering a blank screen.
+    return (
+      <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
+        <p role="alert" className="text-red-400 text-sm">
+          {translator('watchErrorFailed')}
+        </p>
+      </div>
+    );
+  }
+
+  // Shared footer for the actionable screens (alert parity + one logout
+  // button definition — the states must never drift apart).
+  const renderFooter = (showLogout: boolean) => (
+    <>
+      {requestError !== null && (
+        <p role="alert" className="text-red-400 text-sm">
+          {requestError}
+        </p>
+      )}
+      {showLogout && (
+        <div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="h-10 px-5 rounded-full border border-gray-500 text-gray-300 text-sm hover:border-gray-300 disabled:opacity-50"
+          >
+            {translator('watchLogout')}
+          </button>
+        </div>
+      )}
+    </>
+  );
 
   if (status === 'active') {
     return (
@@ -149,36 +130,48 @@ function WatchManager() {
           {translator('watchActiveTitle')}
         </h1>
         <p className="text-gray-300">{translator('watchActiveHint')}</p>
+        {renderFooter(true)}
+      </div>
+    );
+  }
+
+  if (status === 'pending') {
+    return (
+      <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
+        <h1 className="text-2xl font-bold text-gray-100">
+          {translator('watchPendingTitle')}
+        </h1>
+        <p className="text-gray-300">{translator('watchPendingHint')}</p>
+        {renderFooter(true)}
+      </div>
+    );
+  }
+
+  if (status === 'none') {
+    return (
+      <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
+        <h1 className="text-2xl font-bold text-gray-100">
+          {translator('watchTitle')}
+        </h1>
+        <p className="text-gray-300">{translator('watchDescription')}</p>
+        {renderFooter(false)}
         <div>
           <button
             type="button"
-            onClick={handleRemoveLocal}
-            className="h-10 px-5 rounded-full border border-gray-500 text-gray-300 text-sm hover:border-gray-300"
+            onClick={handleStart}
+            disabled={requesting}
+            className="h-12 px-6 rounded-full bg-purple-600 hover:bg-purple-700/90 disabled:opacity-50 text-white font-semibold text-sm"
           >
-            {translator('watchRemoveLocal')}
+            {translator('watchSubmit')}
           </button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
-      <h1 className="text-2xl font-bold text-gray-100">
-        {translator('watchPendingTitle')}
-      </h1>
-      <p className="text-gray-300">{translator('watchPendingHint')}</p>
-      <div>
-        <button
-          type="button"
-          onClick={handleRemoveLocal}
-          className="h-10 px-5 rounded-full border border-gray-500 text-gray-300 text-sm hover:border-gray-300"
-        >
-          {translator('watchRemoveLocal')}
-        </button>
-      </div>
-    </div>
-  );
+  // Status unknown (first poll in flight): render nothing rather than a
+  // wrong state — the poll resolves within one interval.
+  return null;
 }
 
 export default WatchManager;

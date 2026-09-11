@@ -2,10 +2,6 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import WatchManager from './WatchManager';
-import {
-  WATCH_IDENTITY_EVENT,
-  WATCH_IDENTITY_KEY,
-} from '@/app/templates/Home/hooks/watch/watchIdentity';
 
 jest.mock('react-toastify', () => ({
   toast: { error: jest.fn(), success: jest.fn() },
@@ -22,7 +18,7 @@ jest.mock('next-intl', () => ({
 
 const STEAM_ID = '76561198000000001';
 
-const postOk = () =>
+const postOk = (overrides = {}) =>
   ({
     ok: true,
     json: async () => ({
@@ -30,6 +26,7 @@ const postOk = () =>
       status: 'pending',
       inviteQueued: true,
       pendingExpiresInMs: null,
+      ...overrides,
     }),
   }) as Response;
 
@@ -39,220 +36,181 @@ const statusResponse = (status: string) =>
     json: async () => ({ steamId: STEAM_ID, status }),
   }) as Response;
 
-describe('WatchManager', () => {
-  let fetchMock: jest.Mock;
+const fetchByUrl = (impl: (url: string) => Promise<Response> | Response) => {
+  const mock = jest.fn(async (input: unknown) => impl(String(input)));
+  global.fetch = mock as unknown as typeof fetch;
+  return mock;
+};
 
+describe('WatchManager', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
-    fetchMock = jest.fn();
-    global.fetch = fetchMock;
-    window.localStorage.clear();
   });
 
   afterEach(() => {
     jest.useRealTimers();
     jest.restoreAllMocks();
-    window.localStorage.clear();
   });
 
   const settle = async () => {
     await act(async () => {});
   };
 
-  it('renders the registration form when nothing is watched', async () => {
-    render(<WatchManager />);
-    await settle();
+  const flushPolls = async (count: number) => {
+    // Same proven pattern as useWatchStatus.test.ts: one timer advance +
+    // microtask flush per round. A single advance does NOT deterministically
+    // complete the multi-hop poll chain (fetch → json → setState), which
+    // flakes exactly like a real race — N rounds make it structural.
+    for (let i = 0; i < count; i += 1) {
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+      // eslint-disable-next-line no-await-in-loop
+      await act(async () => {});
+    }
+  };
 
-    expect(screen.getByText('watchTitle')).toBeInTheDocument();
-    expect(screen.getByText('watchDescription')).toBeInTheDocument();
+  it('mounts read-only: no request fires without an explicit click', async () => {
+    const fetchMock = fetchByUrl((url) => {
+      if (url.includes('/api/watch/request')) return postOk();
+      return statusResponse('pending');
+    });
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(3);
+
     expect(
-      screen.getByPlaceholderText('watchInputPlaceholder'),
-    ).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('rejects an invalid id locally without posting', async () => {
-    render(<WatchManager />);
-    await settle();
-
-    fireEvent.change(screen.getByPlaceholderText('watchInputPlaceholder'), {
-      target: { value: 'nope' },
-    });
-    fireEvent.click(screen.getByText('watchSubmit'));
-    await settle();
-
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(screen.getByText('watchErrorInvalid')).toBeInTheDocument();
-  });
-
-  it('submits a valid id, persists identity, and shows pending instructions', async () => {
-    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
-      if (String(url).includes('/api/watch/request')) return postOk();
-      return statusResponse('pending');
-    });
-
-    render(<WatchManager />);
-    await settle();
-
-    fireEvent.change(screen.getByPlaceholderText('watchInputPlaceholder'), {
-      target: { value: STEAM_ID },
-    });
-    fireEvent.click(screen.getByText('watchSubmit'));
-    await settle();
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/watch/request',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ steamId: STEAM_ID, locale: 'pt' }),
-      }),
-    );
-    expect(window.localStorage.getItem(WATCH_IDENTITY_KEY)).toBe(STEAM_ID);
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).includes('/api/watch/request'),
+      ),
+    ).toHaveLength(0);
     expect(screen.getByText('watchPendingTitle')).toBeInTheDocument();
-    expect(screen.getByText('watchPendingHint')).toBeInTheDocument();
   });
 
-  it('broadcasts identity changes so same-tab siblings resync without reload', async () => {
-    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
-      if (String(url).includes('/api/watch/request')) return postOk();
-      return statusResponse('pending');
-    });
-    const seen: string[] = [];
-    const listener = (event: Event): void => {
-      seen.push(event.type);
-    };
-    window.addEventListener(WATCH_IDENTITY_EVENT, listener);
-    try {
-      render(<WatchManager />);
-      await settle();
-
-      // Successful submit: stored + broadcast (WatchInbox listens).
-      fireEvent.change(screen.getByPlaceholderText('watchInputPlaceholder'), {
-        target: { value: STEAM_ID },
-      });
-      fireEvent.click(screen.getByText('watchSubmit'));
-      await settle();
-      expect(seen).toEqual([WATCH_IDENTITY_EVENT]);
-    } finally {
-      window.removeEventListener(WATCH_IDENTITY_EVENT, listener);
-    }
-  });
-
-  it('skips the broadcast when storage refuses the write (no phantom ping)', async () => {
-    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
-      if (String(url).includes('/api/watch/request')) return postOk();
-      return statusResponse('pending');
-    });
-    // Direct `window.localStorage.setItem = ...` assignment does not stick
-    // in this jsdom (same reason the watchIdentity hostile test replaces
-    // the whole property): swap the property, restore afterwards.
-    const originalLocalStorage = window.localStorage;
-    Object.defineProperty(window, 'localStorage', {
-      configurable: true,
-      value: {
-        getItem: () => null,
-        setItem: () => {
-          throw new Error('private mode');
-        },
-        removeItem: () => {},
-        clear: () => {},
-        get length() {
-          return 0;
-        },
-        key: () => null,
-      },
-    });
-    const seen: string[] = [];
-    const listener = (event: Event): void => {
-      seen.push(event.type);
-    };
-    window.addEventListener(WATCH_IDENTITY_EVENT, listener);
-    try {
-      render(<WatchManager />);
-      await settle();
-
-      fireEvent.change(screen.getByPlaceholderText('watchInputPlaceholder'), {
-        target: { value: STEAM_ID },
-      });
-      fireEvent.click(screen.getByText('watchSubmit'));
-      await settle();
-
-      // Session still proceeds (polling reads React state, not storage),
-      // but no sibling is pinged toward a slot that was never written.
-      expect(seen).toEqual([]);
-      expect(screen.getByText('watchPendingTitle')).toBeInTheDocument();
-    } finally {
-      window.removeEventListener(WATCH_IDENTITY_EVENT, listener);
-      Object.defineProperty(window, 'localStorage', {
-        configurable: true,
-        value: originalLocalStorage,
-      });
-    }
-  });
-
-  it('shows the leave instructions when active, and forgets on remove', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_ID);
-    fetchMock.mockImplementation((url: string) => {
-      if (String(url).includes('/api/watch/request')) return postOk();
-      return statusResponse('active');
+  it('starts watching on explicit click (locale only, never a typed id)', async () => {
+    const fetchMock = fetchByUrl((url) => {
+      if (url.includes('/api/watch/request')) return postOk();
+      return statusResponse('none');
     });
 
-    render(<WatchManager />);
-    await settle();
-
-    expect(screen.getByText('watchActiveTitle')).toBeInTheDocument();
-    expect(screen.getByText('watchActiveHint')).toBeInTheDocument();
-
-    const seen: string[] = [];
-    const listener = (event: Event): void => {
-      seen.push(event.type);
-    };
-    window.addEventListener(WATCH_IDENTITY_EVENT, listener);
-    try {
-      fireEvent.click(screen.getByText('watchRemoveLocal'));
-      await settle();
-    } finally {
-      window.removeEventListener(WATCH_IDENTITY_EVENT, listener);
-    }
-
-    expect(window.localStorage.getItem(WATCH_IDENTITY_KEY)).toBeNull();
-    expect(seen).toEqual([WATCH_IDENTITY_EVENT]);
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(1);
     expect(screen.getByText('watchTitle')).toBeInTheDocument();
-  });
 
-  it('shows an error when the request fails', async () => {
-    fetchMock.mockImplementation((url: string) => {
-      if (String(url).includes('/api/watch/request')) {
-        return { ok: false, status: 500 };
-      }
-      return statusResponse('pending');
-    });
-
-    render(<WatchManager />);
+    fireEvent.click(screen.getByText('watchSubmit'));
     await settle();
 
-    fireEvent.change(screen.getByPlaceholderText('watchInputPlaceholder'), {
-      target: { value: STEAM_ID },
+    const posted = fetchMock.mock.calls.find(([calledUrl]) =>
+      String(calledUrl).includes('/api/watch/request'),
+    ) as unknown as [string, RequestInit];
+    expect(posted).toBeDefined();
+    // Self-scoped: locale travels, identity never leaves the session.
+    expect(JSON.parse(posted[1].body as string)).toEqual({ locale: 'pt' });
+  });
+
+  it('rides pending to active via polling', async () => {
+    const statuses = ['pending', 'pending', 'active'];
+    fetchByUrl((url) => {
+      if (url.includes('/api/watch/request')) return postOk();
+      return statusResponse(statuses.shift() ?? 'active');
     });
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await settle();
+
+    expect(screen.getByText('watchPendingTitle')).toBeInTheDocument();
+    await flushPolls(3);
+    expect(screen.getByText('watchActiveTitle')).toBeInTheDocument();
+  });
+
+  it('never re-subscribes after opt-out (status none stays a dead end)', async () => {
+    // The P0 that motivated explicit creation: unfriend deletes the row
+    // (reads as 'none'), and a mount must NOT recreate it by itself —
+    // otherwise every /watch visit would undo the opt-out.
+    const fetchMock = fetchByUrl((url) => {
+      if (url.includes('/api/watch/request')) return postOk();
+      return statusResponse('none');
+    });
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(4);
+
+    expect(screen.getByText('watchTitle')).toBeInTheDocument();
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).includes('/api/watch/request'),
+      ),
+    ).toHaveLength(0);
+  });
+
+  it('shows a request error without blocking the status screens', async () => {
+    fetchByUrl((url) => {
+      if (url.includes('/api/watch/request')) {
+        return { ok: false, status: 500 } as Response;
+      }
+      return statusResponse('none');
+    });
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(1);
+
     fireEvent.click(screen.getByText('watchSubmit'));
     await settle();
 
     expect(screen.getByText('watchErrorFailed')).toBeInTheDocument();
-    expect(window.localStorage.getItem(WATCH_IDENTITY_KEY)).toBeNull();
+    // Still on the not-watching screen (nothing was created server-side).
+    expect(screen.getByText('watchTitle')).toBeInTheDocument();
   });
 
-  it('heals a stale local identity (server says none) back to the form', async () => {
-    window.localStorage.setItem(WATCH_IDENTITY_KEY, STEAM_ID);
-    fetchMock.mockImplementation((url: string) => {
-      if (String(url).includes('/api/watch/request')) return postOk();
-      return statusResponse('none');
+  it('shows the login gate when the session died mid-use', async () => {
+    fetchByUrl((url) => {
+      if (url.includes('/api/watch/request')) return postOk();
+      return { ok: false, status: 401 } as Response;
     });
 
-    render(<WatchManager />);
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(2);
+
+    const loginLink = screen.getByText('watchLoginButton');
+    expect(loginLink.closest('a')).toHaveAttribute(
+      'href',
+      expect.stringContaining('/api/auth/steam/login'),
+    );
+  });
+
+  it('shows a plain error for unexpected hook failures (never blank)', async () => {
+    // Defensive branch: unreachable with server-verified ids, but a bug
+    // must render visibly instead of a blank screen. 'invalid' id forces
+    // the hook down it without any fetch.
+    render(<WatchManager steamId={'nope'} />);
+    await flushPolls(1);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('watchErrorFailed');
+  });
+
+  it('logs out and reloads into the login gate', async () => {
+    fetchByUrl((url) => {
+      if (url.includes('/api/watch/request')) return postOk();
+      if (url.includes('/api/auth/logout')) {
+        return { ok: true, json: async () => ({ ok: true }) } as Response;
+      }
+      return statusResponse('active');
+    });
+    const reload = jest.fn();
+    const locationSpy = jest
+      .spyOn(window, 'location', 'get')
+      .mockReturnValue({ reload } as unknown as Location);
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    // Same multi-round flush.
+    await flushPolls(2);
+    expect(screen.getByText('watchActiveTitle')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('watchLogout'));
     await settle();
 
-    expect(window.localStorage.getItem(WATCH_IDENTITY_KEY)).toBeNull();
-    expect(screen.getByText('watchTitle')).toBeInTheDocument();
+    expect(reload).toHaveBeenCalledTimes(1);
+    locationSpy.mockRestore();
   });
 });

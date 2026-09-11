@@ -25,6 +25,14 @@ jest.mock('@/lib/rateLimit', () => {
   };
 });
 
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(),
+}));
+
+jest.mock('@/lib/watch/session', () => ({
+  resolveWatchSession: jest.fn(),
+}));
+
 const mockedDb = jest.requireMock('@/lib/analytics/db') as {
   createWatchRequest: jest.Mock;
   deactivateWatch: jest.Mock;
@@ -38,19 +46,35 @@ const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
   __testIsRateLimited: jest.Mock;
 };
 
+const { resolveWatchSession } = jest.requireMock('@/lib/watch/session') as {
+  resolveWatchSession: jest.Mock;
+};
+
 const STEAM_ID = '76561198000000001';
+const ORIGIN = 'http://localhost:3000';
 
 const makeRequest = (
   overrides: {
     method?: string;
     jsonBody?: unknown;
     jsonError?: Error;
+    origin?: string | null;
   } = {},
 ) => {
-  const { method = 'POST', jsonBody = {}, jsonError } = overrides;
+  const {
+    method = 'POST',
+    jsonBody = {},
+    jsonError,
+    origin = ORIGIN,
+  } = overrides;
   return {
     method,
-    headers: { get: jest.fn(() => null) },
+    url: `${ORIGIN}/api/watch/request`,
+    headers: {
+      get: jest.fn((name: string) =>
+        name.toLowerCase() === 'origin' ? origin : null,
+      ),
+    },
     json: jsonError
       ? jest.fn().mockRejectedValue(jsonError)
       : jest.fn().mockResolvedValue(jsonBody),
@@ -71,6 +95,7 @@ describe('POST /api/watch/request', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __testIsRateLimited.mockReturnValue(false);
+    resolveWatchSession.mockResolvedValue({ status: 'authenticated', steamId: STEAM_ID });
     mockedDb.enqueueEvent.mockResolvedValue({ eventId: 1, duplicate: false });
     mockedDb.refreshWatchRequest.mockResolvedValue(true);
   });
@@ -85,7 +110,7 @@ describe('POST /api/watch/request', () => {
   it('returns 429 when rate limited', async () => {
     __testIsRateLimited.mockReturnValue(true);
 
-    const res = await POST(makeRequest({ jsonBody: { steamId: STEAM_ID } }));
+    const res = await POST(makeRequest({ jsonBody: {} }));
 
     expect(res.status).toBe(429);
     expect(mockedDb.getWatchedProfile).not.toHaveBeenCalled();
@@ -99,12 +124,46 @@ describe('POST /api/watch/request', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 400 for missing/malformed steamId without touching the DAL', async () => {
+  it('returns 401 without a login session (never touches the DAL)', async () => {
+    resolveWatchSession.mockResolvedValue({ status: 'unauthenticated' });
+
+    const res = await POST(makeRequest({ jsonBody: { locale: 'pt' } }));
+
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: 'UNAUTHENTICATED' }),
+      }),
+    );
+    expect(mockedDb.getWatchedProfile).not.toHaveBeenCalled();
+  });
+
+  it('returns 500 when the session layer blows up (loud, not silent)', async () => {
+    resolveWatchSession.mockResolvedValue({
+      status: 'error',
+      error: new Error('SESSION_SECRET exploded'),
+    });
+
+    const res = await POST(makeRequest({ jsonBody: {} }));
+
+    expect(res.status).toBe(500);
+    expect(mockedDb.getWatchedProfile).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 for cross-origin or origin-less POSTs (CSRF fail-closed)', async () => {
+    for (const origin of ['https://evil.example', null]) {
+      const res = await POST(makeRequest({ jsonBody: {}, origin }));
+
+      expect(res.status).toBe(403);
+    }
+    expect(mockedDb.getWatchedProfile).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when the body carries its own steamId (self-scoped only)', async () => {
     for (const jsonBody of [
-      {},
+      { steamId: STEAM_ID },
+      { steamId: STEAM_ID, locale: 'pt' },
       { steamId: 'short' },
-      { steamId: 76561198000000001 },
-      { steamId: null },
     ]) {
       const res = await POST(makeRequest({ jsonBody }));
 
@@ -122,9 +181,7 @@ describe('POST /api/watch/request', () => {
     mockedDb.getWatchedProfile.mockResolvedValue(null);
     mockedDb.createWatchRequest.mockResolvedValue(profileRow());
 
-    const res = await POST(
-      makeRequest({ jsonBody: { steamId: STEAM_ID, locale: 'pt' } }),
-    );
+    const res = await POST(makeRequest({ jsonBody: { locale: 'pt' } }));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
@@ -145,7 +202,7 @@ describe('POST /api/watch/request', () => {
       }),
     );
 
-    const res = await POST(makeRequest({ jsonBody: { steamId: STEAM_ID } }));
+    const res = await POST(makeRequest({ jsonBody: {} }));
 
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -172,9 +229,7 @@ describe('POST /api/watch/request', () => {
       }),
     );
 
-    const res = await POST(
-      makeRequest({ jsonBody: { steamId: STEAM_ID, locale: 'pt' } }),
-    );
+    const res = await POST(makeRequest({ jsonBody: { locale: 'pt' } }));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
@@ -193,7 +248,7 @@ describe('POST /api/watch/request', () => {
       profileRow({ status: 'active' }),
     );
 
-    const res = await POST(makeRequest({ jsonBody: { steamId: STEAM_ID } }));
+    const res = await POST(makeRequest({ jsonBody: {} }));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
@@ -222,7 +277,7 @@ describe('POST /api/watch/request', () => {
       profileRow({ status: 'active' }),
     );
 
-    const res = await POST(makeRequest({ jsonBody: { steamId: STEAM_ID } }));
+    const res = await POST(makeRequest({ jsonBody: {} }));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
@@ -247,7 +302,7 @@ describe('POST /api/watch/request', () => {
     mockedDb.refreshWatchRequest.mockResolvedValue(false);
     mockedDb.createWatchRequest.mockResolvedValue(profileRow());
 
-    const res = await POST(makeRequest({ jsonBody: { steamId: STEAM_ID } }));
+    const res = await POST(makeRequest({ jsonBody: {} }));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({
@@ -262,7 +317,7 @@ describe('POST /api/watch/request', () => {
   it('returns 500 when the DAL throws', async () => {
     mockedDb.getWatchedProfile.mockRejectedValue(new Error('db down'));
 
-    const res = await POST(makeRequest({ jsonBody: { steamId: STEAM_ID } }));
+    const res = await POST(makeRequest({ jsonBody: {} }));
 
     expect(res.status).toBe(500);
   });
@@ -278,7 +333,7 @@ describe('POST /api/watch/request', () => {
     mockedDb.hasOpenInviteEvent.mockResolvedValue(false);
     mockedDb.deactivateWatch.mockResolvedValue(true);
 
-    const res = await POST(makeRequest({ jsonBody: { steamId: STEAM_ID } }));
+    const res = await POST(makeRequest({ jsonBody: {} }));
 
     expect(res.status).toBe(500);
     expect(mockedDb.deactivateWatch).toHaveBeenCalledWith(STEAM_ID);
@@ -296,7 +351,7 @@ describe('POST /api/watch/request', () => {
     // (accepted invite, no row to activate) — hands off instead.
     mockedDb.hasOpenInviteEvent.mockResolvedValue(true);
 
-    const res = await POST(makeRequest({ jsonBody: { steamId: STEAM_ID } }));
+    const res = await POST(makeRequest({ jsonBody: {} }));
 
     expect(res.status).toBe(500);
     expect(mockedDb.deactivateWatch).not.toHaveBeenCalled();
@@ -309,7 +364,7 @@ describe('POST /api/watch/request', () => {
     mockedDb.createWatchRequest.mockResolvedValue(profileRow());
     mockedDb.enqueueEvent.mockRejectedValue(new Error('db timeout'));
 
-    const res = await POST(makeRequest({ jsonBody: { steamId: STEAM_ID } }));
+    const res = await POST(makeRequest({ jsonBody: {} }));
 
     expect(res.status).toBe(500);
     expect(mockedDb.deactivateWatch).not.toHaveBeenCalled();

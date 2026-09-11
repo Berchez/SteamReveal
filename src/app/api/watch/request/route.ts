@@ -1,10 +1,12 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { errorResponse } from '@/lib/apiError';
 import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
-import { isSteamId64 } from '@/lib/steamId';
+import checkSameOrigin from '@/lib/watch/csrf';
+import { resolveWatchSession } from '@/lib/watch/session';
 import INVITE_REREQUEST_AFTER_MS from '@/lib/watchInviteCooldown';
 import {
   createWatchRequest,
@@ -23,12 +25,11 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 10;
 // Per-IP AND per serverless instance (createRateLimiter is in-memory —
 // each warm instance counts separately, so this is "10/min per IP per
-// instance", not a global 10/min). Accepted explicitly (P1-2): no shared
-// KV store exists in this repo, and the global abuse bound lives at the
-// SINK instead — the bot's daily invite cap (BOT_INVITE_DAILY_LIMIT)
-// limits REAL friend requests to N/day no matter how many route instances
-// or source IPs queue them. This limiter stays as the cheap first line
-// (slows a single source, sheds casual floods); the cap is the guarantee.
+// instance", not a global 10/min). Accepted explicitly: no shared KV store
+// exists in this repo. Since Steam OpenID login, every request targets the
+// requester's OWN profile, so this limiter only sheds self-spam floods;
+// the bot's daily invite cap (BOT_INVITE_DAILY_LIMIT) stays as the global
+// backstop at the sink regardless.
 const requestRateLimiter = createRateLimiter(
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX,
@@ -93,7 +94,13 @@ type WatchRequestBody = {
 };
 
 /**
- * Starts (or resumes) bot-friendship verification for a Steam profile.
+ * Starts (or resumes) bot-friendship verification for the LOGGED-IN Steam
+ * profile (Steam OpenID session — self-scoped by design).
+ *
+ * Identity comes EXCLUSIVELY from the session: a `steamId` in the body is
+ * rejected outright (stale pre-login clients must fail loudly, not be
+ * silently re-scoped), and there is no query-string identity at all.
+ * Unauthenticated callers get 401 — the login button is the way in.
  *
  * Always 200 on a handled request — duplicates and cooldowns are answers,
  * not errors:
@@ -109,9 +116,8 @@ type WatchRequestBody = {
  * of the current pending window: the caller needs no polling, the bot acts
  * on its own; after expiry a re-request re-opens the window.
  *
- * No login required by design (Epic 2 decision): the friendship acceptance
- * itself is the opt-in proof, so requesting an invite for someone else's
- * profile is harmless — they simply ignore it and nothing activates.
+ * The friendship itself is now only the DELIVERY channel (Steam requires
+ * it for chat), not the identity proof — login already proved that.
  */
 export async function POST(req: Request) {
   // App Router only routes POST here; kept as defense-in-depth (and so unit
@@ -124,6 +130,24 @@ export async function POST(req: Request) {
     return errorResponse('Too many requests.', 429, 'RATE_LIMITED');
   }
 
+  if (!checkSameOrigin(req)) {
+    return errorResponse('Forbidden.', 403, 'FORBIDDEN');
+  }
+
+  const session = await resolveWatchSession(cookies());
+  if (session.status === 'error') {
+    logRouteError('watchRequest', sanitizeError(session.error));
+    return errorResponse(
+      'Internal server error while requesting watch.',
+      500,
+      'INTERNAL_ERROR',
+    );
+  }
+  if (session.status === 'unauthenticated') {
+    return errorResponse('Login required.', 401, 'UNAUTHENTICATED');
+  }
+  const { steamId } = session;
+
   let body: WatchRequestBody;
   try {
     body = (await req.json()) as WatchRequestBody;
@@ -131,7 +155,7 @@ export async function POST(req: Request) {
     if (error instanceof SyntaxError) {
       return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
     }
-    logRouteError('watchRequest', sanitizeError(error));
+    logRouteError('watchRequest', sanitizeError(error), { steamId });
     return errorResponse(
       'Internal server error while requesting watch.',
       500,
@@ -139,14 +163,16 @@ export async function POST(req: Request) {
     );
   }
 
-  const { steamId, locale } = body ?? {};
-  if (!isSteamId64(steamId)) {
+  // Self-scoped, strictly: a client-supplied steamId is a stale pre-login
+  // caller (or worse) — reject loudly instead of ignoring it.
+  if (body !== null && typeof body === 'object' && 'steamId' in body) {
     return errorResponse(
-      'Invalid steamId: expected 17-digit SteamID64.',
+      'Invalid request body: steamId comes from the login session, not the client.',
       400,
       'INVALID_REQUEST',
     );
   }
+  const { locale } = body ?? {};
   const localeString = typeof locale === 'string' ? locale : null;
 
   try {
