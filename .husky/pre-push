@@ -1,4 +1,19 @@
 set -e
+# Free the gates' ports first: orphaned `next dev -p 3100` servers from
+# previously aborted pushes hold :3100 (e2e + LHCI both demand it with
+# reuseExistingServer:false). Only repo dev servers are ever killed —
+# anything else fails loudly instead (see the script).
+node scripts/prepush-clean.cjs
+# Freeze .env for the whole run: tunnel:dev rewrites LOCAL_PROXY_URL live,
+# and a mid-hook rewrite would change what later gates (smokes, LHCI
+# server) see. Snapshot now, restore on exit even when a gate fails.
+PREPUSH_ENV_BAK=""
+if [ -f .env ]; then
+  PREPUSH_ENV_BAK="$(mktemp "${TMPDIR:-/tmp}/osint-prepush-env.XXXXXX")"
+  cp .env "$PREPUSH_ENV_BAK"
+  restore_pushenv() { cp "$PREPUSH_ENV_BAK" .env; rm -f "$PREPUSH_ENV_BAK"; }
+  trap restore_pushenv EXIT
+fi
 pnpm run e2e
 pnpm run smoke:gc
 # Best-effort: skips (exit 0) when no local dev server is reachable on :3000
