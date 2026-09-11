@@ -28,6 +28,7 @@ import type {
   WatchEvent,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
+import isWithinCooldownWindow from '../watch/cooldown';
 import {
   WATCH_INBOX_DEFAULT_LIMIT,
   WATCH_INBOX_MAX_LIMIT,
@@ -1038,7 +1039,8 @@ export const resetStaleClaims = async (
  * Cooldown check for the Epic 4 notify hook: true when this profile was
  * notified within the last `windowHours`. Missing row or missing timestamp
  * fail OPEN (false) — a corrupt/absent clock must never silently suppress
- * notifications forever.
+ * notifications forever. The timestamp math itself lives in
+ * @/lib/watch/cooldown (shared with the bot's send-time recheck).
  */
 export const isWithinCooldown = async (
   steamId: string,
@@ -1058,10 +1060,10 @@ export const isWithinCooldown = async (
   );
   if (row.rows.length === 0) return false;
   const last = row.rows[0].last_notified_at;
-  if (typeof last !== 'string') return false;
-  const lastMs = Date.parse(last);
-  if (!Number.isFinite(lastMs)) return false;
-  return Date.now() - lastMs < windowHours * 3600000;
+  return isWithinCooldownWindow(
+    typeof last === 'string' ? last : null,
+    windowHours,
+  );
 };
 
 /** Full watched row, or null when this profile was never requested. */

@@ -2,12 +2,18 @@
  * Watch notify hook (WB-12) — enqueues a `notify` event after a search is
  * recorded, when a watch is active for the searched profile.
  *
- * Gates, in order (all reused from the Epic 1 DAL, no duplicated rules):
- * 1. watch status must be `active` (getWatchStatus);
- * 2. no notification in the cooldown window (isWithinCooldown);
+ * Gates (all reused from the Epic 1 DAL, no duplicated rules):
+ * 1. a single getWatchedProfile read must show status `active`;
+ * 2. no notification in the cooldown window (shared
+ *    @/lib/watch/cooldown predicate over the row's last_notified_at);
  * 3. this search_id must not have produced a notify yet (enqueueEvent's
  *    UNIQUE(search_id) + catch-and-re-read — safe under concurrency,
  *    restarts, and double submits).
+ *
+ * One read, not two: an earlier version fanned out to getWatchStatus +
+ * isWithinCooldown in parallel, but both hit the SAME watched_profiles
+ * row — a single getWatchedProfile covers status and clock together,
+ * halving the extra cost this hook adds to the hottest write route.
  *
  * Never throws by contract: analytics must not fail because the watch
  * pipeline did. Every failure (DAL down, bad ids, enqueue collision that
@@ -25,7 +31,8 @@
  * the full window.
  */
 
-import { enqueueEvent, getWatchStatus, isWithinCooldown } from './db';
+import { enqueueEvent, getWatchedProfile } from './db';
+import isWithinCooldownWindow from '../watch/cooldown';
 
 /** Max 1 notification per steamId per this many hours (Epic 5 decision). */
 export const NOTIFY_COOLDOWN_HOURS = 24;
@@ -50,18 +57,13 @@ export const enqueueWatchNotification = async (
   logger: WatchNotifyLogger = console,
 ): Promise<WatchNotifyOutcome> => {
   try {
-    // Both gates are read-only against the same memoized client, so they
-    // run concurrently (one latency window instead of two sequential
-    // round-trips). Order of evaluation is preserved: status first, then
-    // cooldown — a missing/pending watch short-circuits before enqueue.
-    const [status, cooledDown] = await Promise.all([
-      getWatchStatus(steamId),
-      isWithinCooldown(steamId, NOTIFY_COOLDOWN_HOURS),
-    ]);
-    if (status !== 'active') {
+    // Both gates come from this one row: status for the opt-in check,
+    // last_notified_at for the cooldown check.
+    const profile = await getWatchedProfile(steamId);
+    if (profile === null || profile.status !== 'active') {
       return { enqueued: false, reason: 'not-active' };
     }
-    if (cooledDown) {
+    if (isWithinCooldownWindow(profile.lastNotifiedAt, NOTIFY_COOLDOWN_HOURS)) {
       return { enqueued: false, reason: 'cooldown' };
     }
     const { eventId, duplicate } = await enqueueEvent(

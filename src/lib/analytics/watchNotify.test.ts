@@ -5,27 +5,33 @@
 import { enqueueWatchNotification } from './watchNotify';
 
 jest.mock('./db', () => ({
-  getWatchStatus: jest.fn(),
-  isWithinCooldown: jest.fn(),
+  getWatchedProfile: jest.fn(),
   enqueueEvent: jest.fn(),
 }));
 
-const { getWatchStatus, isWithinCooldown, enqueueEvent } = jest.requireMock(
-  './db',
-) as {
-  getWatchStatus: jest.Mock;
-  isWithinCooldown: jest.Mock;
+const { getWatchedProfile, enqueueEvent } = jest.requireMock('./db') as {
+  getWatchedProfile: jest.Mock;
   enqueueEvent: jest.Mock;
 };
 
 const STEAM = '76561198000000000';
+
+const activeProfile = (overrides: Record<string, unknown> = {}) => ({
+  steamId: STEAM,
+  status: 'active',
+  locale: null,
+  requestedAt: '2026-06-01T00:00:00.000Z',
+  activatedAt: '2026-06-01T01:00:00.000Z',
+  lastNotifiedAt: null,
+  ...overrides,
+});
+
 const silentLogger = { error: jest.fn() };
 
 describe('enqueueWatchNotification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    getWatchStatus.mockResolvedValue('active');
-    isWithinCooldown.mockResolvedValue(false);
+    getWatchedProfile.mockResolvedValue(activeProfile());
     enqueueEvent.mockResolvedValue({ eventId: 7, duplicate: false });
   });
 
@@ -37,30 +43,33 @@ describe('enqueueWatchNotification', () => {
     );
 
     expect(result).toEqual({ enqueued: true, eventId: 7 });
-    expect(getWatchStatus).toHaveBeenCalledWith(STEAM);
-    expect(isWithinCooldown).toHaveBeenCalledWith(STEAM, 24);
+    // One read for both gates (status + clock ride the same row).
+    expect(getWatchedProfile).toHaveBeenCalledTimes(1);
+    expect(getWatchedProfile).toHaveBeenCalledWith(STEAM);
     expect(enqueueEvent).toHaveBeenCalledWith(STEAM, 'notify', 'search-1');
     expect(silentLogger.error).not.toHaveBeenCalled();
   });
 
   it('skips watches that are not active (missing or pending)', async () => {
-    getWatchStatus.mockResolvedValueOnce('pending');
+    getWatchedProfile.mockResolvedValueOnce(
+      activeProfile({ status: 'pending' }),
+    );
     await expect(
       enqueueWatchNotification(STEAM, 'search-1', silentLogger),
     ).resolves.toEqual({ enqueued: false, reason: 'not-active' });
 
-    getWatchStatus.mockResolvedValueOnce(null);
+    getWatchedProfile.mockResolvedValueOnce(null);
     await expect(
       enqueueWatchNotification(STEAM, 'search-1', silentLogger),
     ).resolves.toEqual({ enqueued: false, reason: 'not-active' });
 
-    // The gates run concurrently (both read-only), so the cooldown read
-    // fires even for inactive watches — but nothing is ever enqueued.
     expect(enqueueEvent).not.toHaveBeenCalled();
   });
 
   it('skips when the 24h cooldown is active (no new event row)', async () => {
-    isWithinCooldown.mockResolvedValueOnce(true);
+    getWatchedProfile.mockResolvedValueOnce(
+      activeProfile({ lastNotifiedAt: new Date().toISOString() }),
+    );
 
     await expect(
       enqueueWatchNotification(STEAM, 'search-1', silentLogger),
@@ -101,24 +110,18 @@ describe('enqueueWatchNotification', () => {
     expect(silentLogger.error).toHaveBeenCalledTimes(1);
   });
 
-  it('never throws when a watch check fails (status or cooldown)', async () => {
-    getWatchStatus.mockRejectedValueOnce(new Error('turso unreachable'));
-    await expect(
-      enqueueWatchNotification(STEAM, 'search-1', silentLogger),
-    ).resolves.toEqual({ enqueued: false, reason: 'error' });
-
-    getWatchStatus.mockResolvedValueOnce('active');
-    isWithinCooldown.mockRejectedValueOnce(new Error('turso unreachable'));
+  it('never throws when the profile read fails', async () => {
+    getWatchedProfile.mockRejectedValueOnce(new Error('turso unreachable'));
     await expect(
       enqueueWatchNotification(STEAM, 'search-1', silentLogger),
     ).resolves.toEqual({ enqueued: false, reason: 'error' });
 
     expect(enqueueEvent).not.toHaveBeenCalled();
-    expect(silentLogger.error).toHaveBeenCalledTimes(2);
+    expect(silentLogger.error).toHaveBeenCalledTimes(1);
   });
 
   it('never throws on invalid ids (DAL assertion becomes error outcome)', async () => {
-    getWatchStatus.mockImplementationOnce(() => {
+    getWatchedProfile.mockImplementationOnce(() => {
       throw new Error('Invalid SteamID64 for watch DAL: expected 17 digits');
     });
 

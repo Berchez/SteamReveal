@@ -30,6 +30,7 @@
 
 import withTimeout from '../lib/withTimeout';
 import { NOTIFY_COOLDOWN_HOURS } from '../lib/analytics/watchNotify';
+import isWithinCooldownWindow from '../lib/watch/cooldown';
 
 import type { WatchBotLogger } from './logger';
 import { sendNotifyMessage, type NotifyChatClient } from './notifyMessage';
@@ -111,18 +112,9 @@ const SETTLE_RETRIES = 3;
  * seconds ago in the same sequential pass, so no staleness concern — and
  * the overlap guard guarantees a single pass at a time anyway).
  * Fail-open like the DAL isWithinCooldown: missing/corrupt clocks never
- * suppress notifications forever.
+ * suppress notifications forever. Timestamp math lives in the shared
+ * @/lib/watch/cooldown module (same predicate as the enqueue gate).
  */
-export const isWithinNotificationCooldown = (
-  lastNotifiedAt: string | null | undefined,
-  windowHours: number,
-  nowMs: number = Date.now(),
-): boolean => {
-  if (typeof lastNotifiedAt !== 'string') return false;
-  const lastMs = Date.parse(lastNotifiedAt);
-  if (!Number.isFinite(lastMs)) return false;
-  return nowMs - lastMs < windowHours * 3600000;
-};
 
 /**
  * True when the event is older than ttlDays by its persisted created_at.
@@ -280,12 +272,7 @@ export const pollNotifyQueueOnce = async (
       );
       return;
     }
-    if (
-      isWithinNotificationCooldown(
-        profile.lastNotifiedAt,
-        NOTIFY_COOLDOWN_HOURS,
-      )
-    ) {
+    if (isWithinCooldownWindow(profile.lastNotifiedAt, NOTIFY_COOLDOWN_HOURS)) {
       // A notify already went out inside the window (possibly an earlier
       // event in THIS pass — the clock advances on every markEventSent).
       // Drop: the product promise is max 1 message per 24h, and an extra

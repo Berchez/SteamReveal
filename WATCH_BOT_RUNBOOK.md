@@ -137,7 +137,15 @@ restart alone:
   sweep requeues them after `BOT_STALE_CLAIM_WINDOW_MINUTES` (default 30).
   At-least-once semantics: a message sent but unmarked before the crash
   MAY deliver twice; chat messages are idempotent-ish and the 24h
-  send-time cooldown suppresses rapid repeats.
+  send-time cooldown suppresses rapid repeats. Known sharp edge (accepted,
+  not fixed): if the send SUCCEEDS but the `markEventSent` bookkeeping
+  fails 3x in a row, the row sits `claimed` (never requeued via attempts),
+  the sweep requeues it ~30min later, and the next pass RE-SENDS — while
+  `last_notified_at` was never written, so even the send-time cooldown
+  does not catch that specific duplicate. Rare (triple write failure
+  glued to a successful send) and self-limiting (one extra message, then
+  the clock advances normally); duplicating is preferred over silently
+  losing a core-product notification.
 - **Friendships changed while offline**: the reconcile pass on every
   (re)logon converges them (activations + deactivations), same DAL calls
   as the live listeners — no duplicated logic, no missed opt-outs.

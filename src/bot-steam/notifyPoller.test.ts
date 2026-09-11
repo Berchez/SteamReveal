@@ -1,7 +1,6 @@
 import { getNotifyMessage } from './notifyMessage';
 import {
   isNotifyExpired,
-  isWithinNotificationCooldown,
   pollNotifyQueueOnce,
   startNotifyPoller,
 } from './notifyPoller';
@@ -368,33 +367,6 @@ describe('pollNotifyQueueOnce', () => {
     for (const line of lines) {
       expect(line).not.toMatch(/password|shared[_-]?secret|auth[_-]?token/i);
     }
-  });
-});
-
-describe('isWithinNotificationCooldown', () => {
-  const now = Date.parse('2026-06-01T00:00:00.000Z');
-
-  it('is true inside the window and false at/past the boundary', () => {
-    const recent = new Date(now - 23 * 60 * 60 * 1000).toISOString();
-    const exactly24h = new Date(now - 24 * 60 * 60 * 1000).toISOString();
-    const older = new Date(now - 25 * 60 * 60 * 1000).toISOString();
-
-    expect(isWithinNotificationCooldown(recent, 24, now)).toBe(true);
-    expect(isWithinNotificationCooldown(exactly24h, 24, now)).toBe(false);
-    expect(isWithinNotificationCooldown(older, 24, now)).toBe(false);
-  });
-
-  it('fails open on missing or corrupt clocks (never suppresses forever)', () => {
-    expect(isWithinNotificationCooldown(null, 24, now)).toBe(false);
-    expect(isWithinNotificationCooldown(undefined, 24, now)).toBe(false);
-    expect(isWithinNotificationCooldown('garbage', 24, now)).toBe(false);
-    expect(isWithinNotificationCooldown('', 24, now)).toBe(false);
-  });
-
-  it('honors custom windows', () => {
-    const twoHoursAgo = new Date(now - 2 * 60 * 60 * 1000).toISOString();
-    expect(isWithinNotificationCooldown(twoHoursAgo, 24, now)).toBe(true);
-    expect(isWithinNotificationCooldown(twoHoursAgo, 1, now)).toBe(false);
   });
 });
 
