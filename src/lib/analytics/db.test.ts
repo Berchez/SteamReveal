@@ -630,6 +630,155 @@ describe('watch/outbox DAL (Epic 1)', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
+  it('hashConfirmToken is a stable 64-hex SHA-256 (never the token)', () => {
+    const { hashConfirmToken } = require('./db');
+
+    const first: string = hashConfirmToken('token-abc');
+    expect(first).toMatch(/^[0-9a-f]{64}$/);
+    expect(hashConfirmToken('token-abc')).toBe(first);
+    expect(hashConfirmToken('token-abd')).not.toBe(first);
+    expect(first).not.toContain('token-abc');
+  });
+
+  it('createAccount inserts unconfirmed and returns the mapped row', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-08T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'pt',
+        },
+      ],
+    });
+
+    const { createAccount } = require('./db');
+    const account = await createAccount(STEAM, 'pt');
+
+    expect(account).toEqual({
+      steamId: STEAM,
+      createdAt: '2026-09-08T00:00:00.000Z',
+      confirmedAt: null,
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+      locale: 'pt',
+    });
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO accounts'),
+    );
+    expect(String(insert[0]?.sql ?? insert[0])).toContain(
+      'ON CONFLICT(steam_id) DO NOTHING',
+    );
+  });
+
+  it('createAccount never resets confirmation on re-signup (returns row untouched)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: '2026-09-02T00:00:00.000Z',
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'en',
+        },
+      ],
+    });
+
+    const { createAccount } = require('./db');
+    const account = await createAccount(STEAM, 'pt');
+
+    expect(account.confirmedAt).toBe('2026-09-02T00:00:00.000Z');
+    expect(account.createdAt).toBe('2026-09-01T00:00:00.000Z');
+  });
+
+  it('getAccount returns the row or null', async () => {
+    const { getAccount } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(getAccount(STEAM)).resolves.toBeNull();
+
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-08T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: 'ab'.repeat(32),
+          confirm_expires_at: '2026-09-09T00:00:00.000Z',
+          locale: null,
+        },
+      ],
+    });
+    await expect(getAccount(STEAM)).resolves.toMatchObject({
+      steamId: STEAM,
+      confirmedAt: null,
+    });
+    await expect(getAccount('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('issueConfirmToken arms the token only for existing rows', async () => {
+    const { issueConfirmToken } = require('./db');
+    const hash = 'ab'.repeat(32);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(
+      issueConfirmToken(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(true);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(
+      issueConfirmToken(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(false);
+  });
+
+  it('issueConfirmToken never touches confirmed accounts and validates the hash', async () => {
+    const { issueConfirmToken } = require('./db');
+
+    await expect(
+      issueConfirmToken(STEAM, 'not-a-hash', '2026-09-09T00:00:00.000Z'),
+    ).rejects.toThrow(/64 lowercase hex/);
+
+    const hash = 'ab'.repeat(32);
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(
+      issueConfirmToken(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(true);
+    const update = mockExecute.mock.calls.at(-1);
+    expect(String(update[0]?.sql ?? update[0])).toContain(
+      'confirmed_at IS NULL',
+    );
+  });
+
+  it('consumeConfirmToken resolves the winner row or null in one statement', async () => {
+    const { consumeConfirmToken } = require('./db');
+    const hash = 'ab'.repeat(32);
+
+    mockExecute.mockResolvedValueOnce({ rows: [{ steam_id: STEAM }] });
+    await expect(consumeConfirmToken(hash)).resolves.toBe(STEAM);
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE accounts'),
+    );
+    // Atomic consume: expiry + single-use + unconfirmed all in the
+    // predicate — no read-then-write race for double-clicks.
+    const sql = String(update[0]?.sql ?? update[0]);
+    expect(sql).toContain('confirm_token_hash = ?');
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_expires_at > ?');
+    expect(sql).toContain('RETURNING steam_id');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(consumeConfirmToken(hash)).resolves.toBeNull();
+
+    await expect(consumeConfirmToken('not-hex')).rejects.toThrow(
+      /confirm token hash/,
+    );
+  });
+
   it('activateWatch flips pending->active with activated_at', async () => {
     mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
 
@@ -676,6 +825,47 @@ describe('watch/outbox DAL (Epic 1)', () => {
 
     const { deactivateWatch } = require('./db');
     await expect(deactivateWatch(STEAM)).resolves.toBe(false);
+  });
+
+  it('deleteAccount removes the signup row (opt-out half, always paired)', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+
+    const { deleteAccount } = require('./db');
+    await expect(deleteAccount(STEAM)).resolves.toBe(true);
+
+    const del = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('DELETE FROM accounts'),
+    );
+    expect(del).toBeDefined();
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(deleteAccount(STEAM)).resolves.toBe(false);
+    await expect(deleteAccount('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('removeWatchAndAccount deletes both rows in one batch (atomic opt-out)', async () => {
+    const { removeWatchAndAccount } = require('./db');
+
+    mockBatch.mockResolvedValueOnce([{ rowsAffected: 1 }, { rowsAffected: 1 }]);
+    await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
+      accountDeleted: true,
+      watchDeleted: true,
+    });
+
+    // One batch, account statement first: a single transaction, both rows
+    // go or neither does.
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+    const statements = mockBatch.mock.calls[0][0];
+    expect(statements).toHaveLength(2);
+    expect(String(statements[0].sql)).toContain('DELETE FROM accounts');
+    expect(String(statements[1].sql)).toContain('DELETE FROM watched_profiles');
+
+    mockBatch.mockResolvedValueOnce([{ rowsAffected: 0 }, { rowsAffected: 0 }]);
+    await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
+      accountDeleted: false,
+      watchDeleted: false,
+    });
+    await expect(removeWatchAndAccount('short')).rejects.toThrow(/17 digits/);
   });
 
   it('getWatchStatus maps pending/active/null and collapses garbage to pending', async () => {

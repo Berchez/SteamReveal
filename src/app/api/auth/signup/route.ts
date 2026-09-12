@@ -9,6 +9,7 @@ import checkSameOrigin from '@/lib/watch/csrf';
 import { resolveWatchSession } from '@/lib/watch/session';
 import INVITE_REREQUEST_AFTER_MS from '@/lib/watchInviteCooldown';
 import {
+  createAccount,
   createWatchRequest,
   deactivateWatch,
   enqueueEvent,
@@ -23,20 +24,20 @@ export const revalidate = 0;
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 10;
-// Per-IP AND per serverless instance (createRateLimiter is in-memory —
-// each warm instance counts separately, so this is "10/min per IP per
-// instance", not a global 10/min). Accepted explicitly: no shared KV store
-// exists in this repo. Since Steam OpenID login, every request targets the
-// requester's OWN profile, so this limiter only sheds self-spam floods;
-// the bot's daily invite cap (BOT_INVITE_DAILY_LIMIT) stays as the global
-// backstop at the sink regardless.
-const requestRateLimiter = createRateLimiter(
+// Same cheap-flood budget as the other authenticated POST routes: the
+// limiter only sheds junk traffic, never guards correctness (the invite
+// discipline lives in the DAL branch below, not here).
+const signupRateLimiter = createRateLimiter(
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX,
 );
 
 // A row this request created/refreshed moments ago (see below).
 const FRESH_ROW_MAX_AGE_MS = 60000;
+
+type SignupBody = {
+  locale?: unknown;
+};
 
 /**
  * Removes a just-written pending row when its invite enqueue failed.
@@ -79,7 +80,7 @@ const tryEnqueueInvite = async (
     return true;
   } catch (error) {
     const rolledBack = await compensateFailedEnqueue(steamId);
-    logRouteError('watchRequest', sanitizeError(error), {
+    logRouteError('authSignup', sanitizeError(error), {
       steamId,
       stage,
       rolledBack,
@@ -88,36 +89,29 @@ const tryEnqueueInvite = async (
   }
 };
 
-type WatchRequestBody = {
-  steamId?: unknown;
-  locale?: unknown;
-};
-
 /**
- * Starts (or resumes) bot-friendship verification for the LOGGED-IN Steam
- * profile (Steam OpenID session — self-scoped by design).
+ * Registers the LOGGED-IN profile for Watch (navbar-global signup).
  *
- * Identity comes EXCLUSIVELY from the session: a `steamId` in the body is
- * rejected outright (stale pre-login clients must fail loudly, not be
- * silently re-scoped), and there is no query-string identity at all.
- * Unauthenticated callers get 401 — the login button is the way in.
+ * Identity comes EXCLUSIVELY from the Steam OpenID session (401 without
+ * one); `locale` rides the body for the bot's message language. One call
+ * performs the whole chain; every step is safe to repeat.
  *
- * Always 200 on a handled request — duplicates and cooldowns are answers,
- * not errors:
- * - new request            -> { status: 'pending', inviteQueued: true }
- * - pending, within 7 days -> { status: 'pending', inviteQueued: false, pendingExpiresInMs }
- * - pending, expired        -> { status: 'pending', inviteQueued: true } (clock restarted)
- * - already active          -> { status: 'active', inviteQueued: false }
+ * Invite discipline (ported from the retired watch/request route — the
+ * DAL collapse alone is NOT enough: it only dedupes while a previous
+ * invite is still open, so without this guard every repeat signup after a
+ * send would burn one of the bot's 50/day global invites):
+ * - no watch row          -> create + enqueue (inviteQueued: true)
+ * - active                -> NO enqueue, the friendship already exists
+ *                           (inviteQueued: false)
+ * - pending, within 7d    -> NO enqueue, previous invite still valid
+ *                           (inviteQueued: false + pendingExpiresInMs)
+ * - pending, expired       -> refresh clock + enqueue (inviteQueued: true)
  *
- * Field semantics (read this before consuming): `inviteQueued: true` means
- * an invite send is now pending for this profile as a result of this call
- * — either freshly queued, or confirmed still open via the DAL collapse
- * (concurrent duplicate). `pendingExpiresInMs` is the remaining validity
- * of the current pending window: the caller needs no polling, the bot acts
- * on its own; after expiry a re-request re-opens the window.
- *
- * The friendship itself is now only the DELIVERY channel (Steam requires
- * it for chat), not the identity proof — login already proved that.
+ * Deliberately issues NO confirmation token: the bot is the sole issuer,
+ * at activation time (the exact moment the link becomes deliverable over
+ * chat). A route-issued token would have no sender — and two writers
+ * would break the single-outstanding-token invariant the atomic consume
+ * relies on. Accept the bot invite; the link arrives right after.
  */
 export async function POST(req: Request) {
   // App Router only routes POST here; kept as defense-in-depth (and so unit
@@ -126,7 +120,7 @@ export async function POST(req: Request) {
     return errorResponse('Method not allowed.', 405, 'METHOD_NOT_ALLOWED');
   }
 
-  if (requestRateLimiter.isRateLimited(getRequestIp(req))) {
+  if (signupRateLimiter.isRateLimited(getRequestIp(req))) {
     return errorResponse('Too many requests.', 429, 'RATE_LIMITED');
   }
 
@@ -136,9 +130,9 @@ export async function POST(req: Request) {
 
   const session = await resolveWatchSession(cookies());
   if (session.status === 'error') {
-    logRouteError('watchRequest', sanitizeError(session.error));
+    logRouteError('authSignup', sanitizeError(session.error));
     return errorResponse(
-      'Internal server error while requesting watch.',
+      'Internal server error while signing up.',
       500,
       'INTERNAL_ERROR',
     );
@@ -148,23 +142,24 @@ export async function POST(req: Request) {
   }
   const { steamId } = session;
 
-  let body: WatchRequestBody;
+  let body: SignupBody;
   try {
-    body = (await req.json()) as WatchRequestBody;
+    body = (await req.json()) as SignupBody;
   } catch (error) {
     if (error instanceof SyntaxError) {
       return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
     }
-    logRouteError('watchRequest', sanitizeError(error), { steamId });
+    logRouteError('authSignup', sanitizeError(error), { steamId });
     return errorResponse(
-      'Internal server error while requesting watch.',
+      'Internal server error while signing up.',
       500,
       'INTERNAL_ERROR',
     );
   }
-
-  // Self-scoped, strictly: a client-supplied steamId is a stale pre-login
-  // caller (or worse) — reject loudly instead of ignoring it.
+  // Self-scoped, strictly (ported from the retired watch/request route): a
+  // client-supplied steamId is a stale pre-login caller (or worse) — reject
+  // loudly instead of ignoring it. Identity comes from the session only.
+  // Validated before reading anything else out of the body.
   if (body !== null && typeof body === 'object' && 'steamId' in body) {
     return errorResponse(
       'Invalid request body: steamId comes from the login session, not the client.',
@@ -172,40 +167,35 @@ export async function POST(req: Request) {
       'INVALID_REQUEST',
     );
   }
-  const { locale } = body ?? {};
-  const localeString = typeof locale === 'string' ? locale : null;
+  const locale = body !== null && typeof body === 'object' && typeof (body as SignupBody).locale === 'string'
+    ? ((body as SignupBody).locale as string)
+    : null;
 
   try {
+    // The account row always exists after signup (INSERT OR IGNORE — a
+    // re-signup never touches confirmation state); the watch row below
+    // decides whether an invite goes out.
+    await createAccount(steamId, locale);
     const existing = await getWatchedProfile(steamId);
 
-    if (!existing) {
-      await createWatchRequest(steamId, localeString);
+    if (existing === null) {
+      await createWatchRequest(steamId, locale);
       if (!(await tryEnqueueInvite(steamId, 'enqueue-after-create'))) {
         return errorResponse(
-          'Internal server error while requesting watch.',
+          'Internal server error while signing up.',
           500,
           'INTERNAL_ERROR',
         );
       }
       return NextResponse.json(
-        {
-          steamId,
-          status: 'pending',
-          inviteQueued: true,
-          pendingExpiresInMs: null,
-        },
+        { ok: true, steamId, inviteQueued: true, pendingExpiresInMs: null },
         { status: 200 },
       );
     }
 
     if (existing.status === 'active') {
       return NextResponse.json(
-        {
-          steamId,
-          status: 'active',
-          inviteQueued: false,
-          pendingExpiresInMs: null,
-        },
+        { ok: true, steamId, inviteQueued: false, pendingExpiresInMs: null },
         { status: 200 },
       );
     }
@@ -217,8 +207,8 @@ export async function POST(req: Request) {
     if (Number.isFinite(elapsedMs) && elapsedMs < INVITE_REREQUEST_AFTER_MS) {
       return NextResponse.json(
         {
+          ok: true,
           steamId,
-          status: 'pending',
           inviteQueued: false,
           pendingExpiresInMs: INVITE_REREQUEST_AFTER_MS - elapsedMs,
         },
@@ -231,44 +221,34 @@ export async function POST(req: Request) {
     // the truth instead of enqueueing blind into a changed state. The
     // current locale rides along so a re-request from a new browser
     // language updates the bot's message language.
-    const refreshed = await refreshWatchRequest(steamId, localeString);
+    const refreshed = await refreshWatchRequest(steamId, locale);
     if (!refreshed) {
       const current = await getWatchedProfile(steamId);
       if (current?.status === 'active') {
         return NextResponse.json(
-          {
-            steamId,
-            status: 'active',
-            inviteQueued: false,
-            pendingExpiresInMs: null,
-          },
+          { ok: true, steamId, inviteQueued: false, pendingExpiresInMs: null },
           { status: 200 },
         );
       }
       // Row vanished (opt-out race): start over as a brand-new request.
-      await createWatchRequest(steamId, localeString);
+      await createWatchRequest(steamId, locale);
     }
     if (!(await tryEnqueueInvite(steamId, 'enqueue-after-refresh'))) {
       return errorResponse(
-        'Internal server error while requesting watch.',
+        'Internal server error while signing up.',
         500,
         'INTERNAL_ERROR',
       );
     }
     return NextResponse.json(
-      {
-        steamId,
-        status: 'pending',
-        inviteQueued: true,
-        pendingExpiresInMs: null,
-      },
+      { ok: true, steamId, inviteQueued: true, pendingExpiresInMs: null },
       { status: 200 },
     );
   } catch (error) {
-    // steam_id is public data (searchable on the site), safe to log.
-    logRouteError('watchRequest', sanitizeError(error), { steamId });
+    // steamId is public data (searchable on the site), safe to log.
+    logRouteError('authSignup', sanitizeError(error), { steamId });
     return errorResponse(
-      'Internal server error while requesting watch.',
+      'Internal server error while signing up.',
       500,
       'INTERNAL_ERROR',
     );

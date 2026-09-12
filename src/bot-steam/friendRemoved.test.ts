@@ -4,8 +4,8 @@ const STEAM_ID = '76561198000000001';
 
 const silentLogger = { info: jest.fn(), error: jest.fn() };
 
-const makeDal = (deactivated: boolean) => ({
-  deactivateWatch: jest.fn(async () => deactivated),
+const makeDal = (removed = { watchDeleted: true, accountDeleted: true }) => ({
+  removeWatchAndAccount: jest.fn(async () => removed),
 });
 
 describe('handleFriendRemoved', () => {
@@ -13,14 +13,21 @@ describe('handleFriendRemoved', () => {
     jest.clearAllMocks();
   });
 
-  it('deactivates the watch and logs the outcome structurally', async () => {
-    const dal = makeDal(true);
+  it('removes watch + account atomically and logs structurally', async () => {
+    const dal = makeDal();
     const logger = { info: jest.fn(), error: jest.fn() };
 
     const result = await handleFriendRemoved(STEAM_ID, dal, logger);
 
-    expect(result).toEqual({ steamId: STEAM_ID, deactivated: true });
-    expect(dal.deactivateWatch).toHaveBeenCalledWith(STEAM_ID);
+    // Opt-out leaves no user record: the next signup starts unconfirmed
+    // and gets a fresh confirm link (never skips on stale state).
+    expect(result).toEqual({
+      steamId: STEAM_ID,
+      deactivated: true,
+      accountDeleted: true,
+    });
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledWith(STEAM_ID);
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledTimes(1);
     expect(logger.info).toHaveBeenCalledTimes(1);
     const line = String(logger.info.mock.calls[0][0]);
     expect(line).toContain(`steamId=${STEAM_ID}`);
@@ -30,15 +37,23 @@ describe('handleFriendRemoved', () => {
   });
 
   it('treats an already-inactive watch as a settled no-op (idempotent)', async () => {
-    const dal = makeDal(false);
+    const dal = makeDal({ watchDeleted: false, accountDeleted: false });
     const logger = { info: jest.fn(), error: jest.fn() };
 
     const first = await handleFriendRemoved(STEAM_ID, dal, logger);
     const second = await handleFriendRemoved(STEAM_ID, dal, logger);
 
-    expect(first).toEqual({ steamId: STEAM_ID, deactivated: false });
-    expect(second).toEqual({ steamId: STEAM_ID, deactivated: false });
-    expect(dal.deactivateWatch).toHaveBeenCalledTimes(2);
+    expect(first).toEqual({
+      steamId: STEAM_ID,
+      deactivated: false,
+      accountDeleted: false,
+    });
+    expect(second).toEqual({
+      steamId: STEAM_ID,
+      deactivated: false,
+      accountDeleted: false,
+    });
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledTimes(2);
     expect(logger.error).not.toHaveBeenCalled();
     expect(
       logger.info.mock.calls.some((call) =>
@@ -48,19 +63,25 @@ describe('handleFriendRemoved', () => {
   });
 
   it('skips malformed steamIds without touching the DAL', async () => {
-    const dal = makeDal(true);
+    const dal = makeDal();
     const logger = { info: jest.fn(), error: jest.fn() };
 
     const result = await handleFriendRemoved('not-an-id', dal, logger);
 
-    expect(result).toEqual({ steamId: 'not-an-id', deactivated: false });
-    expect(dal.deactivateWatch).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      steamId: 'not-an-id',
+      deactivated: false,
+      accountDeleted: false,
+    });
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
     expect(logger.error).toHaveBeenCalledTimes(1);
   });
 
-  it('contains DAL failures in a logged result instead of throwing', async () => {
+  it('reports a composite failure truthfully (atomic: neither row went)', async () => {
+    // The batch is one transaction — a throw means the rollback held, so
+    // {false, false} is the truth, not a mask.
     const dal = {
-      deactivateWatch: jest.fn(async () => {
+      removeWatchAndAccount: jest.fn(async () => {
         throw new Error('db down');
       }),
     };
@@ -68,21 +89,26 @@ describe('handleFriendRemoved', () => {
 
     const result = await handleFriendRemoved(STEAM_ID, dal, logger);
 
-    expect(result).toEqual({ steamId: STEAM_ID, deactivated: false });
+    expect(result).toEqual({
+      steamId: STEAM_ID,
+      deactivated: false,
+      accountDeleted: false,
+    });
     expect(logger.error).toHaveBeenCalledTimes(1);
     const line = String(logger.error.mock.calls[0][0]);
     expect(line).toContain(`steamId=${STEAM_ID}`);
+    expect(line).toContain('operation=removeWatch');
     expect(line).toContain('db down');
   });
 
   it('logs exactly the documented line shapes (no room for extra content)', async () => {
-    const dal = makeDal(true);
+    const dal = makeDal();
     const logger = { info: jest.fn(), error: jest.fn() };
 
     await handleFriendRemoved(STEAM_ID, dal, logger);
     expect(logger.info.mock.calls).toEqual([
       [
-        `[WatchBot] friend-remove: watch deactivated steamId=${STEAM_ID} event=friend-remove result=deactivated`,
+        `[WatchBot] friend-remove: watch deactivated steamId=${STEAM_ID} event=friend-remove result=deactivated accountDeleted=true`,
       ],
     ]);
 

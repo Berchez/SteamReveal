@@ -123,7 +123,7 @@ describe('GET /api/auth/steam/callback', () => {
     expect(second.headers.get('location')).toBe(`${BASE}/pt/watch?auth=error`);
   });
 
-  it('falls back to /watch for hostile next params (no open redirect)', async () => {
+  it('falls back to / for hostile next params (no open redirect)', async () => {
     const res = await GET(
       new Request(
         `${CALLBACK}?openid.mode=id_res&next=https://evil.example/&state=${STATE}`,
@@ -131,7 +131,7 @@ describe('GET /api/auth/steam/callback', () => {
     );
 
     // Success path still lands on the safe fallback — never the evil URL.
-    expect(res.headers.get('location')).toBe(`${BASE}/watch`);
+    expect(res.headers.get('location')).toBe(`${BASE}/`);
 
     verifySteamAssertion.mockResolvedValueOnce(null);
     const failed = await GET(
@@ -139,7 +139,7 @@ describe('GET /api/auth/steam/callback', () => {
         `${CALLBACK}?openid.mode=id_res&next=//evil.example/&state=${STATE}`,
       ),
     );
-    expect(failed.headers.get('location')).toBe(`${BASE}/watch?auth=error`);
+    expect(failed.headers.get('location')).toBe(`${BASE}/?auth=error`);
   });
 
   it('rejects non-GET methods', async () => {

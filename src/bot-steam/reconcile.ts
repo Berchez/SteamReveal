@@ -37,6 +37,7 @@
  * not a 17-digit id is skipped and counted, never passed to the DAL.
  */
 
+import type { RemoveWatchResult } from '@/lib/analytics/db';
 import type { WatchBotLogger } from './logger';
 
 export interface ReconcileDal {
@@ -44,7 +45,7 @@ export interface ReconcileDal {
     Array<{ steamId: string; status: string; locale: string | null }>
   >;
   activateWatch: (steamId: string) => Promise<boolean>;
-  deactivateWatch: (steamId: string) => Promise<boolean>;
+  removeWatchAndAccount: (steamId: string) => Promise<RemoveWatchResult>;
 }
 
 export interface ReconcileReport {
@@ -125,17 +126,33 @@ const runReconcilePass = async (
                 locale: watch.locale ?? null,
               });
             } catch (error) {
+              // Labeled for the actual sender (confirm link OR welcome —
+              // see handleActivation), not a blanket 'welcomeMessage'.
               report.errors.push({
                 steamId: watch.steamId,
-                operation: 'welcomeMessage',
+                operation: 'activationMessage',
                 message: error instanceof Error ? error.message : String(error),
               });
             }
           }
         } else if (watch.status === 'active' && !friends.has(watch.steamId)) {
-          // eslint-disable-next-line no-await-in-loop
-          await dal.deactivateWatch(watch.steamId);
-          report.deactivated.push(watch.steamId);
+          // Opt-out while offline: the SAME composite the live
+          // friend-remove path uses (one transaction — both rows go or
+          // neither does, so no user record survives an unfriend and the
+          // next signup re-confirms). A failure is labeled with the single
+          // operation name; the row stays listed and the next pass retries.
+          try {
+            // eslint-disable-next-line no-await-in-loop
+            await dal.removeWatchAndAccount(watch.steamId);
+            report.deactivated.push(watch.steamId);
+          } catch (error) {
+            report.errors.push({
+              steamId: watch.steamId,
+              operation: 'removeWatch',
+              message:
+                error instanceof Error ? error.message : String(error),
+            });
+          }
         }
       } catch (error) {
         // One bad row must not abort the whole pass: record it and keep

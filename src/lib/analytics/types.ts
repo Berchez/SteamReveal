@@ -137,6 +137,23 @@ export interface WatchEvent {
 }
 
 /**
+ * Watch account (navbar-global signup + bot-link confirmation).
+ * One row per signed-up Steam profile: `confirmed_at` NULL means the bot
+ * link was never clicked. Token columns are NULL outside a pending
+ * confirmation window (single outstanding token by construction).
+ */
+export interface WatchAccount {
+  steamId: string;
+  createdAt: string;
+  confirmedAt: string | null;
+  /** SHA-256 hex of the pending token (never the token itself). */
+  confirmTokenHash: string | null;
+  confirmExpiresAt: string | null;
+  /** Signup requester locale for bot messages, null when unknown. */
+  locale: string | null;
+}
+
+/**
  * Inbox row (WB-14): the minimal projection of a delivered notify event.
  * steamId is the query key (echoed by the route, not repeated per row);
  * only id + delivery timestamp travel — no message text is stored (the

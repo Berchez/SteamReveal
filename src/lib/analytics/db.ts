@@ -10,6 +10,8 @@
  *   DATABASE_URL   libsql://<db>-<org>.turso.io
  *   DATABASE_TOKEN Turso auth token
  */
+import { createHash } from 'crypto';
+
 import { createClient, type Client } from '@libsql/client';
 
 import type {
@@ -21,6 +23,7 @@ import type {
   FriendGcNameEntry,
   GameSnapshotEntry,
   LocationGuess,
+  WatchAccount,
   WatchStatus,
   WatchEventKind,
   WatchNotification,
@@ -432,6 +435,21 @@ const assertSteamId64 = (steamId: string): void => {
   }
 };
 
+const CONFIRM_TOKEN_HASH_RE = /^[0-9a-f]{64}$/;
+
+const assertConfirmTokenHash = (tokenHash: string): void => {
+  // NOTE: this validates HASHES (SHA-256 hex), never raw tokens — it just
+  // happens that our raw tokens are also 64 hex chars (32 random bytes),
+  // so the same shape matches both. Keep it that way: if token generation
+  // ever changes length/encoding, this assert must stay hash-shaped and
+  // the route's shape-gate (confirm/route.ts) token-shaped, independently.
+  if (typeof tokenHash !== 'string' || !CONFIRM_TOKEN_HASH_RE.test(tokenHash)) {
+    throw new Error(
+      'Invalid confirm token hash for watch DAL: expected 64 lowercase hex chars',
+    );
+  }
+};
+
 const assertWatchEventKind: (kind: string) => asserts kind is WatchEventKind = (
   kind,
 ) => {
@@ -749,6 +767,71 @@ export const deactivateWatch = async (steamId: string): Promise<boolean> => {
     }),
   );
   return Number(deleted.rowsAffected) > 0;
+};
+
+/**
+ * Deletes the accounts row (steam_id + locale + confirmation timestamps).
+ * Granular primitive, kept exported for tests — production opt-out goes
+ * through removeWatchAndAccount below, never this alone: without the
+ * account delete, unfriending would leave a permanent record behind and a
+ * future re-signup would silently skip confirmation on the stale
+ * confirmed_at. Deliberately NOT called by the signup compensation path
+ * (a failed enqueue is a system error, not user intent — the account
+ * stays so the retry is idempotent). Returns false when no account row
+ * existed.
+ */
+export const deleteAccount = async (steamId: string): Promise<boolean> => {
+  assertSteamId64(steamId);
+  const db = await getClient();
+
+  const deleted = await withSchemaHint(
+    db.execute({
+      sql: 'DELETE FROM accounts WHERE steam_id = ?',
+      args: [steamId],
+    }),
+  );
+  return Number(deleted.rowsAffected) > 0;
+};
+
+export interface RemoveWatchResult {
+  watchDeleted: boolean;
+  accountDeleted: boolean;
+}
+
+/**
+ * Opt-out, the ONLY production path that removes user rows (the live
+ * friend-remove handler and the offline reconcile pass share it, so the
+ * rule can never drift between two reimplementations again): deletes the
+ * accounts row AND the watched_profiles row in ONE db.batch() — a single
+ * transaction, so both go or neither does. No orphan window, no retry or
+ * sweep machinery, and a failure reports {false, false} truthfully (the
+ * batch rolled back — nothing was removed). A fresh opt-out cycle means
+ * fresh consent: the next signup starts unconfirmed and the bot sends a
+ * new link.
+ */
+export const removeWatchAndAccount = async (
+  steamId: string,
+): Promise<RemoveWatchResult> => {
+  assertSteamId64(steamId);
+  const db = await getClient();
+
+  const results = await withSchemaHint(
+    db.batch([
+      {
+        sql: 'DELETE FROM accounts WHERE steam_id = ?',
+        args: [steamId],
+      },
+      {
+        sql: 'DELETE FROM watched_profiles WHERE steam_id = ?',
+        args: [steamId],
+      },
+    ]),
+  );
+
+  return {
+    accountDeleted: Number(results?.[0]?.rowsAffected) > 0,
+    watchDeleted: Number(results?.[1]?.rowsAffected) > 0,
+  };
 };
 
 export interface EnqueueWatchEventResult {
@@ -1082,6 +1165,154 @@ export const getWatchedProfile = async (
   );
   if (row.rows.length === 0) return null;
   return toWatchedProfile(row.rows[0] as Record<string, unknown>);
+};
+
+// ---------------------------------------------------------------------------
+// Watch accounts (navbar-global signup + bot-link confirmation).
+// ---------------------------------------------------------------------------
+
+const toWatchAccount = (row: Record<string, unknown>): WatchAccount => ({
+  steamId: row.steam_id as string,
+  createdAt: row.created_at as string,
+  confirmedAt:
+    typeof row.confirmed_at === 'string' ? row.confirmed_at : null,
+  confirmTokenHash:
+    typeof row.confirm_token_hash === 'string'
+      ? row.confirm_token_hash
+      : null,
+  confirmExpiresAt:
+    typeof row.confirm_expires_at === 'string'
+      ? row.confirm_expires_at
+      : null,
+  locale: typeof row.locale === 'string' ? row.locale : null,
+});
+
+/**
+ * SHA-256 hex of a confirmation token. Only hashes are stored and
+ * compared — the plaintext token exists transiently in the signup response
+ * (bot message) and the confirm query string, never in the database or
+ * (via sanitizeError-safe callers) in logs.
+ */
+export const hashConfirmToken = (token: string): string =>
+  createHash('sha256').update(token, 'utf8').digest('hex');
+
+/**
+ * Creates the account row. Idempotent like createWatchRequest: an existing
+ * row (confirmed or not) is returned untouched — re-signup never resets
+ * confirmation state and concurrent signups cannot duplicate the row.
+ */
+export const createAccount = async (
+  steamId: string,
+  locale?: string | null,
+): Promise<WatchAccount> => {
+  assertSteamId64(steamId);
+  const db = await getClient();
+  const now = new Date().toISOString();
+
+  await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO accounts
+            (steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale)
+            VALUES (?, ?, NULL, NULL, NULL, ?)
+            ON CONFLICT(steam_id) DO NOTHING`,
+      args: [steamId, now, normalizeLocale(locale)],
+    }),
+  );
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale
+            FROM accounts WHERE steam_id = ?`,
+      args: [steamId],
+    }),
+  );
+
+  // Same unreachable-unless-deleted contract as createWatchRequest (nothing
+  // in the app deletes accounts): throw rather than fabricate a row.
+  if (row.rows.length === 0) {
+    throw new Error('createAccount lost a concurrent race unexpectedly');
+  }
+
+  return toWatchAccount(row.rows[0] as Record<string, unknown>);
+};
+
+/** Full account row, or null when this profile never signed up. */
+export const getAccount = async (
+  steamId: string,
+): Promise<WatchAccount | null> => {
+  assertSteamId64(steamId);
+  const db = await getClient();
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale
+            FROM accounts WHERE steam_id = ?`,
+      args: [steamId],
+    }),
+  );
+  if (row.rows.length === 0) return null;
+  return toWatchAccount(row.rows[0] as Record<string, unknown>);
+};
+
+/**
+ * Arms (or re-arms) the confirmation token. Returns false when no account
+ * row exists — callers create it first. Overwrites any previous pending
+ * token, so at most one is ever outstanding (old links die on re-issue).
+ * Never touches an already-confirmed account (confirmed_at IS NULL):
+ * re-issuing over a confirmation would silently un-verify the user, so a
+ * caller bug surfaces as a false return instead of clobbered state.
+ */
+export const issueConfirmToken = async (
+  steamId: string,
+  tokenHash: string,
+  expiresAt: string,
+): Promise<boolean> => {
+  assertSteamId64(steamId);
+  assertConfirmTokenHash(tokenHash);
+  const db = await getClient();
+
+  const updated = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE accounts
+            SET confirm_token_hash = ?, confirm_expires_at = ?
+            WHERE steam_id = ?
+              AND confirmed_at IS NULL`,
+      args: [tokenHash, expiresAt, steamId],
+    }),
+  );
+  return Number(updated.rowsAffected) > 0;
+};
+
+/**
+ * Atomically consumes a confirmation token: flips the account to confirmed
+ * and clears the token columns in ONE UPDATE...RETURNING, so two concurrent
+ * clicks (double-submit, retry, replay) converge on exactly one winner —
+ * the loser sees zero rows and resolves to null instead of re-confirming.
+ * Expired tokens and already-confirmed accounts never match the predicate.
+ *
+ * Returns the confirmed steamId, or null when nothing was consumed.
+ */
+export const consumeConfirmToken = async (
+  tokenHash: string,
+): Promise<string | null> => {
+  assertConfirmTokenHash(tokenHash);
+  const db = await getClient();
+  const now = new Date().toISOString();
+
+  const updated = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE accounts
+            SET confirmed_at = ?, confirm_token_hash = NULL, confirm_expires_at = NULL
+            WHERE confirm_token_hash = ?
+              AND confirmed_at IS NULL
+              AND confirm_expires_at IS NOT NULL
+              AND confirm_expires_at > ?
+            RETURNING steam_id`,
+      args: [now, tokenHash, now],
+    }),
+  );
+  if (updated.rows.length === 0) return null;
+  return String((updated.rows[0] as Record<string, unknown>).steam_id);
 };
 
 /**

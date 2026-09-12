@@ -45,6 +45,15 @@ export interface BotConfig {
   notifySendTimeoutMs: number;
   /** Notify events older than this (by persisted created_at) are dropped. */
   notifyTtlDays: number;
+  /**
+   * Public site base URL (no trailing slash) used to build bot-delivered
+   * links (signup confirmation). Required with no default: a wrong default
+   * would send users confirm links for the wrong environment, and those
+   * tokens only exist in one database.
+   */
+  siteUrl: string;
+  /** Confirm-link lifetime in ms (bot-issued tokens expire after this). */
+  confirmTokenTtlMs: number;
   staleSweepIntervalMs: number;
   staleClaimWindowMinutes: number;
 }
@@ -64,6 +73,7 @@ const DEFAULT_NOTIFY_BATCH_LIMIT = 10;
 const DEFAULT_NOTIFY_MAX_ATTEMPTS = 3;
 const DEFAULT_NOTIFY_SEND_TIMEOUT_MS = 30000;
 const DEFAULT_NOTIFY_TTL_DAYS = 7;
+const DEFAULT_CONFIRM_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_STALE_SWEEP_INTERVAL_MS = 600000;
 const DEFAULT_STALE_CLAIM_WINDOW_MINUTES = 30;
 
@@ -80,6 +90,15 @@ const requireSecret = (value: string | undefined, name: string): string => {
     );
   }
   return value;
+};
+
+const requireSiteUrl = (value: string | undefined): string => {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(
+      'WATCH_SITE_URL is missing — set it to the public site base URL with no trailing slash (see .env.example). Confirm links built without it point nowhere.',
+    );
+  }
+  return value.replace(/\/+$/, '');
 };
 
 /**
@@ -185,6 +204,12 @@ export const loadBotConfig = (
       DEFAULT_NOTIFY_TTL_DAYS,
       'BOT_NOTIFY_TTL_DAYS',
     ),
+    siteUrl: requireSiteUrl(env.WATCH_SITE_URL),
+    confirmTokenTtlMs: readPositiveInt(
+      env.BOT_CONFIRM_TOKEN_TTL_MS,
+      DEFAULT_CONFIRM_TOKEN_TTL_MS,
+      'BOT_CONFIRM_TOKEN_TTL_MS',
+    ),
     staleSweepIntervalMs: readPositiveInt(
       env.BOT_STALE_SWEEP_INTERVAL_MS,
       DEFAULT_STALE_SWEEP_INTERVAL_MS,
@@ -214,6 +239,7 @@ export const BOT_CONFIG_DEFAULTS = {
   DEFAULT_NOTIFY_MAX_ATTEMPTS,
   DEFAULT_NOTIFY_SEND_TIMEOUT_MS,
   DEFAULT_NOTIFY_TTL_DAYS,
+  DEFAULT_CONFIRM_TOKEN_TTL_MS,
   DEFAULT_STALE_SWEEP_INTERVAL_MS,
   DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
 };

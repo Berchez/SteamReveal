@@ -3,10 +3,12 @@ import dynamic from 'next/dynamic';
 import './globals.css';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { Roboto, Inknut_Antiqua } from 'next/font/google';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { headers } from 'next/headers';
 import Script from 'next/script';
 import HomeProvider from '@/app/templates/Home/HomeProvider';
+import LanguageSwitcher from '@/app/components/LanguageSwitcher';
+import SiteNav from '@/app/components/SiteNav/SiteNav';
 import { LOCALE_PATHS } from '../../locales';
 
 const shouldLoadVercelTelemetry = process.env.VERCEL_ENV === 'production';
@@ -147,7 +149,27 @@ export default function RootLayout({
       <body data-country={country}>
         <NextIntlClientProvider messages={messages}>
           <ToastProvider>
-            <HomeProvider>{children}</HomeProvider>
+            <HomeProvider>
+              {/*
+                SiteNav is async (session + Steam avatar, up to 4s on a
+                slow Steam API). Without this boundary the whole route —
+                children included — waits for it before streaming a byte.
+                Fallback keeps the same fixed wrapper + the switcher (the
+                only control that needs no session), so the page paints
+                instantly and nothing in-flow shifts when the bell/avatar
+                lands (fixed elements never move page content — CLS-safe).
+              */}
+              <Suspense
+                fallback={
+                  <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+                    <LanguageSwitcher />
+                  </div>
+                }
+              >
+                <SiteNav locale={locale} />
+              </Suspense>
+              {children}
+            </HomeProvider>
           </ToastProvider>
         </NextIntlClientProvider>
         {shouldLoadVercelTelemetry && <VercelAnalytics />}

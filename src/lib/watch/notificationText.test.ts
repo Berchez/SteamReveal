@@ -1,5 +1,6 @@
 import {
   DEFAULT_WATCH_LOCALE,
+  getConfirmText,
   getNotifyText,
   getWelcomeText,
   resolveWatchLocale,
@@ -8,6 +9,7 @@ import {
 } from './notificationText';
 
 const STEAM = '76561198000000001';
+const CONFIRM_URL = 'https://steam-reveal.vercel.app/api/watch/confirm?token=abc123';
 
 describe('resolveWatchLocale', () => {
   it('resolves base languages and regional variants', () => {
@@ -46,18 +48,31 @@ describe('shared watch message base', () => {
     },
   );
 
+  it.each([...WATCH_LOCALES])(
+    'confirm text carries the link in %s',
+    (locale) => {
+      const text = getConfirmText(locale, CONFIRM_URL);
+      expect(text.length).toBeGreaterThan(0);
+      expect(text).toContain(CONFIRM_URL);
+    },
+  );
+
   it('never throws and falls back for unknown locales', () => {
     expect(() => getNotifyText('xx', STEAM)).not.toThrow();
     expect(getNotifyText('xx', STEAM)).toBe(
       getNotifyText(DEFAULT_WATCH_LOCALE, STEAM),
     );
     expect(getWelcomeText(null)).toBe(getWelcomeText(DEFAULT_WATCH_LOCALE));
+    expect(getConfirmText('xx', CONFIRM_URL)).toBe(
+      getConfirmText(DEFAULT_WATCH_LOCALE, CONFIRM_URL),
+    );
   });
 
   it('keeps every template free of [ (Steam BBCode mangling)', () => {
     for (const locale of [...WATCH_LOCALES, 'xx', null]) {
       expect(getWelcomeText(locale)).not.toContain('[');
       expect(getNotifyText(locale, STEAM)).not.toContain('[');
+      expect(getConfirmText(locale, CONFIRM_URL)).not.toContain('[');
     }
   });
 
@@ -69,9 +84,11 @@ describe('shared watch message base', () => {
     expect(getNotifyText('es', STEAM)).toMatch(/[óí]/);
     expect(getNotifyText('de', STEAM)).toMatch(/[äöüÄÖÜß]/);
     expect(getWelcomeText('ru')).toMatch(/[Ѐ-џ]/);
+    expect(getConfirmText('ru', CONFIRM_URL)).toMatch(/[Ѐ-џ]/);
     for (const locale of WATCH_LOCALES) {
       expect(getWelcomeText(locale)).not.toContain('�');
       expect(getNotifyText(locale, STEAM)).not.toContain('�');
+      expect(getConfirmText(locale, CONFIRM_URL)).not.toContain('�');
     }
   });
 });

@@ -16,12 +16,12 @@ import {
   activateWatch,
   claimNextQueuedEvents,
   countInvitesSentSince,
-  deactivateWatch,
   getWatchedProfile,
   listWatchedProfiles,
   markEventDropped,
   markEventSent,
   recordEventAttempt,
+  removeWatchAndAccount,
   resetStaleClaims,
 } from '../lib/analytics/db';
 import { loadBotConfig } from './config';
@@ -29,7 +29,10 @@ import type { WatchBotLogger } from './logger';
 import { WatchBot } from './bot';
 import { reconcileFriendsList } from './reconcile';
 import { handleFriendRemoved } from './friendRemoved';
-import { sendWelcomeMessage, type WelcomeChatClient } from './welcomeMessage';
+import {
+  handleActivation,
+  type ActivationChatClient,
+} from './activationMessage';
 import type { NotifyChatClient } from './notifyMessage';
 import { startHeartbeat } from './heartbeat';
 import { startInvitePoller } from './invitePoller';
@@ -89,20 +92,21 @@ const main = (): void => {
       reconcileFriendsList(
         friendsById,
         SteamUser.EFriendRelationship.Friend,
-        { listWatchedProfiles, activateWatch, deactivateWatch },
+        { listWatchedProfiles, activateWatch, removeWatchAndAccount },
         logger,
-        // WB-11: welcome chat message on every fresh activation, in the
-        // stored requester locale. Runs after activateWatch commits; a send
-        // failure is isolated per row by reconcile (activation stands).
+        // Activation message (navbar-global signup flow, see
+        // activationMessage.ts for the no-retry rationale). Runs after
+        // activateWatch commits; a send failure is isolated per row by
+        // reconcile (activation stands) and fires exactly once per
+        // activation thanks to reconcile's serialized passes (a repeat
+        // pass sees 'active' and skips).
         // The cast is contained here: @types/steam-user does not declare
         // chat.sendFriendMessage (verified present at runtime in the
-        // installed v5), so the structural WelcomeChatClient carries it.
-        ({ steamId, locale }) =>
-          sendWelcomeMessage(
-            client.chat as unknown as WelcomeChatClient,
-            steamId,
-            locale,
-          ),
+        // installed v5), so the structural chat-client type carries it.
+        ({ steamId, locale }) => {
+          const chat = client.chat as unknown as ActivationChatClient;
+          return handleActivation(chat, steamId, locale, config);
+        },
       ).catch((error) => {
         // eslint-disable-next-line no-console
         console.error(
@@ -143,12 +147,16 @@ const main = (): void => {
     },
     // WB-8 official opt-out: unfriend/block observed on the live event.
     // Removals that happened while offline are caught by the reconcile
-    // pass instead (same deactivateWatch, no duplicated logic).
+    // pass instead (same composite, no duplicated logic).
     // handleFriendRemoved never rejects by contract (all failures resolve
     // to { deactivated: false }); the .catch below is defensive-only, kept
     // because dropping it would leave a floating promise.
     onFriendRemoved: (steamId: string) => {
-      handleFriendRemoved(steamId, { deactivateWatch }, logger).catch(
+      handleFriendRemoved(
+        steamId,
+        { removeWatchAndAccount },
+        logger,
+      ).catch(
         (error: unknown) =>
           logger.error(
             `[WatchBot] friend-remove handling failed: steamId=${steamId}: ${

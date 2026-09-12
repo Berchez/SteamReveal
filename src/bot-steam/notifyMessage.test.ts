@@ -1,11 +1,13 @@
 import {
   DEFAULT_NOTIFY_LOCALE,
   getNotifyMessage,
+  sendConfirmMessage,
   sendNotifyMessage,
 } from './notifyMessage';
 
 const STEAM = '76561198000000001';
 const URL = `https://steamcommunity.com/profiles/${STEAM}`;
+const CONFIRM_URL = 'https://steam-reveal.vercel.app/api/watch/confirm?token=abc';
 
 describe('getNotifyMessage', () => {
   it.each(['en', 'pt', 'es', 'de', 'ru'])(
@@ -81,5 +83,26 @@ describe('sendNotifyMessage', () => {
     await expect(sendNotifyMessage(null as never, STEAM, 'en')).rejects.toThrow(
       /sendFriendMessage is not a function/,
     );
+  });
+});
+
+describe('sendConfirmMessage', () => {
+  it('sends the confirm link to exactly the new friend', async () => {
+    const sendFriendMessage = jest.fn(async () => ({ ordinal: 1 }));
+
+    await sendConfirmMessage({ sendFriendMessage }, STEAM, 'es', CONFIRM_URL);
+
+    expect(sendFriendMessage).toHaveBeenCalledTimes(1);
+    const [, text] = sendFriendMessage.mock.calls[0] as unknown as [
+      string,
+      string,
+    ];
+    expect(text).toContain(CONFIRM_URL);
+  });
+
+  it('fails loudly when the chat sender is missing', async () => {
+    await expect(
+      sendConfirmMessage({} as never, STEAM, 'en', CONFIRM_URL),
+    ).rejects.toThrow(/sendFriendMessage is not a function/);
   });
 });

@@ -164,10 +164,6 @@
       "description": "See {nickname}'s public Steam data, possible location and friends analysis on SteamReveal.",
       "fallbackTitle": "SteamReveal - Analyze Steam Profiles",
       "fallbackDescription": "SteamReveal is an OSINT tool designed for the Steam community. Analyze Steam profiles, discover real friends, and locate players using public data."
-    },
-    "Watch": {
-      "title": "Watch a Steam profile | SteamReveal",
-      "description": "Get notified on Steam whenever a Steam profile is searched."
     }
   },
   "Watch": {
@@ -175,7 +171,12 @@
     "watchTitle": "Watch a Steam profile",
     "watchDescription": "Get a Steam message from our bot whenever this profile is searched. Sign in with Steam to link your profile — accepting the bot friend request lets it reach you.",
     "watchSubmit": "Watch this profile",
+    "watchSignupSteps": "How it works: click the button below to start, accept the bot's friend request on Steam, then click the confirmation link the bot sends you here.",
+    "watchConfirmOk": "Watch confirmed! You will be notified here whenever your profile is searched.",
+    "watchConfirmError": "This confirmation link is invalid or expired. Start watching again to get a fresh one.",
     "watchLoginButton": "Sign in with Steam",
+    "watchNavSignIn": "Sign in",
+    "watchAvatarAlt": "Profile picture of {nickname}",
     "watchLoginError": "Steam login failed. Try again in a moment.",
     "watchLogout": "Sign out",
     "watchPendingTitle": "Invite sent",

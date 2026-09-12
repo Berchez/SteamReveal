@@ -42,7 +42,7 @@ describe('GET /api/auth/steam/login', () => {
     expect(url.searchParams.get('openid.realm')).toBe(base);
   });
 
-  it('falls back to /watch for missing or hostile next params (no open redirect)', async () => {
+  it('falls back to / for missing or hostile next params (no open redirect)', async () => {
     for (const next of [
       null,
       '',
@@ -58,7 +58,7 @@ describe('GET /api/auth/steam/login', () => {
           'openid.return_to',
         ) as string,
       );
-      expect(returnTo.searchParams.get('next')).toBe('/watch');
+      expect(returnTo.searchParams.get('next')).toBe('/');
     }
   });
 

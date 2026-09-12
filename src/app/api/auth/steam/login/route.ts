@@ -25,11 +25,10 @@ const STATE_COOKIE_MAX_AGE_SECONDS = 600;
 
 /**
  * Starts Steam OpenID login: 302s the browser to Steam's checkid_setup
- * with identifier_select. `?next=/<locale>/watch` (optional) is carried
- * inside return_to so the callback can send the user back to the watch
- * flow without losing context — validated as an internal path (open
- * redirectors need not apply), defaulting to `/watch` (the locale
- * middleware prefixes it).
+ * with identifier_select. `?next=/<locale>/` (optional) is carried
+ * inside return_to so the callback can send the user back where they
+ * started — validated as an internal path (open redirectors need not
+ * apply), defaulting to `/` (the locale middleware prefixes it).
  *
  * Also plants a single-use `state` nonce (httpOnly cookie + echoed query
  * param) so the callback can reject logins nobody started in this browser
@@ -48,7 +47,7 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const rawNext = url.searchParams.get('next');
-  const next = isSafeNextPath(rawNext) ? rawNext : '/watch';
+  const next = isSafeNextPath(rawNext) ? rawNext : '/';
   const state = randomBytes(16).toString('hex');
   const loginUrl = buildSteamLoginUrl({
     returnTo: `${url.origin}/api/auth/steam/callback?next=${encodeURIComponent(next)}&state=${state}`,

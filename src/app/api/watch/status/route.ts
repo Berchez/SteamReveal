@@ -13,7 +13,7 @@ export const runtime = 'nodejs';
 export const revalidate = 0;
 
 // Read-only polling endpoint by design (the frontend polls this after
-// POST /api/watch/request until the watch flips to active), so the cap is
+// POST /api/auth/signup until the watch flips to active), so the cap is
 // looser than the write route's: 30/min supports ~2s-interval polling for
 // a few minutes without throttling legitimate use, while still bounding a
 // single IP. One indexed PK lookup per hit — cheap by construction.

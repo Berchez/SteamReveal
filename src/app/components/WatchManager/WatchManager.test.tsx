@@ -16,18 +16,27 @@ jest.mock('next-intl', () => ({
   useTranslations: () => mockTranslate,
 }));
 
+// Same interception precedent as UserCard.test.tsx: mock the underlying
+// next-intl/navigation factory (not the @/navigation alias) so the
+// login-link `next` preservation is deterministic in tests.
+jest.mock('next-intl/navigation', () => ({
+  createNavigation: () => ({
+    Link: ({ href, children }: any) => <a href={href}>{children}</a>,
+    redirect: jest.fn(),
+    usePathname: () => '/player/player-c',
+    useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
+    getPathname: jest.fn(),
+  }),
+}));
+
 const STEAM_ID = '76561198000000001';
 
+// Signup shape: the manager only reads res.ok (the status poll picks up
+// pending/active by itself) — overrides still merge for future needs.
 const postOk = (overrides = {}) =>
   ({
     ok: true,
-    json: async () => ({
-      steamId: STEAM_ID,
-      status: 'pending',
-      inviteQueued: true,
-      pendingExpiresInMs: null,
-      ...overrides,
-    }),
+    json: async () => ({ ok: true, ...overrides }),
   }) as Response;
 
 const statusResponse = (status: string) =>
@@ -73,7 +82,7 @@ describe('WatchManager', () => {
 
   it('mounts read-only: no request fires without an explicit click', async () => {
     const fetchMock = fetchByUrl((url) => {
-      if (url.includes('/api/watch/request')) return postOk();
+      if (url.includes('/api/auth/signup')) return postOk();
       return statusResponse('pending');
     });
 
@@ -82,7 +91,7 @@ describe('WatchManager', () => {
 
     expect(
       fetchMock.mock.calls.filter(([url]) =>
-        String(url).includes('/api/watch/request'),
+        String(url).includes('/api/auth/signup'),
       ),
     ).toHaveLength(0);
     expect(screen.getByText('watchPendingTitle')).toBeInTheDocument();
@@ -90,7 +99,7 @@ describe('WatchManager', () => {
 
   it('starts watching on explicit click (locale only, never a typed id)', async () => {
     const fetchMock = fetchByUrl((url) => {
-      if (url.includes('/api/watch/request')) return postOk();
+      if (url.includes('/api/auth/signup')) return postOk();
       return statusResponse('none');
     });
 
@@ -102,7 +111,7 @@ describe('WatchManager', () => {
     await settle();
 
     const posted = fetchMock.mock.calls.find(([calledUrl]) =>
-      String(calledUrl).includes('/api/watch/request'),
+      String(calledUrl).includes('/api/auth/signup'),
     ) as unknown as [string, RequestInit];
     expect(posted).toBeDefined();
     // Self-scoped: locale travels, identity never leaves the session.
@@ -112,7 +121,7 @@ describe('WatchManager', () => {
   it('rides pending to active via polling', async () => {
     const statuses = ['pending', 'pending', 'active'];
     fetchByUrl((url) => {
-      if (url.includes('/api/watch/request')) return postOk();
+      if (url.includes('/api/auth/signup')) return postOk();
       return statusResponse(statuses.shift() ?? 'active');
     });
 
@@ -129,7 +138,7 @@ describe('WatchManager', () => {
     // (reads as 'none'), and a mount must NOT recreate it by itself —
     // otherwise every /watch visit would undo the opt-out.
     const fetchMock = fetchByUrl((url) => {
-      if (url.includes('/api/watch/request')) return postOk();
+      if (url.includes('/api/auth/signup')) return postOk();
       return statusResponse('none');
     });
 
@@ -139,14 +148,14 @@ describe('WatchManager', () => {
     expect(screen.getByText('watchTitle')).toBeInTheDocument();
     expect(
       fetchMock.mock.calls.filter(([url]) =>
-        String(url).includes('/api/watch/request'),
+        String(url).includes('/api/auth/signup'),
       ),
     ).toHaveLength(0);
   });
 
   it('shows a request error without blocking the status screens', async () => {
     fetchByUrl((url) => {
-      if (url.includes('/api/watch/request')) {
+      if (url.includes('/api/auth/signup')) {
         return { ok: false, status: 500 } as Response;
       }
       return statusResponse('none');
@@ -165,7 +174,7 @@ describe('WatchManager', () => {
 
   it('shows the login gate when the session died mid-use', async () => {
     fetchByUrl((url) => {
-      if (url.includes('/api/watch/request')) return postOk();
+      if (url.includes('/api/auth/signup')) return postOk();
       return { ok: false, status: 401 } as Response;
     });
 
@@ -173,9 +182,10 @@ describe('WatchManager', () => {
     await flushPolls(2);
 
     const loginLink = screen.getByText('watchLoginButton');
+    // Re-login preserves the page the user was on, not the home page.
     expect(loginLink.closest('a')).toHaveAttribute(
       'href',
-      expect.stringContaining('/api/auth/steam/login'),
+      '/api/auth/steam/login?next=%2Fpt%2Fplayer%2Fplayer-c',
     );
   });
 
@@ -191,7 +201,7 @@ describe('WatchManager', () => {
 
   it('logs out and reloads into the login gate', async () => {
     fetchByUrl((url) => {
-      if (url.includes('/api/watch/request')) return postOk();
+      if (url.includes('/api/auth/signup')) return postOk();
       if (url.includes('/api/auth/logout')) {
         return { ok: true, json: async () => ({ ok: true }) } as Response;
       }

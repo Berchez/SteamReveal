@@ -49,6 +49,7 @@ Required (bot exits 1 on startup without them):
 | `STEAM_BOT_SHARED_SECRET` | TOTP shared secret (see above)                                                         |
 | `DATABASE_URL`            | Turso DB (same as the site)                                                            |
 | `DATABASE_TOKEN`          | Turso token (remote URLs only)                                                         |
+| `WATCH_SITE_URL`          | Public site base URL, no trailing slash (bot-delivered confirm links point here — wrong env = dead links; tokens only exist in one DB) |
 | `SESSION_SECRET`          | Login-cookie seal (32+ chars, one per environment — site only, the bot never reads it) |
 
 Optional tuning (defaults shown — the full list with the abuse-math rationale
@@ -70,8 +71,9 @@ lives in `.env.example` under "Watch Bot"):
 | `BOT_NOTIFY_BATCH_LIMIT`                         | `10`                        | Max notifies claimed per pass                    |
 | `BOT_NOTIFY_MAX_ATTEMPTS`                        | `3`                         | Attempts before a notify is dropped              |
 | `BOT_NOTIFY_SEND_TIMEOUT_MS`                     | `30000`                     | Per-message watchdog                             |
-| `BOT_NOTIFY_TTL_DAYS`                            | `7`                         | Events older than this are dropped unsent        |
-| `BOT_STALE_SWEEP_INTERVAL_MS`                    | `600000`                    | Orphaned-claim recovery cadence                  |
+| `BOT_NOTIFY_TTL_DAYS`                            | `7`                       | Events older than this are dropped unsent        |
+| `BOT_CONFIRM_TOKEN_TTL_MS`                       | `86400000` (24h)          | Signup-confirm link lifetime (bot-issued tokens expire after this) |
+| `BOT_STALE_SWEEP_INTERVAL_MS`                    | `600000`                  | Orphaned-claim recovery cadence                  |
 | `BOT_STALE_CLAIM_WINDOW_MINUTES`                 | `30`                        | Claims older than this get requeued              |
 
 Shell/CI exports win over `.env` (shared `loadEnv()` semantics — same as every

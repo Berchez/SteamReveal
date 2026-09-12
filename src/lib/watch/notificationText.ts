@@ -71,3 +71,26 @@ export const getNotifyText = (
   locale: string | null | undefined,
   steamId: string,
 ): string => NOTIFY_TEXT[resolveWatchLocale(locale)](steamId);
+
+const CONFIRM_TEXT: Record<WatchMessageLocale, (url: string) => string> = {
+  en: (url: string) =>
+    `Your SteamReveal Watch request is one step away: open this link to confirm it is really you: ${url}. Once confirmed, you will get a Steam message here every time your watched profile is searched. To stop everything, just unfriend this bot.`,
+  pt: (url: string) =>
+    `Falta um passo para ativar seu monitoramento SteamReveal: abra este link para confirmar que é você: ${url}. Confirmado, você recebe uma mensagem aqui na Steam sempre que seu perfil monitorado for buscado. Para parar tudo, basta desfazer a amizade com este bot.`,
+  es: (url: string) =>
+    `Tu vigilancia de SteamReveal está a un paso: abre este enlace para confirmar que eres tú: ${url}. Una vez confirmado, recibirás un mensaje aquí en Steam cada vez que se busque tu perfil vigilado. Para detenerlo todo, solo elimina a este bot de tus amigos.`,
+  de: (url: string) =>
+    `Deine SteamReveal-Beobachtung ist fast aktiv: Öffne diesen Link, um zu bestätigen, dass du es bist: ${url}. Nach der Bestätigung erhältst du hier auf Steam eine Nachricht, sobald dein beobachtetes Profil abgerufen wird. Zum Beenden entferne diesen Bot einfach aus deiner Freundesliste.`,
+  ru: (url: string) =>
+    `До активации наблюдения SteamReveal остался один шаг: откройте эту ссылку, чтобы подтвердить, что это вы: ${url}. После подтверждения вы будете получать сообщение здесь в Steam каждый раз, когда наблюдаемый профиль будут просматривать. Чтобы всё остановить, просто удалите этого бота из друзей.`,
+};
+
+/**
+ * Signup-confirmation text (navbar-global flow): one step left, what the
+ * link does, what follows, how to leave. Carries the full confirm URL
+ * (built by the caller with the freshly issued token).
+ */
+export const getConfirmText = (
+  locale: string | null | undefined,
+  url: string,
+): string => CONFIRM_TEXT[resolveWatchLocale(locale)](url);

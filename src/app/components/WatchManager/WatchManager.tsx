@@ -2,27 +2,34 @@
 
 import React, { useCallback, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { usePathname } from '@/navigation';
+import resolveLoginNext from '@/lib/watch/loginNext';
 
 import { useWatchStatus } from '@/app/templates/Home/hooks/watch/useWatchStatus';
 
 /**
- * Watch status screen (Steam OpenID era): the SteamID arrives as a prop
- * from the server-rendered page (verified login session).
+ * Watch panel content (Steam OpenID + bot-link confirmation era): the
+ * SteamID arrives as a prop from the server-rendered surface (verified
+ * login session). Rendered inside the navbar avatar dropdown.
  *
- * Creation is EXPLICIT, never automatic: a fresh mount only polls status.
- * `none` (never requested, or opted out via unfriend — both delete the
- * row, deliberately indistinguishable) renders a Start button; the watch
- * request POSTs only on click. Auto-creating on mount would silently
- * re-subscribe users right after they opted out, and since the endpoint
- * is idempotent-but-writeful (create + invite enqueue), mounting must
- * stay read-only. Logout clears the server session and reloads into the
- * login gate.
+ * Creation is EXPLICIT and goes through signup, never watch/request
+ * directly: the Start button POSTs /api/auth/signup (account + watch +
+ * invite, all idempotent), and the same click never re-fires while in
+ * flight. Mounts and revisits NEVER create anything by themselves — that
+ * is what keeps an opt-out (unfriend → row deleted → status 'none') from
+ * silently re-subscribing the user on the next visit.
  */
 function WatchManager({ steamId }: { steamId: string }) {
   const translator = useTranslations('Watch');
-  // Requester locale travels with the watch request so the bot's welcome
-  // message (WB-11) is composed in the user's language, not the default.
+  // Requester locale travels with the signup so the bot's confirm link
+  // message (and later the welcome message) is composed in the user's
+  // language, not the default.
   const locale = useLocale();
+  // Re-login preserves the page the user is on (same rationale as
+  // SiteNavSignIn): a session dying mid-use on /player/x must return
+  // there, not the home page.
+  const pathname = usePathname();
+  const loginNext = resolveLoginNext(pathname, locale);
   const [requesting, setRequesting] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -37,7 +44,7 @@ function WatchManager({ steamId }: { steamId: string }) {
     setRequesting(true);
     setRequestError(null);
     try {
-      const res = await fetch('/api/watch/request', {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ locale }),
@@ -76,7 +83,7 @@ function WatchManager({ steamId }: { steamId: string }) {
         </p>
         <div>
           <a
-            href={`/api/auth/steam/login?next=${encodeURIComponent(`/${locale}/watch`)}`}
+            href={`/api/auth/steam/login?next=${encodeURIComponent(loginNext)}`}
             className="inline-block h-12 px-6 rounded-full bg-purple-600 hover:bg-purple-700/90 text-white font-semibold text-sm leading-[3rem]"
           >
             {translator('watchLoginButton')}
@@ -154,6 +161,9 @@ function WatchManager({ steamId }: { steamId: string }) {
           {translator('watchTitle')}
         </h1>
         <p className="text-gray-300">{translator('watchDescription')}</p>
+        <p className="text-gray-400 text-sm">
+          {translator('watchSignupSteps')}
+        </p>
         {renderFooter(false)}
         <div>
           <button

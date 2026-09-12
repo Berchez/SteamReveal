@@ -4,6 +4,7 @@ const FULL_ENV = {
   STEAM_BOT_USERNAME: 'botuser',
   STEAM_BOT_PASSWORD: 'botpass',
   STEAM_BOT_SHARED_SECRET: 'botsecret',
+  WATCH_SITE_URL: 'https://steam-reveal.vercel.app',
 };
 
 describe('loadBotConfig', () => {
@@ -14,6 +15,7 @@ describe('loadBotConfig', () => {
       accountName: 'botuser',
       password: 'botpass',
       sharedSecret: 'botsecret',
+      siteUrl: 'https://steam-reveal.vercel.app',
       dataDirectory: BOT_CONFIG_DEFAULTS.DEFAULT_DATA_DIRECTORY,
       heartbeatPath: `${BOT_CONFIG_DEFAULTS.DEFAULT_DATA_DIRECTORY}/heartbeat.json`,
       heartbeatIntervalMs: BOT_CONFIG_DEFAULTS.DEFAULT_HEARTBEAT_INTERVAL_MS,
@@ -30,6 +32,7 @@ describe('loadBotConfig', () => {
       notifyMaxAttempts: BOT_CONFIG_DEFAULTS.DEFAULT_NOTIFY_MAX_ATTEMPTS,
       notifySendTimeoutMs: BOT_CONFIG_DEFAULTS.DEFAULT_NOTIFY_SEND_TIMEOUT_MS,
       notifyTtlDays: BOT_CONFIG_DEFAULTS.DEFAULT_NOTIFY_TTL_DAYS,
+      confirmTokenTtlMs: BOT_CONFIG_DEFAULTS.DEFAULT_CONFIRM_TOKEN_TTL_MS,
       staleSweepIntervalMs: BOT_CONFIG_DEFAULTS.DEFAULT_STALE_SWEEP_INTERVAL_MS,
       staleClaimWindowMinutes:
         BOT_CONFIG_DEFAULTS.DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
@@ -66,6 +69,17 @@ describe('loadBotConfig', () => {
     expect(() => loadBotConfig(env)).toThrow(name);
   });
 
+  it('requires WATCH_SITE_URL and strips trailing slashes', () => {
+    const env = { ...FULL_ENV };
+    delete (env as Record<string, string | undefined>).WATCH_SITE_URL;
+    expect(() => loadBotConfig(env)).toThrow('WATCH_SITE_URL');
+
+    expect(
+      loadBotConfig({ ...FULL_ENV, WATCH_SITE_URL: 'https://x.example///' })
+        .siteUrl,
+    ).toBe('https://x.example');
+  });
+
   it.each([
     ['BOT_HEARTBEAT_INTERVAL_MS', '0'],
     ['BOT_HEARTBEAT_STALE_MS', '-5'],
@@ -81,6 +95,7 @@ describe('loadBotConfig', () => {
     ['BOT_NOTIFY_MAX_ATTEMPTS', 'NaN'],
     ['BOT_NOTIFY_SEND_TIMEOUT_MS', '0'],
     ['BOT_NOTIFY_TTL_DAYS', '0'],
+    ['BOT_CONFIRM_TOKEN_TTL_MS', '0'],
     ['BOT_STALE_SWEEP_INTERVAL_MS', '0'],
     ['BOT_STALE_CLAIM_WINDOW_MINUTES', '-2'],
     // Fractional values would floor to 0 downstream ("always expired") —

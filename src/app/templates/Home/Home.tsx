@@ -4,10 +4,11 @@ import React, { useContext, useLayoutEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 
-import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 import targetInfoJsonType, {
   EnrichedUserSummary,
 } from '@/@types/targetInfoJsonType';
+
+import QueryToast from '@/app/components/QueryToast';
 
 import { HomeDataContext, HomeActionsContext } from './context';
 import VideoBackground from './sections/VideoBackground';
@@ -115,6 +116,10 @@ export default function Home({
   return (
     <main className="max-h-dvh">
       <VideoBackground />
+      {/* One-shot landing toasts: /api/watch/confirm (?confirmed=ok|error)
+          and the failed Steam callback leg (?auth=error). The toast strips
+          its own param. */}
+      <QueryToast />
       {showSponsorMe && (
         <SponsorMe
           onClose={() => onCloseSponsorMe(0)}
@@ -128,9 +133,6 @@ export default function Home({
         />
       )}
       {hasNoDataYet && <WelcomeText />}
-      <div className="fixed top-4 right-4 z-50">
-        <LanguageSwitcher />
-      </div>
       <div
         className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 pt-8 md:px-12 md:pt-12 text-white z-20 ${wrapperClassName}`}
       >

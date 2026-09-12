@@ -32,12 +32,11 @@ const makeDal = (
       state.activated.push(steamId);
       return true;
     }),
-    deactivateWatch: jest.fn(async (steamId: string) => {
-      if (state.failOn.has(`deactivate:${steamId}`)) {
-        throw new Error(`deactivate boom for ${steamId}`);
-      }
+    // Offline opt-out goes through the shared atomic composite (same call
+    // the live friend-remove path uses — the rule cannot drift).
+    removeWatchAndAccount: jest.fn(async (steamId: string) => {
       state.deactivated.push(steamId);
-      return true;
+      return { watchDeleted: true, accountDeleted: true };
     }),
   };
 };
@@ -76,6 +75,41 @@ describe('reconcileFriendsList', () => {
     });
     expect(report.activated).toEqual(['76561198000000001']);
     expect(report.deactivated).toEqual(['76561198000000002']);
+  });
+
+  it('removes watch + account for offline opt-outs (no record survives)', async () => {
+    const dal = makeDal([
+      { steamId: '76561198000000002', status: 'active' },
+    ]);
+
+    const report = await reconcileFriendsList({}, FRIEND, dal, silentLogger);
+
+    expect(report.deactivated).toEqual(['76561198000000002']);
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledWith(
+      '76561198000000002',
+    );
+  });
+
+  it('labels a failed opt-out removal and retries it next pass', async () => {
+    const dal = makeDal([
+      { steamId: '76561198000000002', status: 'active' },
+    ]);
+    // (makeDal types the field as the DAL interface — cast to reach the
+    // underlying mock.)
+    (dal.removeWatchAndAccount as jest.Mock).mockRejectedValueOnce(
+      new Error('turso timeout'),
+    );
+
+    const report = await reconcileFriendsList({}, FRIEND, dal, silentLogger);
+
+    // The composite is one transaction: a throw means nothing was
+    // removed, the row stays listed, and the next pass retries the pair.
+    expect(report.deactivated).toEqual([]);
+    expect(report.errors).toHaveLength(1);
+    expect(report.errors[0]).toMatchObject({
+      steamId: '76561198000000002',
+      operation: 'removeWatch',
+    });
   });
 
   it('is a verified no-op rerun when nothing changed (idempotent)', async () => {
@@ -207,7 +241,7 @@ describe('reconcileFriendsList', () => {
     });
   });
 
-  it('a failing welcome keeps the activation and records a welcomeMessage error', async () => {
+  it('a failing activation message keeps the activation and records it', async () => {
     const dal = makeDal([{ steamId: '76561198000000001', status: 'pending' }]);
     const onActivated = jest.fn(async () => {
       throw new Error('steam down');
@@ -226,7 +260,7 @@ describe('reconcileFriendsList', () => {
     expect(report.errors).toHaveLength(1);
     expect(report.errors[0]).toMatchObject({
       steamId: '76561198000000001',
-      operation: 'welcomeMessage',
+      operation: 'activationMessage',
     });
   });
 
@@ -264,7 +298,10 @@ describe('reconcileFriendsList', () => {
         statuses.set(steamId, 'active');
         return true;
       },
-      deactivateWatch: async () => true,
+      removeWatchAndAccount: async () => ({
+        watchDeleted: true,
+        accountDeleted: true,
+      }),
     };
     const onActivated = jest.fn();
 

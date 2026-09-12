@@ -1,5 +1,5 @@
 /**
- * Minimal CSRF guard for authenticated POST routes (watch/request, logout).
+ * Minimal CSRF guard for authenticated POST routes (signup, logout).
  *
  * The iron-session cookie is SameSite=Lax, which already blocks
  * third-party POSTs from sending it — this is the second layer: the

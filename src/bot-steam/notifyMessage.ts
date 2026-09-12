@@ -11,6 +11,7 @@
 
 import {
   DEFAULT_WATCH_LOCALE,
+  getConfirmText,
   getNotifyText,
 } from '@/lib/watch/notificationText';
 
@@ -53,4 +54,23 @@ export const sendNotifyMessage = async (
     );
   }
   await chat.sendFriendMessage(steamId, getNotifyMessage(locale, steamId));
+};
+
+/**
+ * Sends the signup-confirmation link (navbar-global flow). Same sender
+ * contract as notifies; failures propagate to the caller's per-row
+ * isolation (reconcile), never aborting the pass.
+ */
+export const sendConfirmMessage = async (
+  chat: NotifyChatClient,
+  steamId: string,
+  locale: string | null | undefined,
+  url: string,
+): Promise<void> => {
+  if (typeof chat?.sendFriendMessage !== 'function') {
+    throw new Error(
+      'Steam chat sender unavailable: sendFriendMessage is not a function',
+    );
+  }
+  await chat.sendFriendMessage(steamId, getConfirmText(locale, url));
 };

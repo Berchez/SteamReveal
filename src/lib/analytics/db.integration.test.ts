@@ -45,6 +45,16 @@ const WATCH_INVITE_UNIQUE_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const WATCH_ACCOUNTS_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '005_watch_accounts.sql'),
+  'utf8',
+);
+
+const WATCH_TOKEN_UNIQUE_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '006_accounts_confirm_token_unique.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -62,6 +72,8 @@ type DbApi = {
   createWatchRequest: typeof import('./db').createWatchRequest;
   activateWatch: typeof import('./db').activateWatch;
   deactivateWatch: typeof import('./db').deactivateWatch;
+  removeWatchAndAccount: typeof import('./db').removeWatchAndAccount;
+  deleteAccount: typeof import('./db').deleteAccount;
   getWatchStatus: typeof import('./db').getWatchStatus;
   getWatchedProfile: typeof import('./db').getWatchedProfile;
   hasOpenInviteEvent: typeof import('./db').hasOpenInviteEvent;
@@ -77,6 +89,11 @@ type DbApi = {
   countNotificationsSince: typeof import('./db').countNotificationsSince;
   listSentNotifications: typeof import('./db').listSentNotifications;
   isWithinCooldown: typeof import('./db').isWithinCooldown;
+  hashConfirmToken: typeof import('./db').hashConfirmToken;
+  createAccount: typeof import('./db').createAccount;
+  getAccount: typeof import('./db').getAccount;
+  issueConfirmToken: typeof import('./db').issueConfirmToken;
+  consumeConfirmToken: typeof import('./db').consumeConfirmToken;
 };
 
 describe('analytics db integration against real libSQL', () => {
@@ -105,6 +122,16 @@ describe('analytics db integration against real libSQL', () => {
     )) {
       await db.executeForTests(statement);
     }
+    for (const statement of splitSqlStatements(
+      WATCH_ACCOUNTS_MIGRATION_SQL,
+    )) {
+      await db.executeForTests(statement);
+    }
+    for (const statement of splitSqlStatements(
+      WATCH_TOKEN_UNIQUE_MIGRATION_SQL,
+    )) {
+      await db.executeForTests(statement);
+    }
   });
 
   beforeEach(async () => {
@@ -114,6 +141,7 @@ describe('analytics db integration against real libSQL', () => {
     // so they need their own wipe.
     await db.executeForTests('DELETE FROM watch_events');
     await db.executeForTests('DELETE FROM watched_profiles');
+    await db.executeForTests('DELETE FROM accounts');
   });
 
   afterAll(async () => {
@@ -889,6 +917,131 @@ describe('analytics db integration against real libSQL', () => {
       expect(await db.markEventSent(first.id)).toBe(true);
       expect(await db.countNotificationsSince(STEAM, seen)).toBe(1);
       expect(first.id).toBeLessThan(second.id);
+    });
+  });
+
+  describe('watch accounts + confirmation tokens against real libSQL', () => {
+    const STEAM = '76561198000000001';
+    const hashFor = (token: string) => db.hashConfirmToken(token);
+    const future = '2999-01-01T00:00:00.000Z';
+    const past = '2000-01-01T00:00:00.000Z';
+
+    it('createAccount inserts unconfirmed and getAccount round-trips it', async () => {
+      expect(await db.getAccount(STEAM)).toBeNull();
+
+      const created = await db.createAccount(STEAM, 'pt');
+      expect(created).toMatchObject({
+        steamId: STEAM,
+        confirmedAt: null,
+        confirmTokenHash: null,
+        locale: 'pt',
+      });
+
+      await expect(db.getAccount(STEAM)).resolves.toMatchObject({
+        steamId: STEAM,
+        confirmedAt: null,
+      });
+    });
+
+    it('re-signup never resets confirmation state', async () => {
+      await db.createAccount(STEAM, 'en');
+      await db.issueConfirmToken(STEAM, hashFor('t1'), future);
+      expect(await db.consumeConfirmToken(hashFor('t1'))).toBe(STEAM);
+
+      const again = await db.createAccount(STEAM, 'pt');
+      expect(again.confirmedAt).not.toBeNull();
+    });
+
+    it('issue arms a token; consume flips exactly once (double-click safe)', async () => {
+      await db.createAccount(STEAM);
+      expect(await db.issueConfirmToken(STEAM, hashFor('t2'), future)).toBe(true);
+
+      const profile = await db.getAccount(STEAM);
+      expect(profile?.confirmTokenHash).toBe(hashFor('t2'));
+
+      // Concurrent double-click: exactly one winner, no error, no double
+      // confirmation — the single UPDATE...RETURNING decides atomically.
+      const [first, second] = await Promise.all([
+        db.consumeConfirmToken(hashFor('t2')),
+        db.consumeConfirmToken(hashFor('t2')),
+      ]);
+      const winners = [first, second].filter((v) => v !== null);
+      expect(winners).toEqual([STEAM]);
+
+      // Consumed means consumed: replay finds nothing.
+      await expect(db.consumeConfirmToken(hashFor('t2'))).resolves.toBeNull();
+      const settled = await db.getAccount(STEAM);
+      expect(settled?.confirmedAt).not.toBeNull();
+      expect(settled?.confirmTokenHash).toBeNull();
+    });
+
+    it('rejects expired tokens, unknown hashes, and missing rows', async () => {
+      await db.createAccount(STEAM);
+      await db.issueConfirmToken(STEAM, hashFor('old'), past);
+
+      await expect(db.consumeConfirmToken(hashFor('old'))).resolves.toBeNull();
+      await expect(db.consumeConfirmToken(hashFor('never'))).resolves.toBeNull();
+      expect(await db.issueConfirmToken('76561198000000009', hashFor('x'), future)).toBe(
+        false,
+      );
+      await expect(db.consumeConfirmToken('not-hex')).rejects.toThrow(
+        /confirm token hash/,
+      );
+    });
+
+    it('opt-out deletes watch AND account rows in one call (no record survives)', async () => {
+      await db.createAccount(STEAM, 'pt');
+      await db.createWatchRequest(STEAM, 'pt');
+      await db.issueConfirmToken(STEAM, hashFor('gone'), future);
+
+      await expect(
+        db.removeWatchAndAccount(STEAM),
+      ).resolves.toEqual({ accountDeleted: true, watchDeleted: true });
+
+      await expect(db.getAccount(STEAM)).resolves.toBeNull();
+      await expect(db.getWatchStatus(STEAM)).resolves.toBeNull();
+
+      // And the next signup starts over unconfirmed (fresh consent).
+      const again = await db.createAccount(STEAM, 'pt');
+      expect(again.confirmedAt).toBeNull();
+      expect(again.confirmTokenHash).toBeNull();
+    });
+
+    it('re-issue overwrites the pending token (old links die)', async () => {
+      await db.createAccount(STEAM);
+      await db.issueConfirmToken(STEAM, hashFor('v1'), future);
+      await db.issueConfirmToken(STEAM, hashFor('v2'), future);
+
+      await expect(db.consumeConfirmToken(hashFor('v1'))).resolves.toBeNull();
+      await expect(db.consumeConfirmToken(hashFor('v2'))).resolves.toBe(STEAM);
+    });
+
+    it('refuses a second account sharing one token hash (006 unique index)', async () => {
+      // Defense in depth against a broken RNG issuing the same token
+      // twice: two accounts must never match one consume.
+      await db.createAccount(STEAM);
+      await db.createAccount('76561198000000009');
+      await db.issueConfirmToken(STEAM, hashFor('shared'), future);
+
+      await expect(
+        db.executeForTests(
+          `UPDATE accounts SET confirm_token_hash = ?, confirm_expires_at = ?
+           WHERE steam_id = ?`,
+          [hashFor('shared'), future, '76561198000000009'],
+        ),
+      ).rejects.toThrow(/UNIQUE constraint failed/i);
+    });
+
+    it('lets many accounts sit tokenless (NULLs never collide)', async () => {
+      await db.createAccount(STEAM);
+      await db.createAccount('76561198000000009');
+
+      await expect(db.getAccount(STEAM)).resolves.toMatchObject({
+        confirmTokenHash: null,
+      });
+      await expect(db.getAccount('76561198000000009')).resolves.toMatchObject(
+        { confirmTokenHash: null },
+      );
     });
   });
 });

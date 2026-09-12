@@ -164,10 +164,6 @@
       "description": "Sieh dir die öffentlichen Steam-Daten, den möglichen Standort und die Freundesanalyse von {nickname} auf SteamReveal an.",
       "fallbackTitle": "SteamReveal – Steam-Profile analysieren",
       "fallbackDescription": "SteamReveal ist ein OSINT-Tool für die Steam-Community. Analysiere Steam-Profile, entdecke echte Freunde und finde den Standort von Spielern mithilfe öffentlicher Daten."
-    },
-    "Watch": {
-      "title": "Steam-Profil beobachten | SteamReveal",
-      "description": "Erhalte eine Nachricht auf Steam, sobald ein Steam-Profil gesucht wird."
     }
   },
   "Watch": {
@@ -175,7 +171,12 @@
     "watchTitle": "Steam-Profil beobachten",
     "watchDescription": "Erhalte eine Nachricht unseres Bots auf Steam, sobald dieses Profil gesucht wird. Melde dich mit Steam an, um dein Profil zu verknüpfen — erst die angenommene Freundschaftsanfrage des Bots lässt dich Nachrichten empfangen.",
     "watchSubmit": "Dieses Profil beobachten",
+    "watchSignupSteps": "So geht's: Klicke unten auf Starten, nimm die Freundschaftsanfrage des Bots auf Steam an und klicke auf den Bestätigungslink, den der Bot dir hier schickt.",
+    "watchConfirmOk": "Beobachtung bestätigt! Du erhältst hier eine Nachricht, sobald dein Profil gesucht wird.",
+    "watchConfirmError": "Dieser Bestätigungslink ist ungültig oder abgelaufen. Starte die Beobachtung erneut, um einen neuen zu erhalten.",
     "watchLoginButton": "Mit Steam anmelden",
+    "watchNavSignIn": "Anmelden",
+    "watchAvatarAlt": "Profilbild von {nickname}",
     "watchLoginError": "Steam-Anmeldung fehlgeschlagen. Versuche es gleich noch einmal.",
     "watchLogout": "Abmelden",
     "watchPendingTitle": "Einladung gesendet",

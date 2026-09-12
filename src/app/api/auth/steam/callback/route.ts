@@ -35,9 +35,9 @@ const callbackRateLimiter = createRateLimiter(
  * 2. direct verification: the assertion is replayed (check_authentication)
  *    and the SteamID64 is trusted ONLY on `is_valid:true`.
  *
- * Every failure mode lands on `next?auth=error`, where the watch page
- * shows the login error state — never a JSON blob or a stack trace in the
- * browser flow.
+ * Every failure mode lands on `next?auth=error`, where the home page's
+ * one-shot toast shows the login error state — never a JSON blob or a
+ * stack trace in the browser flow.
  */
 export async function GET(req: Request) {
   // App Router only routes GET here; kept as defense-in-depth (and so unit
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
     params[key] = value;
   });
   const rawNext = params.next;
-  const next = isSafeNextPath(rawNext) ? rawNext : '/watch';
+  const next = isSafeNextPath(rawNext) ? rawNext : '/';
   // Built with the URL API (never string-concatenated `?auth=error`):
   // robust even if a future `next` legitimately carries its own query.
   const failUrl = (() => {
