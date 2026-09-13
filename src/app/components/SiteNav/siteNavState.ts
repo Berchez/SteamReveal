@@ -1,6 +1,7 @@
 import type { CookieStore } from 'iron-session';
 
 import getSteamIdentity from '@/lib/getSteamIdentity';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { resolveWatchSession } from '@/lib/watch/session';
 
 export type SiteNavState =
@@ -25,6 +26,14 @@ export type SiteNavState =
  * which already render logged-out below), and getSteamIdentity never
  * rejects either. This is the last-resort net for programming errors and
  * transport surprises in global chrome.
+ *
+ * Cost note (accepted): reading the session here opts the whole layout out
+ * of static rendering — inherent to ANY session-aware navbar, not to the
+ * Steam call. The Steam round-trip itself is bounded instead: per-instance
+ * 10-min TTL memo (nulls included, so outages stay cheap), 4s timeout, and
+ * only for logged-in navigations. Client polls on top are equally bounded:
+ * WatchManager mounts (and polls) only while the avatar dropdown is open,
+ * and WatchInbox never intervals — fetch on mount/open/retry only.
  */
 export const resolveSiteNavState = async (
   cookieStore: CookieStore,
@@ -39,11 +48,7 @@ export const resolveSiteNavState = async (
       // is logged in" with zero server-side signal.
       // eslint-disable-next-line no-console
       console.error(
-        `[SiteNav] session resolution errored, degrading to logged-out: ${
-          session.error instanceof Error
-            ? session.error.message
-            : String(session.error)
-        }`,
+        `[SiteNav] session resolution errored, degrading to logged-out: ${sanitizeError(session.error)}`,
       );
       return { steamId: null };
     }
@@ -59,9 +64,7 @@ export const resolveSiteNavState = async (
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error(
-      `[SiteNav] identity resolution failed, degrading to logged-out: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+      `[SiteNav] identity resolution failed, degrading to logged-out: ${sanitizeError(error)}`,
     );
     return { steamId: null };
   }

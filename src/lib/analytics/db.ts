@@ -435,19 +435,23 @@ const assertSteamId64 = (steamId: string): void => {
   }
 };
 
-const CONFIRM_TOKEN_HASH_RE = /^[0-9a-f]{64}$/;
+// NOTE: this validates HASHES (SHA-256 hex), never raw tokens — it just
+// happens that our raw tokens are also 64 hex chars (32 random bytes),
+// so the same shape matches both. Keep it that way: if token generation
+// ever changes length/encoding, this assert must stay hash-shaped and
+// the route's shape-gate (confirm/route.ts) token-shaped, independently.
+const TOKEN_HASH_RE = /^[0-9a-f]{64}$/;
 
-const assertConfirmTokenHash = (tokenHash: string): void => {
-  // NOTE: this validates HASHES (SHA-256 hex), never raw tokens — it just
-  // happens that our raw tokens are also 64 hex chars (32 random bytes),
-  // so the same shape matches both. Keep it that way: if token generation
-  // ever changes length/encoding, this assert must stay hash-shaped and
-  // the route's shape-gate (confirm/route.ts) token-shaped, independently.
-  if (typeof tokenHash !== 'string' || !CONFIRM_TOKEN_HASH_RE.test(tokenHash)) {
+const assertTokenHash = (tokenHash: string, kind: string): void => {
+  if (typeof tokenHash !== 'string' || !TOKEN_HASH_RE.test(tokenHash)) {
     throw new Error(
-      'Invalid confirm token hash for watch DAL: expected 64 lowercase hex chars',
+      `Invalid ${kind}: expected 64 lowercase hex chars`,
     );
   }
+};
+
+const assertConfirmTokenHash = (tokenHash: string): void => {
+  assertTokenHash(tokenHash, 'confirm token hash for watch DAL');
 };
 
 const assertWatchEventKind: (kind: string) => asserts kind is WatchEventKind = (
@@ -1188,13 +1192,21 @@ const toWatchAccount = (row: Record<string, unknown>): WatchAccount => ({
 });
 
 /**
+ * Single SHA-256-hex helper behind both token hashers (confirm + anti-loop
+ * are the identical construction by design, not by accident): one place
+ * to change if the digest ever needs to evolve, and the two public names
+ * stay stable for their distinct call sites.
+ */
+const sha256Hex = (token: string): string =>
+  createHash('sha256').update(token, 'utf8').digest('hex');
+
+/**
  * SHA-256 hex of a confirmation token. Only hashes are stored and
  * compared — the plaintext token exists transiently in the signup response
  * (bot message) and the confirm query string, never in the database or
  * (via sanitizeError-safe callers) in logs.
  */
-export const hashConfirmToken = (token: string): string =>
-  createHash('sha256').update(token, 'utf8').digest('hex');
+export const hashConfirmToken = (token: string): string => sha256Hex(token);
 
 /**
  * Creates the account row. Idempotent like createWatchRequest: an existing
@@ -1340,18 +1352,12 @@ export const hasOpenInviteEvent = async (steamId: string): Promise<boolean> => {
 export const ANTI_LOOP_TOKEN_BYTES = 32;
 export const ANTI_LOOP_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-const ANTI_LOOP_TOKEN_HASH_RE = /^[0-9a-f]{64}$/;
-
 const assertAntiLoopTokenHash = (tokenHash: string): void => {
-  if (typeof tokenHash !== 'string' || !ANTI_LOOP_TOKEN_HASH_RE.test(tokenHash)) {
-    throw new Error(
-      'Invalid anti-loop token hash: expected 64 lowercase hex chars',
-    );
-  }
+  assertTokenHash(tokenHash, 'anti-loop token hash');
 };
 
 export const hashAntiLoopToken = (token: string): string =>
-  createHash('sha256').update(token, 'utf8').digest('hex');
+  sha256Hex(token);
 
 /**
  * Issues an anti-loop token for a watched profile. Returns false if no
@@ -1418,31 +1424,6 @@ export const consumeAntiLoopToken = async (
   return updated.rows.length > 0;
 };
 
-/**
- * Validates an anti-loop token without consuming it. Used for read-only
- * checks (e.g., in the player page to conditionally skip analytics).
- * Returns true if a valid, unexpired token exists for the profile.
- */
-export const validateAntiLoopToken = async (
-  steamId: string,
-  tokenHash: string,
-): Promise<boolean> => {
-  assertSteamId64(steamId);
-  assertAntiLoopTokenHash(tokenHash);
-  const db = await getClient();
-
-  const row = await withSchemaHint(
-    db.execute({
-      sql: `SELECT 1 FROM watched_profiles
-            WHERE steam_id = ?
-              AND anti_loop_token_hash = ?
-              AND anti_loop_expires_at IS NOT NULL
-              AND anti_loop_expires_at > ?`,
-      args: [steamId, tokenHash, new Date().toISOString()],
-    }),
-  );
-  return row.rows.length > 0;
-};
 export const countInvitesSentSince = async (
   sinceIso: string,
 ): Promise<number> => {

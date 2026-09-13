@@ -22,8 +22,7 @@
  * dead token, so fall back to welcome instead.
  */
 
-import { randomBytes } from 'crypto';
-
+import { generateHexToken } from '../lib/watch/tokens';
 import {
   getAccount,
   hashConfirmToken,
@@ -61,7 +60,7 @@ export const handleActivation = async (
   // write-only. Templates fall back to English past both.
   const effectiveLocale = locale ?? account?.locale ?? null;
   if (account !== null && account.confirmedAt === null) {
-    const token = randomBytes(32).toString('hex');
+    const token = generateHexToken();
     const issued = await issueConfirmToken(
       steamId,
       hashConfirmToken(token),

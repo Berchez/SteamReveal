@@ -27,6 +27,63 @@ interface InboxNotification {
 const NOTIFICATIONS_LIMIT = WATCH_INBOX_DEFAULT_LIMIT;
 
 /**
+ * Splits the shared WB-15 notify text into body + trailing link for HTML
+ * rendering. Steam chat honors `\n`; HTML collapses it — so the inbox
+ * renders the body with `whitespace-pre-line` and the link (always last,
+ * on its own line, by template contract) as a real anchor instead of
+ * dead URL text. Only an http(s) tail qualifies: anything else renders
+ * as plain body text, so a template drift can never mint a
+ * `javascript:` href.
+ */
+const splitNotifyLink = (text: string): { body: string; link: string | null } => {
+  const idx = text.lastIndexOf('\n');
+  if (idx === -1) return { body: text, link: null };
+  const candidate = text.slice(idx + 1).trim();
+  if (!/^https?:\/\/\S+$/.test(candidate)) return { body: text, link: null };
+  return { body: text.slice(0, idx), link: candidate };
+};
+
+/**
+ * One inbox row's text: the shared bot base, rendered for HTML.
+ *
+ * Same player-page link the bot sends ("see what they saw"): origin is
+ * browser-known, no env needed. Nickname stays absent here — resolving it
+ * needs the Steam API key, which never ships to the client.
+ *
+ * Deliberately NO anti-loop token on this link: the raw token left with
+ * the bot's chat message (only its hash is stored — unrecoverable), so
+ * the inbox cannot mint one. A self-click therefore records a NORMAL
+ * search (one self-notify, exactly as if you searched your own profile
+ * by hand) — mildly noisy, never a loop: nothing here re-triggers
+ * itself, and the token path stays the bot message's exclusive job.
+ */
+function NotifyItemText({ locale, steamId }: { locale: string; steamId: string }) {
+  const { body, link } = splitNotifyLink(
+    getNotifyText(locale, steamId, {
+      siteUrl: typeof window !== 'undefined' ? window.location.origin : null,
+    }),
+  );
+  return (
+    <p className="whitespace-pre-line text-sm text-gray-200">
+      {body}
+      {link !== null && (
+        <>
+          {'\n'}
+          <a
+            href={link}
+            target="_blank"
+            rel="noreferrer"
+            className="break-all text-purple-300 underline hover:text-purple-200"
+          >
+            {link}
+          </a>
+        </>
+      )}
+    </p>
+  );
+}
+
+/**
  * Watch inbox bell + dropdown (WB-14).
  *
  * Reads delivered notifies (kind='notify', status='sent') for the session
@@ -346,18 +403,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
       <ul className="flex flex-col gap-3">
         {notifications.map((item) => (
           <li key={item.id} className="rounded-xl border border-gray-700 p-3">
-            <p className="text-sm text-gray-200">
-              {getNotifyText(locale, steamId, {
-                // Same player-page link the bot sends ("see what they
-                // saw"): origin is browser-known, no env needed. Nickname
-                // stays absent here — resolving it needs the Steam API key,
-                // which never ships to the client.
-                siteUrl:
-                  typeof window !== 'undefined'
-                    ? window.location.origin
-                    : null,
-              })}
-            </p>
+            <NotifyItemText locale={locale} steamId={steamId} />
             <time
               dateTime={item.sentAt}
               className="mt-1 block text-xs text-gray-400"

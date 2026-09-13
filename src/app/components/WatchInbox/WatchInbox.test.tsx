@@ -360,8 +360,55 @@ describe('WatchInbox', () => {
     );
   });
 
-  it('offers the login gate when the session died mid-use', async () => {
-    fetchMock.mockResolvedValue({ ok: false, status: 401 });
+  it('renders the notify body with a real clickable player-page link', async () => {
+    // Regression net: the shared bot base text used to land as one
+    // collapsed run with a dead URL string (HTML eats the `\n`). The
+    // inbox must preserve the line break AND link "see what they saw".
+    fetchMock.mockResolvedValue(
+      notificationsResponse([row(1, '2026-06-01T00:00:00.000Z')], 1),
+    );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    const link = screen.getByRole('link', {
+      name: `http://localhost/en/player/${STEAM_A}`,
+    });
+    expect(link).toHaveAttribute(
+      'href',
+      `http://localhost/en/player/${STEAM_A}`,
+    );
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noreferrer');
+    // Body keeps its line break in HTML (whitespace-pre-line) instead of
+    // collapsing into one run.
+    expect(link.closest('p')).toHaveClass('whitespace-pre-line');
+    expect(link.closest('p')).toHaveTextContent(/Heads up!/);
+  });
+
+  it('shows a visible error when the retry after a 400 also fails (never silent)', async () => {
+    // 400 (bad watermark) -> cursorless retry -> 500: the second failure
+    // must land on the error panel with a retry affordance, not an empty
+    // inbox and a cleared loading state.
+    window.localStorage.setItem(
+      `${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`,
+      '2026-06-02T12:00:00.000Z',
+    );
+    fetchMock
+      .mockResolvedValueOnce({ ok: false, status: 400 })
+      .mockResolvedValue({ ok: false, status: 500 });
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    expect(screen.getByRole('alert')).toHaveTextContent('watchInboxError');
+    expect(screen.getByText('watchInboxRetry')).toBeInTheDocument();
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+  });
+
+  it('offers the login gate when the session died mid-use', async () => {    fetchMock.mockResolvedValue({ ok: false, status: 401 });
 
     render(<WatchInbox steamId={STEAM_A} />);
     await settle();

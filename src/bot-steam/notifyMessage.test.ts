@@ -285,6 +285,20 @@ describe('resolveNotifyDisplayName', () => {
     });
     await expect(resolveNotifyDisplayName(STEAM)).resolves.toBe('AB');
 
+    // BBCode brackets die too: a nickname smuggling `[url=phish]` into
+    // the bot's official message is a phishing primitive (same rule the
+    // templates enforce — no `[` anywhere near Steam chat output).
+    mockFetchJson({
+      response: {
+        players: [{ personaname: 'x[url=http://phish.example]click[/url]' }],
+      },
+    });
+    const deBracketed = await resolveNotifyDisplayName(STEAM);
+    expect(deBracketed).not.toContain('[');
+    expect(deBracketed).not.toContain(']');
+    // Brackets gone (33 chars stripped → 32-cap trims the tail).
+    expect(deBracketed).toBe('xurl=http://phish.exampleclick/u');
+
     mockFetchJson({
       response: { players: [{ personaname: `${'x'.repeat(40)}😀` }] },
     });

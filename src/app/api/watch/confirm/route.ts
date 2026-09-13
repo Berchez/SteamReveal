@@ -39,6 +39,22 @@ const confirmRateLimiter = createRateLimiter(
  * already-consumed tokens land on the same error redirect WITHOUT
  * distinguishing which (no oracle for probers: every failure looks
  * identical).
+ *
+ * Conscious trade-off (login-by-link): the sealed session is a bearer
+ * credential scoped to watch-only identity (30-day sealed cookie carrying
+ * just `{ steamId, expiresAt }` — no broader account powers exist to
+ * borrow). Anyone holding the link (forward, screenshot, overlay log)
+ * confirms AND logs in as that profile. Accepted: the link IS the
+ * proof-of-ownership factor here, and there is nothing more privileged
+ * for a borrowed session to reach.
+ *
+ * Risk note (parallel to anti_loop_token): chat linkifiers, antivirus
+ * URL-scanning, and browser prefetch all perform GET requests on links
+ * before the user explicitly clicks. If any of these "consumes" the
+ * token before the real click, the user lands on the error page without
+ * ever having confirmed — and the token is already spent (re-emit only
+ * on next signup activation). This is an accepted trade-off for the
+ * one-shot login-by-link flow, documented here for visibility.
  */
 export async function GET(req: Request) {
   // App Router only routes GET here; kept as defense-in-depth (and so unit
@@ -99,6 +115,12 @@ export async function GET(req: Request) {
     // in): a transient read failure here must never convert an already
     // consumed token + sealed session into an 'error' landing that tells
     // a confirmed, logged-in user their link was invalid.
+    //
+    // Session scope note: the cookie sealed here is the SAME general-site
+    // iron-session used by SiteNav, the layout root, and all /api/watch/*
+    // routes. It carries only `{ steamId, expiresAt }` (30-day TTL) and
+    // is not "watch-only": a forwarded confirmation link effectively logs
+    // the recipient in as the verified SteamID across the whole site.
     let locale: string | null = null;
     try {
       locale = (await getAccount(steamId))?.locale ?? null;

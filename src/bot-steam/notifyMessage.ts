@@ -8,8 +8,8 @@
  * and the language comes from the locale stored on watched_profiles, not
  * from any page locale. See the base module for the content contract.
  */
-import { randomBytes } from 'crypto';
-
+import { generateHexToken } from '../lib/watch/tokens';
+import { sanitizeSteamNickname } from '../lib/steamNickname';
 import {
   DEFAULT_WATCH_LOCALE,
   getConfirmText,
@@ -40,7 +40,7 @@ export const DEFAULT_NOTIFY_LOCALE = DEFAULT_WATCH_LOCALE;
 export const issueFreshAntiLoopToken = async (
   steamId: string,
 ): Promise<string> => {
-  const antiLoopToken = randomBytes(ANTI_LOOP_TOKEN_BYTES).toString('hex');
+  const antiLoopToken = generateHexToken(ANTI_LOOP_TOKEN_BYTES);
   const expiresAt = new Date(Date.now() + ANTI_LOOP_TOKEN_TTL_MS).toISOString();
   const issued = await issueAntiLoopToken(
     steamId,
@@ -80,27 +80,10 @@ export const resolveNotifyDisplayName = async (
     'resolveNotifyDisplayName: GetPlayerSummaries',
     NICKNAME_TIMEOUT_MS,
   ).catch(() => null);
-  const nickname = player?.personaname;
-  if (typeof nickname !== 'string' || nickname === '') return null;
-  // Steam personaname is free-form user input (emoji, bidi overrides,
-  // C0/C1 control chars, arbitrarily long). It is interpolated into a
-  // Steam chat line and the site inbox: strip what breaks rendering —
-  // C0/C1 controls (incl. line-break injection) AND bidi controls
-  // (U+200E/U+200F, U+202A–U+202E, U+2066–U+2069 — a U+202E flips
-  // everything after it visually) — and cap length (codepoint-aware,
-  // never splitting surrogate pairs) so one creative username cannot
-  // blow up the message layout. Returns null when nothing printable
-  // remains (caller falls back to the plain phrasing).
-  const cleaned = Array.from(
-    // Stripping control characters IS the point here (chat line-break
-    // injection + visual-spoofing defense) — the ranges are intentional,
-    // not accidental.
-    // eslint-disable-next-line no-control-regex
-    nickname.replace(/[\u0000-\u001F\u007F-\u009F\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '').trim(),
-  )
-    .slice(0, 32)
-    .join('');
-  return cleaned === '' ? null : cleaned;
+  // Single shared sanitizer (same one the navbar uses): controls, bidi
+  // overrides AND BBCode brackets — a nickname is interpolated into the
+  // bot's official message, so `[url=phish]` must die here, not in chat.
+  return sanitizeSteamNickname(player?.personaname);
 };
 
 /**

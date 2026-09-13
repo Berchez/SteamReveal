@@ -1,6 +1,7 @@
 import { cache } from 'react';
 import { isSteamId64 } from '@/lib/steamId';
 import getSteamApiKey from '@/lib/getSteamApiKey';
+import { sanitizeSteamNickname } from '@/lib/steamNickname';
 import withTimeout from '@/lib/withTimeout';
 import { fetchPlayerSummary } from '@/lib/steamPlayerSummary';
 
@@ -116,11 +117,12 @@ const getSteamIdentity = cache(
         return null;
       }
       const nickname = player?.personaname;
+      // Same shared sanitizer the bot uses: personaname is hostile input
+      // and the navbar is now a global surface (bidi/visual spoofing +
+      // BBCode brackets must die here, not in the dropdown). Null (blank
+      // or nothing-printable) falls back to the steamId, as before.
       const identity: SteamIdentity = {
-        nickname:
-          typeof nickname === 'string' && nickname !== ''
-            ? nickname
-            : steamId,
+        nickname: sanitizeSteamNickname(nickname) ?? steamId,
         avatarUrl,
       };
       writeCachedIdentity(steamId, identity);

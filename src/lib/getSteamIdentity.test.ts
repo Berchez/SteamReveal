@@ -102,6 +102,23 @@ describe('getSteamIdentity', () => {
     });
   });
 
+  it('sanitizes a hostile personaname (same shared rules as the bot)', async () => {
+    // Bidi/visual-spoofing + BBCode brackets must die before the name
+    // reaches the global navbar; nothing printable still falls back.
+    (global.fetch as unknown as jest.Mock).mockResolvedValue(
+      summaryResponse({
+        steamid: STEAM,
+        personaname: 'A\u202E[url=http://phish.example]x[/url]',
+        avatarmedium: 'https://cdn.test/c.jpg',
+      }),
+    );
+
+    await expect(getSteamIdentity(STEAM)).resolves.toEqual({
+      nickname: 'Aurl=http://phish.examplex/url',
+      avatarUrl: 'https://cdn.test/c.jpg',
+    });
+  });
+
   it('returns null when the avatar is missing or Steam throws', async () => {
     const mock = global.fetch as unknown as jest.Mock;
     mock.mockResolvedValue(
