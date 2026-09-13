@@ -151,18 +151,83 @@ process.env.CHROME_PATH = chromePath;
 console.log(`[lhci-hook] Chrome: ${chromePath}`);
 console.log('[lhci-hook] Running Lighthouse CI regression gate (lhci autorun)...');
 
+// Hard ceiling: `lhci autorun` boots a dev server and runs 3x2 audits —
+// normally minutes, but a wedged server/Chrome made `git push` hang FOREVER
+// with zero output (the exact "pre-push roda para sempre" report). On expiry
+// the child is killed and the push FAILS LOUDLY (exit 1) instead of hanging.
+// Override for very slow machines: LHCI_HOOK_TIMEOUT_MS=<ms>.
+const LHCI_TIMEOUT_MS = (() => {
+  const raw = Number(process.env.LHCI_HOOK_TIMEOUT_MS);
+  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 15 * 60 * 1000;
+})();
+console.log(`[lhci-hook] Timeout budget: ${Math.round(LHCI_TIMEOUT_MS / 60000)} min`);
+
 const child = spawn('pnpm', ['run', 'lhci'], {
   cwd: ROOT,
   stdio: 'inherit',
   shell: platform === 'win32',
 });
 
+let settled = false;
+let timedOut = false;
+
+const killChild = (signal) => {
+  try {
+    child.kill(signal);
+  } catch {
+    // already dead — the exit handler below settles the run
+  }
+};
+
+const lhciTimer = setTimeout(() => {
+  timedOut = true;
+  console.error(
+    [
+      '',
+      `[lhci-hook] TIMEOUT after ${Math.round(LHCI_TIMEOUT_MS / 60000)} min — killing the LHCI run, push blocked.`,
+      '[lhci-hook] The audit stalled (wedged dev server or Chrome). Re-run `pnpm run lhci` manually to see where it sticks.',
+      '[lhci-hook] Slow machine that legitimately needs longer? LHCI_HOOK_TIMEOUT_MS=<ms> git push',
+      '',
+      'Only bypass with: git push --no-verify',
+      '',
+    ].join('\n'),
+  );
+  killChild('SIGTERM');
+  // SIGTERM can be swallowed (Windows cmd wrapper, stuck Chrome): escalate.
+  setTimeout(() => {
+    if (!settled) killChild('SIGKILL');
+  }, 10000).unref?.();
+}, LHCI_TIMEOUT_MS);
+if (lhciTimer.unref) lhciTimer.unref();
+
+// Ctrl+C MUST reach the audit: without forwarding, killing this wrapper
+// orphaned `pnpm run lhci` + its Next dev server on :3100, and the NEXT push
+// then failed/hung on the busy port. Forward, and only force-exit if the
+// child ignores the signal (second Ctrl+C exits immediately).
+let sigintCount = 0;
+const forwardSignal = (signal) => {
+  sigintCount += 1;
+  if (sigintCount > 1) process.exit(130);
+  console.log(`[lhci-hook] Got ${signal} — forwarding to the LHCI run...`);
+  killChild(signal);
+  setTimeout(() => {
+    if (!settled) process.exit(130);
+  }, 5000).unref?.();
+};
+process.on('SIGINT', () => forwardSignal('SIGINT'));
+process.on('SIGTERM', () => forwardSignal('SIGTERM'));
+
 child.on('error', (err) => {
+  clearTimeout(lhciTimer);
+  settled = true;
   console.error('[lhci-hook] Failed to start pnpm:', err.message);
   process.exit(1);
 });
 
 child.on('exit', (code, signal) => {
+  clearTimeout(lhciTimer);
+  settled = true;
+  if (timedOut) process.exit(1);
   if (code !== 0) {
     console.error(
       [

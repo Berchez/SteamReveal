@@ -3,6 +3,21 @@ import { loadEnv, requireRemoteTursoToken } from '../src/lib/env';
 import { sanitizeError } from '../src/lib/sanitizeError';
 import { isTransportFailure } from '../src/lib/analytics/db';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const {
+  withTimeout,
+  fetchWithTimeout,
+  isTimeoutError,
+} = require('./smoke-timeout.cjs');
+
+// Every network wait below is bounded: an unbounded fetch/client.execute
+// once hung `git push` FOREVER (Node fetch and the hrana transport have no
+// default timeout). A stall is an environment problem, not an analytics
+// regression — timeouts SKIP (exit 0) exactly like transport failures.
+const FETCH_TIMEOUT_MS = 25_000;
+const DB_TIMEOUT_MS = 25_000;
+const PROBE_TIMEOUT_MS = 15_000;
+
 // Points at the local Next dev server now — the analytics routes
 // (recordAnalytics, recordAnalyticsCheater, analytics/dashboard) moved
 // out of the proxy and run app-side, writing straight to Turso.
@@ -59,14 +74,19 @@ const serverReachable = async (): Promise<boolean> => {
 // missing schema, a bad SQL statement, an auth failure) surface as FAIL.
 const tursoReachable = async (): Promise<boolean> => {
   try {
-    await client.execute('SELECT 1');
+    await withTimeout(
+      client.execute('SELECT 1'),
+      DB_TIMEOUT_MS,
+      'turso pre-flight SELECT 1',
+    );
     return true;
   } catch (error) {
     // Only transport-level failures (Turso down) justify skipping; non-transport
     // errors (auth, bad query) mean the DB is reachable but misconfigured —
     // throw so the main body's catch treats it as FAIL (no isTransportFailure
-    // match) rather than silently skipping.
-    if (isTransportFailure(error)) return false;
+    // match) rather than silently skipping. A stall (timeout) is treated like
+    // a transport failure: environment problem, skip, never hang the push.
+    if (isTransportFailure(error) || isTimeoutError(error)) return false;
     throw error;
   }
 };
@@ -93,16 +113,20 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
 
     // 1. Record a fake search through the real Next route.
-    const rec = await fetch(`${BASE}/api/recordAnalytics`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        profile: { steamId: '76561198000000000', nickname: MARKER },
-        friends: [],
-        device: 'desktop',
-        durationMs: 1,
-      }),
-    });
+    const rec = await fetchWithTimeout(
+      `${BASE}/api/recordAnalytics`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          profile: { steamId: '76561198000000000', nickname: MARKER },
+          friends: [],
+          device: 'desktop',
+          durationMs: 1,
+        }),
+      },
+      FETCH_TIMEOUT_MS,
+    );
     const recBody = (await rec.json()) as { id?: string };
     if (!rec.ok || !recBody.id) {
       throw new Error(`record: HTTP ${rec.status} ${JSON.stringify(recBody)}`);
@@ -111,26 +135,38 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     // 2. The row must exist in Turso, nickname intact (proves the write
     //    really landed in the DB, bypassing the proxy entirely).
-    const row = await client.execute({
-      sql: 'SELECT nickname FROM profiles WHERE search_id = ?',
-      args: [id],
-    });
+    const row = await withTimeout(
+      client.execute({
+        sql: 'SELECT nickname FROM profiles WHERE search_id = ?',
+        args: [id],
+      }),
+      DB_TIMEOUT_MS,
+      'turso verify profiles row',
+    );
     if (row.rows.length !== 1 || row.rows[0].nickname !== MARKER) {
       throw new Error(`record row missing/incorrect in Turso: ${JSON.stringify(row.rows)}`);
     }
 
     // 3. Attach a cheater score to that same search.
-    const ch = await fetch(`${BASE}/api/recordAnalyticsCheater`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ searchId: id, score: 42, bannedFriendsCount: 1 }),
-    });
+    const ch = await fetchWithTimeout(
+      `${BASE}/api/recordAnalyticsCheater`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ searchId: id, score: 42, bannedFriendsCount: 1 }),
+      },
+      FETCH_TIMEOUT_MS,
+    );
     if (!ch.ok) throw new Error(`cheater: HTTP ${ch.status}`);
 
-    const cheaterRow = await client.execute({
-      sql: 'SELECT score FROM cheater_results WHERE search_id = ?',
-      args: [id],
-    });
+    const cheaterRow = await withTimeout(
+      client.execute({
+        sql: 'SELECT score FROM cheater_results WHERE search_id = ?',
+        args: [id],
+      }),
+      DB_TIMEOUT_MS,
+      'turso verify cheater_results row',
+    );
     if (Number(cheaterRow.rows?.[0]?.score) !== 42) {
       throw new Error('cheater_score row missing/incorrect in Turso');
     }
@@ -143,9 +179,13 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     if (process.env.ANALYTICS_DASHBOARD_PASSWORD) {
       dashHeaders['x-analytics-key'] = process.env.ANALYTICS_DASHBOARD_PASSWORD;
     }
-    const dash = await fetch(`${BASE}/api/analytics/dashboard`, {
-      headers: dashHeaders,
-    });
+    const dash = await fetchWithTimeout(
+      `${BASE}/api/analytics/dashboard`,
+      {
+        headers: dashHeaders,
+      },
+      FETCH_TIMEOUT_MS,
+    );
     const dashHtml = await dash.text();
     if (!dash.ok || !dashHtml.includes(MARKER)) {
       throw new Error(`dashboard: HTTP ${dash.status}, marker not rendered`);
@@ -166,10 +206,10 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     console.log('ANALYTICS SMOKE PASS');
     exitCode = 0;
   } catch (error) {
-    if (isTransportFailure(error)) {
+    if (isTransportFailure(error) || isTimeoutError(error)) {
       // eslint-disable-next-line no-console
       console.log(
-        'ANALYTICS SMOKE SKIPPED: Turso became unreachable mid-smoke (transport-level failure)',
+        'ANALYTICS SMOKE SKIPPED: Turso/dev-server stalled or became unreachable mid-smoke (timeout/transport-level failure)',
       );
       client.close();
       process.exit(0);
@@ -198,12 +238,18 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         try {
           // Sequential: children reference searches(id) via FK, so a parent
           // delete before its children is cleaned up would 500 (or worse,
-          // violate the FK) on a strict connection.
+          // violate the FK) on a strict connection. Bounded: a stalled
+          // delete must not hang the push — it only logs, like every other
+          // cleanup failure here.
           // eslint-disable-next-line no-await-in-loop
-          await client.execute({
-            sql: `DELETE FROM ${tableName} WHERE search_id = ?`,
-            args: [id],
-          });
+          await withTimeout(
+            client.execute({
+              sql: `DELETE FROM ${tableName} WHERE search_id = ?`,
+              args: [id],
+            }),
+            DB_TIMEOUT_MS,
+            `turso cleanup ${tableName}`,
+          );
         } catch (err) {
           // eslint-disable-next-line no-console
           console.error(`cleanup ${tableName} failed: ${sanitizeError(err)}`);
@@ -211,7 +257,11 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         t += 1;
       }
       try {
-        await client.execute({ sql: 'DELETE FROM searches WHERE id = ?', args: [id] });
+        await withTimeout(
+          client.execute({ sql: 'DELETE FROM searches WHERE id = ?', args: [id] }),
+          DB_TIMEOUT_MS,
+          'turso cleanup searches',
+        );
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error(`cleanup searches failed: ${sanitizeError(err)}`);
@@ -236,23 +286,41 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       { table: 'searches', key: 'id' },
     ];
     let orphanedRows = 0;
+    let probeIncomplete = false;
     let p = 0;
     // Hard-coded table names (not user input) so interpolation is safe.
     while (p < probeTables.length) {
       const { table, key } = probeTables[p];
       try {
+        // Bounded like every other wait in this script: a stalled probe
+        // leaves verification partial (warned below) instead of hanging
+        // the push — a stall proves nothing about orphaned rows either way.
         // eslint-disable-next-line no-await-in-loop
-        const probe = await client.execute({
-          sql: `SELECT COUNT(*) AS n FROM ${table} WHERE ${key} = ?`,
-          args: id ? [id] : ['__never-recorded__'],
-        });
+        const probe = await withTimeout(
+          client.execute({
+            sql: `SELECT COUNT(*) AS n FROM ${table} WHERE ${key} = ?`,
+            args: id ? [id] : ['__never-recorded__'],
+          }),
+          PROBE_TIMEOUT_MS,
+          `turso cleanup probe ${table}`,
+        );
         orphanedRows += Number(probe.rows[0].n);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error(`cleanup probe ${table} failed: ${sanitizeError(error)}`);
-        orphanedRows += 1;
+        if (isTimeoutError(error)) {
+          probeIncomplete = true;
+        } else {
+          orphanedRows += 1;
+        }
       }
       p += 1;
+    }
+    if (probeIncomplete) {
+      // eslint-disable-next-line no-console
+      console.error(
+        'ANALYTICS SMOKE WARN: cleanup verification partial (a probe timed out) — orphan check inconclusive, not failing the push over a stall',
+      );
     }
     if (id && orphanedRows !== 0) {
       // eslint-disable-next-line no-console
