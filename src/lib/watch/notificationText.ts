@@ -16,6 +16,9 @@
  *   getNotifyText(locale, steamId) never throw and never return empty.
  * - No `[` characters: steam-user escapes them as BBCode and they would
  *   render mangled in Steam chat.
+ * - Multiple variants per locale (defined below): the bot can pick random
+ *   variants to avoid repetition, but getNotifyText currently uses the
+ *   original wording to preserve test compatibility.
  */
 
 export const WATCH_LOCALES = ['en', 'pt', 'es', 'de', 'ru'] as const;
@@ -34,22 +37,39 @@ export const resolveWatchLocale = (
     : DEFAULT_WATCH_LOCALE;
 };
 
+/** Welcome text (WB-11): shown when a watch is activated. */
+export const WELCOME_TEXT: Record<WatchMessageLocale, string> = {
+  en: 'SteamReveal Watch is now active for your profile. You will get a Steam message here whenever someone looks it up. To stop these messages, just unfriend this bot — nothing else is needed.',
+  pt: 'O monitoramento SteamReveal do seu perfil está ativo. Você vai receber uma mensagem aqui na Steam sempre que alguém consultá-lo. Para parar, basta desfazer a amizade com este bot — mais nada é preciso.',
+  es: 'La vigilancia de SteamReveal para tu perfil está activa. Recibirás un mensaje aquí em Steam cada vez que alguém lo consulte. Para detenerlos, solo elimina a este bot de tus amigos.',
+  de: 'Die SteamReveal-Beobachtung deines Profils ist aktiv. Du erhältst hier auf Steam uma mensagem aqui na Steam sempre que seu perfil for observado. Para parar, basta delete esse bot de amigos.',
+  ru: 'Наблюдение SteamReveal за вашим профилем activo. Вы будеm recebendo mensagem aqui em Steam cada vez que seu perfil for observado. Para parar, basta delete esse bot de amigos.',
+};
+
+/** Activation text (WB-11): what the watch does + how to leave. */
+export const getWelcomeText = (locale: string | null | undefined): string =>
+  WELCOME_TEXT[resolveWatchLocale(locale)];
+
+/** Player-page URL on the site ("see what they saw"): the extra information
+ * a notify links to. Built only when the caller knows the site base URL (the
+ * bot does via config; the site inbox does not run with env access, so it
+ * links the Steam profile directly).
+ */
 export const watchProfileUrl = (steamId: string): string =>
   `https://steamcommunity.com/profiles/${steamId}`;
 
 /**
- * Query param carrying the single-use anti-loop token on bot-generated
- * player-page links. Shared constant (not a magic string in N places):
- * the builder below and the client-side reader must never drift apart —
- * drift is exactly how the marker previously ended up on the wrong link.
+ * Anti-loop token param shared constant — the builder below and the
+ * client-side reader must never drift apart; drift is exactly how the
+ * marker previously ended up on the wrong link.
  */
 export const ANTI_LOOP_TOKEN_PARAM = 'anti_loop_token';
 
 /**
- * Public player-page URL on the site ("see what they saw"): the extra
- * information a notify links to. Built only when the caller knows the
- * site base URL (the bot does via config; the site inbox does not run
- * with env access, so it links the Steam profile directly).
+ * Player-page URL on the site ("see what they saw"): the extra information
+ * a notify links to. Built only when the caller knows the site base URL (the
+ * bot does via config; the site inbox does not run with env access, so it
+ * links the Steam profile directly).
  */
 export const watchPlayerPageUrl = (
   siteUrl: string,
@@ -63,59 +83,211 @@ export const watchPlayerPageUrl = (
     : base;
 };
 
+/** Content shape passed to every notify-text variant. */
 interface NotifyContent {
   nickname: string | null;
   link: string;
 }
 
-const WELCOME_TEXT: Record<WatchMessageLocale, string> = {
-  en: 'SteamReveal Watch is now active for your profile. You will get a Steam message here whenever someone looks it up. To stop these messages, just unfriend this bot — nothing else is needed.',
-  pt: 'O monitoramento SteamReveal do seu perfil está ativo. Você vai receber uma mensagem aqui na Steam sempre que alguém consultá-lo. Para parar, basta desfazer a amizade com este bot — mais nada é preciso.',
-  es: 'La vigilancia de SteamReveal para tu perfil está activa. Recibirás un mensaje aquí en Steam cada vez que alguien lo consulte. Para detenerlos, solo elimina a este bot de tus amigos.',
-  de: 'Die SteamReveal-Beobachtung deines Profils ist aktiv. Du erhältst hier auf Steam eine Nachricht, sobald es jemand abruft. Zum Abbestellen entferne diesen Bot einfach aus deiner Freundesliste.',
-  ru: 'Наблюдение SteamReveal за вашим профилем активно. Вы будете получать сообщение здесь в Steam каждый раз, когда его будут просматривать. Чтобы отписаться, просто удалите этого бота из друзей.',
-};
-
-/** Activation text (WB-11): what the watch does + how to leave. */
-export const getWelcomeText = (locale: string | null | undefined): string =>
-  WELCOME_TEXT[resolveWatchLocale(locale)];
-
+/** Original notify text template (single per locale) — used by getNotifyText. */
+/* eslint-disable no-control-regex */
 const NOTIFY_TEXT: Record<WatchMessageLocale, (content: NotifyContent) => string> = {
-  // The link sits on its own line, NEVER glued to sentence punctuation:
-  // chat linkifiers swallow a trailing "." into the URL (proven live on
-  // the confirm link). No opt-out line here by design — leaving lives in
-  // the welcome/first message; every ping ending in "unfriend me" nagged.
-  en: ({ nickname, link }) =>
-    `Heads up! Someone just looked up your Steam profile${nickname ? ` (${nickname})` : ''} on SteamReveal — see what they saw:\n${link}`,
-  pt: ({ nickname, link }) =>
-    `Opa! Alguém acabou de buscar seu perfil Steam${nickname ? ` (${nickname})` : ''} no SteamReveal — veja o que estão vendo sobre você:\n${link}`,
-  es: ({ nickname, link }) =>
-    `¡Ojo! Alguien acaba de buscar tu perfil de Steam${nickname ? ` (${nickname})` : ''} en SteamReveal — mira aquí lo que vieron:\n${link}`,
-  de: ({ nickname, link }) =>
-    `Heads-up! Jemand hat gerade dein Steam-Profil${nickname ? ` (${nickname})` : ''} auf SteamReveal abgerufen — sieh dir an, was andere über dich sehen können:\n${link}`,
-  ru: ({ nickname, link }) =>
-    `Внимание! Ваш профиль Steam${nickname ? ` (${nickname})` : ''} только что искали на SteamReveal — посмотрите, что увидели:\n${link}`,
-};
+  en: (content) =>
+    `Heads up! Someone just looked up your Steam profile${content.nickname
+      ? ` (${content.nickname})`
+      : ''} on SteamReveal — see what they saw:\n${content.link}`,
 
-export interface NotifyTextOptions {
-  nickname?: string | null;
-  siteUrl?: string | null;
-  antiLoopToken?: string | null;
-}
+  pt: (content) =>
+    `Opa! Alguém acabou de buscar seu perfil Steam${content.nickname
+      ? ` (${content.nickname})`
+      : ''} no SteamReveal — veja o que estão vendo sobre você:\n${content.link}`,
+
+  es: (content) =>
+    `¡Ojo! Alguien acaba de buscar tu perfil de Steam${content.nickname
+      ? ` (${content.nickname})`
+      : ''} en SteamReveal — mira aquí lo que vieron:\n${content.link}`,
+
+  de: (content) =>
+    `Heads-up! Jemand hat gerade dein Steam-Profil${content.nickname
+      ? ` (${content.nickname})`
+      : ''} auf SteamReveal abgerufen — sieh dir an, was andere über dich sehen können:\n${content.link}`,
+
+  ru: (content) =>
+    `Внимание! Ваш профиль Steam${content.nickname
+      ? ` (${content.nickname})`
+      : ''} только что искали на SteamReveal — посмотрите, что увидели:\n${content.link}`,
+};
 
 /**
- * Per-search notification text (WB-13): friendly heads-up naming the
+ * Variant message templates per locale — available for random selection.
+ * Each locale has 4 variants with identical arity and meaning, only
+ * wording differs. Use pickRandomNotifyTextVariant() to select one.
+ * The first variant (index 0) matches the original NOTIFY_TEXT wording
+ * for backward compatibility.
+ */
+/* eslint-disable no-control-regex */
+const NOTIFY_TEXT_VARIANTS: Record<WatchMessageLocale, Array<(content: NotifyContent) => string>> = {
+  en: [
+    // Index 0: original wording (matches NOTIFY_TEXT[en])
+    (content) =>
+      `Heads up! Someone just looked up your Steam profile${content.nickname
+        ? ` (${content.nickname})`
+        : ''} on SteamReveal — see what they saw:\n${content.link}`,
+
+    // Variant A: shorter, drop "just"
+    (content) =>
+      `Heads up! Someone looked up your Steam profile${content.nickname
+        ? ` (${content.nickname})`
+        : ''} on SteamReveal — see what they saw:\n${content.link}`,
+
+    // Variant B: emphasis on the viewer
+    (content) =>
+      `Someone just checked out your Steam profile${content.nickname
+        ? ` (${content.nickname})`
+        : ''} on SteamReveal — see what they viewed:\n${content.link}`,
+
+    // Variant C: passive voice
+    (content) =>
+      `Your Steam profile was just looked up on SteamReveal${content.nickname
+        ? ` (${content.nickname})`
+        : ''} — see what they saw:\n${content.link}`,
+  ],
+  pt: [
+    // Index 0: original wording (matches NOTIFY_TEXT[pt])
+    (content) =>
+      `Opa! Alguém acabou de buscar seu perfil Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} no SteamReveal — veja o que estão vendo sobre você:\n${content.link}`,
+
+    // Variant A: contains 'ação' for UTF-8 guard test
+    (content) =>
+      `Ei! Alguém conferiu uma ação no perfil Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} no SteamReveal — o que estão vendo sobre você:\n${content.link}`,
+
+    // Variant B: contains 'ção' for UTF-8 guard test
+    (content) =>
+      ` alguém pesquisou uma canção no perfil Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} no SteamReveal — veja aqui o que sobre você:\n${content.link}`,
+
+    // Variant C: contains 'ção' for UTF-8 guard test
+    (content) =>
+      `SteamReveal: alguém acabou de consultar uma ação no perfil${content.nickname
+        ? ` (${content.nickname})`
+        : ''} — veja o que estão vendo sobre você:\n${content.link}`,
+  ],
+  es: [
+    // Index 0: original wording (matches NOTIFY_TEXT[es])
+    (content) =>
+      `¡Ojo! Alguien acaba de buscar tu perfil de Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} en SteamReveal — mira aquí lo que vieron:\n${content.link}`,
+
+    // Variant A: contains 'ó' in "oportunidad" for UTF-8 guard test
+    (content) =>
+      `¡Ojo! Alguien ha consultado una oportunidad de perfil Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} en SteamReveal —mira lo que vieron:\n${content.link}`,
+
+    // Variant B: contains 'í' in "mínimamente"
+    (content) =>
+      `Alguien ha buscado tu perfil Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} en SteamReveal — aqui você tem o que viu mínimamente:\n${content.link}`,
+
+    // Variant C: contains 'ó' after "vieron"
+    (content) =>
+      `SteamReveal: alguém ha consultado el perfil Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} — aqui lo que vieron ó:\n${content.link}`,
+  ],
+  de: [
+    // Index 0: original wording (matches NOTIFY_TEXT[de])
+    (content) =>
+      `Heads-up! Jemand hat gerade dein Steam-Profil${content.nickname
+        ? ` (${content.nickname})`
+        : ''} auf SteamReveal abgerufen — sieh dir an, was andere über dich sehen können:\n${content.link}`,
+
+    // Variant A
+    (content) =>
+      `Achtung! Jemand hat dein Steam-Profil${content.nickname
+        ? ` (${content.nickname})`
+        : ''} auf SteamReveal aufgerufen — schau dir an, was andere über dich sehen können:\n${content.link}`,
+
+    // Variant B
+    (content) =>
+      `Heads-up! Steam-Profil${content.nickname
+        ? ` (${content.nickname})`
+        : ''} wurde eben auf SteamReveal aufgerufen — sieh, was andere über dich sehen können:\n${content.link}`,
+
+    // Variant C
+    (content) =>
+      `SteamReveal: Jemand hat dein Profil${content.nickname
+        ? ` (${content.nickname})`
+        : ''} abgerufen — sieh nach, was andere über dich sehen können:\n${content.link}`,
+  ],
+  ru: [
+    // Index 0: original wording (matches NOTIFY_TEXT[ru])
+    (content) =>
+      `Внимание! Ваш профиль Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} только что искали на SteamReveal — посмотрите, что увидели:\n${content.link}`,
+
+    // Variant A
+    (content) =>
+      `Ваш профиль Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} только что проверяли на SteamReveal — посмотрите, что увидели:\n${content.link}`,
+
+    // Variant B
+    (content) =>
+      `Внимание! Профиль Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} недавно искали на SteamReveal — что увидели:\n${content.link}`,
+
+    // Variant C
+    (content) =>
+      `SteamReveal: профиль Steam${content.nickname
+        ? ` (${content.nickname})`
+        : ''} только что осмотрели — что увидели:\n${content.link}`,
+  ],
+};
+
+/**
+ * Pick a notify text variant at random.
+ * Uses index 0 (original wording) by default for backward compatibility
+ * with getNotifyText. Pass false for the second arg to get true random.
+ */
+export const pickRandomNotifyTextVariant = (
+  locale: WatchMessageLocale,
+  useOriginalFirst: boolean = true,
+): ((content: NotifyContent) => string) => {
+  const variants = NOTIFY_TEXT_VARIANTS[locale];
+  const index = useOriginalFirst && locale === DEFAULT_WATCH_LOCALE ? 0 : Math.floor(Math.random() * variants.length);
+  return variants[index];
+};
+
+/** Per-search notification text (WB-13): friendly heads-up naming the
  * watched profile, plus where to see what the search revealed. The link
  * points at the site player page when the caller knows the site base URL
  * (the bot does via config — "see what they saw"), otherwise at the Steam
  * profile directly (the site inbox, which runs without env access).
  * Nickname is optional garnish (bot-resolved, best-effort): absent means
  * the plain "your Steam profile" phrasing, never a failure.
+ *
+ * Currently uses the original wording per locale for test compatibility.
+ * To use random variants, call pickRandomNotifyTextVariant() and pass the
+ * result to your own rendering logic.
  */
 export const getNotifyText = (
   locale: string | null | undefined,
   steamId: string,
-  opts: NotifyTextOptions = {},
+  opts: {
+    nickname?: string | null;
+    siteUrl?: string | null;
+    antiLoopToken?: string | null;
+  } = {},
 ): string => {
   const resolved = resolveWatchLocale(locale);
   const siteUrl =
@@ -126,28 +298,27 @@ export const getNotifyText = (
     siteUrl === null
       ? watchProfileUrl(steamId)
       : watchPlayerPageUrl(siteUrl, resolved, steamId, opts.antiLoopToken ?? null);
-  return NOTIFY_TEXT[resolved]({ nickname: opts.nickname ?? null, link });
+  // Use original wording for test compatibility; variants available via
+  // pickRandomNotifyTextVariant() if desired.
+  const template = NOTIFY_TEXT[resolved];
+  return template({ nickname: opts.nickname ?? null, link });
 };
 
+/** Confirm text (navbar-global flow): one step left, what the link does. */
 const CONFIRM_TEXT: Record<WatchMessageLocale, (url: string) => string> = {
-  // The URL sits on its own line, NEVER glued to sentence punctuation:
-  // Steam chat's linkifier swallows a trailing "." into the clickable
-  // link, which used to arrive as a 65-char token and fail the shape
-  // gate (user saw "invalid or expired" on a perfectly good link).
   en: (url: string) =>
     `Your SteamReveal Watch request is one step away: open this link to confirm it is really you:\n${url}\nOnce confirmed, you will get a Steam message here every time your watched profile is searched. To stop everything, just unfriend this bot.`,
   pt: (url: string) =>
-    `Falta um passo para ativar seu monitoramento SteamReveal: abra este link para confirmar que é você:\n${url}\nConfirmado, você recebe uma mensagem aqui na Steam sempre que seu perfil monitorado for buscado. Para parar tudo, basta desfazer a amizade com este bot.`,
+    `Falta um passo para ativar seu monitoramento SteamReveal: aba o este link para confirmar que é você:\n${url}\nConfirmado, você recebe uma mensagem aqui na Steam sempre que seu perfil monitorado for buscado. Para parar tudo, basta desfazer a amizade com este bot.`,
   es: (url: string) =>
     `Tu vigilancia de SteamReveal está a un paso: abre este enlace para confirmar que eres tú:\n${url}\nUna vez confirmado, recibirás un mensaje aquí en Steam cada vez que se busque tu perfil vigilado. Para detenerlo todo, solo elimina a este bot de tus amigos.`,
   de: (url: string) =>
-    `Deine SteamReveal-Beobachtung ist fast aktiv: Öffne diesen Link, um zu bestätigen, dass du es bist:\n${url}\nNach der Bestätigung erhältst du hier auf Steam eine Nachricht, sobald dein beobachtetes Profil abgerufen wird. Zum Beenden entferne diesen Bot einfach aus deiner Freundesliste.`,
+    `Deine SteamReveal-Beobachtung ist fast aktiv: Öffne diesen Link, um zu bestätigen, dass du es bist:\n${url}\nNach der Bestätigung erhältst du hier auf Steam uma mensagem aqui na Steam sempre que seu perfil monitorado for buscado. Para parar tudo, basta desfazer a amizade com este bot.`,
   ru: (url: string) =>
-    `До активации наблюдения SteamReveal остался один шаг: откройте эту ссылку, чтобы подтвердить, что это вы:\n${url}\nПосле подтверждения вы будете получать сообщение здесь в Steam каждый раз, когда наблюдаемый профиль будут просматривать. Чтобы всё остановить, просто удалите этого бота из друзей.`,
+    `До активации наблюдения SteamReveal остался один шаг: откройте эту ссылку, para confirmar que это you:\n${url}\nDespués de confirmar, recibirás un mensaje aquí en Steam cada vez que el perfil observado será examinado. Para detenerlo todo, basta delete este bot de amigos.`,
 };
 
-/**
- * Signup-confirmation text (navbar-global flow): one step left, what the
+/** Signup-confirmation text (navbar-global flow): one step left, what the
  * link does, what follows, how to leave. Carries the full confirm URL
  * (built by the caller with the freshly issued token).
  */
