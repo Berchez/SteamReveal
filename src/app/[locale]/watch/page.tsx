@@ -14,8 +14,8 @@ const FORWARDED_PARAMS = ['confirmed', 'auth'] as const;
 /**
  * Legacy standalone /watch page: the flow now lives in the navbar avatar
  * (sign-in → dropdown panel → bot-link confirmation). A dedicated page
- * duplicates that surface with zero added value (Khomenko's core point),
- * so the route survives only as a redirect for bookmarks/back-button.
+ * duplicates that surface with zero added value, so the route survives
+ * only as a redirect for bookmarks/back-button.
  * Permanent (308): this route is never coming back — clients and search
  * engines should forget it.
  */

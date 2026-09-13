@@ -11,6 +11,8 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { getNotifyText } from '@/lib/watch/notificationText';
 import { WATCH_INBOX_DEFAULT_LIMIT } from '@/lib/watch/limits';
+import resolveLoginNext from '@/lib/watch/loginNext';
+import { usePathname } from '@/navigation';
 import {
   getLastSeenSentAt,
   latestSentAt,
@@ -57,6 +59,10 @@ function WatchInbox({ steamId }: { steamId: string }) {
   // Page locale drives item language AND timestamp formatting (the bot may
   // have sent in the stored requester locale — same base text family).
   const locale = useLocale();
+  // Post-login return: same helper as the navbar sign-in, so a mid-use
+  // expiry lands back on the page the user was on (the login route
+  // re-validates `next` as an internal path server-side).
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<InboxNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -159,12 +165,18 @@ function WatchInbox({ steamId }: { steamId: string }) {
         // A 400 here means a corrupt watermark slipped validation (or
         // raced it): clear it and retry once cursorless. The STATUS is
         // checked directly — never string-matched out of an error message.
+        // The retry is cursorless, so the payload is applied with a null
+        // cursor: keeping the invalidated watermark would corrupt the
+        // local unread fallback (server counts always win, but the
+        // fallback must still see the fetch as cursorless).
+        let effectiveWatermark = watermark;
         if (res.status === 400 && watermark !== null) {
           setLastSeenSentAt(steamId, null);
           if (fetchSeqRef.current !== seq) return;
           res = await fetch(
             `/api/watch/notifications?limit=${NOTIFICATIONS_LIMIT}`,
           );
+          effectiveWatermark = null;
         }
         if (fetchSeqRef.current !== seq) return;
         if (res.status === 401) {
@@ -185,7 +197,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
           notifications?: unknown;
           unreadCount?: unknown;
         } | null;
-        applyInboxPayload(body, markVisibleAsSeen, seq, watermark);
+        applyInboxPayload(body, markVisibleAsSeen, seq, effectiveWatermark);
         setError(false);
       } catch {
         if (fetchSeqRef.current !== seq) return;
@@ -294,7 +306,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
             {translator('watchLoginError')}
           </p>
           <a
-            href={`/api/auth/steam/login?next=${encodeURIComponent(`/${locale}/`)}`}
+            href={`/api/auth/steam/login?next=${encodeURIComponent(resolveLoginNext(pathname, locale))}`}
             className="inline-block h-9 rounded-full border border-gray-500 px-4 text-sm leading-9 text-gray-200 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           >
             {translator('watchLoginButton')}

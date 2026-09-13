@@ -3,6 +3,7 @@ jest.mock('../lib/analytics/db', () => ({
   __esModule: true,
   issueAntiLoopToken: jest.fn(async () => true),
   hashAntiLoopToken: jest.fn((token: string) => `hash:${token}`),
+  ANTI_LOOP_TOKEN_BYTES: 32,
   ANTI_LOOP_TOKEN_TTL_MS: 24 * 60 * 60 * 1000,
   getWatchedProfile: jest.fn(async () => ({ status: 'active', locale: 'en', lastNotifiedAt: null })),
   claimNextQueuedEvents: jest.fn(async () => []),

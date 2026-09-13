@@ -64,12 +64,15 @@ describe('resolveSiteNavState', () => {
     expect(consoleError).not.toHaveBeenCalled();
   });
 
-  it('renders logged-out for unauthenticated and error sessions alike', async () => {
+  it('renders logged-out for unauthenticated sessions (quietly)', async () => {
     resolveWatchSession.mockResolvedValue({ status: 'unauthenticated' });
     await expect(resolveSiteNavState(COOKIES as never)).resolves.toEqual({
       steamId: null,
     });
+    expect(consoleError).not.toHaveBeenCalled();
+  });
 
+  it('degrades error sessions to logged-out WITH a trace (sick config must not read as idle)', async () => {
     resolveWatchSession.mockResolvedValue({
       status: 'error',
       error: new Error('bad secret'),
@@ -77,7 +80,9 @@ describe('resolveSiteNavState', () => {
     await expect(resolveSiteNavState(COOKIES as never)).resolves.toEqual({
       steamId: null,
     });
-    expect(consoleError).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledTimes(1);
+    expect(String(consoleError.mock.calls[0][0])).toContain('[SiteNav]');
+    expect(String(consoleError.mock.calls[0][0])).toContain('bad secret');
   });
 
   it('degrades to logged-out (loudly) on unexpected throws, never rejects', async () => {

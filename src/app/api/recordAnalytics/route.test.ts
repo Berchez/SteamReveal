@@ -28,11 +28,12 @@ jest.mock('@/lib/rateLimit', () => {
   };
 });
 
-const { recordSearch, consumeAntiLoopToken } =
-  jest.requireMock('@/lib/analytics/db') as {
-    recordSearch: jest.Mock;
-    consumeAntiLoopToken: jest.Mock;
-  };
+const { recordSearch, consumeAntiLoopToken } = jest.requireMock(
+  '@/lib/analytics/db',
+) as {
+  recordSearch: jest.Mock;
+  consumeAntiLoopToken: jest.Mock;
+};
 
 const { enqueueWatchNotification } = jest.requireMock(
   '@/lib/analytics/watchNotify',
@@ -148,6 +149,17 @@ describe('POST /api/recordAnalytics', () => {
 
     expect(res.status).toBe(200);
     expect(body).toEqual({ id: null, skipped: true });
+    expect(recordSearch).not.toHaveBeenCalled();
+  });
+
+  it('validates the body BEFORE the DATABASE_URL skip (garbage is 400, never a silent skip)', async () => {
+    // Pins the validation-first order: a malformed body with no DB
+    // configured answers 400, not 200 { skipped: true } — fail fast on
+    // caller bugs instead of hiding them behind an env-dependent skip.
+    delete process.env.DATABASE_URL;
+    const res = await POST(makeRequest({ jsonBody: { profile: {} } }));
+
+    expect(res.status).toBe(400);
     expect(recordSearch).not.toHaveBeenCalled();
   });
 

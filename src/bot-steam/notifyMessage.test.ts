@@ -16,15 +16,21 @@ jest.mock('../lib/analytics/db', () => ({
   __esModule: true,
   issueAntiLoopToken: jest.fn(async () => true),
   hashAntiLoopToken: jest.fn((token: string) => `hash:${token}`),
+  ANTI_LOOP_TOKEN_BYTES: 32,
   ANTI_LOOP_TOKEN_TTL_MS: 24 * 60 * 60 * 1000,
 }));
+
+const mockedDb = jest.requireMock('../lib/analytics/db') as {
+  issueAntiLoopToken: jest.Mock;
+};
 
 const mockedApiKey = jest.requireMock('../lib/getSteamApiKey')
   .default as jest.Mock;
 
 const STEAM = '76561198000000001';
 const URL = `https://steamcommunity.com/profiles/${STEAM}`;
-const CONFIRM_URL = 'https://steam-reveal.vercel.app/api/watch/confirm?token=abc';
+const CONFIRM_URL =
+  'https://steam-reveal.vercel.app/api/watch/confirm?token=abc';
 
 // jsdom has no fetch: stub it per test via `mockFetchJson`.
 const mockFetchJson = (json: unknown, ok = true) => {
@@ -173,7 +179,8 @@ describe('sendNotifyMessage', () => {
       string,
       string,
     ];
-    const tokenInLink = /anti_loop_token=([0-9a-f]{64})/.exec(text)?.[1] ?? null;
+    const tokenInLink =
+      /anti_loop_token=([0-9a-f]{64})/.exec(text)?.[1] ?? null;
     expect(tokenInLink).not.toBeNull();
     expect(mockedDb.hashAntiLoopToken(tokenInLink ?? '')).toBe(storedHash);
   });
@@ -191,6 +198,25 @@ describe('sendNotifyMessage', () => {
         'https://steam-reveal.vercel.app',
       ),
     ).rejects.toThrow('chat down');
+  });
+
+  it('fails closed when the watch row is gone: no dead-token message sends', async () => {
+    // issueAntiLoopToken returns false when no watched_profiles row exists
+    // (opt-out raced the send). The send must reject INSTEAD of embedding
+    // a token that was never stored — otherwise the loop guard is dead
+    // for this send while looking armed.
+    mockedDb.issueAntiLoopToken.mockResolvedValueOnce(false);
+    const sendFriendMessage = jest.fn(async () => ({ ordinal: 1 }));
+
+    await expect(
+      sendNotifyMessage(
+        { sendFriendMessage },
+        STEAM,
+        'en',
+        'https://steam-reveal.vercel.app',
+      ),
+    ).rejects.toThrow(/no watched profile left/);
+    expect(sendFriendMessage).not.toHaveBeenCalled();
   });
 });
 

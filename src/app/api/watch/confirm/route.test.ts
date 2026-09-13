@@ -144,6 +144,32 @@ describe('GET /api/watch/confirm', () => {
     expect(saveWatchSession).not.toHaveBeenCalled();
   });
 
+  it('still lands ok when the session seal fails after consumption (dead-link guard)', async () => {
+    saveWatchSession.mockRejectedValue(new Error('cookie store down'));
+    mockedDb.getAccount.mockResolvedValue({ locale: 'pt' });
+
+    const res = await GET(new Request(`${BASE}?token=${TOKEN}`));
+
+    expect(res.headers.get('location')).toBe(
+      'http://localhost:3000/pt/?confirmed=ok',
+    );
+  });
+
+  it('still lands ok (bare home) when the locale read fails after consumption', async () => {
+    // getAccount is display-only: a transient read blip must not convert
+    // an already-consumed token into an "invalid link" error for a user
+    // who is already confirmed (and whose session above already sealed).
+    mockedDb.getAccount.mockRejectedValue(new Error('turso blip'));
+
+    const res = await GET(new Request(`${BASE}?token=${TOKEN}`));
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(
+      'http://localhost:3000/?confirmed=ok',
+    );
+    expect(saveWatchSession).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects non-GET methods and rate-limited callers', async () => {
     const wrongMethod = await GET(new Request(BASE, { method: 'POST' }));
     expect(wrongMethod.status).toBe(405);

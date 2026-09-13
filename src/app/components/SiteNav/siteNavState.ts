@@ -31,6 +31,22 @@ export const resolveSiteNavState = async (
 ): Promise<SiteNavState> => {
   try {
     const session = await resolveWatchSession(cookieStore);
+    if (session.status === 'error') {
+      // 'error' is NOT a normal logged-out state — the session layer
+      // caught something unexpected (e.g. a broken SESSION_SECRET that
+      // fails every seal/unseal). Still degrade (never 500 the layout),
+      // but leave a trace: without this a sick config reads as "nobody
+      // is logged in" with zero server-side signal.
+      // eslint-disable-next-line no-console
+      console.error(
+        `[SiteNav] session resolution errored, degrading to logged-out: ${
+          session.error instanceof Error
+            ? session.error.message
+            : String(session.error)
+        }`,
+      );
+      return { steamId: null };
+    }
     const steamId =
       session.status === 'authenticated' ? session.steamId : null;
     if (steamId === null) return { steamId: null };

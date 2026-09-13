@@ -1350,10 +1350,8 @@ const assertAntiLoopTokenHash = (tokenHash: string): void => {
   }
 };
 
-const hashAntiLoopToken = (token: string): string =>
+export const hashAntiLoopToken = (token: string): string =>
   createHash('sha256').update(token, 'utf8').digest('hex');
-
-export { hashAntiLoopToken };
 
 /**
  * Issues an anti-loop token for a watched profile. Returns false if no
@@ -1387,6 +1385,12 @@ export const issueAntiLoopToken = async (
  * converge on exactly one winner — the loser sees zero rows and resolves
  * to false instead of double-consuming.
  * Expired tokens never match the predicate.
+ *
+ * Single-use caveat: anything that fetches the link before the real click
+ * (chat preview prefetch, browser/overlay preloading) consumes the token
+ * early — the later real click then records normally (fail closed to a
+ * plain search, never an error). Not a security issue, just the cost of
+ * single-use links.
  *
  * Returns true if a token was consumed, false otherwise.
  */

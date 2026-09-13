@@ -95,8 +95,19 @@ export async function GET(req: Request) {
         steamId,
       });
     }
-    const account = await getAccount(steamId);
-    return homeRedirect(account?.locale ?? null, 'ok');
+    // Locale is display-only (which home translation the toast renders
+    // in): a transient read failure here must never convert an already
+    // consumed token + sealed session into an 'error' landing that tells
+    // a confirmed, logged-in user their link was invalid.
+    let locale: string | null = null;
+    try {
+      locale = (await getAccount(steamId))?.locale ?? null;
+    } catch (accountError) {
+      logRouteError('watchConfirm:locale', sanitizeError(accountError), {
+        steamId,
+      });
+    }
+    return homeRedirect(locale, 'ok');
   } catch (error) {
     logRouteError('watchConfirm', sanitizeError(error));
     return homeRedirect(null, 'error');

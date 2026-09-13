@@ -14,6 +14,21 @@ jest.mock('next-intl', () => ({
   useTranslations: () => mockTranslate,
 }));
 
+// Same interception precedent as SiteNavSignIn tests: mock the underlying
+// next-intl/navigation factory so the expired-session login link carries a
+// deterministic preserved pathname (mirrors reality: usePathname strips
+// the locale prefix, resolveLoginNext puts it back).
+const mockUsePathname = jest.fn((): string | null => '/player/player-x');
+jest.mock('next-intl/navigation', () => ({
+  createNavigation: () => ({
+    Link: ({ href, children }: any) => <a href={href}>{children}</a>,
+    redirect: jest.fn(),
+    usePathname: () => mockUsePathname(),
+    useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
+    getPathname: jest.fn(),
+  }),
+}));
+
 const STEAM_A = '76561198000000001';
 const STEAM_B = '76561198000000002';
 
@@ -272,7 +287,8 @@ describe('WatchInbox', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
   });
 
-  it('shows an error with retry, and recovers', async () => {    fetchMock.mockRejectedValue(new Error('network down'));
+  it('shows an error with retry, and recovers', async () => {
+    fetchMock.mockRejectedValue(new Error('network down'));
 
     render(<WatchInbox steamId={STEAM_A} />);
     await settle();
@@ -319,6 +335,31 @@ describe('WatchInbox', () => {
     ).toBe('2026-06-01T12:00:00.000Z');
   });
 
+  it('applies the cursorless retry with a null cursor (local fallback counts all rows)', async () => {
+    // Same 400-then-retry as above, but the retry answer carries NO server
+    // count: the local fallback must treat the fetch as cursorless
+    // (count = rows landed). With the invalidated watermark still
+    // attached, the 06-01 row would filter against the 06-02 cursor and
+    // the badge would wrongly read 0.
+    window.localStorage.setItem(
+      `${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`,
+      '2026-06-02T12:00:00.000Z',
+    );
+    fetchMock
+      .mockResolvedValueOnce({ ok: false, status: 400 })
+      .mockResolvedValue(
+        notificationsResponse([row(1, '2026-06-01T12:00:00.000Z')]),
+      );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'aria-label',
+      'watchInboxBellLabel:{"count":1}',
+    );
+  });
+
   it('offers the login gate when the session died mid-use', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 401 });
 
@@ -327,9 +368,11 @@ describe('WatchInbox', () => {
     await openInbox();
 
     const loginLink = screen.getByText('watchLoginButton');
+    // Same return-where-you-were contract as the navbar sign-in (not the
+    // bare home): the expired session happened on /player/player-x.
     expect(loginLink.closest('a')).toHaveAttribute(
       'href',
-      expect.stringContaining('/api/auth/steam/login'),
+      '/api/auth/steam/login?next=%2Fen%2Fplayer%2Fplayer-x',
     );
     // No badge arithmetic on an unauthenticated lane.
     expect(screen.getByRole('button')).toHaveAttribute(
@@ -340,10 +383,7 @@ describe('WatchInbox', () => {
 
   it('clears stale rows and count when the session dies after content loaded', async () => {
     fetchMock.mockResolvedValue(
-      notificationsResponse(
-        [row(2, '2026-06-02T00:00:00.000Z')],
-        1,
-      ),
+      notificationsResponse([row(2, '2026-06-02T00:00:00.000Z')], 1),
     );
 
     render(<WatchInbox steamId={STEAM_A} />);
@@ -381,10 +421,7 @@ describe('WatchInbox', () => {
     // so no name filter can match it — the bell is the only <button>
     // while the panel shows rows or the login link.)
     fetchMock.mockResolvedValue(
-      notificationsResponse(
-        [row(3, '2026-06-03T00:00:00.000Z')],
-        1,
-      ),
+      notificationsResponse([row(3, '2026-06-03T00:00:00.000Z')], 1),
     );
     fireEvent.click(screen.getByRole('button'));
     await settle();

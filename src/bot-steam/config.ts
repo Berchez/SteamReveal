@@ -98,7 +98,24 @@ const requireSiteUrl = (value: string | undefined): string => {
       'WATCH_SITE_URL is missing — set it to the public site base URL with no trailing slash (see .env.example). Confirm links built without it point nowhere.',
     );
   }
-  return value.replace(/\/+$/, '');
+  const trimmed = value.replace(/\/+$/, '');
+  // Fail fast on malformed values (missing scheme, spaces, garbage):
+  // without this a bad URL passes boot and only breaks later, inside
+  // bot-delivered confirm links that are painful to debug.
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw new Error(
+      `WATCH_SITE_URL is not a valid absolute URL (${value}) — set it to the public site base URL, e.g. https://example.com (see .env.example).`,
+    );
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(
+      `WATCH_SITE_URL must use http(s) (got ${parsed.protocol}) — set it to the public site base URL (see .env.example).`,
+    );
+  }
+  return trimmed;
 };
 
 /**

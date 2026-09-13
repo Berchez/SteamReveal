@@ -81,6 +81,20 @@ describe('loadBotConfig', () => {
   });
 
   it.each([
+    ['steam-reveal.vercel.app'],
+    ['not a url'],
+    ['ftp://files.example/x'],
+    ['https://'],
+  ])(
+    'rejects a malformed WATCH_SITE_URL (%s) at boot, not in sent links',
+    (value) => {
+      expect(() =>
+        loadBotConfig({ ...FULL_ENV, WATCH_SITE_URL: value }),
+      ).toThrow('WATCH_SITE_URL');
+    },
+  );
+
+  it.each([
     ['BOT_HEARTBEAT_INTERVAL_MS', '0'],
     ['BOT_HEARTBEAT_STALE_MS', '-5'],
     ['BOT_RECONNECT_BASE_MS', 'not-a-number'],

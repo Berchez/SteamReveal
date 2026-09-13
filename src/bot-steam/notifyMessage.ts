@@ -21,6 +21,7 @@ import { fetchPlayerSummary } from '../lib/steamPlayerSummary';
 import {
   issueAntiLoopToken,
   hashAntiLoopToken,
+  ANTI_LOOP_TOKEN_BYTES,
   ANTI_LOOP_TOKEN_TTL_MS,
 } from '../lib/analytics/db';
 
@@ -31,14 +32,26 @@ export const DEFAULT_NOTIFY_LOCALE = DEFAULT_WATCH_LOCALE;
  * embedding in the outgoing player-page link (only the hash is stored).
  * Overwrites unconditionally — see sendNotifyMessage for why reusing an
  * existing token is impossible. A storage failure rejects (fail closed:
- * the caller must not send a tokenless link).
+ * the caller must not send a tokenless link) — and so does a `false`
+ * return (no watched row left to store it on: the user opted out
+ * mid-flight, so a token issued now would be dead on arrival and the
+ * loop guard silently inoperable for this send).
  */
 export const issueFreshAntiLoopToken = async (
   steamId: string,
 ): Promise<string> => {
-  const antiLoopToken = randomBytes(32).toString('hex');
+  const antiLoopToken = randomBytes(ANTI_LOOP_TOKEN_BYTES).toString('hex');
   const expiresAt = new Date(Date.now() + ANTI_LOOP_TOKEN_TTL_MS).toISOString();
-  await issueAntiLoopToken(steamId, hashAntiLoopToken(antiLoopToken), expiresAt);
+  const issued = await issueAntiLoopToken(
+    steamId,
+    hashAntiLoopToken(antiLoopToken),
+    expiresAt,
+  );
+  if (!issued) {
+    throw new Error(
+      `issueFreshAntiLoopToken: no watched profile left for ${steamId}, refusing a tokenless send`,
+    );
+  }
   return antiLoopToken;
 };
 

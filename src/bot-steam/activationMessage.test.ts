@@ -29,7 +29,10 @@ const { sendWelcomeMessage } = jest.requireMock('./welcomeMessage') as {
 };
 
 const STEAM = '76561198000000001';
-const CONFIG = { siteUrl: 'https://reveal.example', confirmTokenTtlMs: 24 * 3600 * 1000 };
+const CONFIG = {
+  siteUrl: 'https://reveal.example',
+  confirmTokenTtlMs: 24 * 3600 * 1000,
+};
 const CHAT = {
   sendFriendMessage: jest.fn(async () => ({ ordinal: 1 })),
 };
@@ -102,7 +105,8 @@ describe('handleActivation', () => {
     expect(sendConfirmMessage.mock.calls[0][2]).toBe('pt');
   });
 
-  it('sends welcome for confirmed accounts and legacy rows alike', async () => {    mockedDb.getAccount.mockResolvedValue({
+  it('sends welcome for confirmed accounts and legacy rows alike', async () => {
+    mockedDb.getAccount.mockResolvedValue({
       steamId: STEAM,
       confirmedAt: '2026-09-02T00:00:00.000Z',
     });
@@ -124,7 +128,10 @@ describe('handleActivation', () => {
       'turso down',
     );
 
-    mockedDb.getAccount.mockResolvedValue({ steamId: STEAM, confirmedAt: null });
+    mockedDb.getAccount.mockResolvedValue({
+      steamId: STEAM,
+      confirmedAt: null,
+    });
     mockedDb.issueConfirmToken.mockResolvedValue(true);
     sendConfirmMessage.mockRejectedValueOnce(new Error('chat down'));
     await expect(handleActivation(CHAT, STEAM, 'en', CONFIG)).rejects.toThrow(
