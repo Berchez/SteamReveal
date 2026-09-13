@@ -1,3 +1,16 @@
+// Mock the database module before importing notifyPoller
+jest.mock('../lib/analytics/db', () => ({
+  __esModule: true,
+  issueAntiLoopToken: jest.fn(async () => true),
+  hashAntiLoopToken: jest.fn((token: string) => `hash:${token}`),
+  ANTI_LOOP_TOKEN_TTL_MS: 24 * 60 * 60 * 1000,
+  getWatchedProfile: jest.fn(async () => ({ status: 'active', locale: 'en', lastNotifiedAt: null })),
+  claimNextQueuedEvents: jest.fn(async () => []),
+  markEventSent: jest.fn(async () => true),
+  markEventDropped: jest.fn(async () => true),
+  recordEventAttempt: jest.fn(async () => 'requeued')
+}));
+
 import { getNotifyMessage } from './notifyMessage';
 import {
   isNotifyExpired,
@@ -90,6 +103,33 @@ describe('pollNotifyQueueOnce', () => {
     expect(dal.markEventSent).toHaveBeenCalledWith(2);
     expect(logger.info).toHaveBeenCalledTimes(1);
     expect(String(logger.info.mock.calls[0][0])).toContain('claimed=2');
+  });
+
+  it('threads siteUrl through so notifies link the player page', async () => {
+    const dal = makeDal();
+    const chat = makeChat();
+    dal.claimNextQueuedEvents.mockResolvedValue([freshEvent(1, STEAM_A)]);
+    dal.getWatchedProfile.mockResolvedValue({
+      status: 'active',
+      locale: 'pt',
+      lastNotifiedAt: null,
+    });
+
+    const report = await pollNotifyQueueOnce({
+      chat,
+      dal,
+      siteUrl: 'https://steam-reveal.vercel.app',
+    });
+
+    expect(report).toMatchObject({ claimed: 1, sent: 1, errors: [] });
+    expect(chat.sendFriendMessage).toHaveBeenCalledTimes(1);
+    const [, text] = chat.sendFriendMessage.mock.calls[0] as unknown as [
+      string,
+      string,
+    ];
+    expect(text).toContain(
+      `https://steam-reveal.vercel.app/pt/player/${STEAM_A}`,
+    );
   });
 
   it('skips the whole pass (no DAL, no Steam) when not connected', async () => {

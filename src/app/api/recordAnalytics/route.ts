@@ -4,7 +4,7 @@ import timingSafeEqualStrings from '@/lib/timingSafeEqualStrings';
 import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
-import { recordSearch } from '@/lib/analytics/db';
+import { recordSearch, consumeAntiLoopToken, hashAntiLoopToken } from '@/lib/analytics/db';
 import { enqueueWatchNotification } from '@/lib/analytics/watchNotify';
 import { parseRecordBody } from '@/app/api/analytics/input';
 import redactBodyForLog from '@/app/api/analytics/redactBody';
@@ -68,21 +68,44 @@ export async function POST(req: Request) {
       return errorResponse('Too many requests.', 429, 'RATE_LIMITED');
     }
 
-    const { DATABASE_URL } = process.env;
     body = await req.json();
 
-    if (!DATABASE_URL) {
-      // Analytics is best-effort: without Turso configured we just skip
-      // recording instead of failing the search.
-      return NextResponse.json({ id: null, skipped: true }, { status: 200 });
-    }
-
-    const input = parseRecordBody(body);
-    if (!input) {
+    // Parse the body first to get the steamId for anti-loop token validation
+    const parsedInput = parseRecordBody(body);
+    if (!parsedInput) {
       return errorResponse('Invalid request body.', 400, 'INVALID_REQUEST');
     }
 
-    const record = await recordSearch(input);
+    const { DATABASE_URL } = process.env;
+    if (!DATABASE_URL) {
+      // Analytics is best-effort: without Turso configured we just skip
+      // recording instead of failing the search. Do this before anti-loop
+      // validation so a missing DB never turns into a 500.
+      return NextResponse.json({ id: null, skipped: true }, { status: 200 });
+    }
+
+    // Anti-loop suppression, single round trip: the client sends the RAW
+    // token from the bot-generated player-page link; only its hash is
+    // compared here. consumeAntiLoopToken re-checks the same predicate
+    // (steamId + hash + unexpired) atomically, so a separate validate
+    // read would be a TOCTOU round trip that proves nothing — branch on
+    // the consume result directly. A token the bot never issued (including
+    // a hand-crafted one) simply fails and the search records normally:
+    // there is no bypass to forge, because suppression requires a
+    // server-issued secret. Deliberately silent on failure (no log):
+    // stale/double-clicked links are normal user behavior, not errors.
+    const antiLoopToken = body?.antiLoopToken;
+    if (typeof antiLoopToken === 'string' && antiLoopToken !== '') {
+      const consumed = await consumeAntiLoopToken(
+        parsedInput.profile.steamId,
+        hashAntiLoopToken(antiLoopToken),
+      );
+      if (consumed) {
+        return NextResponse.json({ id: null, skipped: true, reason: 'anti_loop' }, { status: 200 });
+      }
+    }
+
+    const record = await recordSearch(parsedInput);
 
     // WB-12 notify hook: AWAITED deliberately, not fire-and-forget.
     // Reason: this repo pins Next 14.2, whose next/server exports no
@@ -96,14 +119,14 @@ export async function POST(req: Request) {
     // fire-and-forget client-side — nothing blocks on this response.
     // The .catch below is defensive-only (contract: never rejects), kept
     // because the alternative failure mode would be a 500 on analytics.
-    await enqueueWatchNotification(input.profile.steamId, record.id, {
+    await enqueueWatchNotification(parsedInput.profile.steamId, record.id, {
       error: (message: string) =>
         logRouteError('recordAnalytics', message, {
-          steamId: input.profile.steamId,
+          steamId: parsedInput.profile.steamId,
         }),
     }).catch((error: unknown) => {
       logRouteError('recordAnalytics', sanitizeError(error), {
-        steamId: input.profile.steamId,
+        steamId: parsedInput.profile.steamId,
       });
     });
 

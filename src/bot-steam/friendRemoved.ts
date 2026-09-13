@@ -28,8 +28,8 @@
  *   there is nothing sensitive to leak into logs by construction.
  */
 
-import type { RemoveWatchResult } from '@/lib/analytics/db';
-import { isSteamId64 } from '@/lib/steamId';
+import type { RemoveWatchResult } from '../lib/analytics/db';
+import { isSteamId64 } from '../lib/steamId';
 
 import type { WatchBotLogger } from './logger';
 

@@ -65,6 +65,7 @@ interface UseHomeSearchParams {
   clearSyncedUrlPlayer: () => void;
   handleShowSponsorMe: () => void;
   handleShowSupportMe: (days: number) => void;
+  antiLoopToken?: string;
 }
 
 type CloseFriendsJsonState = closeFriendsDataIWant[] | undefined;
@@ -89,6 +90,7 @@ const useHomeSearch = ({
   clearSyncedUrlPlayer,
   handleShowSponsorMe,
   handleShowSupportMe,
+  antiLoopToken,
 }: UseHomeSearchParams) => {
   const { reserveNewRun, isCurrentRun } = runGuard;
 
@@ -550,6 +552,7 @@ const useHomeSearch = ({
             requesterBrowserLanguage: getRequesterBrowserLanguage(),
             device: getRequesterDevice(),
             durationMs: Date.now() - startedAt,
+            antiLoopToken,
           },
         );
       } catch (e) {

@@ -52,6 +52,13 @@ Required (bot exits 1 on startup without them):
 | `WATCH_SITE_URL`          | Public site base URL, no trailing slash (bot-delivered confirm links point here — wrong env = dead links; tokens only exist in one DB) |
 | `SESSION_SECRET`          | Login-cookie seal (32+ chars, one per environment — site only, the bot never reads it) |
 
+Optional (degraded gracefully when absent):
+
+| Var              | Meaning                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------ |
+| `STEAM_API_KEY`  | Same Steam Web API key as the site — used ONLY to resolve the watched nickname for notify text. Without it notifies still send, naming the SteamID64 URL instead of `(Nick)`. |
+| `STEAM_API_KEY_2`| Ignored by the bot (no failover here — one lookup per notify is cheap).                          |
+
 Optional tuning (defaults shown — the full list with the abuse-math rationale
 lives in `.env.example` under "Watch Bot"):
 

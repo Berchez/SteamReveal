@@ -170,7 +170,7 @@
     "watchWelcome": "Watch active! The bot will message you on Steam when this profile is searched.",
     "watchTitle": "Watch a Steam profile",
     "watchDescription": "Get a Steam message from our bot whenever this profile is searched. Sign in with Steam to link your profile — accepting the bot friend request lets it reach you.",
-    "watchSubmit": "Watch this profile",
+    "watchSubmit": "Watch your profile",
     "watchSignupSteps": "How it works: click the button below to start, accept the bot's friend request on Steam, then click the confirmation link the bot sends you here.",
     "watchConfirmOk": "Watch confirmed! You will be notified here whenever your profile is searched.",
     "watchConfirmError": "This confirmation link is invalid or expired. Start watching again to get a fresh one.",

@@ -65,10 +65,17 @@ export async function GET(req: Request) {
     );
   };
 
-  const token = url.searchParams.get('token');
+  const rawToken = url.searchParams.get('token');
+  // Chat linkifiers (Steam's included) glue trailing punctuation into the
+  // clickable link — a token arriving as "<64hex>." must still consume.
+  // Safe to strip: a valid token is exactly 64 hex chars, so trailing
+  // punctuation can never belong to one; only an exact valid prefix
+  // survives this, which is precisely the mangled-link case.
+  const token =
+    rawToken === null ? null : rawToken.replace(/[.,;:!?)\]}'"]+$/, '');
   // Shape-gate before hashing anything: 64 hex chars, the only form our
   // issuer ever produces. Anything else is a probe, answered identically.
-  if (token === null || !/^[0-9a-f]{64}$/.test(token)) {
+  if (token === null || token === '' || !/^[0-9a-f]{64}$/.test(token)) {
     return homeRedirect(null, 'error');
   }
 
@@ -77,7 +84,17 @@ export async function GET(req: Request) {
     if (steamId === null) {
       return homeRedirect(null, 'error');
     }
-    await saveWatchSession(cookies(), steamId);
+    // Save session AFTER token consumption. If this fails, the token is
+    // already consumed (account confirmed) — we still redirect to 'ok' so
+    // the user isn't stuck with a dead link, but log the session failure
+    // explicitly for debugging.
+    try {
+      await saveWatchSession(cookies(), steamId);
+    } catch (sessionError) {
+      logRouteError('watchConfirm:session', sanitizeError(sessionError), {
+        steamId,
+      });
+    }
     const account = await getAccount(steamId);
     return homeRedirect(account?.locale ?? null, 'ok');
   } catch (error) {

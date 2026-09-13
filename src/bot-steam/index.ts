@@ -179,7 +179,17 @@ const main = (): void => {
   });
   // Immediate first beat so the healthcheck is meaningful from second one
   // (otherwise a fresh process looks stale for a whole interval).
-  heartbeat.beat();
+  // Wrap in try/catch: disk full/permission on boot must not crash before
+  // bot.start() — the interval beat() already swallows errors.
+  try {
+    heartbeat.beat();
+  } catch (error) {
+    console.error(
+      `[WatchBot] initial heartbeat write failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
 
   // Stale-claim recovery driver: without this interval, rows orphaned in
   // 'claimed' (crashed worker, failed bookkeeping) would sit forever —
@@ -245,6 +255,7 @@ const main = (): void => {
     batchLimit: config.notifyBatchLimit,
     maxAttempts: config.notifyMaxAttempts,
     sendTimeoutMs: config.notifySendTimeoutMs,
+    siteUrl: config.siteUrl,
     ttlDays: config.notifyTtlDays,
     isConnected: () => bot.isConnected(),
   });

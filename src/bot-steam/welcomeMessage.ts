@@ -16,7 +16,7 @@
 import {
   DEFAULT_WATCH_LOCALE,
   getWelcomeText,
-} from '@/lib/watch/notificationText';
+} from '../lib/watch/notificationText';
 
 export const DEFAULT_WELCOME_LOCALE = DEFAULT_WATCH_LOCALE;
 

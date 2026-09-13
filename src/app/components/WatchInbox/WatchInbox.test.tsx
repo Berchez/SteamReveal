@@ -272,8 +272,7 @@ describe('WatchInbox', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
   });
 
-  it('shows an error with retry, and recovers', async () => {
-    fetchMock.mockRejectedValue(new Error('network down'));
+  it('shows an error with retry, and recovers', async () => {    fetchMock.mockRejectedValue(new Error('network down'));
 
     render(<WatchInbox steamId={STEAM_A} />);
     await settle();
@@ -290,6 +289,34 @@ describe('WatchInbox', () => {
 
     expect(screen.queryByText('watchInboxError')).not.toBeInTheDocument();
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
+  });
+
+  it('clears a corrupt watermark and retries once on HTTP 400 (status, not message sniffing)', async () => {
+    // Seed a corrupt cursor: the first fetch goes out WITH it and the
+    // route answers 400; the retry goes out cursorless and succeeds.
+    window.localStorage.setItem(
+      `${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`,
+      '2026-06-02T12:00:00.000Z',
+    );
+    fetchMock
+      .mockResolvedValueOnce({ ok: false, status: 400 })
+      .mockResolvedValue(
+        notificationsResponse([row(1, '2026-06-01T12:00:00.000Z')], 1),
+      );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    const urls = fetchMock.mock.calls.map((call) => String(call[0]));
+    expect(urls[0]).toContain('sinceSentAt=');
+    expect(urls[1]).not.toContain('sinceSentAt=');
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    // The corrupt cursor is gone for good: opening watermarked the
+    // delivered row instead of restoring the bad value.
+    expect(
+      window.localStorage.getItem(`${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`),
+    ).toBe('2026-06-01T12:00:00.000Z');
   });
 
   it('offers the login gate when the session died mid-use', async () => {

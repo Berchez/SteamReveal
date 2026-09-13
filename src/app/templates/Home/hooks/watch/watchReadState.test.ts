@@ -51,6 +51,17 @@ describe('watchReadState', () => {
     expect(window.localStorage.length).toBe(0);
   });
 
+  it('clears the watermark on null (corrupt-cursor recovery)', () => {
+    setLastSeenSentAt(STEAM_A, SENT_NEW);
+    expect(getLastSeenSentAt(STEAM_A)).toBe(SENT_NEW);
+
+    setLastSeenSentAt(STEAM_A, null);
+    expect(getLastSeenSentAt(STEAM_A)).toBeNull();
+    expect(
+      window.localStorage.getItem(`${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`),
+    ).toBeNull();
+  });
+
   it('treats garbage stored values as never-opened', () => {
     window.localStorage.setItem(
       `${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`,

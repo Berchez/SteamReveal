@@ -47,13 +47,25 @@ export const getLastSeenSentAt = (steamId: string): string | null => {
   }
 };
 
-/** Records the watermark. Ignores invalid inputs; never throws. */
-export const setLastSeenSentAt = (steamId: string, sentAt: string): void => {
+/**
+ * Records the watermark, or CLEARS it when sentAt is null. Clearing (not
+ * just ignoring) is load-bearing: callers pass null precisely when the
+ * stored value proved corrupt — leaving it would retry the same bad
+ * cursor forever. Ignores invalid inputs; never throws.
+ */
+export const setLastSeenSentAt = (
+  steamId: string,
+  sentAt: string | null,
+): void => {
   const key = seenKey(steamId);
   if (key === null) return;
-  if (!isValidSentAt(sentAt)) return;
   if (typeof window === 'undefined') return;
   try {
+    if (sentAt === null) {
+      window.localStorage.removeItem(key);
+      return;
+    }
+    if (!isValidSentAt(sentAt)) return;
     window.localStorage.setItem(key, sentAt);
   } catch {
     // Hostile storage (private mode): unread count just recomputes next

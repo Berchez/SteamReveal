@@ -6,6 +6,8 @@ import { POST } from './route';
 
 jest.mock('@/lib/analytics/db', () => ({
   recordSearch: jest.fn(),
+  consumeAntiLoopToken: jest.fn(),
+  hashAntiLoopToken: jest.fn((token: string) => `hash:${token}`),
 }));
 
 jest.mock('@/lib/analytics/watchNotify', () => ({
@@ -26,9 +28,11 @@ jest.mock('@/lib/rateLimit', () => {
   };
 });
 
-const { recordSearch } = jest.requireMock('@/lib/analytics/db') as {
-  recordSearch: jest.Mock;
-};
+const { recordSearch, consumeAntiLoopToken } =
+  jest.requireMock('@/lib/analytics/db') as {
+    recordSearch: jest.Mock;
+    consumeAntiLoopToken: jest.Mock;
+  };
 
 const { enqueueWatchNotification } = jest.requireMock(
   '@/lib/analytics/watchNotify',
@@ -50,14 +54,15 @@ const makeRequest = (
   const { skipHeader = null, jsonBody = {}, jsonError } = overrides;
   return {
     method: 'POST',
+    url: 'http://localhost:3000/api/recordAnalytics',
     headers: {
       get: jest.fn((name: string) =>
-        name === 'x-analytics-skip-password' ? skipHeader : null,
+        name.toLowerCase() === 'x-analytics-skip-password' ? skipHeader : null,
       ),
     },
-    json: jest.fn(() =>
-      jsonError ? Promise.reject(jsonError) : Promise.resolve(jsonBody),
-    ),
+    json: jsonError
+      ? jest.fn(() => Promise.reject(jsonError))
+      : jest.fn(() => Promise.resolve(jsonBody)),
   } as any;
 };
 
@@ -144,6 +149,60 @@ describe('POST /api/recordAnalytics', () => {
     expect(res.status).toBe(200);
     expect(body).toEqual({ id: null, skipped: true });
     expect(recordSearch).not.toHaveBeenCalled();
+  });
+
+  it('consumes a valid anti-loop token and skips without recording', async () => {
+    // The token the bot embedded in the player-page link: the route hashes
+    // it and consumes the hash atomically, so a forged token can never
+    // suppress a real search (see next test).
+    consumeAntiLoopToken.mockResolvedValue(true);
+
+    const res = await POST(
+      makeRequest({
+        jsonBody: {
+          profile: { steamId: '76561198000000000' },
+          antiLoopToken: 'ab'.repeat(32),
+        },
+      }),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ id: null, skipped: true, reason: 'anti_loop' });
+    expect(consumeAntiLoopToken).toHaveBeenCalledWith(
+      '76561198000000000',
+      `hash:${'ab'.repeat(32)}`,
+    );
+    expect(recordSearch).not.toHaveBeenCalled();
+    expect(enqueueWatchNotification).not.toHaveBeenCalled();
+  });
+
+  it('records normally on a forged anti-loop token (no bypass)', async () => {
+    // P0 regression net: a client-invented token must never suppress a
+    // notification — the consume finds nothing and the search records
+    // like any other, silently (stale links are normal user behavior).
+    consumeAntiLoopToken.mockResolvedValue(false);
+    recordSearch.mockResolvedValue({ id: 'unittest-id' });
+
+    const res = await POST(
+      makeRequest({
+        jsonBody: {
+          profile: { steamId: '76561198000000000' },
+          antiLoopToken: 'ff'.repeat(32),
+        },
+      }),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ ok: true, id: 'unittest-id' });
+    // Single round trip: consume is attempted (hash of the forged token
+    // matches nothing) and the search records normally.
+    expect(consumeAntiLoopToken).toHaveBeenCalledWith(
+      '76561198000000000',
+      `hash:${'ff'.repeat(32)}`,
+    );
+    expect(recordSearch).toHaveBeenCalledTimes(1);
   });
 
   it('records a valid payload directly into Turso', async () => {

@@ -37,7 +37,7 @@
  * not a 17-digit id is skipped and counted, never passed to the DAL.
  */
 
-import type { RemoveWatchResult } from '@/lib/analytics/db';
+import type { RemoveWatchResult } from '../lib/analytics/db';
 import type { WatchBotLogger } from './logger';
 
 export interface ReconcileDal {
@@ -116,23 +116,25 @@ const runReconcilePass = async (
         // one isolated try/catch per row, and no write burst against Turso.
         if (watch.status === 'pending' && friends.has(watch.steamId)) {
           // eslint-disable-next-line no-await-in-loop
-          await dal.activateWatch(watch.steamId);
-          report.activated.push(watch.steamId);
-          if (onActivated) {
-            try {
-              // eslint-disable-next-line no-await-in-loop
-              await onActivated({
-                steamId: watch.steamId,
-                locale: watch.locale ?? null,
-              });
-            } catch (error) {
-              // Labeled for the actual sender (confirm link OR welcome —
-              // see handleActivation), not a blanket 'welcomeMessage'.
-              report.errors.push({
-                steamId: watch.steamId,
-                operation: 'activationMessage',
-                message: error instanceof Error ? error.message : String(error),
-              });
+          const activated = await dal.activateWatch(watch.steamId);
+          if (activated) {
+            report.activated.push(watch.steamId);
+            if (onActivated) {
+              try {
+                // eslint-disable-next-line no-await-in-loop
+                await onActivated({
+                  steamId: watch.steamId,
+                  locale: watch.locale ?? null,
+                });
+              } catch (error) {
+                // Labeled for the actual sender (confirm link OR welcome —
+                // see handleActivation), not a blanket 'welcomeMessage'.
+                report.errors.push({
+                  steamId: watch.steamId,
+                  operation: 'activationMessage',
+                  message: error instanceof Error ? error.message : String(error),
+                });
+              }
             }
           }
         } else if (watch.status === 'active' && !friends.has(watch.steamId)) {
@@ -143,8 +145,10 @@ const runReconcilePass = async (
           // operation name; the row stays listed and the next pass retries.
           try {
             // eslint-disable-next-line no-await-in-loop
-            await dal.removeWatchAndAccount(watch.steamId);
-            report.deactivated.push(watch.steamId);
+            const { watchDeleted } = await dal.removeWatchAndAccount(watch.steamId);
+            if (watchDeleted) {
+              report.deactivated.push(watch.steamId);
+            }
           } catch (error) {
             report.errors.push({
               steamId: watch.steamId,

@@ -71,6 +71,61 @@ function WatchInbox({ steamId }: { steamId: string }) {
   // The SteamID arrives as a server-verified prop (login session) — no
   // localStorage identity, no sync listeners. A prop change resets
   // everything (never mix profiles).
+  // Shared parse-and-apply for both the main fetch and the cursorless
+  // retry below: one definition, so the two paths cannot drift apart
+  // (row shape, server-count fallback, mark-as-seen). Stale responses
+  // never land (seq check first). `countSince` is the cursor the fetch
+  // was issued with (null = cursorless): the local unread fallback only
+  // filters when the server count is absent AND the fetch had a cursor.
+  const applyInboxPayload = useCallback(
+    (
+      body: { notifications?: unknown; unreadCount?: unknown } | null,
+      markVisibleAsSeen: boolean,
+      seq: number,
+      countSince: string | null,
+    ): void => {
+      const rows: unknown[] = Array.isArray(body?.notifications)
+        ? body.notifications
+        : [];
+      const parsed: InboxNotification[] = [];
+      rows.forEach((row) => {
+        if (typeof row !== 'object' || row === null) return;
+        const { id, sentAt } = row as { id: unknown; sentAt: unknown };
+        if (typeof id !== 'number' || !Number.isInteger(id)) return;
+        if (typeof sentAt !== 'string') return;
+        parsed.push({ id, sentAt });
+      });
+      // Stale-response guard: an identity switch mid-flight must not let
+      // the previous profile's rows land in the new profile's inbox.
+      if (fetchSeqRef.current !== seq) return;
+      setNotifications(parsed);
+      // Server count is exact past the row cap (30 delivered, 20 rows →
+      // badge reads 30, not 20). The local filter is the fallback for a
+      // malformed/absent server count only — same-version API always
+      // sends it.
+      const serverCount =
+        typeof body?.unreadCount === 'number' &&
+        Number.isInteger(body.unreadCount) &&
+        body.unreadCount >= 0
+          ? body.unreadCount
+          : null;
+      setUnreadCount(
+        serverCount ??
+          (countSince === null
+            ? parsed.length
+            : parsed.filter((item) => item.sentAt > countSince).length),
+      );
+      if (markVisibleAsSeen) {
+        const latest = latestSentAt(parsed);
+        if (latest !== null) setLastSeenSentAt(steamId, latest);
+        // The rows just opened are seen by definition, regardless of
+        // what the count said a millisecond ago.
+        setUnreadCount(0);
+      }
+    },
+    [steamId],
+  );
+
   const fetchNotifications = useCallback(
     async (markVisibleAsSeen: boolean): Promise<void> => {
       const seq = fetchSeqRef.current + 1;
@@ -82,20 +137,40 @@ function WatchInbox({ steamId }: { steamId: string }) {
       // Delivery-timestamp cursor (NOT max id): a requeued retry keeps its
       // old id but lands a fresh sent_at, so an id-cursor would skip a
       // late-delivered event that arrived after a newer id was seen.
-      const watermark = getLastSeenSentAt(steamId);
+      const rawWatermark = getLastSeenSentAt(steamId);
+      // Validate watermark: if corrupted (not a parseable ISO timestamp),
+      // clear it and proceed without a cursor to avoid a permanent 400 loop.
+      const watermark =
+        rawWatermark !== null && Number.isFinite(Date.parse(rawWatermark))
+          ? rawWatermark
+          : null;
+      if (watermark !== rawWatermark && rawWatermark !== null) {
+        // Watermark was corrupted — clear it so we don't retry with bad data.
+        setLastSeenSentAt(steamId, null);
+      }
       try {
-        const res = await fetch(
+        let res = await fetch(
           `/api/watch/notifications?limit=${NOTIFICATIONS_LIMIT}${
             watermark === null
               ? ''
               : `&sinceSentAt=${encodeURIComponent(watermark)}`
           }`,
         );
+        // A 400 here means a corrupt watermark slipped validation (or
+        // raced it): clear it and retry once cursorless. The STATUS is
+        // checked directly — never string-matched out of an error message.
+        if (res.status === 400 && watermark !== null) {
+          setLastSeenSentAt(steamId, null);
+          if (fetchSeqRef.current !== seq) return;
+          res = await fetch(
+            `/api/watch/notifications?limit=${NOTIFICATIONS_LIMIT}`,
+          );
+        }
+        if (fetchSeqRef.current !== seq) return;
         if (res.status === 401) {
           // Session died mid-use (logout elsewhere, expiry): drop the lane
           // state (stale rows + a stale count next to a login prompt would
           // lie) and offer the way back in. finally below clears loading.
-          if (fetchSeqRef.current !== seq) return;
           setSessionExpired(true);
           setNotifications([]);
           setUnreadCount(0);
@@ -110,44 +185,8 @@ function WatchInbox({ steamId }: { steamId: string }) {
           notifications?: unknown;
           unreadCount?: unknown;
         } | null;
-        const rows: unknown[] = Array.isArray(body?.notifications)
-          ? body.notifications
-          : [];
-        const parsed: InboxNotification[] = [];
-        rows.forEach((row) => {
-          if (typeof row !== 'object' || row === null) return;
-          const { id, sentAt } = row as { id: unknown; sentAt: unknown };
-          if (typeof id !== 'number' || !Number.isInteger(id)) return;
-          if (typeof sentAt !== 'string') return;
-          parsed.push({ id, sentAt });
-        });
-        // Stale-response guard: an identity switch mid-flight must not let
-        // the previous profile's rows land in the new profile's inbox.
-        if (fetchSeqRef.current !== seq) return;
-        setNotifications(parsed);
-        // Server count is exact past the row cap (30 delivered, 20 rows →
-        // badge reads 30, not 20). The local filter is the fallback for a
-        // malformed/absent server count only — same-version API always
-        // sends it.
-        const serverCount =
-          typeof body?.unreadCount === 'number' &&
-          Number.isInteger(body.unreadCount) &&
-          body.unreadCount >= 0
-            ? body.unreadCount
-            : null;
-        setUnreadCount(
-          serverCount ??
-            (watermark === null
-              ? parsed.length
-              : parsed.filter((item) => item.sentAt > watermark).length),
-        );
-        if (markVisibleAsSeen) {
-          const latest = latestSentAt(parsed);
-          if (latest !== null) setLastSeenSentAt(steamId, latest);
-          // The rows just opened are seen by definition, regardless of
-          // what the count said a millisecond ago.
-          setUnreadCount(0);
-        }
+        applyInboxPayload(body, markVisibleAsSeen, seq, watermark);
+        setError(false);
       } catch {
         if (fetchSeqRef.current !== seq) return;
         setError(true);
@@ -155,7 +194,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
         if (fetchSeqRef.current === seq) setLoading(false);
       }
     },
-    [steamId],
+    [steamId, applyInboxPayload],
   );
 
   // Fresh history per session id; a switch resets everything (never mix
@@ -255,7 +294,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
             {translator('watchLoginError')}
           </p>
           <a
-            href={`/api/auth/steam/login?next=${encodeURIComponent(`/${locale}/watch`)}`}
+            href={`/api/auth/steam/login?next=${encodeURIComponent(`/${locale}/`)}`}
             className="inline-block h-9 rounded-full border border-gray-500 px-4 text-sm leading-9 text-gray-200 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           >
             {translator('watchLoginButton')}
@@ -296,7 +335,16 @@ function WatchInbox({ steamId }: { steamId: string }) {
         {notifications.map((item) => (
           <li key={item.id} className="rounded-xl border border-gray-700 p-3">
             <p className="text-sm text-gray-200">
-              {getNotifyText(locale, steamId)}
+              {getNotifyText(locale, steamId, {
+                // Same player-page link the bot sends ("see what they
+                // saw"): origin is browser-known, no env needed. Nickname
+                // stays absent here — resolving it needs the Steam API key,
+                // which never ships to the client.
+                siteUrl:
+                  typeof window !== 'undefined'
+                    ? window.location.origin
+                    : null,
+              })}
             </p>
             <time
               dateTime={item.sentAt}
@@ -337,7 +385,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
         {unreadCount > 0 && (
           <span
             aria-hidden="true"
-            className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-purple-600 px-1 text-[11px] font-bold text-white"
+            className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>

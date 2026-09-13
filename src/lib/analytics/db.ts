@@ -1337,13 +1337,108 @@ export const hasOpenInviteEvent = async (steamId: string): Promise<boolean> => {
   return row.rows.length > 0;
 };
 
+export const ANTI_LOOP_TOKEN_BYTES = 32;
+export const ANTI_LOOP_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+const ANTI_LOOP_TOKEN_HASH_RE = /^[0-9a-f]{64}$/;
+
+const assertAntiLoopTokenHash = (tokenHash: string): void => {
+  if (typeof tokenHash !== 'string' || !ANTI_LOOP_TOKEN_HASH_RE.test(tokenHash)) {
+    throw new Error(
+      'Invalid anti-loop token hash: expected 64 lowercase hex chars',
+    );
+  }
+};
+
+const hashAntiLoopToken = (token: string): string =>
+  createHash('sha256').update(token, 'utf8').digest('hex');
+
+export { hashAntiLoopToken };
+
 /**
- * How many invite events were SENT at or after `sinceIso` (an ISO-8601
- * timestamp — lexicographic comparison works because every sent_at is
- * written in the same UTC ISO format). Feeds the bot's daily send cap
- * (P1-1): the count lives in the database, not in poller memory, so it
- * survives bot restarts and is exact rather than "since this boot".
+ * Issues an anti-loop token for a watched profile. Returns false if no
+ * watched profile exists (callers should create it first). Overwrites any
+ * previous pending token, so at most one is ever outstanding.
+ * Tokens expire after ANTI_LOOP_TOKEN_TTL_MS.
  */
+export const issueAntiLoopToken = async (
+  steamId: string,
+  tokenHash: string,
+  expiresAt: string,
+): Promise<boolean> => {
+  assertSteamId64(steamId);
+  assertAntiLoopTokenHash(tokenHash);
+  const db = await getClient();
+
+  const updated = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE watched_profiles
+            SET anti_loop_token_hash = ?, anti_loop_expires_at = ?
+            WHERE steam_id = ?`,
+      args: [tokenHash, expiresAt, steamId],
+    }),
+  );
+  return Number(updated.rowsAffected) > 0;
+};
+
+/**
+ * Atomically consumes an anti-loop token: clears the token columns in
+ * ONE UPDATE...RETURNING, so two concurrent requests (double-click, retry)
+ * converge on exactly one winner — the loser sees zero rows and resolves
+ * to false instead of double-consuming.
+ * Expired tokens never match the predicate.
+ *
+ * Returns true if a token was consumed, false otherwise.
+ */
+export const consumeAntiLoopToken = async (
+  steamId: string,
+  tokenHash: string,
+): Promise<boolean> => {
+  assertSteamId64(steamId);
+  assertAntiLoopTokenHash(tokenHash);
+  const db = await getClient();
+  const now = new Date().toISOString();
+
+  const updated = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE watched_profiles
+            SET anti_loop_token_hash = NULL, anti_loop_expires_at = NULL
+            WHERE steam_id = ?
+              AND anti_loop_token_hash = ?
+              AND anti_loop_expires_at IS NOT NULL
+              AND anti_loop_expires_at > ?
+            RETURNING steam_id`,
+      args: [steamId, tokenHash, now],
+    }),
+  );
+  return updated.rows.length > 0;
+};
+
+/**
+ * Validates an anti-loop token without consuming it. Used for read-only
+ * checks (e.g., in the player page to conditionally skip analytics).
+ * Returns true if a valid, unexpired token exists for the profile.
+ */
+export const validateAntiLoopToken = async (
+  steamId: string,
+  tokenHash: string,
+): Promise<boolean> => {
+  assertSteamId64(steamId);
+  assertAntiLoopTokenHash(tokenHash);
+  const db = await getClient();
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT 1 FROM watched_profiles
+            WHERE steam_id = ?
+              AND anti_loop_token_hash = ?
+              AND anti_loop_expires_at IS NOT NULL
+              AND anti_loop_expires_at > ?`,
+      args: [steamId, tokenHash, new Date().toISOString()],
+    }),
+  );
+  return row.rows.length > 0;
+};
 export const countInvitesSentSince = async (
   sinceIso: string,
 ): Promise<number> => {

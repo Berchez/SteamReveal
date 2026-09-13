@@ -152,7 +152,7 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     await expect(page.getByText('Watch a Steam profile')).toBeVisible();
 
     const signupPromise = page.waitForRequest('**/api/auth/signup');
-    await page.getByRole('button', { name: 'Watch this profile' }).click();
+    await page.getByRole('button', { name: 'Watch your profile' }).click();
     requested = true;
     const signup = await signupPromise;
     expect(signup.postDataJSON()).toEqual({ locale: 'en' });
@@ -450,7 +450,7 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
 
     // Server failure surfaces as a friendly error, not a crash — and the
     // not-watching screen stays (nothing was created server-side).
-    await page.getByRole('button', { name: 'Watch this profile' }).click();
+    await page.getByRole('button', { name: 'Watch your profile' }).click();
     await expect(
       page.getByText('Could not start watching. Try again in a moment.'),
     ).toBeVisible();

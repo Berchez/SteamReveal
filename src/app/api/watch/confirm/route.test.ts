@@ -94,6 +94,21 @@ describe('GET /api/watch/confirm', () => {
     );
   });
 
+  it('consumes a linkifier-mangled token (trailing punctuation stripped)', async () => {
+    // Steam chat glues the sentence period into the clickable link —
+    // the 65-char arrival must still consume the exact valid prefix.
+    mockedDb.getAccount.mockResolvedValue({ locale: 'en' });
+
+    const res = await GET(new Request(`${BASE}?token=${TOKEN}.`));
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(
+      'http://localhost:3000/en/?confirmed=ok',
+    );
+    expect(mockedDb.consumeConfirmToken).toHaveBeenCalledWith(`hash:${TOKEN}`);
+    expect(saveWatchSession).toHaveBeenCalledTimes(1);
+  });
+
   it('answers every failure identically (no oracle for probers)', async () => {
     // Malformed token: rejected before any DAL call.
     const malformed = await GET(new Request(`${BASE}?token=nope`));

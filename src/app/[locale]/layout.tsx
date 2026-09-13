@@ -149,8 +149,17 @@ export default function RootLayout({
       <body data-country={country}>
         <NextIntlClientProvider messages={messages}>
           <ToastProvider>
-            <HomeProvider>
-              {/*
+            {/*
+              useSearchParams() is read inside HomeProvider (anti-loop
+              token capture). Next requires a Suspense boundary above it,
+              or the whole route bails out to client-only rendering (and
+              static prerender fails the build). Dynamic routes resolve
+              params without suspending, so this fallback is build-hygiene
+              that practically never paints — hence null, not a skeleton.
+            */}
+            <Suspense fallback={null}>
+              <HomeProvider>
+                {/*
                 SiteNav is async (session + Steam avatar, up to 4s on a
                 slow Steam API). Without this boundary the whole route —
                 children included — waits for it before streaming a byte.
@@ -159,17 +168,18 @@ export default function RootLayout({
                 instantly and nothing in-flow shifts when the bell/avatar
                 lands (fixed elements never move page content — CLS-safe).
               */}
-              <Suspense
-                fallback={
-                  <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-                    <LanguageSwitcher />
-                  </div>
-                }
-              >
-                <SiteNav locale={locale} />
-              </Suspense>
-              {children}
-            </HomeProvider>
+                <Suspense
+                  fallback={
+                    <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+                      <LanguageSwitcher />
+                    </div>
+                  }
+                >
+                  <SiteNav locale={locale} />
+                </Suspense>
+                {children}
+              </HomeProvider>
+            </Suspense>
           </ToastProvider>
         </NextIntlClientProvider>
         {shouldLoadVercelTelemetry && <VercelAnalytics />}

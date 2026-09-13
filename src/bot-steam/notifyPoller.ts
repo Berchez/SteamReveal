@@ -83,6 +83,12 @@ export interface PollNotifyQueueOptions {
   maxAttempts?: number;
   /** Watchdog for a single sendFriendMessage call (a hang must fail visibly). */
   sendTimeoutMs?: number;
+  /**
+   * Site base URL for the "see what they saw" player-page link (no
+   * trailing slash). Null (tests, exotic setups) falls back to the Steam
+   * profile link — same degrade path as a missing nickname.
+   */
+  siteUrl?: string | null;
   /** Events older than this (by persisted created_at) are dropped unsent. */
   ttlDays?: number;
   /**
@@ -160,6 +166,7 @@ export const pollNotifyQueueOnce = async (
     batchLimit = DEFAULT_BATCH_LIMIT,
     maxAttempts = DEFAULT_MAX_ATTEMPTS,
     sendTimeoutMs = DEFAULT_SEND_TIMEOUT_MS,
+    siteUrl = null,
     ttlDays = DEFAULT_TTL_DAYS,
     isConnected,
   } = options;
@@ -289,7 +296,7 @@ export const pollNotifyQueueOnce = async (
       // is not aborted, only our wait for it. Only the recipient id is
       // interpolated into the label — never message text.
       await withTimeout(
-        sendNotifyMessage(chat, event.steamId, profile.locale),
+        sendNotifyMessage(chat, event.steamId, profile.locale, siteUrl),
         `notifyPoller: sendFriendMessage(${event.steamId})`,
         sendTimeoutMs,
       );

@@ -170,7 +170,7 @@
     "watchWelcome": "Beobachtung aktiv! Der Bot schreibt dir auf Steam, wenn dieses Profil gesucht wird.",
     "watchTitle": "Steam-Profil beobachten",
     "watchDescription": "Erhalte eine Nachricht unseres Bots auf Steam, sobald dieses Profil gesucht wird. Melde dich mit Steam an, um dein Profil zu verknüpfen — erst die angenommene Freundschaftsanfrage des Bots lässt dich Nachrichten empfangen.",
-    "watchSubmit": "Dieses Profil beobachten",
+    "watchSubmit": "Dein Profil beobachten",
     "watchSignupSteps": "So geht's: Klicke unten auf Starten, nimm die Freundschaftsanfrage des Bots auf Steam an und klicke auf den Bestätigungslink, den der Bot dir hier schickt.",
     "watchConfirmOk": "Beobachtung bestätigt! Du erhältst hier eine Nachricht, sobald dein Profil gesucht wird.",
     "watchConfirmError": "Dieser Bestätigungslink ist ungültig oder abgelaufen. Starte die Beobachtung erneut, um einen neuen zu erhalten.",

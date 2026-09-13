@@ -2,6 +2,7 @@ import { cache } from 'react';
 import { isSteamId64 } from '@/lib/steamId';
 import getSteamApiKey from '@/lib/getSteamApiKey';
 import withTimeout from '@/lib/withTimeout';
+import { fetchPlayerSummary } from '@/lib/steamPlayerSummary';
 
 export interface SteamIdentity {
   nickname: string;
@@ -58,11 +59,6 @@ const writeCachedIdentity = (
 const MOCK_AVATAR_URL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-interface SteamPlayerSummary {
-  personaname?: unknown;
-  avatarmedium?: unknown;
-}
-
 /**
  * Minimal public identity for the navbar avatar (Steam OpenID era).
  *
@@ -105,23 +101,16 @@ const getSteamIdentity = cache(
     }
 
     try {
-      const res = await withTimeout(
-        fetch(
-          `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${encodeURIComponent(apiKey)}&steamids=${steamId}`,
-          { cache: 'no-store' },
-        ),
+      const player = await withTimeout(
+        fetchPlayerSummary(steamId, apiKey),
         'getSteamIdentity: GetPlayerSummaries',
         AVATAR_TIMEOUT_MS,
       );
-      if (!res.ok) {
+      if (player === null) {
         writeCachedIdentity(steamId, null);
         return null;
       }
-      const body = (await res.json()) as {
-        response?: { players?: SteamPlayerSummary[] };
-      };
-      const player = body?.response?.players?.[0];
-      const avatarUrl = player?.avatarmedium;
+      const avatarUrl = player.avatarmedium;
       if (typeof avatarUrl !== 'string' || avatarUrl === '') {
         writeCachedIdentity(steamId, null);
         return null;

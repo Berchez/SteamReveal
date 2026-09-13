@@ -56,7 +56,14 @@ export const useWatchStatus = ({
   const [error, setError] = useState<string | null>(null);
   const prevStatusRef = useRef<WatchStatusValue | null>(null);
   const welcomedForRef = useRef<string | null>(null);
+  // Store the welcome message in a ref to avoid recreating poll when locale changes
+  const welcomeMessageRef = useRef<string>('');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Update the welcome message ref when translator changes
+  useEffect(() => {
+    welcomeMessageRef.current = translator('watchWelcome');
+  }, [translator]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -107,11 +114,11 @@ export const useWatchStatus = ({
         welcomedForRef.current !== id
       ) {
         welcomedForRef.current = id;
-        toast.success(translator('watchWelcome'));
+        toast.success(welcomeMessageRef.current);
       }
       return next === 'active' ? 'stop' : 'ok';
     },
-    [translator],
+    [], // No dependencies - welcomeMessageRef is stable, toast is stable
   );
 
   useEffect(() => {

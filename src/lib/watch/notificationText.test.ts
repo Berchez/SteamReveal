@@ -57,6 +57,40 @@ describe('shared watch message base', () => {
     },
   );
 
+  it('names the profile and links the player page when provided', () => {
+    const text = getNotifyText('pt', STEAM, {
+      nickname: 'FalleN',
+      siteUrl: 'https://steam-reveal.vercel.app',
+    });
+
+    expect(text).toContain('(FalleN)');
+    expect(text).toContain(
+      `https://steam-reveal.vercel.app/pt/player/${STEAM}`,
+    );
+    expect(text).not.toContain(watchProfileUrl(STEAM));
+  });
+
+  it('carries the anti-loop token on the player-page link', () => {
+    const text = getNotifyText('en', STEAM, {
+      siteUrl: 'https://steam-reveal.vercel.app',
+      antiLoopToken: 'ab'.repeat(32),
+    });
+
+    // Regression net for the unwired-token incident: the token the bot
+    // issues must reach the link the user clicks, or validation can never
+    // succeed and the loop guard is dead code.
+    expect(text).toContain(
+      `https://steam-reveal.vercel.app/en/player/${STEAM}?anti_loop_token=${'ab'.repeat(32)}`,
+    );
+  });
+
+  it('falls back to the plain phrasing without nickname or site', () => {
+    const text = getNotifyText('pt', STEAM);
+
+    expect(text).not.toContain('(');
+    expect(text).toContain(watchProfileUrl(STEAM));
+  });
+
   it('never throws and falls back for unknown locales', () => {
     expect(() => getNotifyText('xx', STEAM)).not.toThrow();
     expect(getNotifyText('xx', STEAM)).toBe(
