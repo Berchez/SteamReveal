@@ -102,19 +102,21 @@ describe('getSteamIdentity', () => {
     });
   });
 
-  it('sanitizes a hostile personaname (same shared rules as the bot)', async () => {
-    // Bidi/visual-spoofing + BBCode brackets must die before the name
-    // reaches the global navbar; nothing printable still falls back.
+  it('sanitizes a hostile personaname but keeps clan-tag brackets', async () => {
+    // Bidi/visual-spoofing + controls must die before the name reaches
+    // the global navbar; `[`/`]` survive here ON PURPOSE (React escapes
+    // them inertly — no BBCode engine, unlike Steam chat), so clan tags
+    // like `[NAVI]` render intact. Nothing printable still falls back.
     (global.fetch as unknown as jest.Mock).mockResolvedValue(
       summaryResponse({
         steamid: STEAM,
-        personaname: 'A\u202E[url=http://phish.example]x[/url]',
+        personaname: 'A\u202E[NAVI] s1mple\u0000',
         avatarmedium: 'https://cdn.test/c.jpg',
       }),
     );
 
     await expect(getSteamIdentity(STEAM)).resolves.toEqual({
-      nickname: 'Aurl=http://phish.examplex/url',
+      nickname: 'A[NAVI] s1mple',
       avatarUrl: 'https://cdn.test/c.jpg',
     });
   });

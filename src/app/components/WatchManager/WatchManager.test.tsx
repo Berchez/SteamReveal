@@ -39,10 +39,10 @@ const postOk = (overrides = {}) =>
     json: async () => ({ ok: true, ...overrides }),
   }) as Response;
 
-const statusResponse = (status: string) =>
+const statusResponse = (status: string, extra: Record<string, unknown> = {}) =>
   ({
     ok: true,
-    json: async () => ({ steamId: STEAM_ID, status }),
+    json: async () => ({ steamId: STEAM_ID, status, ...extra }),
   }) as Response;
 
 const fetchByUrl = (impl: (url: string) => Promise<Response> | Response) => {
@@ -222,5 +222,161 @@ describe('WatchManager', () => {
 
     expect(reload).toHaveBeenCalledTimes(1);
     locationSpy.mockRestore();
+  });
+
+  it('shows logout on the none screen (logged in, no watch row)', async () => {
+    // Regression: the none screen used to hide logout entirely, leaving a
+    // logged-in user with no watch row no in-UI way to sign out (only
+    // hand-clearing site cookies). Status none must offer both Start and
+    // logout side by side.
+    const fetchMock = fetchByUrl((url) => {
+      if (url.includes('/api/auth/signup')) return postOk();
+      if (url.includes('/api/auth/logout')) {
+        return { ok: true, json: async () => ({ ok: true }) } as Response;
+      }
+      return statusResponse('none');
+    });
+    const reload = jest.fn();
+    const locationSpy = jest
+      .spyOn(window, 'location', 'get')
+      .mockReturnValue({ reload } as unknown as Location);
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(2);
+    expect(screen.getByText('watchTitle')).toBeInTheDocument();
+
+    // Both actions coexist on the same row: logout left, Start right
+    // (single flex parent) — the logged-in user with no watch row can
+    // either subscribe or sign out without hand-clearing cookies.
+    const logoutButton = screen.getByText('watchLogout');
+    const submitButton = screen.getByText('watchSubmit');
+    expect(logoutButton.parentElement).toBe(submitButton.parentElement);
+
+    // Both actions coexist: starting a watch must not fire logout, and
+    // logging out must POST the logout lane exactly once.
+    fireEvent.click(logoutButton);
+    await settle();
+
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).includes('/api/auth/logout'),
+      ),
+    ).toHaveLength(1);
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).includes('/api/auth/signup'),
+      ),
+    ).toHaveLength(0);
+    expect(reload).toHaveBeenCalledTimes(1);
+    locationSpy.mockRestore();
+  });
+
+  it('shows the resend UI only when the link expired', async () => {
+    fetchByUrl((url) => {
+      if (url.includes('/api/auth/confirm-resend')) {
+        return {
+          ok: true,
+          json: async () => ({ ok: true, queued: true }),
+        } as Response;
+      }
+      return statusResponse('pending', { confirmExpired: true });
+    });
+
+    const { unmount } = render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(1);
+    expect(screen.getByText('watchLinkExpired')).toBeInTheDocument();
+    expect(screen.getByText('watchResendSubmit')).toBeInTheDocument();
+    unmount();
+
+    fetchByUrl(() => statusResponse('pending', { confirmExpired: false }));
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(1);
+    expect(screen.queryByText('watchLinkExpired')).not.toBeInTheDocument();
+    expect(screen.queryByText('watchResendSubmit')).not.toBeInTheDocument();
+  });
+
+  it('requests a fresh link and confirms on success (no signup fired)', async () => {
+    const fetchMock = fetchByUrl((url) => {
+      if (url.includes('/api/auth/confirm-resend')) {
+        return {
+          ok: true,
+          json: async () => ({ ok: true, queued: true }),
+        } as Response;
+      }
+      return statusResponse('pending', { confirmExpired: true });
+    });
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(1);
+
+    fireEvent.click(screen.getByText('watchResendSubmit'));
+    await settle();
+
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).includes('/api/auth/confirm-resend'),
+      ),
+    ).toHaveLength(1);
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).includes('/api/auth/signup'),
+      ),
+    ).toHaveLength(0);
+    expect(screen.getByText('watchResendSent')).toBeInTheDocument();
+    expect(screen.queryByText('watchResendSubmit')).not.toBeInTheDocument();
+  });
+
+  it('shows a request error when the resend fails (no sent state)', async () => {
+    fetchByUrl((url) => {
+      if (url.includes('/api/auth/confirm-resend')) {
+        return { ok: false, status: 500 } as Response;
+      }
+      return statusResponse('pending', { confirmExpired: true });
+    });
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(1);
+
+    fireEvent.click(screen.getByText('watchResendSubmit'));
+    await settle();
+
+    expect(screen.getByText('watchErrorFailed')).toBeInTheDocument();
+    expect(screen.queryByText('watchResendSent')).not.toBeInTheDocument();
+    // Still pending with a live resend path: the button stays for retry.
+    expect(screen.getByText('watchResendSubmit')).toBeInTheDocument();
+  });
+
+  it('offers the button again on a second expiry cycle (resendSent resets on flip)', async () => {
+    // Regression net: without the flip-reset, a second dead generation in
+    // the same long-lived mount would never offer the button again.
+    let expired = true;
+    fetchByUrl((url) => {
+      if (url.includes('/api/auth/confirm-resend')) {
+        return {
+          ok: true,
+          json: async () => ({ ok: true, queued: true }),
+        } as Response;
+      }
+      return statusResponse('pending', { confirmExpired: expired });
+    });
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(1);
+    fireEvent.click(screen.getByText('watchResendSubmit'));
+    await settle();
+    expect(screen.getByText('watchResendSent')).toBeInTheDocument();
+
+    // Fresh token issued: polls report it live. The sent confirmation must
+    // survive the true→false flip (no premature reset).
+    expired = false;
+    await flushPolls(1);
+    expect(screen.getByText('watchResendSent')).toBeInTheDocument();
+    expect(screen.queryByText('watchResendSubmit')).not.toBeInTheDocument();
+
+    // That generation dies unclicked too: the button must come back.
+    expired = true;
+    await flushPolls(1);
+    expect(screen.getByText('watchResendSubmit')).toBeInTheDocument();
+    expect(screen.queryByText('watchResendSent')).not.toBeInTheDocument();
   });
 });

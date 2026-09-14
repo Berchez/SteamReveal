@@ -792,12 +792,25 @@ describe('watch/outbox DAL (Epic 1)', () => {
     expect(String(update[0]?.sql ?? update[0])).toContain("status = 'pending'");
   });
 
-  it('activateWatch is idempotent on already-active watches', async () => {
+  it('activateWatch returns false when already active (only the flipper owns side effects)', async () => {
+    // Strict rowsAffected semantics: two unsynchronized activators (the
+    // confirm POST and the bot reconcile) must never BOTH believe they
+    // flipped the row, or the user gets two welcomes. Exactly one UPDATE
+    // wins; everyone else reads false and stands down — no fallback
+    // re-read (re-reading to "confirm" would resurrect the race).
     mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
-    mockExecute.mockResolvedValueOnce({ rows: [{ status: 'active' }] });
 
     const { activateWatch } = require('./db');
-    await expect(activateWatch(STEAM)).resolves.toBe(true);
+    await expect(activateWatch(STEAM)).resolves.toBe(false);
+    // PRAGMA + UPDATE only: no follow-up SELECT (the UPDATE's own
+    // EXISTS subqueries don't count — only top-level statements do).
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    const selects = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0])
+        .trimStart()
+        .startsWith('SELECT'),
+    );
+    expect(selects).toHaveLength(0);
   });
 
   it('activateWatch returns false when nothing was ever requested', async () => {
@@ -806,6 +819,132 @@ describe('watch/outbox DAL (Epic 1)', () => {
 
     const { activateWatch } = require('./db');
     await expect(activateWatch(STEAM)).resolves.toBe(false);
+  });
+
+  it('activateWatch gates on confirmation (click-to-activate)', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+
+    const { activateWatch } = require('./db');
+    await expect(activateWatch(STEAM)).resolves.toBe(true);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
+    );
+    const sql = String(update[0]?.sql ?? update[0]);
+    expect(sql).toContain('confirmed_at IS NOT NULL');
+    expect(sql).toContain('NOT EXISTS');
+    expect(update[0].args).toEqual([
+      expect.any(String),
+      STEAM,
+      STEAM,
+      STEAM,
+    ]);
+  });
+
+  it('activateWatch refuses unconfirmed pending watches', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({ rows: [{ status: 'pending' }] });
+
+    const { activateWatch } = require('./db');
+    await expect(activateWatch(STEAM)).resolves.toBe(false);
+  });
+
+  it('listExpiredUnnoticedConfirms maps candidates and guards the limit', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          watch_locale: 'pt',
+          account_locale: null,
+          expires_at: '2026-09-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const { listExpiredUnnoticedConfirms } = require('./db');
+    await expect(listExpiredUnnoticedConfirms()).resolves.toEqual([
+      {
+        steamId: STEAM,
+        watchLocale: 'pt',
+        accountLocale: null,
+        expiresAt: '2026-09-01T00:00:00.000Z',
+      },
+    ]);
+
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM accounts'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_expire_noticed_for');
+    expect(sql).toContain("w.status = 'pending'");
+    expect(sql).toContain('LIMIT ?');
+    expect(select[0].args[1]).toBe(10);
+
+    await expect(listExpiredUnnoticedConfirms(NaN)).rejects.toThrow(/finite/);
+  });
+
+  it('getAccountByConfirmTokenHash reads without spending the token', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: 'ab'.repeat(32),
+          confirm_expires_at: '2030-01-01T00:00:00.000Z',
+          locale: 'pt',
+        },
+      ],
+    });
+
+    const { getAccountByConfirmTokenHash } = require('./db');
+    await expect(
+      getAccountByConfirmTokenHash('ab'.repeat(32)),
+    ).resolves.toMatchObject({ steamId: STEAM, confirmedAt: null });
+
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes(
+        'FROM accounts WHERE confirm_token_hash = ?',
+      ),
+    );
+    expect(select).toBeDefined();
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(
+      getAccountByConfirmTokenHash('ab'.repeat(32)),
+    ).resolves.toBeNull();
+
+    await expect(getAccountByConfirmTokenHash('not-hex')).rejects.toThrow(
+      /confirm token hash/,
+    );
+  });
+
+  it('markExpireNoticed writes conditionally (concurrent click wins)', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+
+    const { markExpireNoticed } = require('./db');
+    await expect(
+      markExpireNoticed(STEAM, '2026-09-01T00:00:00.000Z'),
+    ).resolves.toBe(true);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE accounts'),
+    );
+    const sql = String(update[0]?.sql ?? update[0]);
+    expect(sql).toContain('confirm_expire_noticed_for = ?');
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_expires_at = ?');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(
+      markExpireNoticed(STEAM, '2026-09-01T00:00:00.000Z'),
+    ).resolves.toBe(false);
+
+    await expect(
+      markExpireNoticed('short', '2026-09-01T00:00:00.000Z'),
+    ).rejects.toThrow(/17 digits/);
+    await expect(markExpireNoticed(STEAM, '')).rejects.toThrow(/expiresAt/);
   });
 
   it('deactivateWatch deletes the row (opt-out PII removal)', async () => {
@@ -934,6 +1073,30 @@ describe('watch/outbox DAL (Epic 1)', () => {
     expect(result).toEqual({ eventId: 3, duplicate: false });
     expect(mockExecute).toHaveBeenCalledTimes(3);
     expect(mockExecute.mock.calls[2][0].args[0]).toBeNull();
+  });
+
+  it('enqueueEvent accepts the welcome and confirm_resend lanes without a search', async () => {
+    // PRAGMA + INSERT each (no search pre-check, no invite open-dedupe —
+    // one row per request, throttling enforced by the fulfilling poller).
+    mockExecute.mockResolvedValueOnce({ rows: [], lastInsertRowid: 11 });
+    mockExecute.mockResolvedValueOnce({ rows: [], lastInsertRowid: 12 });
+
+    const { enqueueEvent } = require('./db');
+    await expect(enqueueEvent(STEAM, 'welcome')).resolves.toEqual({
+      eventId: 11,
+      duplicate: false,
+    });
+    await expect(enqueueEvent(STEAM, 'confirm_resend')).resolves.toEqual({
+      eventId: 12,
+      duplicate: false,
+    });
+
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watch_events'),
+    );
+    expect(inserts).toHaveLength(2);
+    expect(inserts[0][0].args[2]).toBe('welcome');
+    expect(inserts[1][0].args[2]).toBe('confirm_resend');
   });
 
   it('enqueueEvent collapses a second invite while one is still open', async () => {
@@ -1132,6 +1295,31 @@ describe('watch/outbox DAL (Epic 1)', () => {
     const claimed = await claimNextQueuedEvents('invite', 10);
 
     expect(claimed.map((e: { id: number }) => e.id)).toEqual([3, 9]);
+  });
+
+  it('claimNextQueuedEvents preserves the welcome/confirm_resend lanes', async () => {
+    const row = (id: number, kind: string) => ({
+      id,
+      search_id: null,
+      steam_id: STEAM,
+      kind,
+      status: 'claimed',
+      created_at: '2026-09-08T00:00:00.000Z',
+      claimed_at: '2026-09-08T00:00:01.000Z',
+      sent_at: null,
+    });
+    mockExecute.mockResolvedValueOnce({
+      rows: [row(1, 'welcome'), row(2, 'confirm_resend'), row(3, 'bogus')],
+    });
+
+    const { claimNextQueuedEvents } = require('./db');
+    const claimed = await claimNextQueuedEvents('welcome', 5);
+
+    expect(claimed.map((e: { kind: string }) => e.kind)).toEqual([
+      'welcome',
+      'confirm_resend',
+      'invite',
+    ]);
   });
 
   it('markEventSent flips a claimed row and bumps the cooldown clock atomically', async () => {

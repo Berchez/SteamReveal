@@ -55,6 +55,11 @@ const WATCH_TOKEN_UNIQUE_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const WATCH_EXPIRE_NOTICE_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '008_accounts_expire_notice.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -94,6 +99,38 @@ type DbApi = {
   getAccount: typeof import('./db').getAccount;
   issueConfirmToken: typeof import('./db').issueConfirmToken;
   consumeConfirmToken: typeof import('./db').consumeConfirmToken;
+  getAccountByConfirmTokenHash: typeof import('./db').getAccountByConfirmTokenHash;
+  listExpiredUnnoticedConfirms: typeof import('./db').listExpiredUnnoticedConfirms;
+  markExpireNoticed: typeof import('./db').markExpireNoticed;
+};
+
+/**
+ * Drives a profile through the full click-to-activate chain on real SQL:
+ * account + pending watch + issued token, consumed immediately. After
+ * this, activateWatch passes the confirmation gate. Idempotent pieces
+ * (INSERT OR IGNORE / DO NOTHING) make it safe to call on rows the test
+ * already created; issue overwrites any outstanding token by design.
+ */
+const confirmProfileForTests = async (
+  api: Pick<
+    DbApi,
+    | 'createAccount'
+    | 'createWatchRequest'
+    | 'issueConfirmToken'
+    | 'consumeConfirmToken'
+    | 'hashConfirmToken'
+  >,
+  steamId: string,
+): Promise<void> => {
+  await api.createAccount(steamId);
+  await api.createWatchRequest(steamId);
+  const token = `confirm-${steamId}`;
+  await api.issueConfirmToken(
+    steamId,
+    api.hashConfirmToken(token),
+    '2030-01-01T00:00:00.000Z',
+  );
+  await api.consumeConfirmToken(api.hashConfirmToken(token));
 };
 
 describe('analytics db integration against real libSQL', () => {
@@ -129,6 +166,13 @@ describe('analytics db integration against real libSQL', () => {
     }
     for (const statement of splitSqlStatements(
       WATCH_TOKEN_UNIQUE_MIGRATION_SQL,
+    )) {
+      await db.executeForTests(statement);
+    }
+    // 008 carries the expiry-notice marker column (validated on a real
+    // engine here, like every migration above).
+    for (const statement of splitSqlStatements(
+      WATCH_EXPIRE_NOTICE_MIGRATION_SQL,
     )) {
       await db.executeForTests(statement);
     }
@@ -334,6 +378,8 @@ describe('analytics db integration against real libSQL', () => {
       );
       expect(Number(count.rows[0].n)).toBe(1);
 
+      // Click-to-activate gate: the lifecycle needs a confirmed account.
+      await confirmProfileForTests(db, STEAM);
       expect(await db.activateWatch(STEAM)).toBe(true);
       expect(await db.getWatchStatus(STEAM)).toBe('active');
 
@@ -590,6 +636,7 @@ describe('analytics db integration against real libSQL', () => {
     it('listWatchedProfiles round-trips rows oldest-first, with and without filter', async () => {
       await db.createWatchRequest('76561198000000001', 'en');
       await db.createWatchRequest('76561198000000002', 'pt');
+      await confirmProfileForTests(db, '76561198000000002');
       await db.activateWatch('76561198000000002');
 
       const all = await db.listWatchedProfiles();
@@ -628,6 +675,7 @@ describe('analytics db integration against real libSQL', () => {
       );
 
       // Active rows and missing rows do not move.
+      await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
       expect(await db.refreshWatchRequest(STEAM)).toBe(false);
       expect(await db.refreshWatchRequest('76561198000000009')).toBe(false);
@@ -704,6 +752,7 @@ describe('analytics db integration against real libSQL', () => {
 
     it('enqueues one notify for an active watch outside cooldown', async () => {
       await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
 
       const result = await enqueueWatchNotification(
@@ -719,6 +768,7 @@ describe('analytics db integration against real libSQL', () => {
 
     it('collapses a repeated search_id into duplicate (single row)', async () => {
       await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
 
       const first = await enqueueWatchNotification(
@@ -739,6 +789,7 @@ describe('analytics db integration against real libSQL', () => {
 
     it('blocks a new search once the cooldown clock advanced (after a send)', async () => {
       await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
 
       await enqueueWatchNotification(STEAM, 'hook-search-sent', silentLogger);
@@ -778,6 +829,7 @@ describe('analytics db integration against real libSQL', () => {
 
     it('returns only sent notifies, newest first, honoring the limit', async () => {
       await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
 
       // One of each: sent, queued, dropped notify + a queued invite.
@@ -824,6 +876,7 @@ describe('analytics db integration against real libSQL', () => {
       // always stamps it) must be invisible to BOTH inbox queries, or the
       // "never disagree" guarantee between list and count breaks.
       await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
 
       await db.enqueueEvent(STEAM, 'notify', 'inbox-corrupt');
@@ -845,6 +898,7 @@ describe('analytics db integration against real libSQL', () => {
 
     it('counts delivered rows past a watermark (backlog beyond the window)', async () => {
       await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
 
       // 25 delivered notifies: the read window (limit 20) cannot see them
@@ -894,6 +948,7 @@ describe('analytics db integration against real libSQL', () => {
       // cursor catches it because delivery order, not creation order, is
       // what the badge tracks.
       await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
 
       await db.enqueueEvent(STEAM, 'notify', 'retry-first');
@@ -1042,6 +1097,124 @@ describe('analytics db integration against real libSQL', () => {
       await expect(db.getAccount('76561198000000009')).resolves.toMatchObject(
         { confirmTokenHash: null },
       );
+    });
+
+    describe('click-to-activate gate + expiry notice (real SQL)', () => {
+      it('activateWatch refuses unconfirmed pending watches, flips confirmed ones', async () => {
+        await db.createAccount(STEAM);
+        await db.createWatchRequest(STEAM);
+
+        // The reported bug: friendship alone (pending row, no click)
+        // must never activate.
+        await expect(db.activateWatch(STEAM)).resolves.toBe(false);
+        expect(await db.getWatchStatus(STEAM)).toBe('pending');
+
+        // The click (consume) opens the gate.
+        await db.issueConfirmToken(STEAM, hashFor('gate-1'), future);
+        expect(await db.consumeConfirmToken(hashFor('gate-1'))).toBe(STEAM);
+        await expect(db.activateWatch(STEAM)).resolves.toBe(true);
+        expect(await db.getWatchStatus(STEAM)).toBe('active');
+      });
+
+      it('activateWatch still flips legacy pending rows with no accounts row', async () => {
+        // Pre-confirmation-epic rows consented under friendship-activates;
+        // gating them would silently kill working watches.
+        await db.createWatchRequest('76561198000000009');
+        await expect(db.activateWatch('76561198000000009')).resolves.toBe(
+          true,
+        );
+      });
+
+      it('expiry scan lists only expired-unnoticed pending confirms', async () => {
+        // A: expired, unconfirmed, pending -> listed.
+        await db.createAccount(STEAM, 'pt');
+        await db.createWatchRequest(STEAM, 'pt');
+        await db.issueConfirmToken(STEAM, hashFor('exp-a'), past);
+        // B: live token -> not listed.
+        await db.createAccount('76561198000000002', 'en');
+        await db.createWatchRequest('76561198000000002', 'en');
+        await db.issueConfirmToken(
+          '76561198000000002',
+          hashFor('exp-b'),
+          future,
+        );
+        // C: confirmed (consumed) -> not listed.
+        await db.createAccount('76561198000000003');
+        await db.createWatchRequest('76561198000000003');
+        await db.issueConfirmToken(
+          '76561198000000003',
+          hashFor('exp-c'),
+          future,
+        );
+        expect(await db.consumeConfirmToken(hashFor('exp-c'))).toBe(
+          '76561198000000003',
+        );
+
+        const found = await db.listExpiredUnnoticedConfirms();
+        expect(found).toEqual([
+          {
+            steamId: STEAM,
+            watchLocale: 'pt',
+            accountLocale: 'pt',
+            expiresAt: past,
+          },
+        ]);
+      });
+
+      it('markExpireNoticed is conditional: a concurrent click wins', async () => {
+        await db.createAccount(STEAM);
+        await db.createWatchRequest(STEAM);
+        await db.issueConfirmToken(STEAM, hashFor('exp-m'), past);
+
+        // Still unconfirmed: marking succeeds and the scan goes quiet.
+        expect(await db.markExpireNoticed(STEAM, past)).toBe(true);
+        await expect(db.listExpiredUnnoticedConfirms()).resolves.toEqual([]);
+
+        // A click landing first clears the token: the mark misses and the
+        // poller must stand down (the user DID click — never nag them).
+        await db.issueConfirmToken(STEAM, hashFor('exp-m2'), future);
+        expect(await db.consumeConfirmToken(hashFor('exp-m2'))).toBe(STEAM);
+        // Stale mark for the old generation: predicate misses (token gone).
+        expect(await db.markExpireNoticed(STEAM, past)).toBe(false);
+      });
+
+      it('getAccountByConfirmTokenHash finds live tokens without spending them', async () => {
+        await db.createAccount(STEAM, 'pt');
+        await db.issueConfirmToken(STEAM, hashFor('lookup-1'), future);
+
+        await expect(
+          db.getAccountByConfirmTokenHash(hashFor('lookup-1')),
+        ).resolves.toMatchObject({ steamId: STEAM, locale: 'pt' });
+
+        // Non-consuming: the token still consumes exactly once afterwards,
+        // and is unfindable once spent.
+        expect(await db.consumeConfirmToken(hashFor('lookup-1'))).toBe(STEAM);
+        await expect(
+          db.getAccountByConfirmTokenHash(hashFor('lookup-1')),
+        ).resolves.toBeNull();
+      });
+
+      it('re-issue after a notice re-arms the scan (no clearing write needed)', async () => {
+        await db.createAccount(STEAM);
+        await db.createWatchRequest(STEAM);
+        await db.issueConfirmToken(STEAM, hashFor('exp-r1'), past);
+        expect(await db.markExpireNoticed(STEAM, past)).toBe(true);
+        await expect(db.listExpiredUnnoticedConfirms()).resolves.toEqual([]);
+
+        // New generation, new expiry: noticed_for holds the OLD value, so
+        // the scan picks it up again with zero extra writes.
+        await db.issueConfirmToken(
+          STEAM,
+          hashFor('exp-r2'),
+          '2001-01-01T00:00:00.000Z',
+        );
+        const found = await db.listExpiredUnnoticedConfirms();
+        expect(found).toHaveLength(1);
+        expect(found[0]).toMatchObject({
+          steamId: STEAM,
+          expiresAt: '2001-01-01T00:00:00.000Z',
+        });
+      });
     });
   });
 });

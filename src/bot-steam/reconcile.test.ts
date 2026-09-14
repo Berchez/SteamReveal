@@ -1,4 +1,5 @@
 import { reconcileFriendsList, type ReconcileDal } from './reconcile';
+import type { WatchAccount } from '../lib/analytics/types';
 
 // Steam EFriendRelationship.Friend. Deliberately a literal (not imported
 // from steam-user): reconcile takes the value as a parameter precisely so
@@ -10,6 +11,11 @@ const silentLogger = { info: jest.fn(), error: jest.fn() };
 
 const makeDal = (
   watches: Array<{ steamId: string; status: string; locale?: string | null }>,
+  // Confirmation state per profile. Absent (default) means NO accounts
+  // row at all — the legacy lane — so pre-existing activation tests keep
+  // exercising the activate path unchanged. Pass { confirmedAt: null }
+  // for unconfirmed accounts, an ISO string for confirmed ones.
+  accounts: Record<string, { confirmedAt: string | null } | null> = {},
 ): ReconcileDal & {
   activated: string[];
   deactivated: string[];
@@ -25,6 +31,12 @@ const makeDal = (
     listWatchedProfiles: jest.fn(async () =>
       watches.map((w) => ({ locale: null, ...w })),
     ),
+    getAccount: jest.fn(async (steamId: string) => {
+      if (!(steamId in accounts)) return null;
+      const entry = accounts[steamId];
+      if (entry === null) return null;
+      return { steamId, confirmedAt: entry.confirmedAt } as WatchAccount;
+    }),
     activateWatch: jest.fn(async (steamId: string) => {
       if (state.failOn.has(`activate:${steamId}`)) {
         throw new Error(`activate boom for ${steamId}`);
@@ -75,6 +87,162 @@ describe('reconcileFriendsList', () => {
     });
     expect(report.activated).toEqual(['76561198000000001']);
     expect(report.deactivated).toEqual(['76561198000000002']);
+  });
+
+  it('sends the confirm link WITHOUT activating for pending+friend+unconfirmed', async () => {
+    // The click-to-activate core: friendship alone must never flip the
+    // status — the watch stays pending until the link click.
+    const dal = makeDal(
+      [{ steamId: '76561198000000001', status: 'pending', locale: 'pt' }],
+      { '76561198000000001': { confirmedAt: null } },
+    );
+    const onConfirmLinkNeeded = jest.fn(async () => true);
+
+    const report = await reconcileFriendsList(
+      { '76561198000000001': FRIEND },
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      onConfirmLinkNeeded,
+    );
+
+    expect(dal.activateWatch).not.toHaveBeenCalled();
+    expect(onConfirmLinkNeeded).toHaveBeenCalledTimes(1);
+    expect(onConfirmLinkNeeded).toHaveBeenCalledWith({
+      steamId: '76561198000000001',
+      locale: 'pt',
+    });
+    expect(report.confirmLinksSent).toEqual(['76561198000000001']);
+    expect(report.activated).toEqual([]);
+    expect(report.errors).toEqual([]);
+  });
+
+  it('activates (never links) for pending+friend+confirmed', async () => {
+    const dal = makeDal(
+      [{ steamId: '76561198000000001', status: 'pending' }],
+      { '76561198000000001': { confirmedAt: '2026-09-02T00:00:00.000Z' } },
+    );
+    const onActivated = jest.fn();
+    const onConfirmLinkNeeded = jest.fn(async () => true);
+
+    const report = await reconcileFriendsList(
+      { '76561198000000001': FRIEND },
+      FRIEND,
+      dal,
+      silentLogger,
+      onActivated,
+      onConfirmLinkNeeded,
+    );
+
+    expect(dal.activateWatch).toHaveBeenCalledWith('76561198000000001');
+    expect(onActivated).toHaveBeenCalledTimes(1);
+    expect(onConfirmLinkNeeded).not.toHaveBeenCalled();
+    expect(report.confirmLinksSent).toEqual([]);
+  });
+
+  it('does not count skipped link sends (live token outstanding)', async () => {
+    const dal = makeDal(
+      [{ steamId: '76561198000000001', status: 'pending' }],
+      { '76561198000000001': { confirmedAt: null } },
+    );
+    const onConfirmLinkNeeded = jest.fn(async () => false);
+
+    const report = await reconcileFriendsList(
+      { '76561198000000001': FRIEND },
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      onConfirmLinkNeeded,
+    );
+
+    expect(onConfirmLinkNeeded).toHaveBeenCalledTimes(1);
+    expect(report.confirmLinksSent).toEqual([]);
+    expect(report.errors).toEqual([]);
+    expect(dal.activateWatch).not.toHaveBeenCalled();
+  });
+
+  it('isolates link-hook failures per row (operation confirmLink)', async () => {
+    const dal = makeDal(
+      [
+        { steamId: '76561198000000001', status: 'pending' },
+        { steamId: '76561198000000002', status: 'pending' },
+      ],
+      {
+        '76561198000000001': { confirmedAt: null },
+        '76561198000000002': { confirmedAt: null },
+      },
+    );
+    const onConfirmLinkNeeded = jest.fn(async () => true);
+    onConfirmLinkNeeded.mockRejectedValueOnce(new Error('chat down'));
+
+    const report = await reconcileFriendsList(
+      {
+        '76561198000000001': FRIEND,
+        '76561198000000002': FRIEND,
+      },
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      onConfirmLinkNeeded,
+    );
+
+    expect(report.errors).toHaveLength(1);
+    expect(report.errors[0]).toMatchObject({
+      steamId: '76561198000000001',
+      operation: 'confirmLink',
+    });
+    // The sibling row still converged.
+    expect(report.confirmLinksSent).toEqual(['76561198000000002']);
+    expect(dal.activateWatch).not.toHaveBeenCalled();
+  });
+
+  it('skips the row this pass when the account read fails (retried next pass)', async () => {
+    const dal = makeDal([
+      { steamId: '76561198000000001', status: 'pending' },
+    ]);
+    (dal.getAccount as jest.Mock).mockRejectedValueOnce(
+      new Error('turso timeout'),
+    );
+    const onConfirmLinkNeeded = jest.fn(async () => true);
+
+    const report = await reconcileFriendsList(
+      { '76561198000000001': FRIEND },
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      onConfirmLinkNeeded,
+    );
+
+    expect(report.errors).toHaveLength(1);
+    expect(report.errors[0]).toMatchObject({
+      steamId: '76561198000000001',
+      operation: 'confirmLink',
+    });
+    expect(dal.activateWatch).not.toHaveBeenCalled();
+    expect(onConfirmLinkNeeded).not.toHaveBeenCalled();
+    expect(report.confirmLinksSent).toEqual([]);
+  });
+
+  it('leaves unconfirmed watches pending silently without a link hook', async () => {
+    const dal = makeDal(
+      [{ steamId: '76561198000000001', status: 'pending' }],
+      { '76561198000000001': { confirmedAt: null } },
+    );
+
+    const report = await reconcileFriendsList(
+      { '76561198000000001': FRIEND },
+      FRIEND,
+      dal,
+      silentLogger,
+    );
+
+    expect(dal.activateWatch).not.toHaveBeenCalled();
+    expect(report.activated).toEqual([]);
+    expect(report.errors).toEqual([]);
   });
 
   it('removes watch + account for offline opt-outs (no record survives)', async () => {
@@ -294,6 +462,8 @@ describe('reconcileFriendsList', () => {
           status,
           locale: null,
         })),
+      // Legacy lane (no accounts row): activates like before the gate.
+      getAccount: async () => null,
       activateWatch: async (steamId: string) => {
         statuses.set(steamId, 'active');
         return true;

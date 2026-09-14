@@ -5,7 +5,7 @@ import { errorResponse } from '@/lib/apiError';
 import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
-import { getWatchStatus } from '@/lib/analytics/db';
+import { getAccount, getWatchStatus } from '@/lib/analytics/db';
 import { resolveWatchSession } from '@/lib/watch/session';
 
 export const runtime = 'nodejs';
@@ -25,19 +25,53 @@ const statusRateLimiter = createRateLimiter(
 );
 
 /**
+ * Whether the profile's confirm link died unclicked (drives the resend
+ * UI). True only for a REAL past expiry on an unconfirmed account —
+ * missing rows, confirmed accounts and corrupt clocks all read false (an
+ * unparseable expiry fails closed toward "not expired": the resend button
+ * stays hidden rather than offering a resend for a state we cannot read).
+ * Display-only: a transient read failure degrades to false (logged
+ * loudly) instead of 500ing the polling loop over garnish.
+ */
+const readConfirmExpired = async (steamId: string): Promise<boolean> => {
+  try {
+    const account = await getAccount(steamId);
+    return (
+      account !== null &&
+      account.confirmedAt === null &&
+      account.confirmExpiresAt !== null &&
+      Date.parse(account.confirmExpiresAt) <= Date.now()
+    );
+  } catch (error) {
+    // steamId is public data (searchable on the site), safe to log.
+    logRouteError('watchStatus:confirmExpired', sanitizeError(error), {
+      steamId,
+    });
+    return false;
+  }
+};
+
+/**
  * Returns the current watch state for the LOGGED-IN profile — exclusively
  * one of 'pending' | 'active' | 'none' ('none' covers never-requested AND
  * opted-out/deactivated: both mean "no watch", and the distinction is
  * internal state the API deliberately does not expose).
+ *
+ * Plus `confirmExpired`: whether the confirm link died unclicked (drives
+ * the resend UI). True only for a REAL past expiry on an unconfirmed
+ * account — missing rows, confirmed accounts and corrupt clocks all read
+ * false. Display-only like the confirm route's locale read: a transient
+ * failure degrades to false (logged loudly) instead of 500ing the polling
+ * loop over garnish.
  *
  * Self-scoped: identity comes EXCLUSIVELY from the Steam OpenID session —
  * the old `?steamId=` parameter is gone entirely (a present-but-ignored
  * id would be a third-party lookup footgun, so its presence is a 400).
  * Unauthenticated callers get 401.
  *
- * Strictly read-only: no state mutation (the only DAL call is
- * getWatchStatus). Used by the frontend polling loop after a watch
- * request.
+ * Strictly read-only: no state mutation (the only DAL calls are
+ * getWatchStatus + getAccount). Used by the frontend polling loop after a
+ * watch request.
  */
 export async function GET(req: Request) {
   // App Router only routes GET here; kept as defense-in-depth (and so unit
@@ -74,8 +108,13 @@ export async function GET(req: Request) {
 
   try {
     const status = await getWatchStatus(steamId);
+    const confirmExpired = status === 'pending' ? await readConfirmExpired(steamId) : false;
     return NextResponse.json(
-      { steamId, status: status ?? 'none' },
+      {
+        steamId,
+        status: status ?? 'none',
+        confirmExpired,
+      },
       { status: 200 },
     );
   } catch (error) {

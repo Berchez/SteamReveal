@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname } from '@/navigation';
 import resolveLoginNext from '@/lib/watch/loginNext';
@@ -33,11 +33,25 @@ function WatchManager({ steamId }: { steamId: string }) {
   const [requesting, setRequesting] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
 
-  const { status, error: statusError } = useWatchStatus({
+  const { status, error: statusError, confirmExpired } = useWatchStatus({
     steamId,
     enabled: true,
   });
+
+  // Resend-button lifecycle: the button shows while the link is expired
+  // and no fresh one was requested yet. Reset ONLY on the false→true flip
+  // (a new generation died unclicked): resetting on every poll, or when
+  // the flag clears after a successful resend, would wipe the "sent"
+  // confirmation right after showing it. A remount (dropdown close/reopen)
+  // also resets, since the state is per-mount.
+  useEffect(() => {
+    if (confirmExpired) {
+      setResendSent(false);
+    }
+  }, [confirmExpired]);
 
   const handleStart = useCallback(async () => {
     if (requesting) return;
@@ -75,6 +89,28 @@ function WatchManager({ steamId }: { steamId: string }) {
     }
   }, [loggingOut]);
 
+  const handleResend = useCallback(async () => {
+    if (resending || resendSent) return;
+    setResending(true);
+    try {
+      const res = await fetch('/api/auth/confirm-resend', { method: 'POST' });
+      const body = (await res.json().catch(() => null)) as {
+        ok?: unknown;
+      } | null;
+      if (!res.ok || body?.ok !== true) {
+        setRequestError(translator('watchErrorFailed'));
+      } else {
+        // Queued (or already handled server-side): the bot delivers the
+        // fresh link over Steam chat — poll for it there, not here.
+        setResendSent(true);
+      }
+    } catch {
+      setRequestError(translator('watchErrorFailed'));
+    } finally {
+      setResending(false);
+    }
+  }, [resending, resendSent, translator]);
+
   if (statusError === 'session-expired') {
     return (
       <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
@@ -106,27 +142,31 @@ function WatchManager({ steamId }: { steamId: string }) {
     );
   }
 
-  // Shared footer for the actionable screens (alert parity + one logout
-  // button definition — the states must never drift apart).
-  const renderFooter = (showLogout: boolean) => (
+  // Shared footer for the actionable screens: one logout button definition
+  // plus the request-error alert — the states must never drift apart.
+  // Logout shows on ALL three states, including 'none': a logged-in user
+  // with no watch row must still be able to sign out (otherwise the only
+  // exit is clearing site cookies by hand). The 'none' screen passes its
+  // Start button as `extra`, rendered on the same row (logout left,
+  // primary action right).
+  const renderFooter = (extra?: React.ReactNode) => (
     <>
       {requestError !== null && (
         <p role="alert" className="text-red-400 text-sm">
           {requestError}
         </p>
       )}
-      {showLogout && (
-        <div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="h-10 px-5 rounded-full border border-gray-500 text-gray-300 text-sm hover:border-gray-300 disabled:opacity-50"
-          >
-            {translator('watchLogout')}
-          </button>
-        </div>
-      )}
+      <div className="flex items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="h-10 px-5 rounded-full border border-gray-500 text-gray-300 text-sm hover:border-gray-300 disabled:opacity-50"
+        >
+          {translator('watchLogout')}
+        </button>
+        {extra}
+      </div>
     </>
   );
 
@@ -137,7 +177,7 @@ function WatchManager({ steamId }: { steamId: string }) {
           {translator('watchActiveTitle')}
         </h1>
         <p className="text-gray-300">{translator('watchActiveHint')}</p>
-        {renderFooter(true)}
+        {renderFooter()}
       </div>
     );
   }
@@ -149,7 +189,25 @@ function WatchManager({ steamId }: { steamId: string }) {
           {translator('watchPendingTitle')}
         </h1>
         <p className="text-gray-300">{translator('watchPendingHint')}</p>
-        {renderFooter(true)}
+        {confirmExpired && !resendSent && (
+          <>
+            <p className="text-gray-300">{translator('watchLinkExpired')}</p>
+            <div>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="h-12 px-6 rounded-full bg-purple-600 hover:bg-purple-700/90 disabled:opacity-50 text-white font-semibold text-sm"
+              >
+                {translator('watchResendSubmit')}
+              </button>
+            </div>
+          </>
+        )}
+        {resendSent && (
+          <p className="text-gray-300">{translator('watchResendSent')}</p>
+        )}
+        {renderFooter()}
       </div>
     );
   }
@@ -164,8 +222,7 @@ function WatchManager({ steamId }: { steamId: string }) {
         <p className="text-gray-400 text-sm">
           {translator('watchSignupSteps')}
         </p>
-        {renderFooter(false)}
-        <div>
+        {renderFooter(
           <button
             type="button"
             onClick={handleStart}
@@ -173,8 +230,8 @@ function WatchManager({ steamId }: { steamId: string }) {
             className="h-12 px-6 rounded-full bg-purple-600 hover:bg-purple-700/90 disabled:opacity-50 text-white font-semibold text-sm"
           >
             {translator('watchSubmit')}
-          </button>
-        </div>
+          </button>,
+        )}
       </div>
     );
   }

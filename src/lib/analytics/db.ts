@@ -29,6 +29,7 @@ import type {
   WatchNotification,
   WatchedProfile,
   WatchEvent,
+  ExpiredConfirmCandidate,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
 import isWithinCooldownWindow from '../watch/cooldown';
@@ -457,8 +458,15 @@ const assertConfirmTokenHash = (tokenHash: string): void => {
 const assertWatchEventKind: (kind: string) => asserts kind is WatchEventKind = (
   kind,
 ) => {
-  if (kind !== 'invite' && kind !== 'notify') {
-    throw new Error("Invalid watch event kind: expected 'invite' | 'notify'");
+  if (
+    kind !== 'invite' &&
+    kind !== 'notify' &&
+    kind !== 'welcome' &&
+    kind !== 'confirm_resend'
+  ) {
+    throw new Error(
+      "Invalid watch event kind: expected 'invite' | 'notify' | 'welcome' | 'confirm_resend'",
+    );
   }
 };
 
@@ -504,11 +512,25 @@ const toWatchedProfile = (row: Record<string, unknown>): WatchedProfile => ({
     typeof row.last_notified_at === 'string' ? row.last_notified_at : null,
 });
 
+const toWatchEventKind = (value: unknown): WatchEventKind => {
+  // Writes only ever store the four lane names; anything else read back
+  // (hand-edited rows) collapses to 'invite' rather than leaking an
+  // unknown kind into pollers typed as WatchEventKind.
+  if (
+    value === 'notify' ||
+    value === 'welcome' ||
+    value === 'confirm_resend'
+  ) {
+    return value;
+  }
+  return 'invite';
+};
+
 const toWatchEvent = (row: Record<string, unknown>): WatchEvent => ({
   id: Number(row.id),
   searchId: typeof row.search_id === 'string' ? row.search_id : null,
   steamId: row.steam_id as string,
-  kind: row.kind === 'notify' ? 'notify' : 'invite',
+  kind: toWatchEventKind(row.kind),
   status:
     row.status === 'claimed' ||
     row.status === 'sent' ||
@@ -526,6 +548,13 @@ const toWatchEvent = (row: Record<string, unknown>): WatchEvent => ({
  * untouched instead of inserting a duplicate. Implemented as a single
  * INSERT ... ON CONFLICT DO NOTHING + SELECT, so two concurrent requests
  * for the same profile cannot create two rows (no read-then-write race).
+ *
+ * PAIRING INVARIANT (do not break): every production creation path must
+ * create the `accounts` row alongside (signup does, unconditionally —
+ * locked by signup/route.test.ts asserting the createAccount call). The
+ * activateWatch legacy carve-out activates account-less rows WITHOUT a
+ * click, so a future caller creating watches without accounts would
+ * silently reopen the exact bug the click-to-activate gate closed.
  */
 export const createWatchRequest = async (
   steamId: string,
@@ -732,9 +761,31 @@ export const countNotificationsSince = async (
 };
 
 /**
- * Transitions pending -> active (+activated_at). Idempotent: an already
- * active watch returns true; a missing row returns false (nothing to
- * activate — Epic 3 treats that as "unknown profile").
+ * Transitions pending -> active (+activated_at). Returns true ONLY when
+ * THIS call flipped the row (single UPDATE, rowsAffected > 0) — an
+ * already-active row returns false. That strictness is load-bearing: two
+ * independent activators exist (the confirm route POST and the bot
+ * reconcile, unsynchronized across processes), and exactly one of them
+ * must own the post-activation side effects (welcome message). Callers
+ * treat true as "I flipped it, welcome now" and false as "nothing to do"
+ * (missing row, unconfirmed, or someone else flipped first) — never
+ * re-read to "confirm", or the duplicate-welcome race returns.
+ *
+ * Confirmation gate (click-to-activate): the flip additionally requires a
+ * CONFIRMED account (confirmed_at IS NOT NULL). Accepting the bot's
+ * friendship alone must never activate — otherwise the watch notifies and
+ * the site toasts before the user ever clicked the confirm link. The gate
+ * is enforced here (not just in callers) so no current or future activator
+ * can bypass it by accident; both production callers already satisfy it
+ * (reconcile branches on confirmation first, the confirm route activates
+ * right after consuming the token).
+ *
+ * Legacy carve-out: a pending watch with NO accounts row at all (created
+ * before the confirmation epic, when friendship was the whole opt-in)
+ * still activates. Those users consented under the old contract and have
+ * no link to click; stranding their notifications would be a regression,
+ * not a fix. New flows always create the account row at signup, so the
+ * carve-out only ever matches pre-confirmation rows and hand edits.
  */
 export const activateWatch = async (steamId: string): Promise<boolean> => {
   assertSteamId64(steamId);
@@ -744,13 +795,18 @@ export const activateWatch = async (steamId: string): Promise<boolean> => {
     db.execute({
       sql: `UPDATE watched_profiles
             SET status = 'active', activated_at = ?
-            WHERE steam_id = ? AND status = 'pending'`,
-      args: [new Date().toISOString(), steamId],
+            WHERE steam_id = ? AND status = 'pending'
+              AND (
+                NOT EXISTS (SELECT 1 FROM accounts WHERE steam_id = ?)
+                OR EXISTS (
+                  SELECT 1 FROM accounts
+                  WHERE steam_id = ? AND confirmed_at IS NOT NULL
+                )
+              )`,
+      args: [new Date().toISOString(), steamId, steamId, steamId],
     }),
   );
-  if (Number(updated.rowsAffected) > 0) return true;
-
-  return (await getWatchStatus(steamId)) === 'active';
+  return Number(updated.rowsAffected) > 0;
 };
 
 /**
@@ -859,7 +915,11 @@ export interface EnqueueWatchEventResult {
  * sits on top of this guarantee, not instead of it.
  *
  * NOTE: this does not check watch status — the Epic 4 hook gates on
- * getWatchStatus + isWithinCooldown before enqueueing.
+ * getWatchStatus + isWithinCooldown before enqueueing. The 'welcome' and
+ * 'confirm_resend' lanes likewise carry no search_id (like 'invite'):
+ * welcome events are emitted by the confirm route after a click, resend
+ * requests by the resend route — one row per request, throttling enforced
+ * by the fulfilling bot poller, not here.
  */
 // Single source of truth for "an invite event is still open" (queued or
 // claimed — sent/dropped history never blocks a fresh invite). Shared by
@@ -1325,6 +1385,130 @@ export const consumeConfirmToken = async (
   );
   if (updated.rows.length === 0) return null;
   return String((updated.rows[0] as Record<string, unknown>).steam_id);
+};
+
+/**
+ * Non-consuming account lookup by pending-token hash (confirm page GET).
+ * Lets the intermediate page render in the requester's language and flag
+ * expired links WITHOUT spending the single-use token — prefetchers,
+ * linkifiers and antivirus scanners only ever GET, so the token survives
+ * until the explicit POST click. Returns null for unknown hashes
+ * (indistinguishable from valid on GET by design — no oracle).
+ */
+export const getAccountByConfirmTokenHash = async (
+  tokenHash: string,
+): Promise<WatchAccount | null> => {
+  assertConfirmTokenHash(tokenHash);
+  const db = await getClient();
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale
+            FROM accounts WHERE confirm_token_hash = ?`,
+      args: [tokenHash],
+    }),
+  );
+  if (row.rows.length === 0) return null;
+  return toWatchAccount(row.rows[0] as Record<string, unknown>);
+};
+
+/**
+ * Expired-but-never-clicked confirmations needing the single "link
+ * expired, generate a new one" notice (confirm-link expiry poller input).
+ * One row per account, oldest expiry first:
+ * - unconfirmed, with a token whose expiry already passed;
+ * - never noticed for THIS generation (`confirm_expire_noticed_for` is
+ *   NULL or holds an older expiry — re-issuing always sets a fresh
+ *   expiry, so a new generation implicitly re-arms the notice with no
+ *   extra clearing write);
+ * - watch still pending (active watches are confirmed by construction
+ *   under click-to-activate; legacy actives never had tokens at all).
+ *
+ * Callers MUST re-check the account immediately before sending (a click
+ * can land between this read and the chat send — the "only if really not
+ * clicked" guarantee lives in that recheck plus the conditional
+ * markExpireNoticed below, not in this listing). `limit` mirrors
+ * claimNextQueuedEvents: default 10, clamped to 1..100, non-finite throws.
+ */
+export const listExpiredUnnoticedConfirms = async (
+  limit = 10,
+): Promise<ExpiredConfirmCandidate[]> => {
+  if (!Number.isFinite(limit)) {
+    throw new Error(
+      'Invalid limit for expired-confirm scan: expected a finite number',
+    );
+  }
+  const count = Math.min(Math.max(Math.floor(limit), 1), 100);
+  const db = await getClient();
+  const now = new Date().toISOString();
+
+  const rows = await withSchemaHint(
+    db.execute({
+      sql: `SELECT w.steam_id AS steam_id,
+              w.locale AS watch_locale,
+              a.locale AS account_locale,
+              a.confirm_expires_at AS expires_at
+            FROM accounts a
+            JOIN watched_profiles w ON w.steam_id = a.steam_id
+            WHERE a.confirmed_at IS NULL
+              AND a.confirm_expires_at IS NOT NULL
+              AND a.confirm_expires_at <= ?
+              AND (
+                a.confirm_expire_noticed_for IS NULL
+                OR a.confirm_expire_noticed_for != a.confirm_expires_at
+              )
+              AND w.status = 'pending'
+            ORDER BY a.confirm_expires_at ASC
+            LIMIT ?`,
+      args: [now, count],
+    }),
+  );
+  return rows.rows.map((row) => {
+    const record = row as Record<string, unknown>;
+    return {
+      steamId: String(record.steam_id),
+      watchLocale:
+        typeof record.watch_locale === 'string' ? record.watch_locale : null,
+      accountLocale:
+        typeof record.account_locale === 'string'
+          ? record.account_locale
+          : null,
+      expiresAt: String(record.expires_at),
+    };
+  });
+};
+
+/**
+ * Records that the expiry notice was sent for one token generation.
+ * Conditional write (the other half of "only if really not clicked"): a
+ * concurrent confirm-click clears the token columns first, so the
+ * predicate misses, zero rows change, and the false return tells the
+ * poller the user clicked mid-flight (log it, send nothing more — the
+ * confirm route owns activation + welcome from there).
+ */
+export const markExpireNoticed = async (
+  steamId: string,
+  expiresAt: string,
+): Promise<boolean> => {
+  assertSteamId64(steamId);
+  if (typeof expiresAt !== 'string' || expiresAt === '') {
+    throw new Error(
+      'Invalid expiresAt for expire notice: expected non-empty string',
+    );
+  }
+  const db = await getClient();
+
+  const updated = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE accounts
+            SET confirm_expire_noticed_for = ?
+            WHERE steam_id = ?
+              AND confirmed_at IS NULL
+              AND confirm_expires_at = ?`,
+      args: [expiresAt, steamId, expiresAt],
+    }),
+  );
+  return Number(updated.rowsAffected) > 0;
 };
 
 /**

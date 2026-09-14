@@ -25,6 +25,10 @@ interface UseWatchStatusResult {
    * login gate). Transient network errors keep polling silently until
    * unmount. */
   error: string | null;
+  /** Whether the confirm link died unclicked (drives the resend UI).
+   * Additive and best-effort: false until a poll says otherwise, and a
+   * body without the field keeps the previous value. */
+  confirmExpired: boolean;
 }
 
 /**
@@ -54,6 +58,7 @@ export const useWatchStatus = ({
   const translator = useTranslations('Watch');
   const [status, setStatus] = useState<WatchStatusValue | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmExpired, setConfirmExpired] = useState(false);
   const prevStatusRef = useRef<WatchStatusValue | null>(null);
   const welcomedForRef = useRef<string | null>(null);
   // Store the welcome message in a ref to avoid recreating poll when locale changes
@@ -100,11 +105,19 @@ export const useWatchStatus = ({
       }
       const body = (await res.json().catch(() => null)) as {
         status?: unknown;
+        confirmExpired?: unknown;
       } | null;
       const next = body?.status;
       if (next !== 'pending' && next !== 'active' && next !== 'none') {
         return 'backoff';
       }
+      if (body?.confirmExpired === true) {
+        setConfirmExpired(true);
+      } else if (body?.confirmExpired === false) {
+        setConfirmExpired(false);
+      }
+      // Absent field (old deployments mid-rollout): keep the previous
+      // value instead of flapping the resend UI every other tick.
       const prev = prevStatusRef.current;
       prevStatusRef.current = next;
       setStatus(next);
@@ -125,6 +138,7 @@ export const useWatchStatus = ({
     prevStatusRef.current = null;
     setStatus(null);
     setError(null);
+    setConfirmExpired(false);
     clearTimer();
     if (!enabled || !steamId) return undefined;
     // Defense-in-depth: the id arrives server-verified via page props, but
@@ -170,5 +184,5 @@ export const useWatchStatus = ({
     };
   }, [steamId, enabled, pollIntervalMs, poll, clearTimer]);
 
-  return { status, error };
+  return { status, error, confirmExpired };
 };

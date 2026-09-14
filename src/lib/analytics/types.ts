@@ -103,8 +103,10 @@ export type NewSearchInput = Omit<
 /** Lifecycle of a watched profile: invite sent vs friendship observed. */
 export type WatchStatus = 'pending' | 'active';
 
-/** Poller lane: invite sender vs notify sender (never contend). */
-export type WatchEventKind = 'invite' | 'notify';
+/** Poller lane: invite/notify senders, post-confirm welcome sender, and
+ * confirm-link resend requests (never contend — kind is in every claim
+ * predicate, so concurrent pollers cannot grab each other's rows). */
+export type WatchEventKind = 'invite' | 'notify' | 'welcome' | 'confirm_resend';
 
 /**
  * Event lifecycle: queued (pollable) -> claimed (transient: a worker owns
@@ -151,6 +153,22 @@ export interface WatchAccount {
   confirmExpiresAt: string | null;
   /** Signup requester locale for bot messages, null when unknown. */
   locale: string | null;
+}
+
+/**
+ * One expired-but-never-clicked confirmation (confirm-link expiry poller
+ * input). The poller sends the single "link expired, generate a new one"
+ * notice per token generation: `expiresAt` identifies the generation, so
+ * re-issuing (which always sets a fresh expiry) implicitly re-arms the
+ * notice without any extra clearing write.
+ */
+export interface ExpiredConfirmCandidate {
+  steamId: string;
+  /** watched_profiles locale first (bot message rule: watch, then account). */
+  watchLocale: string | null;
+  accountLocale: string | null;
+  /** The expired confirm_expires_at that has not been noticed yet. */
+  expiresAt: string;
 }
 
 /**

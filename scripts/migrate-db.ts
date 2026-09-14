@@ -11,6 +11,16 @@
  * Required env vars (read from .env if present, like the proxy):
  *   DATABASE_URL   e.g. libsql://steamreveal-xxx.turso.io
  *   DATABASE_TOKEN the Turso auth token (required for remote URLs)
+ *
+ * Idempotency contract: applied files are keyed by FILENAME in _migrations.
+ * Never rename a file after it has been applied anywhere (local/staging/
+ * prod): the new name reads as pending and its bare ALTERs replay and fail
+ * (SQLite has no ADD COLUMN IF NOT EXISTS). Real incident: the anti-loop
+ * migration was applied as 006_watch_anti_loop_token.sql, then renamed to
+ * 007 — the next db:migrate died on "duplicate column". Recovery (once the
+ * schema effect is verified present via PRAGMA table_info): INSERT the new
+ * filename row and DELETE the stale one; the CREATE INDEX IF NOT EXISTS
+ * half of such files is safe to leave for a normal re-run.
  */
 import fs from 'fs';
 import path from 'path';

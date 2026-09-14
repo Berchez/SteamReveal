@@ -82,3 +82,44 @@ CREATE TABLE IF NOT EXISTS accounts (
 ## 11. Ordem de execução
 
 1. Migration + DAL + testes → 2. signup + confirm + testes → 3. bot (template + branch + env) → 4. `SiteNav` + avatar + mover switcher → 5. dissolver `/watch` + limpar obsoleto → 6. i18n ×5 + paridade → 7. e2e + validação total + docs.
+
+## 12. Emenda — click-to-activate (pós-bug reportado)
+
+ Correção de comportamento: amizade com o bot NÃO ativa mais o watch.
+ Antes, `activateWatch` disparava no aceite (reconcile) e o link servia só
+ de login-bônus — o watch notificava e o site tostava sem clique. Agora a
+ ativação exige o clique, e o plano acima lê-se com estes ajustes:
+
+- **Gate no DAL**: `activateWatch` exige `confirmed_at` (carve-out: linhas
+  legado sem `accounts` ativam como antes — consentiram no contrato antigo).
+- **Aceite da amizade**: reconcile manda SÓ o link (hook novo,
+  sem ativar); confirmadas ativam + welcome como antes. O hook emite
+  SOMENTE na primeira vez (sem hash armazenado): nunca reemite sobre
+  token expirado — expirados pertencem ao fluxo aviso+resend, nunca ao
+  reconcile (senão o aviso único morreria de inanição e o throttle de 1h
+  seria contornado).
+- **Clique**: `GET /api/watch/confirm` virou página intermediária (imune a
+  prefetch/linkifier/antivírus); `POST` consome + ativa + enfileira
+  `welcome` + sela sessão. CSRF de Origin como signup/logout.
+- **Welcome**: evento `welcome` entregue pelo bot (o site não alcança o
+  chat). POST só enfileira quando ele mesmo ativou (backstop ativa via
+  `onActivated` e dá seu próprio welcome — sem duplo).
+- **Expiração (24h mantido)**: sem resend automático. Poller do bot manda
+  UMA mensagem ("link expirou, gere outro no site") por geração de token,
+  com recheck pré-envio + write condicional (clique concorrente sempre
+  vence). Marker `confirm_expire_noticed_for` (migration 008).
+- **Gerar novo**: `POST /api/auth/confirm-resend` (sessão + CSRF +
+  rate-limit) enfileira `confirm_resend`; o bot emite (sole issuer) com
+  throttle de 1h por perfil; UI no pending expirado (`confirmExpired` no
+  status + 3 chaves i18n ×5 locales).
+- **Backstop**: reconcile periódica (10min) converge ativações cujo clique
+  caiu com o DB fora do ar; `GET /api/watch/status` carrega
+  `confirmExpired` (degrada para false com log, nunca 500a o poll).
+- **Sem migration destrutiva**: só 008 (coluna nullable). **Nunca renomear**
+  migration aplicada (incidente 007: aplicada como 006, renomeada, replay
+  quebrou o migrate — ver contrato em `scripts/migrate-db.ts`).
+- Cobertura: gate + scan + marker no DAL (mock + real libSQL), ramos do
+  reconcile, split do activation, GET/POST da rota, 3 pollers, resend
+  route/UI, journey e2e reescrita (aceite→pending sem toast; POST→active;
+  expirado→resend). `useWatchStatus` inalterado (o toast passa a significar
+  "confirmado" de verdade).

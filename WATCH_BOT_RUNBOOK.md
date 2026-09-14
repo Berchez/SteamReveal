@@ -80,6 +80,17 @@ lives in `.env.example` under "Watch Bot"):
 | `BOT_NOTIFY_SEND_TIMEOUT_MS`                     | `30000`                     | Per-message watchdog                             |
 | `BOT_NOTIFY_TTL_DAYS`                            | `7`                       | Events older than this are dropped unsent        |
 | `BOT_CONFIRM_TOKEN_TTL_MS`                       | `86400000` (24h)          | Signup-confirm link lifetime (bot-issued tokens expire after this) |
+| `BOT_WELCOME_POLL_INTERVAL_MS`                   | `20000`                     | Post-click welcome drain cadence (faster: reacts to a live user click) |
+| `BOT_WELCOME_BATCH_LIMIT`                        | `10`                        | Max welcomes claimed per pass                      |
+| `BOT_WELCOME_MAX_ATTEMPTS`                       | `3`                         | Attempts before a welcome is dropped               |
+| `BOT_WELCOME_SEND_TIMEOUT_MS`                    | `30000`                     | Per-message watchdog                               |
+| `BOT_RESEND_POLL_INTERVAL_MS`                    | `60000`                     | Confirm-link resend drain cadence (user-awaited)   |
+| `BOT_RESEND_BATCH_LIMIT`                         | `10`                        | Max resends claimed per pass                       |
+| `BOT_RESEND_MAX_ATTEMPTS`                        | `3`                         | Attempts before a resend is dropped                |
+| `BOT_RESEND_SEND_TIMEOUT_MS`                     | `30000`                     | Per-message watchdog                               |
+| `BOT_RESEND_MIN_INTERVAL_MS`                     | `3600000` (1h)              | Min gap between two issues for one profile (spam bound) |
+| `BOT_EXPIRY_SCAN_INTERVAL_MS`                    | `3600000` (1h)              | Expired-link notice scan cadence (one notice per generation) |
+| `BOT_RECONCILE_INTERVAL_MS`                      | `600000` (10min)            | Periodic full reconcile (backstop for missed snapshots) |
 | `BOT_STALE_SWEEP_INTERVAL_MS`                    | `600000`                  | Orphaned-claim recovery cadence                  |
 | `BOT_STALE_CLAIM_WINDOW_MINUTES`                 | `30`                        | Claims older than this get requeued              |
 
@@ -130,7 +141,10 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   is backing off — check the logs before restarting.
 - Useful log greps: `invite poll done` (per-pass claimed/sent/retried/ dropped),
   `daily send cap reached` (abuse cap engaging — investigate the request
-  source), `dropped after` (events hitting the attempt cap), `reconcile done`,
+  source), `dropped after` (events hitting the attempt cap), `reconcile done`
+  (now also `linksSent=` for confirm-link deliveries), `welcome poll done`,
+  `resend poll done`, `expiry scan done`, `raced by a click` (harmless:
+  the user confirmed between the expiry recheck and the mark),
   `friend-remove`.
 
 ## 6. Behavior when the bot is offline
@@ -147,6 +161,15 @@ alone:
 - **Notifies**: queued rows wait, EXCEPT rows older than `BOT_NOTIFY_TTL_DAYS`
   (default 7), which are dropped unsent on the next pass — by design, so a bot
   offline for days never wakes up to a week of stale pings.
+- **Welcomes / resends**: queued rows wait (welcomes have no TTL — they state
+  durable status, so late delivery stays correct). Expired confirm links are
+  noticed on return (the hourly expiry scan catches up on boot): at most one
+  "generate a new one" message per dead token generation.
+- **Click-to-activate note**: friendship alone never activates — only the
+  confirm-link click (POST) flips `pending` → `active`. A click that lands
+  while the DB blips still confirms (token spent) and converges on the next
+  reconcile pass (periodic, `BOT_RECONCILE_INTERVAL_MS`), without another
+  click; the welcome follows via the outbox.
 - **Orphaned `claimed` rows** (crash between claim and settle): the stale sweep
   requeues them after `BOT_STALE_CLAIM_WINDOW_MINUTES` (default 30).
   At-least-once semantics: a message sent but unmarked before the crash MAY

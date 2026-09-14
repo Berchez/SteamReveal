@@ -25,10 +25,10 @@ const mockedToast = toast as unknown as {
 const STEAM_A = '76561198000000001';
 const STEAM_B = '76561198000000002';
 
-const jsonResponse = (status: string) =>
+const jsonResponse = (status: string, extra: Record<string, unknown> = {}) =>
   ({
     ok: true,
-    json: async () => ({ status }),
+    json: async () => ({ status, ...extra }),
   }) as Response;
 
 describe('useWatchStatus', () => {
@@ -129,7 +129,11 @@ describe('useWatchStatus', () => {
     const { result } = render();
 
     await flushInitialFetch();
-    expect(result.current).toEqual({ status: null, error: 'session-expired' });
+    expect(result.current).toEqual({
+      status: null,
+      error: 'session-expired',
+      confirmExpired: false,
+    });
     // Polling stopped: no more fetches no matter how long we wait.
     const calls = fetchMock.mock.calls.length;
     await flushPolls(3);
@@ -169,6 +173,32 @@ describe('useWatchStatus', () => {
     expect(result.current.status).toBe('pending');
     expect(mockedToast.success).not.toHaveBeenCalled();
     expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('surfaces confirmExpired from the status payload (resend UI fuel)', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse('pending', { confirmExpired: true }),
+    );
+
+    const { result, unmount } = render();
+    await flushPolls(1);
+    expect(result.current.confirmExpired).toBe(true);
+
+    fetchMock.mockResolvedValue(
+      jsonResponse('pending', { confirmExpired: false }),
+    );
+    await flushPolls(1);
+    expect(result.current.confirmExpired).toBe(false);
+    unmount();
+  });
+
+  it('defaults confirmExpired to false when the field is absent (old deployments)', async () => {
+    fetchMock.mockResolvedValue(jsonResponse('pending'));
+
+    const { result, unmount } = render();
+    await flushPolls(1);
+    expect(result.current.confirmExpired).toBe(false);
+    unmount();
   });
 
   it('does not toast when the first load is already active', async () => {

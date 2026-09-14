@@ -27,10 +27,10 @@ const signupOk = () => ({
   body: JSON.stringify({ ok: true }),
 });
 
-const statusBody = (status: string) => ({
+const statusBody = (status: string, extra: Record<string, unknown> = {}) => ({
   status: 200,
   contentType: 'application/json',
-  body: JSON.stringify({ steamId: STEAM_ID, status }),
+  body: JSON.stringify({ steamId: STEAM_ID, status, ...extra }),
 });
 
 const notificationsBody = (
@@ -115,7 +115,7 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     await expect(page).toHaveURL(/\/en\/?($|\?)/);
   });
 
-  test('signup -> pending -> active inside the avatar dropdown', async ({
+  test('signup -> pending -> confirm click -> active inside the avatar dropdown', async ({
     page,
   }) => {
     await loginTestUser(page, STEAM_ID);
@@ -126,18 +126,40 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
       signupCalls += 1;
       return route.fulfill(signupOk());
     });
-    // Pre-click polls all read 'none' (stable no-watch screen no matter how
-    // many polls fire); post-click polls walk pending → pending → active
-    // and stick there.
+    // Click-to-activate: pre-click polls all read 'pending' no matter how
+    // many fire (friendship alone never activates); only the confirm POST
+    // flips the lane to 'active'.
     let requested = false;
-    const postClick = ['pending', 'pending', 'active'];
+    let confirmed = false;
     await page.route('**/api/watch/status', async (route) => {
       if (!requested) return route.fulfill(statusBody('none'));
-      return route.fulfill(statusBody(postClick.shift() ?? 'active'));
+      if (!confirmed) return route.fulfill(statusBody('pending'));
+      return route.fulfill(statusBody('active'));
     });
     await page.route('**/api/watch/notifications*', async (route) =>
       route.fulfill(notificationsBody([], 0)),
     );
+    // The confirm page itself is mocked at the network layer (the real
+    // route is unit-covered): GET renders the form without consuming
+    // anything, POST consumes and redirects to the success landing.
+    const confirmToken = 'ab'.repeat(32);
+    await page.route('**/api/watch/confirm*', async (route) => {
+      if (route.request().method() === 'POST') {
+        confirmed = true;
+        return route.fulfill({
+          status: 302,
+          headers: { location: '/en/?confirmed=ok' },
+          body: '',
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body:
+          `<form method="post" action="/api/watch/confirm?token=${confirmToken}">` +
+          `<button>Confirm and activate</button></form>`,
+      });
+    });
 
     await page.goto('/en');
     await expect(
@@ -160,6 +182,29 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     await expect(
       page.getByRole('heading', { name: 'Invite sent' }),
     ).toBeVisible({ timeout: 15000 });
+
+    // The confirm link arrives over Steam chat (bot side, mocked away
+    // here): opening it shows the intermediate page, and reloading it
+    // (what a link previewer does) spends nothing — the form is still
+    // there on the second GET.
+    await page.goto(`/api/watch/confirm?token=${confirmToken}`);
+    const confirmButton = page.getByRole('button', {
+      name: 'Confirm and activate',
+    });
+    await expect(confirmButton).toBeVisible();
+    await page.reload();
+    await expect(
+      page.getByRole('button', { name: 'Confirm and activate' }),
+    ).toBeVisible();
+
+    // The click (POST) is the sole activator: success lands with the
+    // one-shot toast, and the next status poll flips the panel.
+    await confirmButton.click();
+    await expect(
+      page.getByText('Watch confirmed! You will be notified here'),
+    ).toBeVisible();
+    await page.goto('/en');
+    await avatarButton(page).click();
     await expect(page.getByRole('heading', { name: 'Watching' })).toBeVisible({
       timeout: 20000,
     });
@@ -177,6 +222,86 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
       'src',
       /^data:image\//,
     );
+  });
+
+  test('no click, no active: pending never self-activates and GETs spend nothing', async ({
+    page,
+  }) => {
+    // Regression net for activation-without-click: with the status lane
+    // pinned on pending (friendship accepted, link never clicked), the
+    // panel must never show Watching nor fire the welcome toast, no
+    // matter how many polls elapse.
+    await loginTestUser(page, STEAM_ID);
+    await page.route('**/api/auth/signup', async (route) =>
+      route.fulfill(signupOk()),
+    );
+    await page.route('**/api/watch/status', async (route) =>
+      route.fulfill(statusBody('pending')),
+    );
+    await page.route('**/api/watch/notifications*', async (route) =>
+      route.fulfill(notificationsBody([], 0)),
+    );
+
+    await page.goto('/en');
+    await avatarButton(page).click();
+    await expect(
+      page.getByRole('heading', { name: 'Invite sent' }),
+    ).toBeVisible({ timeout: 15000 });
+
+    // Longer than one 5s poll interval: the client must never advance
+    // the state machine on its own (activation arrives exclusively via
+    // the status lane, which the mock pins on pending here).
+    await page.waitForTimeout(7000);
+    await expect(page.getByRole('heading', { name: 'Watching' })).toHaveCount(
+      0,
+    );
+    await expect(page.getByText('Watch active! The bot will')).toHaveCount(0);
+    await expect(
+      page.getByRole('heading', { name: 'Invite sent' }),
+    ).toBeVisible();
+  });
+
+  test('expired link shows the resend UI and a fresh link is requestable', async ({
+    page,
+  }) => {
+    // The expired-link leg needs no time travel: expiry is just a flag on
+    // the mocked status payload (the TTL predicate itself is
+    // DAL-unit-covered). What E2E proves is the wiring: expired UI ->
+    // resend POST -> sent confirmation, no signup fired.
+    await loginTestUser(page, STEAM_ID);
+    let signupCalls = 0;
+    let resendCalls = 0;
+    await page.route('**/api/auth/signup', async (route) => {
+      signupCalls += 1;
+      return route.fulfill(signupOk());
+    });
+    await page.route('**/api/auth/confirm-resend', async (route) => {
+      resendCalls += 1;
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true, queued: true }),
+      });
+    });
+    await page.route('**/api/watch/status', async (route) =>
+      route.fulfill(statusBody('pending', { confirmExpired: true })),
+    );
+    await page.route('**/api/watch/notifications*', async (route) =>
+      route.fulfill(notificationsBody([], 0)),
+    );
+
+    await page.goto('/en');
+    await avatarButton(page).click();
+    await expect(
+      page.getByRole('heading', { name: 'Invite sent' }),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Generate new link')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Generate new link' }).click();
+    await expect(page.getByText('New link on its way')).toBeVisible();
+
+    expect(resendCalls).toBe(1);
+    expect(signupCalls).toBe(0);
   });
 
   test('unlocalized confirm landing survives the middleware locale hop', async ({

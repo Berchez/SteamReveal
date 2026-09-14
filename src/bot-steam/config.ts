@@ -45,6 +45,30 @@ export interface BotConfig {
   notifySendTimeoutMs: number;
   /** Notify events older than this (by persisted created_at) are dropped. */
   notifyTtlDays: number;
+  /** Post-click welcome drain: how often, batch per pass, sends before an
+   * event is dropped, watchdog per send. No TTL by design (unlike
+   * notifies): a welcome states durable status ("monitoring is active"),
+   * not time-sensitive news, so late delivery is still correct. */
+  welcomePollIntervalMs: number;
+  welcomeBatchLimit: number;
+  welcomeMaxAttempts: number;
+  welcomeSendTimeoutMs: number;
+  /** Confirm-link resend drain (user-awaited, same cadence class as the
+   * other chat lanes) plus the minimum gap between two issues for one
+   * profile (spam bound at the sink: re-issues kill the previous link,
+   * so without a floor, Start-spam would chat-spam). */
+  resendPollIntervalMs: number;
+  resendBatchLimit: number;
+  resendMaxAttempts: number;
+  resendSendTimeoutMs: number;
+  resendMinIntervalMs: number;
+  /** Confirm-link expiry scan: how often the bot looks for tokens that
+   * died unclicked (single "generate a new one" notice per generation). */
+  expiryScanIntervalMs: number;
+  /** Periodic full reconcile pass (backstop for missed snapshots and for
+   * click-activations that landed while the DB blipped — the confirm
+   * route's activate is best-effort, reconcile converges the rest). */
+  reconcileIntervalMs: number;
   /**
    * Public site base URL (no trailing slash) used to build bot-delivered
    * links (signup confirmation). Required with no default: a wrong default
@@ -73,6 +97,17 @@ const DEFAULT_NOTIFY_BATCH_LIMIT = 10;
 const DEFAULT_NOTIFY_MAX_ATTEMPTS = 3;
 const DEFAULT_NOTIFY_SEND_TIMEOUT_MS = 30000;
 const DEFAULT_NOTIFY_TTL_DAYS = 7;
+const DEFAULT_WELCOME_POLL_INTERVAL_MS = 20000;
+const DEFAULT_WELCOME_BATCH_LIMIT = 10;
+const DEFAULT_WELCOME_MAX_ATTEMPTS = 3;
+const DEFAULT_WELCOME_SEND_TIMEOUT_MS = 30000;
+const DEFAULT_RESEND_POLL_INTERVAL_MS = 60000;
+const DEFAULT_RESEND_BATCH_LIMIT = 10;
+const DEFAULT_RESEND_MAX_ATTEMPTS = 3;
+const DEFAULT_RESEND_SEND_TIMEOUT_MS = 30000;
+const DEFAULT_RESEND_MIN_INTERVAL_MS = 3600000;
+const DEFAULT_EXPIRY_SCAN_INTERVAL_MS = 3600000;
+const DEFAULT_RECONCILE_INTERVAL_MS = 600000;
 const DEFAULT_CONFIRM_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_STALE_SWEEP_INTERVAL_MS = 600000;
 const DEFAULT_STALE_CLAIM_WINDOW_MINUTES = 30;
@@ -141,7 +176,7 @@ export const loadBotConfig = (
       ? env.BOT_DATA_DIR
       : DEFAULT_DATA_DIRECTORY;
 
-  return {
+  const config = {
     accountName,
     password,
     sharedSecret,
@@ -221,6 +256,61 @@ export const loadBotConfig = (
       DEFAULT_NOTIFY_TTL_DAYS,
       'BOT_NOTIFY_TTL_DAYS',
     ),
+    welcomePollIntervalMs: readPositiveInt(
+      env.BOT_WELCOME_POLL_INTERVAL_MS,
+      DEFAULT_WELCOME_POLL_INTERVAL_MS,
+      'BOT_WELCOME_POLL_INTERVAL_MS',
+    ),
+    welcomeBatchLimit: readPositiveInt(
+      env.BOT_WELCOME_BATCH_LIMIT,
+      DEFAULT_WELCOME_BATCH_LIMIT,
+      'BOT_WELCOME_BATCH_LIMIT',
+    ),
+    welcomeMaxAttempts: readPositiveInt(
+      env.BOT_WELCOME_MAX_ATTEMPTS,
+      DEFAULT_WELCOME_MAX_ATTEMPTS,
+      'BOT_WELCOME_MAX_ATTEMPTS',
+    ),
+    welcomeSendTimeoutMs: readPositiveInt(
+      env.BOT_WELCOME_SEND_TIMEOUT_MS,
+      DEFAULT_WELCOME_SEND_TIMEOUT_MS,
+      'BOT_WELCOME_SEND_TIMEOUT_MS',
+    ),
+    resendPollIntervalMs: readPositiveInt(
+      env.BOT_RESEND_POLL_INTERVAL_MS,
+      DEFAULT_RESEND_POLL_INTERVAL_MS,
+      'BOT_RESEND_POLL_INTERVAL_MS',
+    ),
+    resendBatchLimit: readPositiveInt(
+      env.BOT_RESEND_BATCH_LIMIT,
+      DEFAULT_RESEND_BATCH_LIMIT,
+      'BOT_RESEND_BATCH_LIMIT',
+    ),
+    resendMaxAttempts: readPositiveInt(
+      env.BOT_RESEND_MAX_ATTEMPTS,
+      DEFAULT_RESEND_MAX_ATTEMPTS,
+      'BOT_RESEND_MAX_ATTEMPTS',
+    ),
+    resendSendTimeoutMs: readPositiveInt(
+      env.BOT_RESEND_SEND_TIMEOUT_MS,
+      DEFAULT_RESEND_SEND_TIMEOUT_MS,
+      'BOT_RESEND_SEND_TIMEOUT_MS',
+    ),
+    resendMinIntervalMs: readPositiveInt(
+      env.BOT_RESEND_MIN_INTERVAL_MS,
+      DEFAULT_RESEND_MIN_INTERVAL_MS,
+      'BOT_RESEND_MIN_INTERVAL_MS',
+    ),
+    expiryScanIntervalMs: readPositiveInt(
+      env.BOT_EXPIRY_SCAN_INTERVAL_MS,
+      DEFAULT_EXPIRY_SCAN_INTERVAL_MS,
+      'BOT_EXPIRY_SCAN_INTERVAL_MS',
+    ),
+    reconcileIntervalMs: readPositiveInt(
+      env.BOT_RECONCILE_INTERVAL_MS,
+      DEFAULT_RECONCILE_INTERVAL_MS,
+      'BOT_RECONCILE_INTERVAL_MS',
+    ),
     siteUrl: requireSiteUrl(env.WATCH_SITE_URL),
     confirmTokenTtlMs: readPositiveInt(
       env.BOT_CONFIRM_TOKEN_TTL_MS,
@@ -238,6 +328,14 @@ export const loadBotConfig = (
       'BOT_STALE_CLAIM_WINDOW_MINUTES',
     ),
   };
+  // Resend throttle must be strictly less than token TTL, otherwise a
+  // freshly re-issued token could be immediately throttled again.
+  if (config.resendMinIntervalMs >= config.confirmTokenTtlMs) {
+    throw new Error(
+      `BOT_RESEND_MIN_INTERVAL_MS (${config.resendMinIntervalMs}) must be less than BOT_CONFIRM_TOKEN_TTL_MS (${config.confirmTokenTtlMs})`,
+    );
+  }
+  return config;
 };
 
 export const BOT_CONFIG_DEFAULTS = {
@@ -256,6 +354,17 @@ export const BOT_CONFIG_DEFAULTS = {
   DEFAULT_NOTIFY_MAX_ATTEMPTS,
   DEFAULT_NOTIFY_SEND_TIMEOUT_MS,
   DEFAULT_NOTIFY_TTL_DAYS,
+  DEFAULT_WELCOME_POLL_INTERVAL_MS,
+  DEFAULT_WELCOME_BATCH_LIMIT,
+  DEFAULT_WELCOME_MAX_ATTEMPTS,
+  DEFAULT_WELCOME_SEND_TIMEOUT_MS,
+  DEFAULT_RESEND_POLL_INTERVAL_MS,
+  DEFAULT_RESEND_BATCH_LIMIT,
+  DEFAULT_RESEND_MAX_ATTEMPTS,
+  DEFAULT_RESEND_SEND_TIMEOUT_MS,
+  DEFAULT_RESEND_MIN_INTERVAL_MS,
+  DEFAULT_EXPIRY_SCAN_INTERVAL_MS,
+  DEFAULT_RECONCILE_INTERVAL_MS,
   DEFAULT_CONFIRM_TOKEN_TTL_MS,
   DEFAULT_STALE_SWEEP_INTERVAL_MS,
   DEFAULT_STALE_CLAIM_WINDOW_MINUTES,

@@ -2,10 +2,14 @@ import {
   DEFAULT_NOTIFY_LOCALE,
   getNotifyMessage,
   resolveNotifyDisplayName,
+  sendConfirmExpiredMessage,
   sendConfirmMessage,
   sendNotifyMessage,
 } from './notifyMessage';
-import { getConfirmText } from '../lib/watch/notificationText';
+import {
+  getConfirmExpiredText,
+  getConfirmText,
+} from '../lib/watch/notificationText';
 
 jest.mock('../lib/getSteamApiKey', () => ({
   __esModule: true,
@@ -239,6 +243,29 @@ describe('sendConfirmMessage', () => {
     ).rejects.toThrow(/sendFriendMessage is not a function/);
     await expect(
       sendConfirmMessage(null as never, STEAM, 'en', 'https://example.com'),
+    ).rejects.toThrow(/sendFriendMessage is not a function/);
+  });
+});
+
+describe('sendConfirmExpiredMessage', () => {
+  it.each(['en', 'pt', 'es', 'de', 'ru'])(
+    'sends the non-empty expiry notice in %s (never a link)',
+    async (locale) => {
+      const sendFriendMessage = jest.fn(async () => ({ ordinal: 1 }));
+
+      await sendConfirmExpiredMessage({ sendFriendMessage }, STEAM, locale);
+
+      expect(sendFriendMessage).toHaveBeenCalledTimes(1);
+      const text = getConfirmExpiredText(locale);
+      expect(text.length).toBeGreaterThan(0);
+      expect(text).not.toContain('[');
+      expect(sendFriendMessage).toHaveBeenCalledWith(STEAM, text);
+    },
+  );
+
+  it('fails loudly when the chat sender is missing (version mismatch)', async () => {
+    await expect(
+      sendConfirmExpiredMessage({} as never, STEAM, 'en'),
     ).rejects.toThrow(/sendFriendMessage is not a function/);
   });
 });

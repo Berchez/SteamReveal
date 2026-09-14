@@ -12,6 +12,7 @@ import { generateHexToken } from '../lib/watch/tokens';
 import { sanitizeSteamNickname } from '../lib/steamNickname';
 import {
   DEFAULT_WATCH_LOCALE,
+  getConfirmExpiredText,
   getConfirmText,
   getNotifyText,
 } from '../lib/watch/notificationText';
@@ -83,7 +84,9 @@ export const resolveNotifyDisplayName = async (
   // Single shared sanitizer (same one the navbar uses): controls, bidi
   // overrides AND BBCode brackets — a nickname is interpolated into the
   // bot's official message, so `[url=phish]` must die here, not in chat.
-  return sanitizeSteamNickname(player?.personaname);
+  // stripBrackets is explicit (not the default): this is the one surface
+  // where Steam itself renders markup.
+  return sanitizeSteamNickname(player?.personaname, { stripBrackets: true });
 };
 
 /**
@@ -166,4 +169,24 @@ export const sendConfirmMessage = async (
     );
   }
   await chat.sendFriendMessage(steamId, getConfirmText(locale, url));
+};
+
+/**
+ * Sends the link-expired notice (click-to-activate flow): the token died
+ * unclicked, so the message points at the site (generate a fresh link
+ * there) instead of carrying anything expirable itself. Same sender
+ * contract as notifies; failures propagate to the caller's per-row
+ * isolation (the expiry poller retries next pass by not marking).
+ */
+export const sendConfirmExpiredMessage = async (
+  chat: NotifyChatClient,
+  steamId: string,
+  locale: string | null | undefined,
+): Promise<void> => {
+  if (typeof chat?.sendFriendMessage !== 'function') {
+    throw new Error(
+      'Steam chat sender unavailable: sendFriendMessage is not a function',
+    );
+  }
+  await chat.sendFriendMessage(steamId, getConfirmExpiredText(locale));
 };

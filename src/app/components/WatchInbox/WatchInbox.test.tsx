@@ -408,7 +408,8 @@ describe('WatchInbox', () => {
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
   });
 
-  it('offers the login gate when the session died mid-use', async () => {    fetchMock.mockResolvedValue({ ok: false, status: 401 });
+  it('offers the login gate when the session died mid-use', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 401 });
 
     render(<WatchInbox steamId={STEAM_A} />);
     await settle();

@@ -117,12 +117,17 @@ const getSteamIdentity = cache(
         return null;
       }
       const nickname = player?.personaname;
-      // Same shared sanitizer the bot uses: personaname is hostile input
-      // and the navbar is now a global surface (bidi/visual spoofing +
-      // BBCode brackets must die here, not in the dropdown). Null (blank
-      // or nothing-printable) falls back to the steamId, as before.
+      // Same shared sanitizer the bot uses, chat-brackets excepted:
+      // personaname is hostile input and the navbar is now a global
+      // surface, so controls/bidi spoofing still die here — but `[`/`]`
+      // survive: React escapes them inertly in our HTML (no BBCode engine
+      // here, unlike Steam chat), and stripping them would mangle clan
+      // tags like `[NAVI]` for exactly the CS audience of this site.
+      // Null (blank or nothing-printable) falls back to the steamId.
       const identity: SteamIdentity = {
-        nickname: sanitizeSteamNickname(nickname) ?? steamId,
+        nickname:
+          sanitizeSteamNickname(nickname, { stripBrackets: false }) ??
+          steamId,
         avatarUrl,
       };
       writeCachedIdentity(steamId, identity);

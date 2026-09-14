@@ -16,10 +16,14 @@ import {
   activateWatch,
   claimNextQueuedEvents,
   countInvitesSentSince,
+  getAccount,
   getWatchedProfile,
+  issueConfirmToken,
+  listExpiredUnnoticedConfirms,
   listWatchedProfiles,
   markEventDropped,
   markEventSent,
+  markExpireNoticed,
   recordEventAttempt,
   removeWatchAndAccount,
   resetStaleClaims,
@@ -31,12 +35,17 @@ import { reconcileFriendsList } from './reconcile';
 import { handleFriendRemoved } from './friendRemoved';
 import {
   handleActivation,
+  sendConfirmLink,
   type ActivationChatClient,
 } from './activationMessage';
 import type { NotifyChatClient } from './notifyMessage';
+import type { WelcomeChatClient } from './welcomeMessage';
 import { startHeartbeat } from './heartbeat';
 import { startInvitePoller } from './invitePoller';
 import { startNotifyPoller } from './notifyPoller';
+import { startWelcomePoller } from './welcomePoller';
+import { startConfirmExpiryPoller } from './confirmExpiryPoller';
+import { startConfirmResendPoller } from './confirmResendPoller';
 import { startStaleClaimSweeper, sweepStaleClaimsOnce } from './staleSweep';
 
 loadEnv();
@@ -75,6 +84,62 @@ const main = (): void => {
   // synchronous setup, long before any logon can complete.
   let invitePoller: ReturnType<typeof startInvitePoller> | undefined;
   let notifyPoller: ReturnType<typeof startNotifyPoller> | undefined;
+  let welcomePoller: ReturnType<typeof startWelcomePoller> | undefined;
+  let resendPoller: ReturnType<typeof startConfirmResendPoller> | undefined;
+  let expiryPoller: ReturnType<typeof startConfirmExpiryPoller> | undefined;
+
+  // Live friendship check for the confirm lanes (expiry scan + resend
+  // fulfillment) and the periodic reconcile below: same authoritative map
+  // the reconcile snapshots come from (bot.ts forwards {...myFriends}),
+  // read directly so timer passes never depend on event delivery.
+  const isFriend = (steamId: string): boolean =>
+    client.myFriends[steamId] === SteamUser.EFriendRelationship.Friend;
+
+  // Shared converge call so the event-driven snapshot path and the
+  // periodic backstop below can never drift apart (same DAL, same hooks).
+  // The cast is contained here: @types/steam-user does not declare
+  // chat.sendFriendMessage (verified present at runtime in the
+  // installed v5), so the structural chat-client type carries it.
+  const convergeFriends = (friendsById: Record<string, number>): void => {
+    reconcileFriendsList(
+      friendsById,
+      SteamUser.EFriendRelationship.Friend,
+      {
+        listWatchedProfiles,
+        activateWatch,
+        removeWatchAndAccount,
+        getAccount,
+      },
+      logger,
+      // Activation message (navbar-global signup flow, see
+      // activationMessage.ts for the no-retry rationale). Runs after
+      // activateWatch commits; a send failure is isolated per row by
+      // reconcile (activation stands) and fires exactly once per
+      // activation thanks to reconcile's serialized passes (a repeat
+      // pass sees 'active' and skips).
+      ({ steamId, locale }) => {
+        const chat = client.chat as unknown as ActivationChatClient;
+        return handleActivation(chat, steamId, locale, config);
+      },
+        // Confirm-link sender (click-to-activate flow): pending + friend +
+        // unconfirmed accounts get the link WITHOUT activating — the
+        // click (confirm route POST) is the sole activator. sendConfirmLink
+        // issues only when no token was ever issued, so repeat passes
+        // (every reconnect) do not spam chat; failures are isolated per
+        // row like above.
+      async ({ steamId, locale }) => {
+        const chat = client.chat as unknown as ActivationChatClient;
+        return sendConfirmLink(chat, steamId, locale, config);
+      },
+    ).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[WatchBot] reconcile failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    });
+  };
 
   const bot = new WatchBot({
     client,
@@ -89,38 +154,13 @@ const main = (): void => {
     // process (reconcile already isolates per-row errors; this is the
     // last-resort guard for listWatchedProfiles-level failures).
     onFriendsSnapshot: (friendsById) => {
-      reconcileFriendsList(
-        friendsById,
-        SteamUser.EFriendRelationship.Friend,
-        { listWatchedProfiles, activateWatch, removeWatchAndAccount },
-        logger,
-        // Activation message (navbar-global signup flow, see
-        // activationMessage.ts for the no-retry rationale). Runs after
-        // activateWatch commits; a send failure is isolated per row by
-        // reconcile (activation stands) and fires exactly once per
-        // activation thanks to reconcile's serialized passes (a repeat
-        // pass sees 'active' and skips).
-        // The cast is contained here: @types/steam-user does not declare
-        // chat.sendFriendMessage (verified present at runtime in the
-        // installed v5), so the structural chat-client type carries it.
-        ({ steamId, locale }) => {
-          const chat = client.chat as unknown as ActivationChatClient;
-          return handleActivation(chat, steamId, locale, config);
-        },
-      ).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(
-          `[WatchBot] reconcile failed: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        );
-      });
+      convergeFriends(friendsById);
     },
     // Prompt first passes on every (re)logon instead of waiting for the
     // next interval ticks — queued work drains right after reconnects.
     // The pollers re-check connection themselves, so a stray call is a
-    // safe no-op. Two INDEPENDENT guards (not one shared early return):
-    // each lane must fire even if the other handle is somehow unset.
+    // safe no-op. INDEPENDENT guards (not one shared early return):
+    // each lane must fire even if another handle is somehow unset.
     onConnected: () => {
       const invites = invitePoller;
       if (invites !== undefined) {
@@ -128,6 +168,39 @@ const main = (): void => {
           // eslint-disable-next-line no-console
           console.error(
             `[WatchBot] post-logon invite poll failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+        );
+      }
+      const welcomes = welcomePoller;
+      if (welcomes !== undefined) {
+        welcomes.pollOnce().catch((error: unknown) =>
+          // eslint-disable-next-line no-console
+          console.error(
+            `[WatchBot] post-logon welcome poll failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+        );
+      }
+      const resends = resendPoller;
+      if (resends !== undefined) {
+        resends.pollOnce().catch((error: unknown) =>
+          // eslint-disable-next-line no-console
+          console.error(
+            `[WatchBot] post-logon resend poll failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+        );
+      }
+      const expiries = expiryPoller;
+      if (expiries !== undefined) {
+        expiries.pollOnce().catch((error: unknown) =>
+          // eslint-disable-next-line no-console
+          console.error(
+            `[WatchBot] post-logon expiry scan failed: ${
               error instanceof Error ? error.message : String(error)
             }`,
           ),
@@ -268,6 +341,104 @@ const main = (): void => {
     ),
   );
 
+  // Post-click welcome consumer (click-to-activate flow): the confirm
+  // route enqueues exactly when it activates, so this lane only ever
+  // carries active watches — the recipient gate is a backstop, not the
+  // policy. Same lifecycle as invite/notify above.
+  welcomePoller = startWelcomePoller({
+    chat: client.chat as unknown as WelcomeChatClient,
+    dal: {
+      claimNextQueuedEvents,
+      markEventSent,
+      markEventDropped,
+      recordEventAttempt,
+      getWatchedProfile,
+    },
+    pollIntervalMs: config.welcomePollIntervalMs,
+    batchLimit: config.welcomeBatchLimit,
+    maxAttempts: config.welcomeMaxAttempts,
+    sendTimeoutMs: config.welcomeSendTimeoutMs,
+    isConnected: () => bot.isConnected(),
+  });
+  welcomePoller.pollOnce().catch((error: unknown) =>
+    // eslint-disable-next-line no-console
+    console.error(
+      `[WatchBot] initial welcome poll failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    ),
+  );
+
+  // Confirm-link resend consumer (user-awaited lane: someone pressed
+  // "generate a new link", so drain fast like invite/notify, not hourly).
+  resendPoller = startConfirmResendPoller({
+    chat: client.chat as unknown as NotifyChatClient,
+    dal: {
+      claimNextQueuedEvents,
+      markEventSent,
+      markEventDropped,
+      recordEventAttempt,
+      getWatchedProfile,
+      getAccount,
+      issueConfirmToken,
+    },
+    pollIntervalMs: config.resendPollIntervalMs,
+    batchLimit: config.resendBatchLimit,
+    maxAttempts: config.resendMaxAttempts,
+    sendTimeoutMs: config.resendSendTimeoutMs,
+    siteUrl: config.siteUrl,
+    confirmTokenTtlMs: config.confirmTokenTtlMs,
+    resendMinIntervalMs: config.resendMinIntervalMs,
+    isConnected: () => bot.isConnected(),
+    isFriend,
+  });
+  resendPoller.pollOnce().catch((error: unknown) =>
+    // eslint-disable-next-line no-console
+    console.error(
+      `[WatchBot] initial resend poll failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    ),
+  );
+
+  // Confirm-link expiry scanner (hourly class): single "generate a new
+  // one" notice per dead generation. Catches up after downtime on boot
+  // via the explicit first pass below (a bot offline past a token expiry
+  // still notifies on return).
+  expiryPoller = startConfirmExpiryPoller({
+    chat: client.chat as unknown as NotifyChatClient,
+    dal: {
+      listExpiredUnnoticedConfirms,
+      getAccount,
+      markExpireNoticed,
+    },
+    pollIntervalMs: config.expiryScanIntervalMs,
+    isConnected: () => bot.isConnected(),
+    isFriend,
+  });
+  expiryPoller.pollOnce().catch((error: unknown) =>
+    // eslint-disable-next-line no-console
+    console.error(
+      `[WatchBot] initial expiry scan failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    ),
+  );
+
+  // Periodic full reconcile (backstop for missed snapshots AND for
+  // click-activations that landed while the DB blipped: the confirm
+  // route's activate is best-effort, this converges the rest within one
+  // interval). Snapshot events alone only fire on (re)logon and accepts,
+  // which can be days apart on a stable connection. Gated on connection
+  // (offline snapshots would be stale); unref'd like every timer here.
+  const reconcileTimer = setInterval(() => {
+    if (!bot.isConnected()) return;
+    convergeFriends({ ...client.myFriends });
+  }, config.reconcileIntervalMs);
+  if (typeof reconcileTimer.unref === 'function') {
+    reconcileTimer.unref();
+  }
+
   let shuttingDown = false;
   const shutdown = (signal: 'SIGINT' | 'SIGTERM'): void => {
     if (shuttingDown) return;
@@ -276,8 +447,12 @@ const main = (): void => {
     console.log(`[WatchBot] received ${signal}, shutting down...`);
     heartbeat.stop();
     staleSweeper.stop();
+    clearInterval(reconcileTimer);
     invitePoller?.stop();
     notifyPoller?.stop();
+    welcomePoller?.stop();
+    resendPoller?.stop();
+    expiryPoller?.stop();
     bot.stop();
     // Let logOff flush, then exit. The delay is ref'd on purpose: prompt
     // shutdown still waits out this beat instead of racing process exit

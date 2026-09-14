@@ -4,8 +4,13 @@
  * Compares the bot's CURRENT friendsList snapshot (authoritative Steam
  * state, available on boot AND every reconnect) against the watches in the
  * DAL and converges them:
- *   - pending + SteamID is a friend  -> activateWatch()
- *   - active + SteamID is NOT a friend -> deactivateWatch()
+ *   - pending + friend + confirmed (or legacy row with no account at all,
+ *     which consented under the old friendship-activates contract)
+ *     -> activateWatch() (+ onActivated welcome)
+ *   - pending + friend + unconfirmed -> onConfirmLinkNeeded() (confirm
+ *     link ONLY — click-to-activate: friendship alone never activates,
+ *     so the watch cannot notify or toast before the link click)
+ *   - active + SteamID is NOT a friend -> removeWatchAndAccount()
  *   - everything else                   -> untouched
  *
  * This is snapshot-driven (not polled): callers feed it the friendsList
@@ -21,9 +26,12 @@
  * arrive both on full syncs and on individual accepts, so two passes can
  * overlap in time — and overlapping passes both read pre-commit state,
  * which would fire onActivated (welcome message) twice for the same
- * profile. The DB update alone cannot dedupe that (activateWatch is
- * idempotent-true by contract). Chaining means every pass reads
- * post-commit state, so the loser sees 'active' and skips the welcome.
+ * profile. The DB update dedupes concurrent flips (rowsAffected > 0 wins
+ * exactly once — activateWatch returns true ONLY to the flipper), but
+ * chaining additionally keeps every pass reading post-commit state, so
+ * the loser skips the branch entirely instead of merely losing the race
+ * (fewer redundant account reads, deterministic row order and error
+ * attribution).
  * Skipping (drop-if-busy) would be wrong here, unlike the poller: a
  * dropped accept snapshot might never reconcile (no further event may
  * come), so every snapshot waits its turn instead.
@@ -38,6 +46,7 @@
  */
 
 import type { RemoveWatchResult } from '../lib/analytics/db';
+import type { WatchAccount } from '../lib/analytics/types';
 import type { WatchBotLogger } from './logger';
 
 export interface ReconcileDal {
@@ -46,6 +55,8 @@ export interface ReconcileDal {
   >;
   activateWatch: (steamId: string) => Promise<boolean>;
   removeWatchAndAccount: (steamId: string) => Promise<RemoveWatchResult>;
+  /** Confirmation read for the click-to-activate branch below. */
+  getAccount: (steamId: string) => Promise<WatchAccount | null>;
 }
 
 export interface ReconcileReport {
@@ -53,6 +64,8 @@ export interface ReconcileReport {
   watches: number;
   activated: string[];
   deactivated: string[];
+  /** Profiles that actually got a confirm link this pass (sent, not skipped). */
+  confirmLinksSent: string[];
   skippedInvalidIds: number;
   errors: Array<{ steamId: string; operation: string; message: string }>;
   durationMs: number;
@@ -70,6 +83,22 @@ export type ActivatedHandler = (profile: {
   locale: string | null;
 }) => Promise<void> | void;
 
+/**
+ * Fired once per pending+friend watch whose account is still unconfirmed.
+ * The implementor delivers the confirm link WITHOUT activating (see
+ * sendConfirmLink): activation happens exactly once, later, in the
+ * confirm route's POST after the click. Return true when a link actually
+ * went out (counted in report.confirmLinksSent); false/void when skipped
+ * (live token outstanding, raced confirmation — steady-state, not an
+ * error). Throwing is isolated per row into errors[] with operation
+ * 'confirmLink'. Optional (tests, minimal wirings): without it an
+ * unconfirmed watch simply stays pending.
+ */
+export type ConfirmLinkHandler = (profile: {
+  steamId: string;
+  locale: string | null;
+}) => Promise<boolean> | boolean;
+
 const STEAM_ID64_RE = /^\d{17}$/;
 
 const runReconcilePass = async (
@@ -78,6 +107,7 @@ const runReconcilePass = async (
   dal: ReconcileDal,
   logger: WatchBotLogger = console,
   onActivated: ActivatedHandler | undefined = undefined,
+  onConfirmLinkNeeded: ConfirmLinkHandler | undefined = undefined,
 ): Promise<ReconcileReport> => {
   const startedAt = Date.now();
   const report: ReconcileReport = {
@@ -85,6 +115,7 @@ const runReconcilePass = async (
     watches: 0,
     activated: [],
     deactivated: [],
+    confirmLinksSent: [],
     skippedInvalidIds: 0,
     errors: [],
     durationMs: 0,
@@ -115,27 +146,68 @@ const runReconcilePass = async (
         // scripts/migrate-db.ts): rows converge in a deterministic order,
         // one isolated try/catch per row, and no write burst against Turso.
         if (watch.status === 'pending' && friends.has(watch.steamId)) {
-          // eslint-disable-next-line no-await-in-loop
-          const activated = await dal.activateWatch(watch.steamId);
-          if (activated) {
-            report.activated.push(watch.steamId);
-            if (onActivated) {
+          // Click-to-activate: friendship alone no longer activates. The
+          // account read decides the lane — confirmed (or legacy rows
+          // without an account row, which consented under the old
+          // contract) take the activate path; unconfirmed accounts get
+          // the confirm link instead and stay pending until the click.
+          // A read failure skips the row this pass (recorded below,
+          // retried next pass — same contract as the outer catch).
+          let account: WatchAccount | null | undefined;
+          try {
+            // eslint-disable-next-line no-await-in-loop
+            account = await dal.getAccount(watch.steamId);
+          } catch (error) {
+            report.errors.push({
+              steamId: watch.steamId,
+              operation: 'confirmLink',
+              message:
+                error instanceof Error ? error.message : String(error),
+            });
+          }
+          if (account !== undefined) {
+            if (account === null || account.confirmedAt !== null) {
+              // eslint-disable-next-line no-await-in-loop
+              const activated = await dal.activateWatch(watch.steamId);
+              if (activated) {
+                report.activated.push(watch.steamId);
+                if (onActivated) {
+                  try {
+                    // eslint-disable-next-line no-await-in-loop
+                    await onActivated({
+                      steamId: watch.steamId,
+                      locale: watch.locale ?? null,
+                    });
+                  } catch (error) {
+                    // Labeled for the actual sender (confirm link OR welcome —
+                    // see handleActivation), not a blanket 'welcomeMessage'.
+                    report.errors.push({
+                      steamId: watch.steamId,
+                      operation: 'activationMessage',
+                      message:
+                        error instanceof Error ? error.message : String(error),
+                    });
+                  }
+                }
+              }
+            } else if (onConfirmLinkNeeded !== undefined) {
               try {
                 // eslint-disable-next-line no-await-in-loop
-                await onActivated({
+                const sent = await onConfirmLinkNeeded({
                   steamId: watch.steamId,
                   locale: watch.locale ?? null,
                 });
+                if (sent) report.confirmLinksSent.push(watch.steamId);
               } catch (error) {
-                // Labeled for the actual sender (confirm link OR welcome —
-                // see handleActivation), not a blanket 'welcomeMessage'.
                 report.errors.push({
                   steamId: watch.steamId,
-                  operation: 'activationMessage',
-                  message: error instanceof Error ? error.message : String(error),
+                  operation: 'confirmLink',
+                  message:
+                    error instanceof Error ? error.message : String(error),
                 });
               }
             }
+            // No link hook configured: unconfirmed stays pending silently.
           }
         } else if (watch.status === 'active' && !friends.has(watch.steamId)) {
           // Opt-out while offline: the SAME composite the live
@@ -175,6 +247,7 @@ const runReconcilePass = async (
   logger.info(
     `[WatchBot] reconcile done: friends=${report.friends} watches=${report.watches} ` +
       `activated=${report.activated.length} deactivated=${report.deactivated.length} ` +
+      `linksSent=${report.confirmLinksSent.length} ` +
       `skippedInvalidIds=${report.skippedInvalidIds} errors=${report.errors.length} ` +
       `durationMs=${report.durationMs}`,
   );
@@ -199,6 +272,7 @@ export const reconcileFriendsList = (
   dal: ReconcileDal,
   logger: WatchBotLogger = console,
   onActivated: ActivatedHandler | undefined = undefined,
+  onConfirmLinkNeeded: ConfirmLinkHandler | undefined = undefined,
 ): Promise<ReconcileReport> => {
   const run = reconcileTail.then(() =>
     runReconcilePass(
@@ -207,6 +281,7 @@ export const reconcileFriendsList = (
       dal,
       logger,
       onActivated,
+      onConfirmLinkNeeded,
     ),
   );
   reconcileTail = run.then(

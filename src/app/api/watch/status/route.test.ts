@@ -8,6 +8,7 @@ jest.mock('@/lib/analytics/db', () => ({
   createWatchRequest: jest.fn(),
   deactivateWatch: jest.fn(),
   enqueueEvent: jest.fn(),
+  getAccount: jest.fn(),
   getWatchedProfile: jest.fn(),
   getWatchStatus: jest.fn(),
   refreshWatchRequest: jest.fn(),
@@ -36,6 +37,7 @@ const mockedDb = jest.requireMock('@/lib/analytics/db') as {
   createWatchRequest: jest.Mock;
   deactivateWatch: jest.Mock;
   enqueueEvent: jest.Mock;
+  getAccount: jest.Mock;
   getWatchedProfile: jest.Mock;
   getWatchStatus: jest.Mock;
   refreshWatchRequest: jest.Mock;
@@ -63,6 +65,7 @@ describe('GET /api/watch/status', () => {
     jest.clearAllMocks();
     __testIsRateLimited.mockReturnValue(false);
     resolveWatchSession.mockResolvedValue({ status: 'authenticated', steamId: STEAM_ID });
+    mockedDb.getAccount.mockResolvedValue(null);
   });
 
   it('returns pending for a pending watch', async () => {
@@ -71,7 +74,11 @@ describe('GET /api/watch/status', () => {
     const res = await GET(makeRequest());
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ steamId: STEAM_ID, status: 'pending' });
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'pending',
+      confirmExpired: false,
+    });
     expect(mockedDb.getWatchStatus).toHaveBeenCalledWith(STEAM_ID);
   });
 
@@ -81,7 +88,11 @@ describe('GET /api/watch/status', () => {
     const res = await GET(makeRequest());
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ steamId: STEAM_ID, status: 'active' });
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'active',
+      confirmExpired: false,
+    });
   });
 
   it('returns none when no watch was ever requested', async () => {
@@ -90,7 +101,11 @@ describe('GET /api/watch/status', () => {
     const res = await GET(makeRequest());
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ steamId: STEAM_ID, status: 'none' });
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'none',
+      confirmExpired: false,
+    });
   });
 
   it('returns none for an opted-out (deactivated) watch', async () => {
@@ -103,7 +118,72 @@ describe('GET /api/watch/status', () => {
     const res = await GET(makeRequest());
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ steamId: STEAM_ID, status: 'none' });
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'none',
+      confirmExpired: false,
+    });
+  });
+
+  it('flags confirmExpired only for a real past expiry on unconfirmed accounts', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmExpiresAt: '2000-01-01T00:00:00.000Z',
+    });
+
+    const expired = await GET(makeRequest());
+    expect(await expired.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'pending',
+      confirmExpired: true,
+    });
+
+    // Live token: not expired.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmExpiresAt: '2999-01-01T00:00:00.000Z',
+    });
+    const live = await GET(makeRequest());
+    expect(await live.json()).toEqual(
+      expect.objectContaining({ confirmExpired: false }),
+    );
+
+    // Confirmed: never expired (token columns are cleared on consume).
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: '2026-09-03T00:00:00.000Z',
+      confirmExpiresAt: null,
+    });
+    const confirmed = await GET(makeRequest());
+    expect(await confirmed.json()).toEqual(
+      expect.objectContaining({ confirmExpired: false }),
+    );
+
+    // Corrupt clock: fail closed toward "not expired" (no resend offered
+    // for a state we cannot read).
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmExpiresAt: 'not-a-date',
+    });
+    const corrupt = await GET(makeRequest());
+    expect(await corrupt.json()).toEqual(
+      expect.objectContaining({ confirmExpired: false }),
+    );
+  });
+
+  it('degrades confirmExpired to false (loudly) when the account read fails', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+    mockedDb.getAccount.mockRejectedValue(new Error('turso blip'));
+
+    const res = await GET(makeRequest());
+
+    // Display-only garnish must not 500 the polling loop.
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'pending',
+      confirmExpired: false,
+    });
   });
 
   it('returns 401 without a login session (never touches the DAL)', async () => {

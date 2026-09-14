@@ -1,5 +1,6 @@
 import {
   DEFAULT_WATCH_LOCALE,
+  getConfirmExpiredText,
   getConfirmText,
   getNotifyText,
   getWelcomeText,
@@ -57,6 +58,15 @@ describe('shared watch message base', () => {
     },
   );
 
+  it.each([...WATCH_LOCALES])(
+    'expiry-notice text is non-empty in %s (never a link)',
+    (locale) => {
+      const text = getConfirmExpiredText(locale);
+      expect(text.length).toBeGreaterThan(0);
+      expect(text).not.toContain('http');
+    },
+  );
+
   it('names the profile and links the player page when provided', () => {
     const text = getNotifyText('pt', STEAM, {
       nickname: 'FalleN',
@@ -100,6 +110,9 @@ describe('shared watch message base', () => {
     expect(getConfirmText('xx', CONFIRM_URL)).toBe(
       getConfirmText(DEFAULT_WATCH_LOCALE, CONFIRM_URL),
     );
+    expect(getConfirmExpiredText('xx')).toBe(
+      getConfirmExpiredText(DEFAULT_WATCH_LOCALE),
+    );
   });
 
   it('keeps every template free of [ (Steam BBCode mangling)', () => {
@@ -107,6 +120,7 @@ describe('shared watch message base', () => {
       expect(getWelcomeText(locale)).not.toContain('[');
       expect(getNotifyText(locale, STEAM)).not.toContain('[');
       expect(getConfirmText(locale, CONFIRM_URL)).not.toContain('[');
+      expect(getConfirmExpiredText(locale)).not.toContain('[');
     }
   });
 
@@ -119,10 +133,83 @@ describe('shared watch message base', () => {
     expect(getNotifyText('de', STEAM)).toMatch(/[äöüÄÖÜß]/);
     expect(getWelcomeText('ru')).toMatch(/[Ѐ-џ]/);
     expect(getConfirmText('ru', CONFIRM_URL)).toMatch(/[Ѐ-џ]/);
+    expect(getConfirmExpiredText('ru')).toMatch(/[Ѐ-џ]/);
+    expect(getConfirmExpiredText('pt')).toMatch(/[ãç]/);
+    expect(getConfirmExpiredText('es')).toMatch(/[óí]/);
+    expect(getConfirmExpiredText('de')).toMatch(/[äöüÄÖÜß]/);
     for (const locale of WATCH_LOCALES) {
       expect(getWelcomeText(locale)).not.toContain('�');
       expect(getNotifyText(locale, STEAM)).not.toContain('�');
       expect(getConfirmText(locale, CONFIRM_URL)).not.toContain('�');
+      expect(getConfirmExpiredText(locale)).not.toContain('�');
+    }
+  });
+
+  it('keeps every template in its own language (no cross-locale contamination)', () => {
+    // Regression net for whole-sentence pastes across locales (once
+    // shipped in WELCOME/CONFIRM es/de/ru): UTF-8 presence checks cannot
+    // catch those — the alphabet survives while the language does not —
+    // so distinctive per-language words are asserted absent everywhere
+    // else. Every marker below occurs in its home locale (the positive
+    // side is self-validating: a marker matching nowhere fails loudly
+    // here instead of silently weakening the net). Deliberate limit:
+    // same-language typos ("aba o este") need native review, not regex.
+    const PT_MARKERS = [
+      'você',
+      'estão',
+      'lguém',
+      'com este bot',
+      'Para parar',
+    ];
+    const ES_MARKERS = ['¡', 'aquí', 'enlace', 'mira'];
+    const DE_MARKERS = [
+      'Jemand',
+      'Beobachtung',
+      'Bestätigung',
+      'sobald',
+      'über',
+      'Freundesliste',
+      'einfach',
+    ];
+    const EN_MARKERS = [' your ', ' the ', 'will ', 'unfriend', 'Steam message'];
+    const CYRILLIC_RE = /[Ѐ-џ]/;
+    const templatesFor = (locale: string): string[] => [
+      getWelcomeText(locale),
+      getNotifyText(locale, STEAM),
+      getConfirmText(locale, CONFIRM_URL),
+      getConfirmExpiredText(locale),
+    ];
+    const combined: Record<string, string> = {};
+    for (const locale of WATCH_LOCALES) {
+      combined[locale] = templatesFor(locale).join('\n');
+    }
+    // Positive (non-vacuous): every marker occurs in its home locale.
+    for (const marker of PT_MARKERS) expect(combined.pt).toContain(marker);
+    for (const marker of ES_MARKERS) expect(combined.es).toContain(marker);
+    for (const marker of DE_MARKERS) expect(combined.de).toContain(marker);
+    for (const marker of EN_MARKERS) expect(combined.en).toContain(marker);
+    // Negative: no marker leaks into any other locale's templates.
+    const forbidden: Record<string, string[]> = {
+      en: [...PT_MARKERS, ...ES_MARKERS, ...DE_MARKERS],
+      pt: [...ES_MARKERS, ...DE_MARKERS, ...EN_MARKERS],
+      es: [...PT_MARKERS, ...DE_MARKERS, ...EN_MARKERS],
+      de: [...PT_MARKERS, ...ES_MARKERS, ...EN_MARKERS],
+      ru: [...PT_MARKERS, ...ES_MARKERS, ...DE_MARKERS, ...EN_MARKERS],
+    };
+    for (const locale of WATCH_LOCALES) {
+      for (const marker of forbidden[locale]) {
+        for (const text of templatesFor(locale)) {
+          expect(text).not.toContain(marker);
+        }
+      }
+      // Cyrillic lives exclusively in ru templates (and in every one).
+      for (const text of templatesFor(locale)) {
+        if (locale === 'ru') {
+          expect(text).toMatch(CYRILLIC_RE);
+        } else {
+          expect(text).not.toMatch(CYRILLIC_RE);
+        }
+      }
     }
   });
 });
