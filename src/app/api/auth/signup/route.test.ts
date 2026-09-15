@@ -170,6 +170,28 @@ describe('POST /api/auth/signup', () => {
     expect(mockedDb.refreshWatchRequest).not.toHaveBeenCalled();
   });
 
+  it('absorbs a redundant signup when warm cache said none but a fresh pending row exists', async () => {
+    // Warm-start hazard (avatar prefetch): the panel can paint 'none' from
+    // a stale cache and offer Start, while the live row is actually a fresh
+    // pending watch. Clicking Start then must be a safe no-op — success,
+    // no new row, no extra invite — never a duplicate side effect.
+    const requestedAt = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    mockedDb.getWatchedProfile.mockResolvedValue(pendingRow(requestedAt));
+
+    const res = await POST(makeRequest({ jsonBody: { locale: 'pt' } }));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      ok: true,
+      steamId: STEAM_ID,
+      inviteQueued: false,
+      pendingExpiresInMs: expect.any(Number),
+    });
+    expect(mockedDb.createWatchRequest).not.toHaveBeenCalled();
+    expect(mockedDb.enqueueEvent).not.toHaveBeenCalled();
+    expect(mockedDb.refreshWatchRequest).not.toHaveBeenCalled();
+  });
+
   it('refreshes + re-queues an expired pending row', async () => {
     const requestedAt = new Date(Date.now() - 8 * 24 * 3600 * 1000).toISOString();
     mockedDb.getWatchedProfile.mockResolvedValue(pendingRow(requestedAt));

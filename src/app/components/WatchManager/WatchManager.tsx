@@ -6,6 +6,9 @@ import { usePathname } from '@/navigation';
 import resolveLoginNext from '@/lib/watch/loginNext';
 
 import { useWatchStatus } from '@/app/templates/Home/hooks/watch/useWatchStatus';
+import { clearWatchStatusPrefetch } from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
+
+import WatchManagerSkeleton from './WatchManagerSkeleton';
 
 /**
  * Watch panel content (Steam OpenID + bot-link confirmation era): the
@@ -86,6 +89,11 @@ function WatchManager({ steamId }: { steamId: string }) {
       // login gate either way when the cookie is gone, and shows this
       // screen again (with a fresh session read) when it is not.
     } finally {
+      // Drop any hover-prefetched status: the next login is a different
+      // session that must never read this one's hint. The reload wipes
+      // module state anyway — belt-and-braces for a future client-side
+      // logout without reload.
+      clearWatchStatusPrefetch();
       window.location.reload();
     }
   }, [loggingOut]);
@@ -217,6 +225,12 @@ function WatchManager({ steamId }: { steamId: string }) {
     );
   }
 
+  // 'none' may come from a stale warm cache (hover prefetch ≤15s old) while
+  // the live row is already pending/active. Offering Start anyway is safe:
+  // POST /api/auth/signup is idempotent — over an existing row it answers
+  // ok with inviteQueued:false and queues nothing (pinned by the signup
+  // route's stale-warm-none test). Disabling the button until revalidation
+  // would trade a harmless no-op for a visibly dead CTA on every open.
   if (status === 'none') {
     return (
       <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
@@ -241,9 +255,11 @@ function WatchManager({ steamId }: { steamId: string }) {
     );
   }
 
-  // Status unknown (first poll in flight): render nothing rather than a
-  // wrong state — the poll resolves within one interval.
-  return null;
+  // Status unknown (first poll in flight): render a height-neutral skeleton
+  // rather than a wrong state — or nothing, which grows the avatar dropdown
+  // after open and shifts layout (CLS). Same wrapper + min-h as the real
+  // states, so the poll swap is a content change, not a size change.
+  return <WatchManagerSkeleton />;
 }
 
 export default WatchManager;

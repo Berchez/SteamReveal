@@ -278,7 +278,29 @@ armazenado, não o do browser).
 - **QA-40 — POST sem Origin.** `curl.exe -X POST "LINK"` → `403` (CSRF
   fail-closed; o form legítimo sempre manda Origin same-origin).
 
-## 9. Mapa automatizado (não reteste na mão)
+## 9. Avatar dropdown: prefetch + skeleton (anti-CLS)
+
+Pré-condição: logado (avatar visível), DevTools aberto (aba Network +
+Performance → Experience). Vale em qualquer estado (`none`/`pending`/`active`).
+
+- **QA-41 — Cold open mostra skeleton sem salto de layout.** Recarregue a
+  página e abra o dropdown **sem passar o mouse antes** (Tab até o avatar +
+  Enter, ou toque direto no mobile). Com rede throttlada (Slow 4G) dá para
+  ver: primeiro um placeholder pulsante **sem texto**, depois o conteúdo
+  real — a altura do painel quase não se move entre os dois. Na gravação do
+  Performance, **nenhum** evento `LayoutShift` relevante aparece na abertura
+  (o `min-h` do skeleton foi medido por locale; `ru`/`de` no estado `none`
+  podem deslocar ~40–70px para baixo — residual aceito e documentado no
+  cabeçalho de `WatchManagerSkeleton.tsx`).
+- **QA-42 — Hover esquenta o painel (abre com conteúdo).** Passe o mouse no
+  avatar ~1s e só então clique: o painel deve abrir **direto no conteúdo
+  real**, sem flash de skeleton. Na aba Network: um `GET
+  /api/watch/status` no hover + um no open (revalidação do mount — normal,
+  barato e idempotente). Repetir hover/clique em sequência não multiplica
+  requests (single-flight + TTL 15s) e fechar/reabrir rápido durante uma
+  ativação `pending → active` toca o toast `Watch active!` **exatamente 1x**.
+
+## 10. Mapa automatizado (não reteste na mão)
 
 | Caso                                                                                                           | Suite                                                                                                                                                                                     |
 | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -292,9 +314,10 @@ armazenado, não o do browser).
 | Journey mockada (aceite→pending sem toast; POST→active; expirado→resend)                                       | `e2e/watch.spec.ts` (3 testes novos)                                                                                                                                                      |
 | Comandos                                                                                                       | `pnpm test` · `pnpm test -- --runTestsByPath <arq>` · `pnpm run lint` · `pnpm exec tsc --noEmit` · `pnpm exec playwright test e2e/watch.spec.ts --project=chromium` · `pnpm run db:smoke` |
 
-## 10. Checklist final de aceite
+## 11. Checklist final de aceite
 
 - [ ] QA-01→QA-06 verdes (feliz, logout 3 estados, opt-out + re-signup)
+- [ ] QA-41→QA-42 verdes (skeleton sem salto em cold open; hover abre com conteúdo, 1 toast)
 - [ ] QA-07→QA-09: gating provado (amizade sem clique = pending; GETs não
       gastam; clique ativa tudo)
 - [ ] QA-10: aviso de expirado 1x com texto exato do idioma; QA-11:

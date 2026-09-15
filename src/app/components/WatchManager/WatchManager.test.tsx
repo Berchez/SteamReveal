@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import WatchManager from './WatchManager';
+import { clearWatchStatusPrefetch } from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
 
 jest.mock('react-toastify', () => ({
   toast: { error: jest.fn(), success: jest.fn() },
@@ -55,6 +56,7 @@ describe('WatchManager', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    clearWatchStatusPrefetch();
   });
 
   afterEach(() => {
@@ -474,5 +476,27 @@ describe('WatchManager', () => {
     await flushPolls(1);
     expect(screen.getByText('watchResendSubmit')).toBeInTheDocument();
     expect(screen.queryByText('watchResendSent')).not.toBeInTheDocument();
+  });
+
+  it('shows a height-neutral skeleton while the first poll is in flight', async () => {
+    // The fetch never settles: status stays null, so the loading path must
+    // hold the dropdown height instead of rendering nothing (the CLS fix).
+    fetchByUrl(() => new Promise<Response>(() => undefined));
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await settle();
+
+    const skeleton = screen.getByTestId('watch-manager-skeleton');
+    expect(skeleton).toBeInTheDocument();
+    // Same wrapper as the real states: the poll swap changes content, not size.
+    expect(skeleton).toHaveClass(
+      'w-full',
+      'max-w-xl',
+      'mx-auto',
+      'flex-col',
+      'gap-y-6',
+    );
+    expect(skeleton).toHaveAttribute('aria-hidden', 'true');
+    expect(skeleton.textContent).toBe('');
   });
 });

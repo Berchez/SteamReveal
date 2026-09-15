@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 import WatchManager from '@/app/components/WatchManager';
+import { prefetchWatchStatus } from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
 
 interface SiteNavMenuProps {
   steamId: string;
@@ -74,6 +75,15 @@ function SiteNavMenu({ steamId, nickname, avatarUrl, avatarAlt }: SiteNavMenuPro
     setOpen((wasOpen) => !wasOpen);
   };
 
+  // Warms the watch-status cache in the hover→click gap so the panel often
+  // opens with real content instead of the skeleton. Laziness is structural,
+  // not timed: this fires ONLY on post-paint user intent (hover/focus), so
+  // FCP/LCP/TTFB can never observe it — there is no mount/idle prefetch.
+  // Fire-and-forget with single-flight + TTL guards inside; no state set.
+  const handlePrefetchIntent = useCallback(() => {
+    prefetchWatchStatus();
+  }, []);
+
   // Focus stewardship for keyboard users (WatchInbox mirror): into the
   // panel title on open, back to the button on close. Skipped on mount
   // (both refs start closed).
@@ -117,6 +127,8 @@ function SiteNavMenu({ steamId, nickname, avatarUrl, avatarAlt }: SiteNavMenuPro
         ref={buttonRef}
         type="button"
         onClick={handleToggle}
+        onMouseEnter={handlePrefetchIntent}
+        onFocus={handlePrefetchIntent}
         aria-expanded={open}
         aria-label={avatarAlt}
         className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-gray-500 text-gray-200 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
