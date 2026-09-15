@@ -78,6 +78,7 @@ describe('GET /api/watch/status', () => {
       steamId: STEAM_ID,
       status: 'pending',
       confirmExpired: false,
+      confirmLinkSent: false,
     });
     expect(mockedDb.getWatchStatus).toHaveBeenCalledWith(STEAM_ID);
   });
@@ -92,6 +93,7 @@ describe('GET /api/watch/status', () => {
       steamId: STEAM_ID,
       status: 'active',
       confirmExpired: false,
+      confirmLinkSent: false,
     });
   });
 
@@ -105,6 +107,7 @@ describe('GET /api/watch/status', () => {
       steamId: STEAM_ID,
       status: 'none',
       confirmExpired: false,
+      confirmLinkSent: false,
     });
   });
 
@@ -122,6 +125,7 @@ describe('GET /api/watch/status', () => {
       steamId: STEAM_ID,
       status: 'none',
       confirmExpired: false,
+      confirmLinkSent: false,
     });
   });
 
@@ -130,6 +134,7 @@ describe('GET /api/watch/status', () => {
     mockedDb.getAccount.mockResolvedValue({
       confirmedAt: null,
       confirmExpiresAt: '2000-01-01T00:00:00.000Z',
+      confirmTokenHash: 'ab'.repeat(32),
     });
 
     const expired = await GET(makeRequest());
@@ -137,6 +142,8 @@ describe('GET /api/watch/status', () => {
       steamId: STEAM_ID,
       status: 'pending',
       confirmExpired: true,
+      // Expired implies issued (issue writes hash + expiry together).
+      confirmLinkSent: true,
     });
 
     // Live token: not expired.
@@ -171,6 +178,65 @@ describe('GET /api/watch/status', () => {
     );
   });
 
+  it('flags confirmLinkSent whenever a token generation exists', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+    // Live token: issued, awaiting click.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmTokenHash: 'ab'.repeat(32),
+      confirmExpiresAt: '2999-01-01T00:00:00.000Z',
+    });
+    const live = await GET(makeRequest());
+    expect(await live.json()).toEqual(
+      expect.objectContaining({
+        confirmExpired: false,
+        confirmLinkSent: true,
+      }),
+    );
+
+    // No token ever issued (invite phase): nothing sent yet.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+    });
+    const fresh = await GET(makeRequest());
+    expect(await fresh.json()).toEqual(
+      expect.objectContaining({
+        confirmExpired: false,
+        confirmLinkSent: false,
+      }),
+    );
+
+    // Confirmed: token columns cleared on consume.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: '2026-09-03T00:00:00.000Z',
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+    });
+    const confirmed = await GET(makeRequest());
+    expect(await confirmed.json()).toEqual(
+      expect.objectContaining({ confirmLinkSent: false }),
+    );
+  });
+
+  it('corrupt clock with hash present: fail-closed on expiry, link-sent detected from token presence', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+    // Corrupt expiry but hash exists: link was issued, fail-closed on expiry.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmTokenHash: 'ab'.repeat(32),
+      confirmExpiresAt: 'not-a-date',
+    });
+    const corrupt = await GET(makeRequest());
+    expect(await corrupt.json()).toEqual(
+      expect.objectContaining({
+        confirmExpired: false,
+        confirmLinkSent: true,
+      }),
+    );
+  });
+
   it('degrades confirmExpired to false (loudly) when the account read fails', async () => {
     mockedDb.getWatchStatus.mockResolvedValue('pending');
     mockedDb.getAccount.mockRejectedValue(new Error('turso blip'));
@@ -183,6 +249,7 @@ describe('GET /api/watch/status', () => {
       steamId: STEAM_ID,
       status: 'pending',
       confirmExpired: false,
+      confirmLinkSent: false,
     });
   });
 

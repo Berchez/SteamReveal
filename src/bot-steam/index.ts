@@ -289,6 +289,7 @@ const main = (): void => {
     dal: {
       claimNextQueuedEvents,
       markEventSent,
+      markEventDropped,
       recordEventAttempt,
       countInvitesSentSince,
     },
@@ -298,6 +299,7 @@ const main = (): void => {
     maxAttempts: config.inviteMaxAttempts,
     sendTimeoutMs: config.inviteSendTimeoutMs,
     isConnected: () => bot.isConnected(),
+    isFriend,
   });
   // Explicit first pass (the poller itself only schedules the interval, so
   // startup ordering stays visible here). A failure rejects into the log,

@@ -10,6 +10,7 @@ type FakeEvent = { id: number; steamId: string };
 const makeDal = () => ({
   claimNextQueuedEvents: jest.fn(async (): Promise<FakeEvent[]> => []),
   markEventSent: jest.fn(async (): Promise<boolean> => true),
+  markEventDropped: jest.fn(async (): Promise<boolean> => true),
   recordEventAttempt: jest.fn(
     async (): Promise<'requeued' | 'dropped' | null> => 'requeued',
   ),
@@ -99,6 +100,63 @@ describe('pollInviteQueueOnce', () => {
     expect(dal.markEventSent).not.toHaveBeenCalled();
     expect(logger.error).toHaveBeenCalledTimes(1);
     expect(String(logger.error.mock.calls[0][0])).toContain(STEAM_A);
+  });
+
+  it('skips addFriend for already-friends (drops loudly, burns no attempts)', async () => {
+    // Re-signup without unfriend, manual row edits, or a stale requeue:
+    // Steam would reject addFriend as DuplicateName after burning
+    // attempts — and scare operators with error logs for a state that is
+    // not an error at all. Reconcile owns whatever comes next.
+    const dal = makeDal();
+    const client = makeClient();
+    const logger = { info: jest.fn(), error: jest.fn() };
+    dal.claimNextQueuedEvents.mockResolvedValue([
+      inviteEvent(1, STEAM_A),
+      inviteEvent(2, STEAM_B),
+    ]);
+
+    const report = await pollInviteQueueOnce({
+      client,
+      dal,
+      logger,
+      isFriend: (steamId: string) => steamId === STEAM_A,
+    });
+
+    expect(report).toMatchObject({ claimed: 2, sent: 1, alreadyFriends: 1 });
+    expect(client.addFriend).not.toHaveBeenCalledWith(STEAM_A);
+    expect(client.addFriend).toHaveBeenCalledWith(STEAM_B);
+    expect(dal.markEventDropped).toHaveBeenCalledWith(1);
+    expect(dal.markEventDropped).not.toHaveBeenCalledWith(2);
+    // No attempts burned on the skipped row (nothing to retry).
+    expect(dal.recordEventAttempt).not.toHaveBeenCalled();
+    expect(String(logger.info.mock.calls[0][0])).toContain('already-friends');
+  });
+
+  it('lands already-friends drop failures in errors (never silent)', async () => {
+    const dal = makeDal();
+    const client = makeClient();
+    dal.claimNextQueuedEvents.mockResolvedValue([inviteEvent(1, STEAM_A)]);
+    dal.markEventDropped.mockResolvedValueOnce(false);
+
+    const unsettled = await pollInviteQueueOnce({
+      client,
+      dal,
+      logger: silentLogger,
+      isFriend: () => true,
+    });
+    expect(unsettled).toMatchObject({ dropped: 0 });
+    expect(unsettled.errors).toHaveLength(1);
+    expect(client.addFriend).not.toHaveBeenCalled();
+
+    dal.markEventDropped.mockRejectedValueOnce(new Error('turso blip'));
+    const failed = await pollInviteQueueOnce({
+      client,
+      dal,
+      logger: silentLogger,
+      isFriend: () => true,
+    });
+    expect(failed.errors).toHaveLength(1);
+    expect(client.addFriend).not.toHaveBeenCalled();
   });
 
   it('never re-sends when the send succeeded but bookkeeping keeps failing', async () => {

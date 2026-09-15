@@ -141,11 +141,12 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   is backing off — check the logs before restarting.
 - Useful log greps: `invite poll done` (per-pass claimed/sent/retried/ dropped),
   `daily send cap reached` (abuse cap engaging — investigate the request
-  source), `dropped after` (events hitting the attempt cap), `reconcile done`
-  (now also `linksSent=` for confirm-link deliveries), `welcome poll done`,
-  `resend poll done`, `expiry scan done`, `raced by a click` (harmless:
-  the user confirmed between the expiry recheck and the mark),
-  `friend-remove`.
+  source), `dropped after` (events hitting the attempt cap),
+  `invite dropped:` (already-friends drops — benign, no attempt burned),
+  `reconcile done` (now also `linksSent=` for confirm-link deliveries),
+  `welcome poll done`, `resend poll done`, `expiry scan done`,
+  `raced by a click` (harmless: the user confirmed between the expiry
+  recheck and the mark), `friend-remove`.
 
 ## 6. Behavior when the bot is offline
 

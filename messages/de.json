@@ -184,6 +184,7 @@
     "watchLinkExpired": "Dein Bestätigungslink ist abgelaufen. Erstelle unten einen neuen — der Bot schickt ihn dir hier auf Steam.",
     "watchResendSubmit": "Neuen Link erstellen",
     "watchResendSent": "Neuer Link unterwegs — schau in deinen Steam-Chat.",
+    "watchLinkSentHint": "Schau in deinen Steam-Chat für den Bestätigungslink.",
     "watchActiveTitle": "Wird beobachtet",
     "watchActiveHint": "Zum Abbestellen entferne diesen Bot einfach auf Steam aus deiner Freundesliste. Sonst ist nichts nötig.",
     "watchErrorFailed": "Beobachtung konnte nicht gestartet werden. Versuche es gleich noch einmal.",

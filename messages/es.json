@@ -184,6 +184,7 @@
     "watchLinkExpired": "Tu enlace de confirmación caducó. Genera uno nuevo abajo — el bot te lo enviará aquí en Steam.",
     "watchResendSubmit": "Generar nuevo enlace",
     "watchResendSent": "Nuevo enlace en camino — revisa tu chat de Steam.",
+    "watchLinkSentHint": "Revisa tu chat de Steam para el enlace de confirmación.",
     "watchActiveTitle": "Vigilando",
     "watchActiveHint": "Para detenerlos, solo elimina a este bot de tus amigos en Steam. Nada más es necesario.",
     "watchErrorFailed": "No se pudo iniciar la vigilancia. Inténtalo de nuevo en un momento.",

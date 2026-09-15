@@ -29,6 +29,11 @@ interface UseWatchStatusResult {
    * Additive and best-effort: false until a poll says otherwise, and a
    * body without the field keeps the previous value. */
   confirmExpired: boolean;
+  /** Whether a confirmation link generation exists (live or expired —
+   * issue writes hash + expiry together, consume clears both). Used by
+   * the UI to show "check your chat" hint instead of the invite hint
+   * when the link has already been sent. */
+  confirmLinkSent: boolean;
 }
 
 /**
@@ -59,6 +64,7 @@ export const useWatchStatus = ({
   const [status, setStatus] = useState<WatchStatusValue | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmExpired, setConfirmExpired] = useState(false);
+  const [confirmLinkSent, setConfirmLinkSent] = useState(false);
   const prevStatusRef = useRef<WatchStatusValue | null>(null);
   const welcomedForRef = useRef<string | null>(null);
   // Store the welcome message in a ref to avoid recreating poll when locale changes
@@ -106,6 +112,7 @@ export const useWatchStatus = ({
       const body = (await res.json().catch(() => null)) as {
         status?: unknown;
         confirmExpired?: unknown;
+        confirmLinkSent?: unknown;
       } | null;
       const next = body?.status;
       if (next !== 'pending' && next !== 'active' && next !== 'none') {
@@ -115,6 +122,11 @@ export const useWatchStatus = ({
         setConfirmExpired(true);
       } else if (body?.confirmExpired === false) {
         setConfirmExpired(false);
+      }
+      if (body?.confirmLinkSent === true) {
+        setConfirmLinkSent(true);
+      } else if (body?.confirmLinkSent === false) {
+        setConfirmLinkSent(false);
       }
       // Absent field (old deployments mid-rollout): keep the previous
       // value instead of flapping the resend UI every other tick.
@@ -139,6 +151,7 @@ export const useWatchStatus = ({
     setStatus(null);
     setError(null);
     setConfirmExpired(false);
+    setConfirmLinkSent(false);
     clearTimer();
     if (!enabled || !steamId) return undefined;
     // Defense-in-depth: the id arrives server-verified via page props, but
@@ -184,5 +197,5 @@ export const useWatchStatus = ({
     };
   }, [steamId, enabled, pollIntervalMs, poll, clearTimer]);
 
-  return { status, error, confirmExpired };
+  return { status, error, confirmExpired, confirmLinkSent };
 };

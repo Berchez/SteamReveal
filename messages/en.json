@@ -184,6 +184,7 @@
     "watchLinkExpired": "Your confirmation link expired. Generate a new one below — the bot will send it to you here on Steam.",
     "watchResendSubmit": "Generate new link",
     "watchResendSent": "New link on its way — check your Steam chat.",
+    "watchLinkSentHint": "Check your Steam chat for the confirmation link.",
     "watchActiveTitle": "Watching",
     "watchActiveHint": "To stop, just unfriend the bot on Steam. Nothing else is needed.",
     "watchErrorFailed": "Could not start watching. Try again in a moment.",

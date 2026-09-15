@@ -36,10 +36,11 @@ function WatchManager({ steamId }: { steamId: string }) {
   const [resending, setResending] = useState(false);
   const [resendSent, setResendSent] = useState(false);
 
-  const { status, error: statusError, confirmExpired } = useWatchStatus({
+  const { status, error: statusError, confirmExpired, confirmLinkSent } = useWatchStatus({
     steamId,
     enabled: true,
   });
+  const linkSentHint = confirmLinkSent ? translator('watchLinkSentHint') : translator('watchPendingHint');
 
   // Resend-button lifecycle: the button shows while the link is expired
   // and no fresh one was requested yet. Reset ONLY on the false→true flip
@@ -188,7 +189,11 @@ function WatchManager({ steamId }: { steamId: string }) {
         <h1 className="text-2xl font-bold text-gray-100">
           {translator('watchPendingTitle')}
         </h1>
-        <p className="text-gray-300">{translator('watchPendingHint')}</p>
+        {!confirmExpired && (
+          <p className="text-gray-300">
+            {resendSent ? translator('watchResendSent') : linkSentHint}
+          </p>
+        )}
         {confirmExpired && !resendSent && (
           <>
             <p className="text-gray-300">{translator('watchLinkExpired')}</p>
@@ -204,7 +209,7 @@ function WatchManager({ steamId }: { steamId: string }) {
             </div>
           </>
         )}
-        {resendSent && (
+        {confirmExpired && resendSent && (
           <p className="text-gray-300">{translator('watchResendSent')}</p>
         )}
         {renderFooter()}

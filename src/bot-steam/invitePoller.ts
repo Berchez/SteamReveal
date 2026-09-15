@@ -8,7 +8,9 @@
  * short and bounded — a transient addFriend failure requeues for the next
  * pass, and after maxAttempts the event is dropped with a loud log (a
  * permanently-failing invite, e.g. Steam-side throttling, must not spin
- * the poller forever).
+ * the poller forever). Already-friends targets skip the send entirely
+ * (dropped as already-friends): Steam would reject addFriend as
+ * DuplicateName after burning attempts for a state that is not an error.
  *
  * This module never sees credentials (no secrets in scope by construction)
  * and never touches Steam beyond client.addFriend — the structural client
@@ -30,6 +32,7 @@ export interface InvitePollerDal {
     limit: number,
   ) => Promise<Array<{ id: number; steamId: string }>>;
   markEventSent: (id: number) => Promise<boolean>;
+  markEventDropped: (id: number) => Promise<boolean>;
   recordEventAttempt: (
     id: number,
     maxAttempts: number,
@@ -47,6 +50,7 @@ export interface InvitePollReport {
   sent: number;
   retried: number;
   dropped: number;
+  alreadyFriends: number;
   errors: Array<{ eventId: number; message: string }>;
   durationMs: number;
   /** True when the pass did no work (overlap / not-connected / cap skip). */
@@ -76,6 +80,16 @@ export interface PollInviteQueueOptions {
    * invite attempts it could never fulfill.
    */
   isConnected?: () => boolean;
+  /**
+   * Friendship check: when provided and true for a profile, its invite is
+   * dropped WITHOUT calling addFriend (Steam would reject it as
+   * DuplicateName after burning attempts — and scare operators with error
+   * logs for a state that is not an error at all: re-signup without
+   * unfriend, manual row edits, or a stale requeue). Reconcile owns
+   * whatever comes next for these profiles (link or activation). Absent
+   * checkers preserve the old behavior (always attempt the send).
+   */
+  isFriend?: (steamId: string) => boolean;
 }
 
 const DEFAULT_BATCH_LIMIT = 5;
@@ -118,6 +132,7 @@ export const pollInviteQueueOnce = async (
     maxAttempts = DEFAULT_MAX_ATTEMPTS,
     sendTimeoutMs = DEFAULT_SEND_TIMEOUT_MS,
     isConnected,
+    isFriend,
   } = options;
   if (!Number.isFinite(maxAttempts) || maxAttempts < 1) {
     throw new Error(
@@ -131,6 +146,7 @@ export const pollInviteQueueOnce = async (
     sent: 0,
     retried: 0,
     dropped: 0,
+    alreadyFriends: 0,
     errors: [],
     durationMs: 0,
     skipped: false,
@@ -171,10 +187,40 @@ export const pollInviteQueueOnce = async (
   const events = await dal.claimNextQueuedEvents('invite', claimLimit);
   report.claimed = events.length;
 
-  // Sequential per-row awaits are intentional: invite sends are
-  // Steam-side rate-sensitive, and determinism beats throughput here.
-  // eslint-disable-next-line no-restricted-syntax
-  for (const event of events) {
+  // One event, fully handled: already-friends skip first (no Steam call
+  // at all), then the send with settle bookkeeping. Early returns replace
+  // `continue` (no-continue is on in this repo); the caller awaits these
+  // one at a time, so per-row sequentiality is preserved.
+  const processEvent = async (event: {
+    id: number;
+    steamId: string;
+  }): Promise<void> => {
+    if (isFriend !== undefined && isFriend(event.steamId)) {
+      // Already friends: Steam would reject addFriend as DuplicateName
+      // after burning attempts. Drop loudly with a self-explanatory
+      // reason instead (see the option contract above).
+      try {
+        const settled = await dal.markEventDropped(event.id);
+        if (settled) {
+          report.alreadyFriends += 1;
+          logger.info(
+            `[WatchBot] invite dropped: steamId=${event.steamId} eventId=${event.id} reason=already-friends`,
+          );
+        } else {
+          report.errors.push({
+            eventId: event.id,
+            message:
+              'drop did not land (not claimed anymore): already-friends',
+          });
+        }
+      } catch (error) {
+        report.errors.push({
+          eventId: event.id,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+      return;
+    }
     let inviteSent = false;
     try {
       // Watchdog: a hung addFriend (network stall, lib bug) must fail
@@ -182,7 +228,6 @@ export const pollInviteQueueOnce = async (
       // below exists, a wedged pass would wedge the poller forever. Same
       // accepted limitation as everywhere withTimeout is used: the
       // underlying call is not aborted, only our wait for it.
-      // eslint-disable-next-line no-await-in-loop
       await withTimeout(
         client.addFriend(event.steamId),
         `invitePoller: addFriend(${event.steamId})`,
@@ -193,7 +238,6 @@ export const pollInviteQueueOnce = async (
       // through the failure path below (which would requeue and re-send).
       // Retry the mark itself a few times first — a single DB timeout
       // blip must not manufacture a duplicate invite.
-      // eslint-disable-next-line no-await-in-loop
       const settled = await settleSentWithRetry(dal, event.id);
       if (!settled) {
         // The row left 'claimed' under us (e.g. a stale sweep requeued it
@@ -221,7 +265,6 @@ export const pollInviteQueueOnce = async (
         });
       } else {
         try {
-          // eslint-disable-next-line no-await-in-loop
           const outcome = await dal.recordEventAttempt(event.id, maxAttempts);
           if (outcome === 'dropped') {
             report.dropped += 1;
@@ -245,6 +288,14 @@ export const pollInviteQueueOnce = async (
         }
       }
     }
+  };
+
+  // Sequential per-row awaits are intentional: invite sends are
+  // Steam-side rate-sensitive, and determinism beats throughput here.
+  // eslint-disable-next-line no-restricted-syntax
+  for (const event of events) {
+    // eslint-disable-next-line no-await-in-loop
+    await processEvent(event);
   }
 
   report.durationMs = Date.now() - startedAt;
@@ -310,6 +361,7 @@ export const startInvitePoller = (
         sent: 0,
         retried: 0,
         dropped: 0,
+        alreadyFriends: 0,
         errors: [],
         durationMs: 0,
         skipped: true,

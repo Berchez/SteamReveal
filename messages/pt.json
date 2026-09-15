@@ -184,6 +184,7 @@
     "watchLinkExpired": "Seu link de confirmação expirou. Gere um novo abaixo — o bot vai enviá-lo para você aqui na Steam.",
     "watchResendSubmit": "Gerar novo link",
     "watchResendSent": "Novo link a caminho — confira seu chat na Steam.",
+    "watchLinkSentHint": "Confira seu chat da Steam para o link de confirmação.",
     "watchActiveTitle": "Monitorando",
     "watchActiveHint": "Para parar, basta desfazer a amizade com o bot na Steam. Nada mais é preciso.",
     "watchErrorFailed": "Não foi possível iniciar o monitoramento. Tente de novo em instantes.",

@@ -25,29 +25,45 @@ const statusRateLimiter = createRateLimiter(
 );
 
 /**
- * Whether the profile's confirm link died unclicked (drives the resend
- * UI). True only for a REAL past expiry on an unconfirmed account —
- * missing rows, confirmed accounts and corrupt clocks all read false (an
- * unparseable expiry fails closed toward "not expired": the resend button
- * stays hidden rather than offering a resend for a state we cannot read).
- * Display-only: a transient read failure degrades to false (logged
- * loudly) instead of 500ing the polling loop over garnish.
+ * Confirm-link state for the resend UI, read from the signup account row.
+ * `confirmExpired` is true only for a REAL past expiry on an unconfirmed
+ * account; `confirmLinkSent` is true whenever a token generation exists
+ * (live or expired — issue writes hash + expiry together, consume clears
+ * both). Missing rows and confirmed accounts read {false, false}. Corrupt
+ * clocks (unparseable expiry) read {false, false} when no token hash is
+ * present, or {false, true} when a token hash exists (link was issued
+ * but expiry is corrupted — fail-closed on expiry, link-sent detected
+ * from token presence). Display-only: a transient read failure degrades
+ * to {false, false} (logged loudly) instead of 500ing the polling loop
+ * over garnish.
  */
-const readConfirmExpired = async (steamId: string): Promise<boolean> => {
+interface ConfirmLinkState {
+  confirmExpired: boolean;
+  confirmLinkSent: boolean;
+}
+
+const readConfirmState = async (steamId: string): Promise<ConfirmLinkState> => {
+  const none: ConfirmLinkState = {
+    confirmExpired: false,
+    confirmLinkSent: false,
+  };
   try {
     const account = await getAccount(steamId);
-    return (
-      account !== null &&
-      account.confirmedAt === null &&
-      account.confirmExpiresAt !== null &&
-      Date.parse(account.confirmExpiresAt) <= Date.now()
-    );
+    if (account === null || account.confirmedAt !== null) return none;
+    const linkSent = (account.confirmTokenHash ?? null) !== null;
+    if (account.confirmExpiresAt === null) {
+      return { confirmExpired: false, confirmLinkSent: linkSent };
+    }
+    return {
+      confirmExpired: Date.parse(account.confirmExpiresAt) <= Date.now(),
+      confirmLinkSent: linkSent,
+    };
   } catch (error) {
     // steamId is public data (searchable on the site), safe to log.
     logRouteError('watchStatus:confirmExpired', sanitizeError(error), {
       steamId,
     });
-    return false;
+    return none;
   }
 };
 
@@ -57,12 +73,16 @@ const readConfirmExpired = async (steamId: string): Promise<boolean> => {
  * opted-out/deactivated: both mean "no watch", and the distinction is
  * internal state the API deliberately does not expose).
  *
- * Plus `confirmExpired`: whether the confirm link died unclicked (drives
- * the resend UI). True only for a REAL past expiry on an unconfirmed
- * account — missing rows, confirmed accounts and corrupt clocks all read
- * false. Display-only like the confirm route's locale read: a transient
- * failure degrades to false (logged loudly) instead of 500ing the polling
- * loop over garnish.
+ * Plus `confirmExpired` (link died unclicked → drives the resend UI)
+ * and `confirmLinkSent` (a generation exists, live or expired → drives
+ * the "check your chat" hint instead of the invite hint). Both true only
+ * on real account state — missing rows and confirmed accounts read
+ * {false, false}. Corrupt clocks (unparseable expiry) read {false, false}
+ * when no token hash is present, or {false, true} when a token hash
+ * exists (link was issued but expiry is corrupted — fail-closed on
+ * expiry, link-sent detected from token presence). Display-only like the
+ * confirm route's locale read: a transient failure degrades to false
+ * (logged loudly) instead of 500ing the polling loop over garnish.
  *
  * Self-scoped: identity comes EXCLUSIVELY from the Steam OpenID session —
  * the old `?steamId=` parameter is gone entirely (a present-but-ignored
@@ -108,12 +128,15 @@ export async function GET(req: Request) {
 
   try {
     const status = await getWatchStatus(steamId);
-    const confirmExpired = status === 'pending' ? await readConfirmExpired(steamId) : false;
+    const confirmState =
+      status === 'pending'
+        ? await readConfirmState(steamId)
+        : { confirmExpired: false, confirmLinkSent: false };
     return NextResponse.json(
       {
         steamId,
         status: status ?? 'none',
-        confirmExpired,
+        ...confirmState,
       },
       { status: 200 },
     );

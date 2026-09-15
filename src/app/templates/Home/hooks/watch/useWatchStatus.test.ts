@@ -28,7 +28,7 @@ const STEAM_B = '76561198000000002';
 const jsonResponse = (status: string, extra: Record<string, unknown> = {}) =>
   ({
     ok: true,
-    json: async () => ({ status, ...extra }),
+    json: async () => ({ status, confirmLinkSent: false, ...extra }),
   }) as Response;
 
 describe('useWatchStatus', () => {
@@ -133,6 +133,7 @@ describe('useWatchStatus', () => {
       status: null,
       error: 'session-expired',
       confirmExpired: false,
+      confirmLinkSent: false,
     });
     // Polling stopped: no more fetches no matter how long we wait.
     const calls = fetchMock.mock.calls.length;
@@ -177,15 +178,16 @@ describe('useWatchStatus', () => {
 
   it('surfaces confirmExpired from the status payload (resend UI fuel)', async () => {
     fetchMock.mockResolvedValue(
-      jsonResponse('pending', { confirmExpired: true }),
+      jsonResponse('pending', { confirmExpired: true, confirmLinkSent: false }),
     );
 
     const { result, unmount } = render();
     await flushPolls(1);
     expect(result.current.confirmExpired).toBe(true);
+    expect(result.current.confirmLinkSent).toBe(false);
 
     fetchMock.mockResolvedValue(
-      jsonResponse('pending', { confirmExpired: false }),
+      jsonResponse('pending', { confirmExpired: false, confirmLinkSent: false }),
     );
     await flushPolls(1);
     expect(result.current.confirmExpired).toBe(false);
@@ -198,6 +200,7 @@ describe('useWatchStatus', () => {
     const { result, unmount } = render();
     await flushPolls(1);
     expect(result.current.confirmExpired).toBe(false);
+    expect(result.current.confirmLinkSent).toBe(false);
     unmount();
   });
 
