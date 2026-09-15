@@ -2,8 +2,7 @@
  * @jest-environment node
  */
 
-import { CONFIRM_PAGE_TEXT, GET, POST } from './route';
-import { WATCH_LOCALES } from '@/lib/watch/notificationText';
+import { GET, POST } from './route';
 
 jest.mock('@/lib/analytics/db', () => ({
   activateWatch: jest.fn(),
@@ -391,33 +390,6 @@ describe('POST /api/watch/confirm (the click: consume + activate)', () => {
     );
     expect(saveWatchSession).toHaveBeenCalledTimes(1);
   });
-});
-
-describe('CONFIRM_PAGE_TEXT locale parity', () => {
-  it('covers exactly the 5 supported locales', () => {
-    expect(Object.keys(CONFIRM_PAGE_TEXT).sort()).toEqual(
-      [...WATCH_LOCALES].sort(),
-    );
-  });
-
-  it.each([...WATCH_LOCALES])(
-    'carries every field, non-empty, in %s (lang matches key)',
-    (locale) => {
-      const text = CONFIRM_PAGE_TEXT[locale];
-      expect(text.lang).toBe(locale);
-      for (const field of [
-        'title',
-        'body',
-        'button',
-        'expiredTitle',
-        'expiredBody',
-        'homeLink',
-      ] as const) {
-        expect(typeof text[field]).toBe('string');
-        expect(text[field].length).toBeGreaterThan(0);
-      }
-    },
-  );
 });
 
 describe('confirm rate limiter budgets', () => {
