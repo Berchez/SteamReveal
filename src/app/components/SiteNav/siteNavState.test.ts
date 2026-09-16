@@ -151,6 +151,45 @@ describe('resolveSiteNavState', () => {
     expect(String(consoleError.mock.calls[0][0])).toContain('[SiteNav]');
   });
 
+  it('fetches identity and the watch seed in parallel (slow avatar never blocks the seed)', async () => {
+    resolveWatchSession.mockResolvedValue({
+      status: 'authenticated',
+      steamId: STEAM,
+    });
+    // Gate the Steam round-trip shut: with sequential awaits the DB reads
+    // below could never fire until this releases.
+    let releaseIdentity!: (value: unknown) => void;
+    const identityGate = new Promise((resolve) => {
+      releaseIdentity = resolve;
+    });
+    getSteamIdentity.mockReturnValue(identityGate);
+    getWatchStatus.mockResolvedValue('active');
+    getAccount.mockResolvedValue(null);
+
+    const pending = resolveSiteNavState(COOKIES as never);
+    // Flush the microtask queue several rounds: session resolve (local
+    // crypto) plus both parallel lanes settle without any timer.
+    for (let i = 0; i < 10; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+    expect(getWatchStatus).toHaveBeenCalledWith(STEAM);
+    expect(getAccount).toHaveBeenCalledWith(STEAM);
+
+    releaseIdentity({ nickname: 'SlowUser', avatarUrl: null });
+    await expect(pending).resolves.toEqual({
+      steamId: STEAM,
+      nickname: 'SlowUser',
+      avatarUrl: null,
+      initialWatch: {
+        status: 'active',
+        confirmExpired: false,
+        confirmLinkSent: false,
+      },
+    });
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
   it('renders logged-out for unauthenticated sessions (quietly)', async () => {
     resolveWatchSession.mockResolvedValue({ status: 'unauthenticated' });
     await expect(resolveSiteNavState(COOKIES as never)).resolves.toEqual({

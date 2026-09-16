@@ -164,14 +164,29 @@ export default function RootLayout({
                 slow Steam API). Without this boundary the whole route —
                 children included — waits for it before streaming a byte.
                 Fallback keeps the same fixed wrapper + the switcher (the
-                only control that needs no session), so the page paints
-                instantly and nothing in-flow shifts when the bell/avatar
-                lands (fixed elements never move page content — CLS-safe).
+                only control that needs no session) PLUS shape-matched
+                placeholders for the logged-in cluster (bell + avatar,
+                both h-11 circles): without them the bell/avatar pop in a
+                beat later — a perceptible flash. Same slots and sizes
+                means the swap reads as content loading in, not controls
+                appearing. Logged-out resolves fast (no Steam/DB reads),
+                so this rarely paints there at all. Pure markup,
+                aria-hidden; the page paints instantly and nothing
+                in-flow shifts when the real cluster lands (fixed
+                elements never move page content — CLS-safe).
               */}
                 <Suspense
                   fallback={
                     <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
                       <LanguageSwitcher />
+                      <div
+                        aria-hidden="true"
+                        className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
+                      />
+                      <div
+                        aria-hidden="true"
+                        className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
+                      />
                     </div>
                   }
                 >

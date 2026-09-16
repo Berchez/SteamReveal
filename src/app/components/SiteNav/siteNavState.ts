@@ -39,6 +39,37 @@ const toInitialWatchSnapshot = (
 });
 
 /**
+ * Watch seed for the avatar dropdown's first paint (SSR-seed): two
+ * indexed PK reads. ISOLATED try/catch on purpose — a DB blip must
+ * degrade to a cold open (initialWatch: null → skeleton path), never to
+ * logged-out: the outer catch in resolveSiteNavState below maps ANY throw
+ * to `{ steamId: null }`.
+ */
+const readWatchSeed = async (
+  steamId: string,
+): Promise<WarmWatchStatusSnapshot | null> => {
+  try {
+    const [watchStatus, account] = await Promise.all([
+      getWatchStatus(steamId),
+      getAccount(steamId),
+    ]);
+    return toInitialWatchSnapshot(watchStatus, account);
+  } catch (error) {
+    // Missing DATABASE_URL (plain local dev without analytics) is an
+    // expected config state, not an incident — stay quiet then. Real
+    // failures (present env, dead transport) log loudly like everything
+    // else in global chrome.
+    if (process.env.DATABASE_URL) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[SiteNav] watch seed read failed, opening cold: ${sanitizeError(error)}`,
+      );
+    }
+    return null;
+  }
+};
+
+/**
  * Server-side identity resolution for the global navbar, isolated from
  * rendering so a failure can NEVER take down the page tree.
  *
@@ -92,31 +123,16 @@ export const resolveSiteNavState = async (
     const steamId =
       session.status === 'authenticated' ? session.steamId : null;
     if (steamId === null) return { steamId: null };
-    const identity = await getSteamIdentity(steamId);
-    // Watch seed for the avatar dropdown's first paint (SSR-seed): two
-    // indexed PK reads, in parallel with nothing else here. ISOLATED
-    // try/catch on purpose — a DB blip must degrade to a cold open
-    // (initialWatch: null → skeleton path), never to logged-out: the
-    // outer catch below maps ANY throw to `{ steamId: null }`.
-    let initialWatch: WarmWatchStatusSnapshot | null = null;
-    try {
-      const [watchStatus, account] = await Promise.all([
-        getWatchStatus(steamId),
-        getAccount(steamId),
-      ]);
-      initialWatch = toInitialWatchSnapshot(watchStatus, account);
-    } catch (error) {
-      // Missing DATABASE_URL (plain local dev without analytics) is an
-      // expected config state, not an incident — stay quiet then. Real
-      // failures (present env, dead transport) log loudly like everything
-      // else in global chrome.
-      if (process.env.DATABASE_URL) {
-        // eslint-disable-next-line no-console
-        console.error(
-          `[SiteNav] watch seed read failed, opening cold: ${sanitizeError(error)}`,
-        );
-      }
-    }
+    // Identity (Steam network round-trip, the long pole) and the watch
+    // seed (two indexed PK reads) are independent given the steamId — run
+    // them together so the cluster waits on the slower lane only, never
+    // on the sum. readWatchSeed never rejects (DB blip → null seed), and
+    // getSteamIdentity never rejects either, so a failure on either side
+    // lands in the outer catch below exactly as before (logged-out).
+    const [identity, initialWatch] = await Promise.all([
+      getSteamIdentity(steamId),
+      readWatchSeed(steamId),
+    ]);
     return {
       steamId,
       nickname: identity?.nickname ?? steamId,
