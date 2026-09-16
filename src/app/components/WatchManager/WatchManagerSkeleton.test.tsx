@@ -18,7 +18,7 @@ describe('WatchManagerSkeleton', () => {
       'gap-y-6',
       'text-center',
     );
-    expect(container.querySelector('.min-h-\\[360px\\]')).not.toBeNull();
+    expect(container.querySelector('.min-h-\\[170px\\]')).not.toBeNull();
   });
 
   it('is textless and hidden from assistive tech', () => {
@@ -33,7 +33,7 @@ describe('WatchManagerSkeleton', () => {
     const { container } = render(<WatchManagerSkeleton />);
 
     const pulses = container.querySelectorAll('.animate-pulse');
-    // Title + 2 body lines + 2 footer buttons.
-    expect(pulses.length).toBeGreaterThanOrEqual(5);
+    // Title + 2 body lines + 1 footer button (pending/active shape).
+    expect(pulses.length).toBeGreaterThanOrEqual(4);
   });
 });

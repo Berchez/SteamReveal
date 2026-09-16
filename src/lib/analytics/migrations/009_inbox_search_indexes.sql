@@ -1,0 +1,39 @@
+-- =====================================================================
+-- Turso (SQLite) schema — inbox read-path index.
+-- Migration: 009_inbox_search_indexes.sql
+--
+-- Idempotent twice over: CREATE INDEX IF NOT EXISTS is a safe no-op on
+-- re-run, AND scripts/migrate-db.ts tracks applied files in _migrations
+-- and never replays them. Apply with `pnpm run db:migrate`.
+-- NEVER RENAME this file after it has been applied anywhere: the runner
+-- keys on filename (real incident with 007, applied under another name
+-- and then renamed).
+--
+-- Design notes:
+-- - The inbox reads (listProfileSearches / countSearchesSince /
+--   countSearchesInMonth) filter on profiles(steam_id) and order/count on
+--   searches(searched_at). 001 indexed only the child tables' search_id,
+--   so these reads full-scanned profiles — fine at hundreds of rows,
+--   wasteful once the shared searches table grows unbounded (the watch
+--   temporal floor does not help: the scan happens before the filter).
+-- - One single-column index suffices: the steam_id predicate narrows to
+--   one profile's rows (small by construction — one profile's lookups),
+--   and the searched_at ordering/counting then runs over that small set.
+--   A composite index buys nothing SQLite can use here: the order/filter
+--   column lives on the other side of the JOIN.
+-- =====================================================================
+
+CREATE INDEX IF NOT EXISTS idx_profiles_steam_id ON profiles(steam_id);
+
+-- =====================================================================
+-- ROLLBACK (manual only — READ THIS BEFORE COPYING ANYTHING OUT).
+--
+-- The migrate runner (scripts/migrate-db.ts) executes EVERY file matching
+-- NNN_*.sql as a FORWARD migration, so a down script must NEVER live in a
+-- separate file in this directory: it would be applied as a forward
+-- migration and DROP THE INDEX. The rollback lives here, commented out,
+-- as documentation for a human running it by hand (sqlite3 / Turso shell):
+--
+--   DROP INDEX idx_profiles_steam_id;
+--   DELETE FROM _migrations WHERE filename = '009_inbox_search_indexes.sql';
+-- =====================================================================

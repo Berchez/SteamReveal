@@ -1,15 +1,15 @@
 import {
-  getLastSeenSentAt,
-  latestSentAt,
-  setLastSeenSentAt,
+  getLastSeenSearchedAt,
+  latestSearchedAt,
+  setLastSeenSearchedAt,
   WATCH_SEEN_KEY_PREFIX,
 } from './watchReadState';
 
 const STEAM_A = '76561198000000001';
 const STEAM_B = '76561198000000002';
 
-const SENT_OLD = '2026-06-01T00:00:00.000Z';
-const SENT_NEW = '2026-06-02T00:00:00.000Z';
+const SEARCHED_OLD = '2026-06-01T00:00:00.000Z';
+const SEARCHED_NEW = '2026-06-02T00:00:00.000Z';
 
 describe('watchReadState', () => {
   beforeEach(() => {
@@ -21,42 +21,42 @@ describe('watchReadState', () => {
   });
 
   it('returns null before anything was opened', () => {
-    expect(getLastSeenSentAt(STEAM_A)).toBeNull();
+    expect(getLastSeenSearchedAt(STEAM_A)).toBeNull();
   });
 
   it('round-trips the watermark', () => {
-    setLastSeenSentAt(STEAM_A, SENT_OLD);
-    expect(getLastSeenSentAt(STEAM_A)).toBe(SENT_OLD);
-    setLastSeenSentAt(STEAM_A, SENT_NEW);
-    expect(getLastSeenSentAt(STEAM_A)).toBe(SENT_NEW);
+    setLastSeenSearchedAt(STEAM_A, SEARCHED_OLD);
+    expect(getLastSeenSearchedAt(STEAM_A)).toBe(SEARCHED_OLD);
+    setLastSeenSearchedAt(STEAM_A, SEARCHED_NEW);
+    expect(getLastSeenSearchedAt(STEAM_A)).toBe(SEARCHED_NEW);
   });
 
   it('namespaces watermarks per steamId (no cross-profile leaks)', () => {
-    setLastSeenSentAt(STEAM_A, SENT_NEW);
+    setLastSeenSearchedAt(STEAM_A, SEARCHED_NEW);
 
-    expect(getLastSeenSentAt(STEAM_A)).toBe(SENT_NEW);
-    expect(getLastSeenSentAt(STEAM_B)).toBeNull();
+    expect(getLastSeenSearchedAt(STEAM_A)).toBe(SEARCHED_NEW);
+    expect(getLastSeenSearchedAt(STEAM_B)).toBeNull();
     expect(
       window.localStorage.getItem(`${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`),
-    ).toBe(SENT_NEW);
+    ).toBe(SEARCHED_NEW);
   });
 
   it('ignores invalid steamIds and timestamps without throwing', () => {
-    expect(getLastSeenSentAt('nope')).toBeNull();
-    expect(() => setLastSeenSentAt('nope', SENT_NEW)).not.toThrow();
-    expect(() => setLastSeenSentAt(STEAM_A, 'garbage')).not.toThrow();
-    expect(() => setLastSeenSentAt(STEAM_A, '')).not.toThrow();
+    expect(getLastSeenSearchedAt('nope')).toBeNull();
+    expect(() => setLastSeenSearchedAt('nope', SEARCHED_NEW)).not.toThrow();
+    expect(() => setLastSeenSearchedAt(STEAM_A, 'garbage')).not.toThrow();
+    expect(() => setLastSeenSearchedAt(STEAM_A, '')).not.toThrow();
 
-    expect(getLastSeenSentAt(STEAM_A)).toBeNull();
+    expect(getLastSeenSearchedAt(STEAM_A)).toBeNull();
     expect(window.localStorage.length).toBe(0);
   });
 
   it('clears the watermark on null (corrupt-cursor recovery)', () => {
-    setLastSeenSentAt(STEAM_A, SENT_NEW);
-    expect(getLastSeenSentAt(STEAM_A)).toBe(SENT_NEW);
+    setLastSeenSearchedAt(STEAM_A, SEARCHED_NEW);
+    expect(getLastSeenSearchedAt(STEAM_A)).toBe(SEARCHED_NEW);
 
-    setLastSeenSentAt(STEAM_A, null);
-    expect(getLastSeenSentAt(STEAM_A)).toBeNull();
+    setLastSeenSearchedAt(STEAM_A, null);
+    expect(getLastSeenSearchedAt(STEAM_A)).toBeNull();
     expect(
       window.localStorage.getItem(`${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`),
     ).toBeNull();
@@ -67,35 +67,51 @@ describe('watchReadState', () => {
       `${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`,
       'garbage',
     );
-    expect(getLastSeenSentAt(STEAM_A)).toBeNull();
+    expect(getLastSeenSearchedAt(STEAM_A)).toBeNull();
 
     window.localStorage.setItem(`${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`, '12345');
-    expect(getLastSeenSentAt(STEAM_A)).toBeNull();
+    expect(getLastSeenSearchedAt(STEAM_A)).toBeNull();
   });
 
   it('persists across reloads (localStorage survival)', () => {
     // Same contract the inbox relies on: a reload keeps the watermark, so
     // already-opened notifications do not resurrect as unread.
-    setLastSeenSentAt(STEAM_A, SENT_NEW);
-    expect(getLastSeenSentAt(STEAM_A)).toBe(SENT_NEW);
+    setLastSeenSearchedAt(STEAM_A, SEARCHED_NEW);
+    expect(getLastSeenSearchedAt(STEAM_A)).toBe(SEARCHED_NEW);
+  });
+
+  it('keeps a pre-split delivery watermark as a valid search cursor', () => {
+    // Upgrade path: values stored by the old sent_at era are full ISO
+    // timestamps, so they still parse and compare as searched_at cursors.
+    window.localStorage.setItem(
+      `${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`,
+      SEARCHED_NEW,
+    );
+    expect(getLastSeenSearchedAt(STEAM_A)).toBe(SEARCHED_NEW);
   });
 });
 
-describe('latestSentAt', () => {
-  it('returns the max finite-date sentAt regardless of position', () => {
-    expect(latestSentAt([{ sentAt: SENT_OLD }, { sentAt: SENT_NEW }])).toBe(
-      SENT_NEW,
-    );
-    expect(latestSentAt([{ sentAt: SENT_NEW }, { sentAt: SENT_OLD }])).toBe(
-      SENT_NEW,
-    );
-    expect(latestSentAt([])).toBeNull();
+describe('latestSearchedAt', () => {
+  it('returns the max finite-date searchedAt regardless of position', () => {
+    expect(
+      latestSearchedAt([
+        { searchedAt: SEARCHED_OLD },
+        { searchedAt: SEARCHED_NEW },
+      ]),
+    ).toBe(SEARCHED_NEW);
+    expect(
+      latestSearchedAt([
+        { searchedAt: SEARCHED_NEW },
+        { searchedAt: SEARCHED_OLD },
+      ]),
+    ).toBe(SEARCHED_NEW);
+    expect(latestSearchedAt([])).toBeNull();
   });
 
   it('skips corrupt timestamps instead of watermarking garbage', () => {
-    expect(latestSentAt([{ sentAt: 'garbage' }, { sentAt: SENT_OLD }])).toBe(
-      SENT_OLD,
-    );
-    expect(latestSentAt([{ sentAt: 'garbage' }])).toBeNull();
+    expect(
+      latestSearchedAt([{ searchedAt: 'garbage' }, { searchedAt: SEARCHED_OLD }]),
+    ).toBe(SEARCHED_OLD);
+    expect(latestSearchedAt([{ searchedAt: 'garbage' }])).toBeNull();
   });
 });

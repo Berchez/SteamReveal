@@ -6,8 +6,10 @@ import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import {
-  countNotificationsSince,
-  listSentNotifications,
+  countSearchesInMonth,
+  countSearchesSince,
+  getWatchedProfile,
+  listProfileSearches,
 } from '@/lib/analytics/db';
 import { resolveWatchSession } from '@/lib/watch/session';
 import {
@@ -36,25 +38,40 @@ const DEFAULT_LIMIT = WATCH_INBOX_DEFAULT_LIMIT;
 const MAX_LIMIT = WATCH_INBOX_MAX_LIMIT;
 
 /**
- * Returns the delivered-notification history for a watched profile —
- * exclusively kind='notify' + status='sent' rows (see
- * listSentNotifications: queued/dropped events never render as delivered).
+ * Returns the search history on a watched profile — EVERY recorded search,
+ * newest first, with no cooldown gate. The bot keeps its own strict 24h
+ * delivery discipline at send time (see watchNotify + notifyPoller); this
+ * route is the relaxed side: cooldown-suppressed views still appear here,
+ * because "who looked me up" must not hide behind a delivery throttle.
  *
- * Shape: `{ steamId, notifications (newest-first, capped), unreadCount }`.
- * `unreadCount` counts delivered rows past the client-supplied
- * `sinceSentAt` delivery watermark (absent = never opened) WITHOUT the
+ * Shape: `{ steamId, notifications (newest-first, capped), unreadCount,
+ * monthlyCount }`.
+ * `unreadCount` counts recorded searches past the client-supplied
+ * `sinceSearchedAt` search watermark (absent = never opened) WITHOUT the
  * row cap, so the bell stays exact when the backlog exceeds the returned
- * window. The cursor is sent_at, not id: deliveries are not
- * creation-ordered (a requeued retry keeps its old id but lands a fresh
- * sent_at), so an id-cursor would skip late-delivered retries. The client
- * owns the watermark (localStorage, per profile — no `read_at` column);
- * the server only counts past it.
+ * window. The cursor is searched_at, not any id: search ids embed
+ * wall-clock plus randomness, so they are not strictly ordered. The
+ * client owns the watermark (localStorage, per profile — no `read_at`
+ * column); the server only counts past it. The legacy `sinceSentAt`
+ * parameter is still accepted as an alias — pre-split stored watermarks
+ * are full ISO timestamps, so they compare correctly as search cursors.
+ * `monthlyCount` counts recorded searches on this profile since the start
+ * of the current UTC month (cooldown-suppressed views included) for the
+ * inbox header badge.
+ *
+ * All three reads share one temporal floor — the watch's activated_at
+ * (requested_at while still pending): pre-watch searches never appear, so
+ * a new confirmer starts from a clean history instead of inheriting
+ * strangers' lookups that predate the opt-in. No watch row at all (never
+ * requested, or opted out — opt-out deletes the row) answers an empty
+ * inbox without touching the search tables: "no row" means "no inbox".
  *
  * Strictly read-only: the inbox presents history, it never creates or
  * mutates notifications. Self-scoped via the Steam OpenID session: each
  * user reads ONLY their own history (the pre-login `?steamId=` parameter
  * is gone — its presence is a 400). Rows carry no PII beyond the
- * requester's own id (delivery timestamps only).
+ * requester's own id (search timestamps + the profile's own search
+ * metadata — viewed-at, cheater flag — never requester geo/device).
  */
 export async function GET(req: Request) {
   // App Router only routes GET here; kept as defense-in-depth (and so unit
@@ -104,26 +121,54 @@ export async function GET(req: Request) {
     limit = Math.min(parsed, MAX_LIMIT);
   }
 
-  const rawSinceSentAt = params.get('sinceSentAt');
-  let sinceSentAt: string | null = null;
-  if (rawSinceSentAt !== null) {
-    if (!Number.isFinite(Date.parse(rawSinceSentAt))) {
+  // sinceSearchedAt is the current name; sinceSentAt is the pre-split
+  // alias (same ISO-cursor semantics — see the docblock). sinceSearchedAt
+  // wins when both travel (the client only ever sends one); either alone
+  // behaves identically.
+  const rawSince = params.get('sinceSearchedAt') ?? params.get('sinceSentAt');
+  let sinceSearchedAt: string | null = null;
+  if (rawSince !== null) {
+    if (!Number.isFinite(Date.parse(rawSince))) {
       return errorResponse(
-        'Invalid sinceSentAt: expected an ISO-8601 timestamp.',
+        'Invalid sinceSearchedAt: expected an ISO-8601 timestamp.',
         400,
         'INVALID_REQUEST',
       );
     }
-    sinceSentAt = rawSinceSentAt;
+    sinceSearchedAt = rawSince;
   }
 
   try {
-    const [notifications, unreadCount] = await Promise.all([
-      listSentNotifications(steamId, limit),
-      countNotificationsSince(steamId, sinceSentAt),
+    // No watch row (never requested, or opted out — opt-out DELETES the
+    // row) means an empty inbox, full stop. searches is shared site
+    // analytics, so falling through to an unfiltered read here would leak
+    // the profile's whole lookup history to someone who never opted in —
+    // and worse, would show a post-opt-out user MORE history than they
+    // saw while watched (the row deletion would lift the floor). Watch
+    // is opt-in everywhere else in the product; "no row" means "no
+    // inbox", not "no limit". Answered without touching the search
+    // tables at all.
+    const watched = await getWatchedProfile(steamId);
+    if (watched === null) {
+      return NextResponse.json(
+        { steamId, notifications: [], unreadCount: 0, monthlyCount: 0 },
+        { status: 200 },
+      );
+    }
+    // Temporal floor: searches is shared site analytics — every lookup of
+    // any profile lands there, including ones from before this watch
+    // existed. Without the floor, a first-time confirmer would inherit
+    // months of strangers' pre-opt-in lookups (and a misleading monthly
+    // badge). activated_at marks when monitoring actually started;
+    // requested_at is the fallback for still-pending watches.
+    const watchStart = watched.activatedAt ?? watched.requestedAt;
+    const [notifications, unreadCount, monthlyCount] = await Promise.all([
+      listProfileSearches(steamId, limit, watchStart),
+      countSearchesSince(steamId, sinceSearchedAt, watchStart),
+      countSearchesInMonth(steamId, Date.now(), watchStart),
     ]);
     return NextResponse.json(
-      { steamId, notifications, unreadCount },
+      { steamId, notifications, unreadCount, monthlyCount },
       { status: 200 },
     );
   } catch (error) {

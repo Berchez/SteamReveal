@@ -10,6 +10,7 @@ import {
   isWatchStatusValue,
   readWarmWatchStatusSnapshot,
   updatePrefetchedWatchStatus,
+  type WarmWatchStatusSnapshot,
 } from './watchStatusPrefetch';
 
 /** Default poll cadence: 12/min, far below the 30/min per-IP route cap. */
@@ -22,7 +23,34 @@ interface UseWatchStatusOptions {
   steamId: string | null | undefined;
   enabled?: boolean;
   pollIntervalMs?: number;
+  /**
+   * Server-rendered seed (SiteNav reads the watch row at page-load time).
+   * Precedence: fresh hover/focus prefetch first (newest), then this seed,
+   * then blank (skeleton path). The mount poll always revalidates, so a
+   * stale seed self-corrects in one tick — same contract as the prefetch.
+   */
+  initialWatch?: WarmWatchStatusSnapshot | null;
 }
+
+/**
+ * Resolves one consistent first-paint snapshot: the freshest warm source
+ * wins (hover/focus prefetch, then the server seed), otherwise blanks for
+ * the skeleton path.
+ */
+const resolveInitialSnapshot = (
+  serverSeed?: WarmWatchStatusSnapshot | null,
+): WarmWatchStatusSnapshot => {
+  const warm = readWarmWatchStatusSnapshot();
+  if (warm.status !== null) return warm;
+  if (serverSeed?.status !== null && serverSeed?.status !== undefined) {
+    return {
+      status: serverSeed.status,
+      confirmExpired: serverSeed.confirmExpired,
+      confirmLinkSent: serverSeed.confirmLinkSent,
+    };
+  }
+  return { status: null, confirmExpired: false, confirmLinkSent: false };
+};
 
 interface UseWatchStatusResult {
   status: WatchStatusValue | null;
@@ -65,16 +93,22 @@ export const useWatchStatus = ({
   steamId,
   enabled = true,
   pollIntervalMs = WATCH_POLL_INTERVAL_MS,
+  initialWatch = null,
 }: UseWatchStatusOptions): UseWatchStatusResult => {
   const translator = useTranslations('Watch');
-  // Warm start from the avatar hover/focus prefetch (when fresh): the first
-  // paint already shows real content instead of the skeleton, so opening
-  // the dropdown right after hovering never flashes. Absent/stale reads
-  // fall back to the skeleton path exactly as before — and the poll below
-  // always revalidates on mount, so a stale hint self-corrects in one tick.
-  // Single lazy read: the three states below seed from one consistent
-  // snapshot instead of calling the getter three times.
-  const [initialWarm] = useState(readWarmWatchStatusSnapshot);
+  // Warm start from the freshest seed (hover/focus prefetch, then the
+  // server seed): the first paint already shows real content instead of
+  // the skeleton, so opening the dropdown right after hovering never
+  // flashes. Absent/stale reads fall back to the skeleton path exactly as
+  // before — and the poll below always revalidates on mount, so a stale
+  // hint self-corrects in one tick.
+  // Single lazy read: the states below seed from one consistent snapshot
+  // instead of calling the getter three times. The prop itself stays out
+  // of state: the mount effect below re-resolves (prefetch-first again)
+  // on steamId change via initialWatchRef.
+  const [initialWarm] = useState(() => resolveInitialSnapshot(initialWatch));
+  const initialWatchRef = useRef(initialWatch);
+  initialWatchRef.current = initialWatch;
   const [status, setStatus] = useState<WatchStatusValue | null>(
     initialWarm.status,
   );
@@ -196,7 +230,7 @@ export const useWatchStatus = ({
     // bail out in React, so the cold path is unaffected. The welcome-toast
     // cursor seeds from the snapshot too: a warm 'pending' that flips to
     // 'active' on the first real poll must still toast exactly once.
-    const warmSnapshot = readWarmWatchStatusSnapshot();
+    const warmSnapshot = resolveInitialSnapshot(initialWatchRef.current);
     prevStatusRef.current = warmSnapshot.status;
     setStatus(warmSnapshot.status);
     setError(null);

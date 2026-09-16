@@ -193,6 +193,12 @@
     "watchInboxEmpty": "Nenhuma notificação ainda. Você verá uma mensagem aqui sempre que seu perfil monitorado for buscado.",
     "watchInboxLoading": "Carregando notificações…",
     "watchInboxError": "Não foi possível carregar as notificações.",
-    "watchInboxRetry": "Tentar novamente"
+    "watchInboxRetry": "Tentar novamente",
+    "watchInboxMonthlyBadge": "{count} buscas este mês",
+    "watchInboxItemCheckedBody": "Alguém acessou seu perfil no dia {date} às {time} e verificou se você era um cheater.",
+    "watchInboxItemPlainBody": "Alguém acessou seu perfil no dia {date} às {time}.",
+    "watchInboxItemViewHere": "Veja aqui",
+    "watchInboxItemTrailing": "os dados disponíveis sobre você",
+    "watchInboxCheaterChecked": "Relatório de cheater aberto"
   }
 }

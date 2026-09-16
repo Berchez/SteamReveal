@@ -499,4 +499,27 @@ describe('WatchManager', () => {
     expect(skeleton).toHaveAttribute('aria-hidden', 'true');
     expect(skeleton.textContent).toBe('');
   });
+
+  it('paints server-seeded content immediately, skipping the skeleton', async () => {
+    // SSR-seed from SiteNav: the first paint already shows the real state
+    // even though the mount poll never resolves.
+    fetchByUrl(() => new Promise<Response>(() => undefined));
+
+    render(
+      <WatchManager
+        steamId={STEAM_ID}
+        initialWatch={{
+          status: 'pending',
+          confirmExpired: false,
+          confirmLinkSent: true,
+        }}
+      />,
+    );
+    await settle();
+
+    expect(screen.getByText('watchPendingTitle')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('watch-manager-skeleton'),
+    ).not.toBeInTheDocument();
+  });
 });

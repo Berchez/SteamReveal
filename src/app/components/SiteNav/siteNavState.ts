@@ -1,12 +1,42 @@
 import type { CookieStore } from 'iron-session';
 
+import { getAccount, getWatchStatus } from '@/lib/analytics/db';
+import type {
+  WatchAccount,
+  WatchStatus,
+} from '@/lib/analytics/types';
 import getSteamIdentity from '@/lib/getSteamIdentity';
 import { sanitizeError } from '@/lib/sanitizeError';
+import { resolveConfirmLinkState } from '@/lib/watch/confirmLinkState';
+import type { WarmWatchStatusSnapshot } from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
 import { resolveWatchSession } from '@/lib/watch/session';
 
 export type SiteNavState =
-  | { steamId: string; nickname: string; avatarUrl: string | null }
+  | {
+      steamId: string;
+      nickname: string;
+      avatarUrl: string | null;
+      initialWatch: WarmWatchStatusSnapshot | null;
+    }
   | { steamId: null };
+
+/**
+ * Mirrors the watch/status poll source of truth for the navbar seed: the
+ * rule itself lives in @/lib/watch/confirmLinkState (shared, not copied),
+ * this only adds the status field. Importing the route module instead
+ * would share its module-scoped rate limiter with the layout and drag
+ * route-handler code into the page tree. (The route additionally skips
+ * the account read unless pending — same result under the app's
+ * invariants, since a confirmed account always resolves {false, false};
+ * just one fewer query on the hot poll path.)
+ */
+const toInitialWatchSnapshot = (
+  status: WatchStatus | null,
+  account: WatchAccount | null,
+): WarmWatchStatusSnapshot => ({
+  status: status ?? 'none',
+  ...resolveConfirmLinkState(account),
+});
 
 /**
  * Server-side identity resolution for the global navbar, isolated from
@@ -31,7 +61,14 @@ export type SiteNavState =
  * of static rendering — inherent to ANY session-aware navbar, not to the
  * Steam call. The Steam round-trip itself is bounded instead: per-instance
  * 10-min TTL memo (nulls included, so outages stay cheap), 4s timeout, and
- * only for logged-in navigations. Client polls on top are equally bounded:
+ * only for logged-in navigations. The watch seed adds two indexed PK reads
+ * (watch status + account, one parallel round) for the same audience —
+ * same fail-open contract, and children keep streaming inside Suspense
+ * regardless. Deliberately NO memo on the seed (unlike the identity memo):
+ * a cached pending→active flip would stale the dropdown's first paint for
+ * the TTL window, while two PK reads per logged-in SSR nav stay cheap at
+ * any traffic this layout serves — revisit only with measured p99 pain.
+ * Client polls on top are equally bounded:
  * WatchManager mounts (and polls) only while the avatar dropdown is open,
  * and WatchInbox never intervals — fetch on mount/open/retry only.
  */
@@ -56,10 +93,35 @@ export const resolveSiteNavState = async (
       session.status === 'authenticated' ? session.steamId : null;
     if (steamId === null) return { steamId: null };
     const identity = await getSteamIdentity(steamId);
+    // Watch seed for the avatar dropdown's first paint (SSR-seed): two
+    // indexed PK reads, in parallel with nothing else here. ISOLATED
+    // try/catch on purpose — a DB blip must degrade to a cold open
+    // (initialWatch: null → skeleton path), never to logged-out: the
+    // outer catch below maps ANY throw to `{ steamId: null }`.
+    let initialWatch: WarmWatchStatusSnapshot | null = null;
+    try {
+      const [watchStatus, account] = await Promise.all([
+        getWatchStatus(steamId),
+        getAccount(steamId),
+      ]);
+      initialWatch = toInitialWatchSnapshot(watchStatus, account);
+    } catch (error) {
+      // Missing DATABASE_URL (plain local dev without analytics) is an
+      // expected config state, not an incident — stay quiet then. Real
+      // failures (present env, dead transport) log loudly like everything
+      // else in global chrome.
+      if (process.env.DATABASE_URL) {
+        // eslint-disable-next-line no-console
+        console.error(
+          `[SiteNav] watch seed read failed, opening cold: ${sanitizeError(error)}`,
+        );
+      }
+    }
     return {
       steamId,
       nickname: identity?.nickname ?? steamId,
       avatarUrl: identity?.avatarUrl ?? null,
+      initialWatch,
     };
   } catch (error) {
     // eslint-disable-next-line no-console

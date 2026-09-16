@@ -4,13 +4,18 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 import WatchManager from '@/app/components/WatchManager';
-import { prefetchWatchStatus } from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
+import {
+  prefetchWatchStatus,
+  type WarmWatchStatusSnapshot,
+} from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
 
 interface SiteNavMenuProps {
   steamId: string;
   nickname: string;
   avatarUrl: string | null;
   avatarAlt: string;
+  /** Server-seeded first paint (null = cold open, skeleton path). */
+  initialWatch?: WarmWatchStatusSnapshot | null;
 }
 
 /**
@@ -64,7 +69,13 @@ function AvatarBadge({
  * aria-modal, no Tab trap — same rationale as WatchInbox): the page
  * behind stays usable.
  */
-function SiteNavMenu({ steamId, nickname, avatarUrl, avatarAlt }: SiteNavMenuProps) {
+function SiteNavMenu({
+  steamId,
+  nickname,
+  avatarUrl,
+  avatarAlt,
+  initialWatch = null,
+}: SiteNavMenuProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -152,7 +163,7 @@ function SiteNavMenu({ steamId, nickname, avatarUrl, avatarAlt }: SiteNavMenuPro
               {nickname}
             </p>
           </div>
-          <WatchManager steamId={steamId} />
+          <WatchManager steamId={steamId} initialWatch={initialWatch} />
         </div>
       )}
     </div>

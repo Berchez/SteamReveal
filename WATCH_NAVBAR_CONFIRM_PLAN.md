@@ -100,7 +100,12 @@ CREATE TABLE IF NOT EXISTS accounts (
   seria contornado).
 - **Clique**: `GET /api/watch/confirm` virou página intermediária (imune a
   prefetch/linkifier/antivírus); `POST` consome + ativa + enfileira
-  `welcome` + sela sessão. CSRF de Origin como signup/logout.
+  `welcome` + sela sessão. CSRF de Origin como signup/logout. Emenda
+  pós-review: a variante válida dá auto-submit via script inline SOMENTE
+  com presença humana (visível + focado no load, senão primeiro evento
+  visibility/focus/pointer/key; noscript mantém o botão) — prerender,
+  abas em background e fetchers sem JS nunca disparam; ver sign-off 7 em
+  `WATCH_PROD_READINESS.md` para o residual aceito (detonação visible).
 - **Welcome**: evento `welcome` entregue pelo bot (o site não alcança o
   chat). POST só enfileira quando ele mesmo ativou (backstop ativa via
   `onActivated` e dá seu próprio welcome — sem duplo).

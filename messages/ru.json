@@ -193,6 +193,12 @@
     "watchInboxEmpty": "Пока нет уведомлений. Вы увидите здесь сообщение каждый раз, когда наблюдаемый профиль будут просматривать.",
     "watchInboxLoading": "Загрузка уведомлений…",
     "watchInboxError": "Не удалось загрузить уведомления.",
-    "watchInboxRetry": "Повторить"
+    "watchInboxRetry": "Повторить",
+    "watchInboxMonthlyBadge": "{count} поисков в этом месяце",
+    "watchInboxItemCheckedBody": "Кто-то просмотрел ваш профиль {date} в {time} и проверил, читер ли вы.",
+    "watchInboxItemPlainBody": "Кто-то просмотрел ваш профиль {date} в {time}.",
+    "watchInboxItemViewHere": "Смотреть здесь",
+    "watchInboxItemTrailing": "доступные данные о вас",
+    "watchInboxCheaterChecked": "Отчёт о читере открыт"
   }
 }

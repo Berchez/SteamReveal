@@ -6,6 +6,10 @@ import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { getAccount, getWatchStatus } from '@/lib/analytics/db';
+import {
+  resolveConfirmLinkState,
+  type ConfirmLinkState,
+} from '@/lib/watch/confirmLinkState';
 import { resolveWatchSession } from '@/lib/watch/session';
 
 export const runtime = 'nodejs';
@@ -26,38 +30,22 @@ const statusRateLimiter = createRateLimiter(
 
 /**
  * Confirm-link state for the resend UI, read from the signup account row.
- * `confirmExpired` is true only for a REAL past expiry on an unconfirmed
- * account; `confirmLinkSent` is true whenever a token generation exists
- * (live or expired — issue writes hash + expiry together, consume clears
- * both). Missing rows and confirmed accounts read {false, false}. Corrupt
- * clocks (unparseable expiry) read {false, false} when no token hash is
- * present, or {false, true} when a token hash exists (link was issued
- * but expiry is corrupted — fail-closed on expiry, link-sent detected
- * from token presence). Display-only: a transient read failure degrades
- * to {false, false} (logged loudly) instead of 500ing the polling loop
+ * The rule itself lives in @/lib/watch/confirmLinkState (shared with the
+ * SiteNav SSR seed); this wrapper only adds the read + the failure
+ * policy. Display-only: a transient read failure degrades to
+ * {false, false} (logged loudly) instead of 500ing the polling loop
  * over garnish.
  */
-interface ConfirmLinkState {
-  confirmExpired: boolean;
-  confirmLinkSent: boolean;
-}
 
-const readConfirmState = async (steamId: string): Promise<ConfirmLinkState> => {
+const readConfirmState = async (
+  steamId: string,
+): Promise<ConfirmLinkState> => {
   const none: ConfirmLinkState = {
     confirmExpired: false,
     confirmLinkSent: false,
   };
   try {
-    const account = await getAccount(steamId);
-    if (account === null || account.confirmedAt !== null) return none;
-    const linkSent = (account.confirmTokenHash ?? null) !== null;
-    if (account.confirmExpiresAt === null) {
-      return { confirmExpired: false, confirmLinkSent: linkSent };
-    }
-    return {
-      confirmExpired: Date.parse(account.confirmExpiresAt) <= Date.now(),
-      confirmLinkSent: linkSent,
-    };
+    return resolveConfirmLinkState(await getAccount(steamId));
   } catch (error) {
     // steamId is public data (searchable on the site), safe to log.
     logRouteError('watchStatus:confirmExpired', sanitizeError(error), {

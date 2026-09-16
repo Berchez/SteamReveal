@@ -1460,91 +1460,230 @@ describe('watch/outbox DAL (Epic 1)', () => {
     await expect(listWatchedProfiles()).rejects.toThrow(/db:migrate/);
   });
 
-  it('listSentNotifications projects sent notifies newest-first', async () => {
+  it('listProfileSearches projects searches newest-first', async () => {
     mockExecute.mockResolvedValueOnce({
       rows: [
-        { id: 9, sent_at: '2026-06-02T00:00:00.000Z' },
-        { id: 7, sent_at: '2026-06-01T00:00:00.000Z' },
+        {
+          search_id: 'search-9',
+          searched_at: '2026-06-02T00:00:00.000Z',
+          cheater_checked: 1,
+        },
+        {
+          search_id: 'search-7',
+          searched_at: '2026-06-01T00:00:00.000Z',
+          cheater_checked: 0,
+        },
       ],
     });
 
-    const { listSentNotifications } = require('./db');
-    const rows = await listSentNotifications(STEAM, 5);
+    const { listProfileSearches } = require('./db');
+    const rows = await listProfileSearches(STEAM, 5);
 
     expect(rows).toEqual([
-      { id: 9, sentAt: '2026-06-02T00:00:00.000Z' },
-      { id: 7, sentAt: '2026-06-01T00:00:00.000Z' },
+      {
+        searchId: 'search-9',
+        searchedAt: '2026-06-02T00:00:00.000Z',
+        cheaterChecked: true,
+      },
+      {
+        searchId: 'search-7',
+        searchedAt: '2026-06-01T00:00:00.000Z',
+        cheaterChecked: false,
+      },
     ]);
     const select = mockExecute.mock.calls.find((call) =>
-      String(call[0]?.sql ?? call[0]).includes('FROM watch_events'),
+      String(call[0]?.sql ?? call[0]).includes('FROM searches'),
     );
     const sql = String(select[0]?.sql ?? select[0]);
-    // Only delivered notifies qualify — queued/dropped/invites excluded.
-    expect(sql).toContain("kind = 'notify'");
-    expect(sql).toContain("status = 'sent'");
-    expect(sql).toContain('sent_at IS NOT NULL');
-    expect(sql).toContain('ORDER BY sent_at DESC');
+    // Every recorded search qualifies — no cooldown gate on the inbox
+    // side (the bot keeps its own 24h discipline at send time).
+    expect(sql).not.toContain('watch_events');
+    expect(sql).toContain('JOIN profiles');
+    expect(sql).toContain('ORDER BY s.searched_at DESC');
+    // Session details come from PK joins, never requester PII.
+    expect(sql).toContain('cheater_results');
+    expect(sql).not.toContain('search_meta');
+    expect(sql).not.toContain('requester_');
     expect(select[0].args).toEqual([STEAM, 5]);
   });
 
-  it('listSentNotifications clamps the limit and validates inputs', async () => {
-    const { listSentNotifications } = require('./db');
+  it('listProfileSearches clamps the limit and validates inputs', async () => {
+    const { listProfileSearches } = require('./db');
 
     mockExecute.mockResolvedValueOnce({ rows: [] });
-    await expect(listSentNotifications(STEAM, 500)).resolves.toEqual([]);
+    await expect(listProfileSearches(STEAM, 500)).resolves.toEqual([]);
     const clamped = mockExecute.mock.calls.find((call) =>
-      String(call[0]?.sql ?? call[0]).includes('FROM watch_events'),
+      String(call[0]?.sql ?? call[0]).includes('FROM searches'),
     );
     expect(clamped[0].args).toEqual([STEAM, 50]);
 
-    await expect(listSentNotifications('short')).rejects.toThrow(/17 digits/);
-    await expect(listSentNotifications(STEAM, NaN)).rejects.toThrow(/finite/);
+    await expect(listProfileSearches('short')).rejects.toThrow(/17 digits/);
+    await expect(listProfileSearches(STEAM, NaN)).rejects.toThrow(/finite/);
+    await expect(listProfileSearches(STEAM, 5, 'nope')).rejects.toThrow(
+      /since/,
+    );
   });
 
-  it('countNotificationsSince counts delivered rows past the watermark', async () => {
+  it('listProfileSearches applies the watch-start floor when given', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+
+    const { listProfileSearches } = require('./db');
+    await expect(
+      listProfileSearches(STEAM, 5, '2026-06-01T12:00:00.000Z'),
+    ).resolves.toEqual([]);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM searches'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    // Pre-watch rows never qualify: shared analytics holds lookups from
+    // before the watch existed.
+    expect(sql).toContain('s.searched_at >= ?');
+    expect(select[0].args).toEqual([STEAM, '2026-06-01T12:00:00.000Z', 5]);
+  });
+
+  it('countSearchesSince counts searches past the watermark', async () => {
     mockExecute.mockResolvedValueOnce({ rows: [{ n: 30 }] });
 
-    const { countNotificationsSince } = require('./db');
+    const { countSearchesSince } = require('./db');
     await expect(
-      countNotificationsSince(STEAM, '2026-06-01T00:00:00.000Z'),
+      countSearchesSince(STEAM, '2026-06-01T00:00:00.000Z'),
     ).resolves.toBe(30);
     const select = mockExecute.mock.calls.find((call) =>
       String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
     );
     const sql = String(select[0]?.sql ?? select[0]);
-    // Same delivered predicate as the inbox read — the two can never
-    // disagree on what counts. Delivery-timestamp cursor (NOT id): retries
-    // keep old ids but land fresh sent_at values.
-    expect(sql).toContain("kind = 'notify'");
-    expect(sql).toContain("status = 'sent'");
-    expect(sql).toContain('sent_at > ?');
+    // Same source as the inbox read — the two can never disagree on what
+    // counts. Search-timestamp cursor (NOT any id): search ids embed
+    // wall-clock plus randomness, so they are not strictly ordered.
+    expect(sql).toContain('FROM searches');
+    expect(sql).toContain('searched_at > ?');
     expect(select[0].args).toEqual([STEAM, '2026-06-01T00:00:00.000Z']);
   });
 
-  it('countNotificationsSince counts everything without a watermark', async () => {
-    mockExecute.mockResolvedValueOnce({ rows: [{ n: 7 }] });
+  it('countSearchesSince composes the watermark cursor with the watch floor', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 4 }] });
 
-    const { countNotificationsSince } = require('./db');
-    await expect(countNotificationsSince(STEAM)).resolves.toBe(7);
+    const { countSearchesSince } = require('./db');
+    await expect(
+      countSearchesSince(
+        STEAM,
+        '2026-06-01T00:00:00.000Z',
+        '2026-05-01T00:00:00.000Z',
+      ),
+    ).resolves.toBe(4);
     const select = mockExecute.mock.calls.find((call) =>
       String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
     );
-    expect(String(select[0]?.sql ?? select[0])).not.toContain('sent_at > ?');
+    const sql = String(select[0]?.sql ?? select[0]);
+    // Watermark stays strict (>), the watch floor inclusive (>=).
+    expect(sql).toContain('searched_at > ?');
+    expect(sql).toContain('searched_at >= ?');
+    expect(select[0].args).toEqual([
+      STEAM,
+      '2026-06-01T00:00:00.000Z',
+      '2026-05-01T00:00:00.000Z',
+    ]);
+  });
+
+  it('countSearchesSince counts everything without a watermark', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 7 }] });
+
+    const { countSearchesSince } = require('./db');
+    await expect(countSearchesSince(STEAM)).resolves.toBe(7);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    expect(String(select[0]?.sql ?? select[0])).not.toContain(
+      'searched_at > ?',
+    );
     expect(select[0].args).toEqual([STEAM]);
   });
 
-  it('countNotificationsSince validates inputs before touching the client', async () => {
-    const { countNotificationsSince } = require('./db');
+  it('countSearchesInMonth counts profile searches since the UTC month start', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 12 }] });
+
+    const { countSearchesInMonth } = require('./db');
+    // 2026-06-15 UTC -> window opens 2026-06-01T00:00:00.000Z.
+    await expect(
+      countSearchesInMonth(STEAM, Date.UTC(2026, 5, 15)),
+    ).resolves.toBe(12);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    expect(sql).toContain('JOIN profiles');
+    expect(select[0].args).toEqual([STEAM, '2026-06-01T00:00:00.000Z']);
+  });
+
+  it('countSearchesInMonth prefers the watch floor when it is later than month start', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 3 }] });
+
+    const { countSearchesInMonth } = require('./db');
+    // Mid-month watch start beats the month start: a first-day confirmer
+    // never inherits a pre-watch monthly total.
+    await expect(
+      countSearchesInMonth(
+        STEAM,
+        Date.UTC(2026, 5, 15),
+        '2026-06-10T00:00:00.000Z',
+      ),
+    ).resolves.toBe(3);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    expect(select[0].args).toEqual([STEAM, '2026-06-10T00:00:00.000Z']);
+  });
+
+  it('countSearchesInMonth keeps month start when the watch floor is older', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 9 }] });
+
+    const { countSearchesInMonth } = require('./db');
+    await expect(
+      countSearchesInMonth(
+        STEAM,
+        Date.UTC(2026, 5, 15),
+        '2026-05-20T00:00:00.000Z',
+      ),
+    ).resolves.toBe(9);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    expect(select[0].args).toEqual([STEAM, '2026-06-01T00:00:00.000Z']);
+  });
+
+  it('countSearchesInMonth validates inputs before touching the client', async () => {
+    const { countSearchesInMonth } = require('./db');
     const callsBefore = mockExecute.mock.calls.length;
 
-    await expect(countNotificationsSince('short', null)).rejects.toThrow(
+    await expect(countSearchesInMonth('short')).rejects.toThrow(/17 digits/);
+    await expect(countSearchesInMonth(STEAM, NaN)).rejects.toThrow(
+      /month clock/,
+    );
+    await expect(countSearchesInMonth(STEAM, Infinity)).rejects.toThrow(
+      /month clock/,
+    );
+    await expect(
+      countSearchesInMonth(STEAM, Date.UTC(2026, 5, 15), 'nope'),
+    ).rejects.toThrow(/watchSince/);
+
+    expect(mockExecute.mock.calls.length).toBe(callsBefore);
+  });
+
+  it('countSearchesSince validates inputs before touching the client', async () => {
+    const { countSearchesSince } = require('./db');
+    const callsBefore = mockExecute.mock.calls.length;
+
+    await expect(countSearchesSince('short', null)).rejects.toThrow(
       /17 digits/,
     );
-    await expect(countNotificationsSince(STEAM, 'nope')).rejects.toThrow(
-      /sinceSentAt/,
+    await expect(countSearchesSince(STEAM, 'nope')).rejects.toThrow(
+      /sinceSearchedAt/,
     );
-    await expect(countNotificationsSince(STEAM, '')).rejects.toThrow(
-      /sinceSentAt/,
+    await expect(countSearchesSince(STEAM, '')).rejects.toThrow(
+      /sinceSearchedAt/,
+    );
+    await expect(countSearchesSince(STEAM, null, 'nope')).rejects.toThrow(
+      /watchSince/,
     );
 
     expect(mockExecute.mock.calls.length).toBe(callsBefore);

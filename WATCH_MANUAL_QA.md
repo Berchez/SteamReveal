@@ -79,18 +79,24 @@ Para voltar ao normal, apague as linhas e reinicie o bot.
 9. Banco: `confirm_token_hash` com 64 hex (**nunca o token plano**),
    `confirm_expires_at` ≈ agora+TTL.
 
-### QA-02 — Página intermediária (GET não gasta nada)
+### QA-02 — Página intermediária (GET não gasta nada, POST automático com JS)
 
-1. Abra o link do chat → **página** `Confirm your Watch request` + botão
-   `Confirm and activate`. Não é redirect direto.
-2. Recarregue (F5) 2x — simula preview/antivírus. **Esperado: o form continua
-   lá.**
-3. Banco: `confirmed_at` NULL, `status` pending, hash inalterado.
-4. Extra: desligue o JS do navegador e repita — o form é HTML puro e funciona.
+1. Abra o link do chat → a página `Confirm your Watch request` dá POST
+   sozinha (auto-submit inline) e cai em `/en/?confirmed=ok`. Não há mais
+   botão visível para quem tem JS — clicar virou abrir.
+2. Desligue o JS do navegador e repita: o form + botão `Confirm and
+   activate` aparecem (fallback noscript) e recarregar (F5) 2x mantém o
+   form — simula preview/antivírus, que nunca executam o script.
+   **Esperado sem JS: o form continua lá, nada é gasto.**
+3. Banco (antes de qualquer POST): `confirmed_at` NULL, `status` pending,
+   hash inalterado.
+4. Extra: `curl.exe -s "LINK" | Select-String "<form"` → o form existe (o
+   `<script>` vem junto no HTML mas curl não o executa — prova de que
+   preview não gasta).
 
-### QA-03 — O clique ativa tudo
+### QA-03 — A abertura ativa tudo
 
-1. Na página do QA-02, clique `Confirm and activate`.
+1. Na página do QA-02 (com JS), aguarde o auto-submit.
 2. **Esperado:** redirect `/en/?confirmed=ok` + toast
    `Watch confirmed! You will be notified here whenever your profile is searched.`
    (some sozinho; reload não repete).
@@ -202,13 +208,30 @@ segue `pending`, banco inalterado após o marker. As únicas saídas desse
 estado são o botão "Generate new link" (QA-12) ou desfazer a amizade e
 recomeçar (QA-06).
 
+### QA-43 — Inbox rico: detalhe por sessão + contador mensal + split sem-cooldown
+
+1. Com watch `active`, busque o próprio perfil (URL direta) e **abra o
+   relatório de cheater** nessa busca; aguarde o notify (~1 min).
+2. Abra o sino: o item mostra o texto completo + link, e abaixo a linha da
+   sessão — data da busca + `Cheater report opened` (ou equivalente no
+   idioma). O `datetime` do `<time>` é a própria busca.
+3. No topo do painel, à direita: o badge `{N} searches this month`
+   (N ≥ 1). Repita sem abrir o cheater: o item seguinte vem **sem** a
+   linha do selo. O chat do bot, em contraste, traz só o teaser curto +
+   link (ispa vs. detalhe de propósito).
+4. **Split bot × inbox (sem cooldown no inbox).** Busque o perfil de novo
+   em seguida (< 24h do notify): o chat **não** recebe segunda mensagem
+   (cooldown 24h do bot), mas o sino **lista a nova busca** e o badge
+   mensal incrementa. Essa é a decisão de produto: entrega com throttle,
+   histórico sem throttle.
+
 ## 4. Erros e bordas
 
 | ID    | Caso                               | Como fazer                                                                                                                                                        | Esperado                                                                                                                           |
 | ----- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | QA-15 | Token malformado                   | `/api/watch/confirm?token=nope`                                                                                                                                   | Redirect `?confirmed=error`, zero leitura de token no banco                                                                        |
 | QA-16 | Link com ponto grudado             | Cole o link + `.` no fim (linkifier da Steam faz isso)                                                                                                            | Página/form funcionam com o token limpo                                                                                            |
-| QA-17 | Clique duplo                       | Mesmo link em 2 abas, clique nas duas quase juntas                                                                                                                | Uma vira `ok`, a outra `error` (single-use: segundo `consume` acha zero linhas)                                                    |
+| QA-17 | Clique duplo                       | Mesmo link em 2 abas, abra as duas quase juntas (cada uma dá auto-submit)                                                                                         | Uma vira `ok`, a outra `error` (single-use: segundo `consume` acha zero linhas)                                                    |
 | QA-18 | Re-clique dias depois              | Clique um link já consumido                                                                                                                                       | Página mostra o form (sem oráculo), POST cai em `error`                                                                            |
 | QA-19 | Linha apagada na mão com link vivo | Delete a linha `accounts` com token pendente, clique o link                                                                                                       | Página de erro, **sem crash**; no próximo pass do bot a lane legado (sem linha em `accounts`) ativa direto + welcome — nunca trava |
 | QA-20 | Signup deslogado                   | `POST /api/auth/signup` sem cookie (curl/DevTools)                                                                                                                | `401`                                                                                                                              |
@@ -283,15 +306,16 @@ armazenado, não o do browser).
 Pré-condição: logado (avatar visível), DevTools aberto (aba Network +
 Performance → Experience). Vale em qualquer estado (`none`/`pending`/`active`).
 
-- **QA-41 — Cold open mostra skeleton sem salto de layout.** Recarregue a
-  página e abra o dropdown **sem passar o mouse antes** (Tab até o avatar +
-  Enter, ou toque direto no mobile). Com rede throttlada (Slow 4G) dá para
-  ver: primeiro um placeholder pulsante **sem texto**, depois o conteúdo
-  real — a altura do painel quase não se move entre os dois. Na gravação do
-  Performance, **nenhum** evento `LayoutShift` relevante aparece na abertura
-  (o `min-h` do skeleton foi medido por locale; `ru`/`de` no estado `none`
-  podem deslocar ~40–70px para baixo — residual aceito e documentado no
-  cabeçalho de `WatchManagerSkeleton.tsx`).
+- **QA-41 — Abertura sem salto de layout (SSR-seed + skeleton).** Recarregue
+  a página e abra o dropdown **sem passar o mouse antes** (Tab até o avatar
+  + Enter, ou toque direto no mobile). Esperado: o painel já abre com o
+  conteúdo real (semente do servidor, sem flash) — ou, se a leitura do
+  servidor falhou, com um placeholder pulsante **sem texto** que quase não
+  se move quando o conteúdo chega. Na gravação do Performance (Slow 4G),
+  **nenhum** evento `LayoutShift` relevante aparece na abertura (o `min-h`
+  do skeleton foi medido por locale; `ru`/`de` no estado `none` podem
+  deslocar ~40–70px para baixo no caminho sem semente — residual aceito e
+  documentado no cabeçalho de `WatchManagerSkeleton.tsx`).
 - **QA-42 — Hover esquenta o painel (abre com conteúdo).** Passe o mouse no
   avatar ~1s e só então clique: o painel deve abrir **direto no conteúdo
   real**, sem flash de skeleton. Na aba Network: um `GET
@@ -310,7 +334,8 @@ Performance → Experience). Vale em qualquer estado (`none`/`pending`/`active`)
 | GET nunca consome/ativa; POST consome+ativa+welcome+session; 403/405/429; sela-falha→ok                        | `confirm/route.test.ts`                                                                                                                                                                   |
 | Pollers (envio, drops, retry-até-cap, throttle, recheck anti-nag, overlap, offline-skip)                       | `welcomePoller` + `confirmExpiryPoller` + `confirmResendPoller` .test.ts                                                                                                                  |
 | Resend route (401/403/405/429, queued true/false, 500 alto) + status `confirmExpired` (4 estados + degradação) | `confirm-resend/route.test.ts`, `status/route.test.ts`                                                                                                                                    |
-| Resend UI, logout nos 3 estados, hook, paridade i18n ×5                                                        | `WatchManager.test.tsx`, `useWatchStatus.test.ts`, `watchLocales.test.ts`                                                                                                                 |
+| Resend UI, logout nos 3 estados, hook, paridade i18n ×5                                                        | `WatchManager.test.tsx`, `useWatchStatus.test.ts`, `watchLocales.test.ts`                                                                                                                     |
+| Inbox rico (detalhe por sessão, selo cheater, contador mensal, teaser do bot)                                   | `WatchInbox.test.tsx`, `notifications/route.test.ts`, `db.test.ts`, `db.integration.test.ts`, `notificationText.test.ts`, `notifyMessage.test.ts`, `e2e/watch.spec.ts` (chained journey) |
 | Journey mockada (aceite→pending sem toast; POST→active; expirado→resend)                                       | `e2e/watch.spec.ts` (3 testes novos)                                                                                                                                                      |
 | Comandos                                                                                                       | `pnpm test` · `pnpm test -- --runTestsByPath <arq>` · `pnpm run lint` · `pnpm exec tsc --noEmit` · `pnpm exec playwright test e2e/watch.spec.ts --project=chromium` · `pnpm run db:smoke` |
 
@@ -326,6 +351,7 @@ Performance → Experience). Vale em qualquer estado (`none`/`pending`/`active`)
       auto-cura
 - [ ] QA-15→QA-25 sem surpresa (em especial QA-17 single-use e QA-38 tradeoff)
 - [ ] QA-26→QA-40 cobertos ou conscientemente pulados
+- [ ] QA-43 verde (detalhe por sessão + selo cheater + badge mensal; chat só teaser)
 - [ ] §7 em ao menos en+pt (ideal 5)
 - [ ] Banco confere em cada transição (§0.2, SQLs)
 - [ ] `pnpm run lint`, `tsc`, `pnpm test`, e2e watch verdes

@@ -5,8 +5,10 @@
 import { GET } from './route';
 
 jest.mock('@/lib/analytics/db', () => ({
-  listSentNotifications: jest.fn(),
-  countNotificationsSince: jest.fn(),
+  listProfileSearches: jest.fn(),
+  countSearchesSince: jest.fn(),
+  countSearchesInMonth: jest.fn(),
+  getWatchedProfile: jest.fn(),
 }));
 
 // Same per-file limiter trick as the sibling route tests: the factory runs
@@ -28,11 +30,16 @@ jest.mock('@/lib/watch/session', () => ({
   resolveWatchSession: jest.fn(),
 }));
 
-const { listSentNotifications, countNotificationsSince } = jest.requireMock(
-  '@/lib/analytics/db',
-) as {
-  listSentNotifications: jest.Mock;
-  countNotificationsSince: jest.Mock;
+const {
+  listProfileSearches,
+  countSearchesSince,
+  countSearchesInMonth,
+  getWatchedProfile,
+} = jest.requireMock('@/lib/analytics/db') as {
+  listProfileSearches: jest.Mock;
+  countSearchesSince: jest.Mock;
+  countSearchesInMonth: jest.Mock;
+  getWatchedProfile: jest.Mock;
 };
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
@@ -52,6 +59,18 @@ const makeRequest = (url: string) =>
 const STEAM_ID = '76561198000000001';
 const BASE = 'http://localhost/api/watch/notifications';
 
+// Default watch row: active since Feb, requested in Jan — every read test
+// below exercises the floored path unless it overrides this.
+const ACTIVE_ROW = {
+  steamId: STEAM_ID,
+  status: 'active',
+  locale: null,
+  requestedAt: '2026-01-01T00:00:00.000Z',
+  activatedAt: '2026-02-01T00:00:00.000Z',
+  lastNotifiedAt: null,
+};
+const WATCH_FLOOR = '2026-02-01T00:00:00.000Z';
+
 describe('GET /api/watch/notifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -60,16 +79,27 @@ describe('GET /api/watch/notifications', () => {
       status: 'authenticated',
       steamId: STEAM_ID,
     });
-    listSentNotifications.mockResolvedValue([]);
-    countNotificationsSince.mockResolvedValue(0);
+    listProfileSearches.mockResolvedValue([]);
+    countSearchesSince.mockResolvedValue(0);
+    countSearchesInMonth.mockResolvedValue(0);
+    getWatchedProfile.mockResolvedValue(ACTIVE_ROW);
   });
 
-  it('returns delivered notifications newest-first for the session user', async () => {
-    listSentNotifications.mockResolvedValue([
-      { id: 9, sentAt: '2026-06-02T00:00:00.000Z' },
-      { id: 7, sentAt: '2026-06-01T00:00:00.000Z' },
+  it('returns recorded searches newest-first for the session user', async () => {
+    listProfileSearches.mockResolvedValue([
+      {
+        searchId: 'search-9',
+        searchedAt: '2026-06-02T00:00:00.000Z',
+        cheaterChecked: false,
+      },
+      {
+        searchId: 'search-7',
+        searchedAt: '2026-06-01T00:00:00.000Z',
+        cheaterChecked: true,
+      },
     ]);
-    countNotificationsSince.mockResolvedValue(2);
+    countSearchesSince.mockResolvedValue(2);
+    countSearchesInMonth.mockResolvedValue(11);
 
     const res = await GET(makeRequest(BASE));
     const body = await res.json();
@@ -78,14 +108,37 @@ describe('GET /api/watch/notifications', () => {
     expect(body).toEqual({
       steamId: STEAM_ID,
       notifications: [
-        { id: 9, sentAt: '2026-06-02T00:00:00.000Z' },
-        { id: 7, sentAt: '2026-06-01T00:00:00.000Z' },
+        {
+          searchId: 'search-9',
+          searchedAt: '2026-06-02T00:00:00.000Z',
+          cheaterChecked: false,
+        },
+        {
+          searchId: 'search-7',
+          searchedAt: '2026-06-01T00:00:00.000Z',
+          cheaterChecked: true,
+        },
       ],
       unreadCount: 2,
+      monthlyCount: 11,
     });
-    expect(listSentNotifications).toHaveBeenCalledWith(STEAM_ID, 20);
-    // No watermark sent: count from null (never opened).
-    expect(countNotificationsSince).toHaveBeenCalledWith(STEAM_ID, null);
+    expect(listProfileSearches).toHaveBeenCalledWith(
+      STEAM_ID,
+      20,
+      WATCH_FLOOR,
+    );
+    // No watermark sent: count from null (never opened) — but the watch
+    // floor still applies.
+    expect(countSearchesSince).toHaveBeenCalledWith(
+      STEAM_ID,
+      null,
+      WATCH_FLOOR,
+    );
+    expect(countSearchesInMonth).toHaveBeenCalledWith(
+      STEAM_ID,
+      expect.any(Number),
+      WATCH_FLOOR,
+    );
   });
 
   it('returns 401 without a login session (never touches the DAL)', async () => {
@@ -100,16 +153,18 @@ describe('GET /api/watch/notifications', () => {
         error: expect.objectContaining({ code: 'UNAUTHENTICATED' }),
       }),
     );
-    expect(listSentNotifications).not.toHaveBeenCalled();
-    expect(countNotificationsSince).not.toHaveBeenCalled();
+    expect(listProfileSearches).not.toHaveBeenCalled();
+    expect(countSearchesSince).not.toHaveBeenCalled();
+    expect(countSearchesInMonth).not.toHaveBeenCalled();
+    expect(getWatchedProfile).not.toHaveBeenCalled();
   });
 
   it('forwards a valid limit and clamps an oversized one', async () => {
     await GET(makeRequest(`${BASE}?limit=5`));
-    expect(listSentNotifications).toHaveBeenCalledWith(STEAM_ID, 5);
+    expect(listProfileSearches).toHaveBeenCalledWith(STEAM_ID, 5, WATCH_FLOOR);
 
     await GET(makeRequest(`${BASE}?limit=500`));
-    expect(listSentNotifications).toHaveBeenCalledWith(STEAM_ID, 50);
+    expect(listProfileSearches).toHaveBeenCalledWith(STEAM_ID, 50, WATCH_FLOOR);
   });
 
   it('rejects any ?steamId= and invalid limit without touching the DAL', async () => {
@@ -119,37 +174,181 @@ describe('GET /api/watch/notifications', () => {
       `${BASE}?limit=0`,
       `${BASE}?limit=abc`,
       `${BASE}?limit=2.5`,
+      `${BASE}?sinceSearchedAt=nope`,
+      `${BASE}?sinceSearchedAt=`,
       `${BASE}?sinceSentAt=nope`,
       `${BASE}?sinceSentAt=`,
     ]) {
       const res = await GET(makeRequest(url));
       expect(res.status).toBe(400);
     }
-    expect(listSentNotifications).not.toHaveBeenCalled();
-    expect(countNotificationsSince).not.toHaveBeenCalled();
+    expect(listProfileSearches).not.toHaveBeenCalled();
+    expect(countSearchesSince).not.toHaveBeenCalled();
+    expect(countSearchesInMonth).not.toHaveBeenCalled();
+    expect(getWatchedProfile).not.toHaveBeenCalled();
   });
 
   it('passes the client watermark through to the count', async () => {
-    listSentNotifications.mockResolvedValue([
-      { id: 30, sentAt: '2026-06-02T00:00:00.000Z' },
+    listProfileSearches.mockResolvedValue([
+      {
+        searchId: 'search-30',
+        searchedAt: '2026-06-02T00:00:00.000Z',
+        cheaterChecked: false,
+      },
     ]);
-    countNotificationsSince.mockResolvedValue(5);
+    countSearchesSince.mockResolvedValue(5);
 
     const res = await GET(
-      makeRequest(`${BASE}?sinceSentAt=2026-06-01T00:00:00.000Z`),
+      makeRequest(`${BASE}?sinceSearchedAt=2026-06-01T00:00:00.000Z`),
     );
     const body = await res.json();
 
     expect(res.status).toBe(200);
     expect(body).toEqual({
       steamId: STEAM_ID,
-      notifications: [{ id: 30, sentAt: '2026-06-02T00:00:00.000Z' }],
+      notifications: [
+        {
+          searchId: 'search-30',
+          searchedAt: '2026-06-02T00:00:00.000Z',
+          cheaterChecked: false,
+        },
+      ],
       unreadCount: 5,
+      monthlyCount: 0,
     });
-    expect(countNotificationsSince).toHaveBeenCalledWith(
+    expect(countSearchesSince).toHaveBeenCalledWith(
       STEAM_ID,
       '2026-06-01T00:00:00.000Z',
+      WATCH_FLOOR,
     );
+  });
+
+  it('accepts the legacy sinceSentAt alias (pre-split watermarks)', async () => {
+    countSearchesSince.mockResolvedValue(3);
+
+    const res = await GET(
+      makeRequest(`${BASE}?sinceSentAt=2026-06-01T00:00:00.000Z`),
+    );
+
+    expect(res.status).toBe(200);
+    expect(countSearchesSince).toHaveBeenCalledWith(
+      STEAM_ID,
+      '2026-06-01T00:00:00.000Z',
+      WATCH_FLOOR,
+    );
+  });
+
+  it('prefers sinceSearchedAt when both params travel', async () => {
+    countSearchesSince.mockResolvedValue(1);
+
+    const res = await GET(
+      makeRequest(
+        `${BASE}?sinceSearchedAt=2026-06-02T00:00:00.000Z&sinceSentAt=2026-06-01T00:00:00.000Z`,
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    expect(countSearchesSince).toHaveBeenCalledWith(
+      STEAM_ID,
+      '2026-06-02T00:00:00.000Z',
+      WATCH_FLOOR,
+    );
+  });
+
+  it('floors every read at the watch activation (no pre-watch history leaks)', async () => {
+    getWatchedProfile.mockResolvedValue({
+      steamId: STEAM_ID,
+      status: 'active',
+      locale: null,
+      requestedAt: '2026-05-01T00:00:00.000Z',
+      activatedAt: '2026-06-01T12:00:00.000Z',
+      lastNotifiedAt: null,
+    });
+
+    const res = await GET(makeRequest(BASE));
+
+    expect(res.status).toBe(200);
+    expect(getWatchedProfile).toHaveBeenCalledWith(STEAM_ID);
+    expect(listProfileSearches).toHaveBeenCalledWith(
+      STEAM_ID,
+      20,
+      '2026-06-01T12:00:00.000Z',
+    );
+    expect(countSearchesSince).toHaveBeenCalledWith(
+      STEAM_ID,
+      null,
+      '2026-06-01T12:00:00.000Z',
+    );
+    expect(countSearchesInMonth).toHaveBeenCalledWith(
+      STEAM_ID,
+      expect.any(Number),
+      '2026-06-01T12:00:00.000Z',
+    );
+  });
+
+  it('falls back to requested_at while the watch is still pending', async () => {
+    getWatchedProfile.mockResolvedValue({
+      steamId: STEAM_ID,
+      status: 'pending',
+      locale: null,
+      requestedAt: '2026-06-01T00:00:00.000Z',
+      activatedAt: null,
+      lastNotifiedAt: null,
+    });
+
+    const res = await GET(makeRequest(BASE));
+
+    expect(res.status).toBe(200);
+    expect(listProfileSearches).toHaveBeenCalledWith(
+      STEAM_ID,
+      20,
+      '2026-06-01T00:00:00.000Z',
+    );
+  });
+
+  it('returns an empty inbox without touching search reads when no watch was ever requested', async () => {
+    // searches is shared site analytics: answering from it here would
+    // leak the profile's whole lookup history to someone who never
+    // opted in — so the route short-circuits before any search read.
+    getWatchedProfile.mockResolvedValue(null);
+
+    const res = await GET(makeRequest(BASE));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({
+      steamId: STEAM_ID,
+      notifications: [],
+      unreadCount: 0,
+      monthlyCount: 0,
+    });
+    expect(listProfileSearches).not.toHaveBeenCalled();
+    expect(countSearchesSince).not.toHaveBeenCalled();
+    expect(countSearchesInMonth).not.toHaveBeenCalled();
+  });
+
+  it('stays empty after opt-out deleted the watch row (no post-exit leak)', async () => {
+    // Opt-out deletes the watched_profiles row, so a logged-in
+    // post-opt-out profile reads exactly like a never-requested one:
+    // empty inbox, no search-table access. Without this, leaving would
+    // perversely EXPOSE more history (unfiltered) than staying watched.
+    getWatchedProfile.mockResolvedValue(null);
+
+    const res = await GET(
+      makeRequest(`${BASE}?sinceSearchedAt=2026-01-01T00:00:00.000Z`),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({
+      steamId: STEAM_ID,
+      notifications: [],
+      unreadCount: 0,
+      monthlyCount: 0,
+    });
+    expect(listProfileSearches).not.toHaveBeenCalled();
+    expect(countSearchesSince).not.toHaveBeenCalled();
+    expect(countSearchesInMonth).not.toHaveBeenCalled();
   });
 
   it('rejects non-GET methods and rate-limited callers', async () => {
@@ -162,11 +361,12 @@ describe('GET /api/watch/notifications', () => {
     __testIsRateLimited.mockReturnValueOnce(true);
     const limited = await GET(makeRequest(BASE));
     expect(limited.status).toBe(429);
-    expect(listSentNotifications).not.toHaveBeenCalled();
+    expect(listProfileSearches).not.toHaveBeenCalled();
+    expect(countSearchesInMonth).not.toHaveBeenCalled();
   });
 
   it('returns 500 when the DAL fails (no stack traces leak)', async () => {
-    listSentNotifications.mockRejectedValue(new Error('db down'));
+    listProfileSearches.mockRejectedValue(new Error('db down'));
     const res = await GET(makeRequest(BASE));
     const body = await res.json();
 
@@ -183,6 +383,7 @@ describe('GET /api/watch/notifications', () => {
     const res = await GET(makeRequest(BASE));
 
     expect(res.status).toBe(500);
-    expect(listSentNotifications).not.toHaveBeenCalled();
+    expect(listProfileSearches).not.toHaveBeenCalled();
+    expect(countSearchesInMonth).not.toHaveBeenCalled();
   });
 });

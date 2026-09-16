@@ -37,6 +37,7 @@ export default async function SiteNav({ locale }: { locale: string }) {
             nickname={state.nickname}
             avatarUrl={state.avatarUrl}
             avatarAlt={t('watchAvatarAlt', { nickname: state.nickname })}
+            initialWatch={state.initialWatch}
           />
         </>
       )}

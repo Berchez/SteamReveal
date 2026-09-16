@@ -26,7 +26,15 @@ const INBOX_KEYS = [
   'watchInboxLoading',
   'watchInboxError',
   'watchInboxRetry',
+  'watchInboxMonthlyBadge',
+  'watchInboxItemCheckedBody',
+  'watchInboxItemPlainBody',
+  'watchInboxItemViewHere',
+  'watchInboxItemTrailing',
+  'watchInboxCheaterChecked',
 ];
+
+const ITEM_BODY_KEYS = ['watchInboxItemCheckedBody', 'watchInboxItemPlainBody'];
 
 const loadMessages = (locale: string): Record<string, unknown> => {
   const raw = fs.readFileSync(
@@ -74,6 +82,29 @@ describe('Watch locale parity (WB-15)', () => {
     for (const locale of LOCALES) {
       const watch = loadMessages(locale).Watch as Record<string, unknown>;
       expect(watch.watchInboxBellLabel as string).toContain('{count}');
+    }
+  });
+
+  it('keeps the count interpolation in every monthly badge', () => {
+    // Same contract as the bell label: the badge renders
+    // translator('watchInboxMonthlyBadge', { count }).
+    for (const locale of LOCALES) {
+      const watch = loadMessages(locale).Watch as Record<string, unknown>;
+      expect(watch.watchInboxMonthlyBadge as string).toContain('{count}');
+    }
+  });
+
+  it('keeps the date/time interpolation in every inbox item body', () => {
+    // NotifyItemText renders translator('watchInboxItem…Body',
+    // { date, time }): a template without any placeholder would silently
+    // drop that part of the timestamp.
+    for (const locale of LOCALES) {
+      const watch = loadMessages(locale).Watch as Record<string, unknown>;
+      for (const key of ITEM_BODY_KEYS) {
+        const template = watch[key] as string;
+        expect(template).toContain('{date}');
+        expect(template).toContain('{time}');
+      }
     }
   });
 });

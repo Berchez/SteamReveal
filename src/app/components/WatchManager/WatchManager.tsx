@@ -6,7 +6,10 @@ import { usePathname } from '@/navigation';
 import resolveLoginNext from '@/lib/watch/loginNext';
 
 import { useWatchStatus } from '@/app/templates/Home/hooks/watch/useWatchStatus';
-import { clearWatchStatusPrefetch } from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
+import {
+  clearWatchStatusPrefetch,
+  type WarmWatchStatusSnapshot,
+} from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
 
 import WatchManagerSkeleton from './WatchManagerSkeleton';
 
@@ -22,7 +25,14 @@ import WatchManagerSkeleton from './WatchManagerSkeleton';
  * is what keeps an opt-out (unfriend → row deleted → status 'none') from
  * silently re-subscribing the user on the next visit.
  */
-function WatchManager({ steamId }: { steamId: string }) {
+function WatchManager({
+  steamId,
+  initialWatch = null,
+}: {
+  steamId: string;
+  /** Server-seeded first paint from SiteNav (null = cold open, skeleton). */
+  initialWatch?: WarmWatchStatusSnapshot | null;
+}) {
   const translator = useTranslations('Watch');
   // Requester locale travels with the signup so the bot's confirm link
   // message (and later the welcome message) is composed in the user's
@@ -42,6 +52,7 @@ function WatchManager({ steamId }: { steamId: string }) {
   const { status, error: statusError, confirmExpired, confirmLinkSent } = useWatchStatus({
     steamId,
     enabled: true,
+    initialWatch,
   });
   const linkSentHint = confirmLinkSent ? translator('watchLinkSentHint') : translator('watchPendingHint');
 

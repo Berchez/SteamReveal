@@ -9,76 +9,93 @@ import React, {
 } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { getNotifyText } from '@/lib/watch/notificationText';
+import {
+  getInboxSearchDateTime,
+  resolveWatchLocale,
+  watchPlayerPageUrl,
+  watchProfileUrl,
+} from '@/lib/watch/notificationText';
 import { WATCH_INBOX_DEFAULT_LIMIT } from '@/lib/watch/limits';
 import resolveLoginNext from '@/lib/watch/loginNext';
 import { usePathname } from '@/navigation';
 import {
-  getLastSeenSentAt,
-  latestSentAt,
-  setLastSeenSentAt,
+  getLastSeenSearchedAt,
+  latestSearchedAt,
+  setLastSeenSearchedAt,
 } from '@/app/templates/Home/hooks/watch/watchReadState';
 
 interface InboxNotification {
-  id: number;
-  sentAt: string;
+  /** Producing search id (searches.id — the React key, stable forever). */
+  searchId: string;
+  /** When the viewed search ran (searches.searched_at, UTC ISO). */
+  searchedAt: string;
+  /** Whether the searcher opened the cheater report for that search. */
+  cheaterChecked: boolean;
 }
 
 const NOTIFICATIONS_LIMIT = WATCH_INBOX_DEFAULT_LIMIT;
-
 /**
- * Splits the shared WB-15 notify text into body + trailing link for HTML
- * rendering. Steam chat honors `\n`; HTML collapses it — so the inbox
- * renders the body with `whitespace-pre-line` and the link (always last,
- * on its own line, by template contract) as a real anchor instead of
- * dead URL text. Only an http(s) tail qualifies: anything else renders
- * as plain body text, so a template drift can never mint a
- * `javascript:` href.
- */
-const splitNotifyLink = (text: string): { body: string; link: string | null } => {
-  const idx = text.lastIndexOf('\n');
-  if (idx === -1) return { body: text, link: null };
-  const candidate = text.slice(idx + 1).trim();
-  if (!/^https?:\/\/\S+$/.test(candidate)) return { body: text, link: null };
-  return { body: text.slice(0, idx), link: candidate };
-};
-
-/**
- * One inbox row's text: the shared bot base, rendered for HTML.
+ * One inbox row's text: a localized per-search sentence
+ * (messages/*.json, never hardcoded) plus a "view here" anchor pointing
+ * at the analyzed Steam profile.
  *
- * Same player-page link the bot sends ("see what they saw"): origin is
- * browser-known, no env needed. Nickname stays absent here — resolving it
- * needs the Steam API key, which never ships to the client.
+ * Copy varies by cheaterChecked (opened report or not); the date parts
+ * come from the row's searched_at. The anchor is a dedicated element, not
+ * a raw URL glued to the sentence. Viewed-at timestamp and cheater flag
+ * line live below the text.
  *
- * Deliberately NO anti-loop token on this link: the raw token left with
- * the bot's chat message (only its hash is stored — unrecoverable), so
- * the inbox cannot mint one. A self-click therefore records a NORMAL
- * search (one self-notify, exactly as if you searched your own profile
- * by hand) — mildly noisy, never a loop: nothing here re-triggers
- * itself, and the token path stays the bot message's exclusive job.
+ * Word-order note: body + anchor + trailing render as three fixed
+ * segments, which holds for all 5 supported locales (all SVO). A future
+ * non-SVO locale would need next-intl rich-text tags instead — do not
+ * just add another flat key.
  */
-function NotifyItemText({ locale, steamId }: { locale: string; steamId: string }) {
-  const { body, link } = splitNotifyLink(
-    getNotifyText(locale, steamId, {
-      siteUrl: typeof window !== 'undefined' ? window.location.origin : null,
-    }),
-  );
+function NotifyItemText({
+  locale,
+  steamId,
+  cheaterChecked,
+  searchedAt,
+}: {
+  locale: string;
+  steamId: string;
+  cheaterChecked: boolean;
+  searchedAt?: string | null;
+}) {
+  const translator = useTranslations('Watch');
+  const resolved = resolveWatchLocale(locale);
+  // Same link target as the bot's notify ("see what they saw"): origin is
+  // browser-known, no env needed. Deliberately NO anti-loop token: the raw
+  // token left with the bot's chat message (only its hash is stored), so
+  // the inbox cannot mint one — a self-click records a NORMAL search,
+  // mildly noisy, never a loop.
+  const siteUrl = typeof window !== 'undefined' ? window.location.origin : null;
+  const link =
+    siteUrl === null
+      ? watchProfileUrl(steamId)
+      : watchPlayerPageUrl(siteUrl, resolved, steamId);
+  // Locale-correct date/time (en MM/DD 12h, pt DD/MM 24h, ...). The row
+  // parser only ever passes a finite ISO searchedAt; empty strings keep
+  // the interpolation defined (never undefined) on the impossible path.
+  const dateValues: Record<string, string> = getInboxSearchDateTime(
+    searchedAt,
+    locale,
+  ) ?? { date: '', time: '' };
   return (
     <p className="whitespace-pre-line text-sm text-gray-200">
-      {body}
-      {link !== null && (
-        <>
-          {'\n'}
-          <a
-            href={link}
-            target="_blank"
-            rel="noreferrer"
-            className="break-all text-purple-300 underline hover:text-purple-200"
-          >
-            {link}
-          </a>
-        </>
-      )}
+      {translator(
+        cheaterChecked
+          ? 'watchInboxItemCheckedBody'
+          : 'watchInboxItemPlainBody',
+        dateValues,
+      )}{' '}
+      <a
+        href={link}
+        target="_blank"
+        rel="noreferrer"
+        className="break-all text-blue-400 underline hover:text-blue-300 font-bold"
+      >
+        {translator('watchInboxItemViewHere')}
+      </a>{' '}
+      {translator('watchInboxItemTrailing')}
     </p>
   );
 }
@@ -86,22 +103,26 @@ function NotifyItemText({ locale, steamId }: { locale: string; steamId: string }
 /**
  * Watch inbox bell + dropdown (WB-14).
  *
- * Reads delivered notifies (kind='notify', status='sent') for the session
- * SteamID prop and presents them newest-first. The
- * item text is the shared WB-15 base (same function family the bot sends
- * with). Language note: items render in the PAGE locale, while the bot
- * sent in the stored requester locale — same base text, viewer language.
+ * Reads EVERY recorded search on the session SteamID prop and presents
+ * them newest-first — no cooldown gate (the bot's 24h delivery discipline
+ * lives at send time; the inbox is the relaxed side, so
+ * cooldown-suppressed views still appear here). Each row renders a
+ * localized inbox sentence (messages/*.json, never hardcoded) with the
+ * search date parts plus a "view here" anchor. Language note: items render
+ * in the PAGE locale, while the bot sent in the stored requester locale.
  * If the user changes site language afterwards, the inbox wording can
  * legitimately differ from the Steam chat wording for the same event.
- * Only id + delivery timestamp travel over the API; text is composed
- * client-side from the base. By data-model design every item shares the
- * same base text and differs only by timestamp (no per-event content is
- * stored) — that is the intended look, not a rendering bug.
+ * Only search id + timestamp travel over the API; text is composed
+ * client-side from the localized templates. By data-model design every
+ * item shares the same sentence shape and differs only by timestamp (no
+ * per-event content is stored) — that is the intended look, not a
+ * rendering bug.
  *
- * Unread state is a local per-profile watermark (max delivered sent_at in
+ * Unread state is a local per-profile watermark (max searched_at in
  * localStorage — no `read_at` column), keyed by the session SteamID prop:
  * opening the inbox marks everything visible as seen. Timestamp (not id)
- * cursor: retries keep old ids but land fresh sent_at values. No interval
+ * cursor: search ids embed wall-clock plus randomness, so they are not
+ * strictly ordered. No interval
  * polling by design (fetch on mount/prop change, refetch on open and on
  * manual retry only). A 401 (session died mid-use) swaps the panel for a
  * login link instead of failing silently.
@@ -123,6 +144,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<InboxNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [monthlyCount, setMonthlyCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -142,7 +164,11 @@ function WatchInbox({ steamId }: { steamId: string }) {
   // filters when the server count is absent AND the fetch had a cursor.
   const applyInboxPayload = useCallback(
     (
-      body: { notifications?: unknown; unreadCount?: unknown } | null,
+      body: {
+        notifications?: unknown;
+        unreadCount?: unknown;
+        monthlyCount?: unknown;
+      } | null,
       markVisibleAsSeen: boolean,
       seq: number,
       countSince: string | null,
@@ -153,10 +179,28 @@ function WatchInbox({ steamId }: { steamId: string }) {
       const parsed: InboxNotification[] = [];
       rows.forEach((row) => {
         if (typeof row !== 'object' || row === null) return;
-        const { id, sentAt } = row as { id: unknown; sentAt: unknown };
-        if (typeof id !== 'number' || !Number.isInteger(id)) return;
-        if (typeof sentAt !== 'string') return;
-        parsed.push({ id, sentAt });
+        const { searchId, searchedAt, cheaterChecked } = row as {
+          searchId?: unknown;
+          searchedAt?: unknown;
+          cheaterChecked?: unknown;
+        };
+        // searchId is the row identity (React key) AND the time anchor —
+        // both are required, so a row missing either is dropped, never
+        // rendered half-true. Legacy sentAt/id-only shapes (pre-split
+        // servers mid-rollout) fall out here: no row is better than a row
+        // with a wrong when.
+        if (typeof searchId !== 'string' || searchId.length === 0) return;
+        if (
+          typeof searchedAt !== 'string' ||
+          !Number.isFinite(Date.parse(searchedAt))
+        ) {
+          return;
+        }
+        parsed.push({
+          searchId,
+          searchedAt,
+          cheaterChecked: cheaterChecked === true,
+        });
       });
       // Stale-response guard: an identity switch mid-flight must not let
       // the previous profile's rows land in the new profile's inbox.
@@ -176,11 +220,20 @@ function WatchInbox({ steamId }: { steamId: string }) {
         serverCount ??
           (countSince === null
             ? parsed.length
-            : parsed.filter((item) => item.sentAt > countSince).length),
+            : parsed.filter((item) => item.searchedAt > countSince).length),
       );
+      // Monthly badge: server-owned when present, hidden otherwise (old
+      // servers mid-rollout) — never guessed client-side.
+      const serverMonthly =
+        typeof body?.monthlyCount === 'number' &&
+        Number.isInteger(body.monthlyCount) &&
+        body.monthlyCount >= 0
+          ? body.monthlyCount
+          : null;
+      setMonthlyCount(serverMonthly);
       if (markVisibleAsSeen) {
-        const latest = latestSentAt(parsed);
-        if (latest !== null) setLastSeenSentAt(steamId, latest);
+        const latest = latestSearchedAt(parsed);
+        if (latest !== null) setLastSeenSearchedAt(steamId, latest);
         // The rows just opened are seen by definition, regardless of
         // what the count said a millisecond ago.
         setUnreadCount(0);
@@ -195,12 +248,11 @@ function WatchInbox({ steamId }: { steamId: string }) {
       fetchSeqRef.current = seq;
       setLoading(true);
       setError(false);
-      // Watermark read once per fetch: it is both the sinceSentAt cursor
-      // sent to the server and the base of the local fallback count below.
-      // Delivery-timestamp cursor (NOT max id): a requeued retry keeps its
-      // old id but lands a fresh sent_at, so an id-cursor would skip a
-      // late-delivered event that arrived after a newer id was seen.
-      const rawWatermark = getLastSeenSentAt(steamId);
+      // Watermark read once per fetch: it is both the sinceSearchedAt
+      // cursor sent to the server and the base of the local fallback count
+      // below. Search-timestamp cursor (NOT any id): search ids embed
+      // wall-clock plus randomness, so they are not strictly ordered.
+      const rawWatermark = getLastSeenSearchedAt(steamId);
       // Validate watermark: if corrupted (not a parseable ISO timestamp),
       // clear it and proceed without a cursor to avoid a permanent 400 loop.
       const watermark =
@@ -209,14 +261,14 @@ function WatchInbox({ steamId }: { steamId: string }) {
           : null;
       if (watermark !== rawWatermark && rawWatermark !== null) {
         // Watermark was corrupted — clear it so we don't retry with bad data.
-        setLastSeenSentAt(steamId, null);
+        setLastSeenSearchedAt(steamId, null);
       }
       try {
         let res = await fetch(
           `/api/watch/notifications?limit=${NOTIFICATIONS_LIMIT}${
             watermark === null
               ? ''
-              : `&sinceSentAt=${encodeURIComponent(watermark)}`
+              : `&sinceSearchedAt=${encodeURIComponent(watermark)}`
           }`,
         );
         // A 400 here means a corrupt watermark slipped validation (or
@@ -228,7 +280,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
         // fallback must still see the fetch as cursorless).
         let effectiveWatermark = watermark;
         if (res.status === 400 && watermark !== null) {
-          setLastSeenSentAt(steamId, null);
+          setLastSeenSearchedAt(steamId, null);
           if (fetchSeqRef.current !== seq) return;
           res = await fetch(
             `/api/watch/notifications?limit=${NOTIFICATIONS_LIMIT}`,
@@ -238,11 +290,12 @@ function WatchInbox({ steamId }: { steamId: string }) {
         if (fetchSeqRef.current !== seq) return;
         if (res.status === 401) {
           // Session died mid-use (logout elsewhere, expiry): drop the lane
-          // state (stale rows + a stale count next to a login prompt would
+          // state (stale rows + stale counts next to a login prompt would
           // lie) and offer the way back in. finally below clears loading.
           setSessionExpired(true);
           setNotifications([]);
           setUnreadCount(0);
+          setMonthlyCount(null);
           return;
         }
         if (!res.ok) throw new Error(`notifications fetch: ${res.status}`);
@@ -271,6 +324,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
   useEffect(() => {
     setNotifications([]);
     setUnreadCount(0);
+    setMonthlyCount(null);
     setError(false);
     setSessionExpired(false);
     setOpen(false);
@@ -338,14 +392,14 @@ function WatchInbox({ steamId }: { steamId: string }) {
     [locale],
   );
 
-  const formatSentAt = useCallback(
-    (sentAt: string): string => {
-      const ms = Date.parse(sentAt);
-      if (!Number.isFinite(ms)) return sentAt;
+  const formatSearchedAt = useCallback(
+    (searchedAt: string): string => {
+      const ms = Date.parse(searchedAt);
+      if (!Number.isFinite(ms)) return searchedAt;
       try {
         return dateFormatter.format(new Date(ms));
       } catch {
-        return sentAt;
+        return searchedAt;
       }
     },
     [dateFormatter],
@@ -402,13 +456,29 @@ function WatchInbox({ steamId }: { steamId: string }) {
     return (
       <ul className="flex flex-col gap-3">
         {notifications.map((item) => (
-          <li key={item.id} className="rounded-xl border border-gray-700 p-3">
-            <NotifyItemText locale={locale} steamId={steamId} />
+          <li
+            key={item.searchId}
+            className="rounded-xl border border-gray-700 p-3"
+          >
+            <NotifyItemText
+              locale={locale}
+              steamId={steamId}
+              cheaterChecked={item.cheaterChecked}
+              searchedAt={item.searchedAt}
+            />
+            {item.cheaterChecked && (
+              <p className="mt-1 text-sm text-lime-400">
+                {translator('watchInboxCheaterChecked')}
+              </p>
+            )}
+            {/* Viewed-at: when the reported search ran. Emphasized
+                (purple + bold) so the moment of the lookup reads at a
+                glance next to the sentence above. */}
             <time
-              dateTime={item.sentAt}
-              className="mt-1 block text-xs text-gray-400"
+              dateTime={item.searchedAt}
+              className="mt-1 block text-xs font-bold text-purple-300"
             >
-              {formatSentAt(item.sentAt)}
+              {formatSearchedAt(item.searchedAt)}
             </time>
           </li>
         ))}
@@ -456,13 +526,31 @@ function WatchInbox({ steamId }: { steamId: string }) {
           aria-label={translator('watchInboxTitle')}
           className="absolute right-0 z-50 mt-2 max-h-96 w-80 max-w-[90vw] overflow-y-auto rounded-2xl border border-gray-600 bg-gray-900 p-4 shadow-xl"
         >
-          <h2
-            ref={headingRef}
-            tabIndex={-1}
-            className="text-base font-semibold text-gray-100 focus:outline-none"
-          >
-            {translator('watchInboxTitle')}
-          </h2>
+          {/* Header row, never overlapping: the badge is a static flex
+              sibling (not absolute), so long locale strings (de) push the
+              title to wrap instead of running under the badge. */}
+          <div className="flex items-start justify-between gap-2">
+            <h2
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-base font-semibold text-gray-100 focus:outline-none"
+            >
+              {translator('watchInboxTitle')}
+            </h2>
+            {monthlyCount !== null && (
+              <span
+                aria-label={translator('watchInboxMonthlyBadge', {
+                  count: monthlyCount,
+                })}
+                title={translator('watchInboxMonthlyBadge', {
+                  count: monthlyCount,
+                })}
+                className="shrink-0 rounded-full border border-purple-500/50 bg-purple-600/20 px-2 py-0.5 text-[11px] font-semibold text-purple-200"
+              >
+                {translator('watchInboxMonthlyBadge', { count: monthlyCount })}
+              </span>
+            )}
+          </div>
           <div className="mt-3 min-h-24">{renderPanelBody()}</div>
         </div>
       )}

@@ -193,6 +193,12 @@
     "watchInboxEmpty": "No notifications yet. You will see a message here each time your watched profile is searched.",
     "watchInboxLoading": "Loading notifications…",
     "watchInboxError": "Could not load notifications.",
-    "watchInboxRetry": "Try again"
+    "watchInboxRetry": "Try again",
+    "watchInboxMonthlyBadge": "{count} searches this month",
+    "watchInboxItemCheckedBody": "Someone viewed your profile on {date} at {time} and checked whether you are a cheater.",
+    "watchInboxItemPlainBody": "Someone viewed your profile on {date} at {time}.",
+    "watchInboxItemViewHere": "View here",
+    "watchInboxItemTrailing": "to see the data available about you",
+    "watchInboxCheaterChecked": "Cheater report opened"
   }
 }

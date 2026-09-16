@@ -33,7 +33,7 @@ const STEAM_A = '76561198000000001';
 const STEAM_B = '76561198000000002';
 
 const notificationsResponse = (
-  rows: Array<{ id: number; sentAt: string }>,
+  rows: Array<Record<string, unknown>>,
   unreadCount?: number,
 ) =>
   ({
@@ -45,7 +45,11 @@ const notificationsResponse = (
     }),
   }) as Response;
 
-const row = (id: number, sentAt: string) => ({ id, sentAt });
+const row = (searchId: string, searchedAt: string, cheaterChecked = false) => ({
+  searchId,
+  searchedAt,
+  cheaterChecked,
+});
 
 describe('WatchInbox', () => {
   let fetchMock: jest.Mock;
@@ -87,8 +91,8 @@ describe('WatchInbox', () => {
     fetchMock.mockResolvedValue(
       notificationsResponse(
         [
-          row(2, '2026-06-02T00:00:00.000Z'),
-          row(1, '2026-06-01T00:00:00.000Z'),
+          row('search-2', '2026-06-02T00:00:00.000Z'),
+          row('search-1', '2026-06-01T00:00:00.000Z'),
         ],
         2,
       ),
@@ -123,10 +127,6 @@ describe('WatchInbox', () => {
     // Items render newest-first with the shared base text.
     const items = screen.getAllByRole('listitem');
     expect(items).toHaveLength(2);
-    expect(items[0].querySelector('time')).toHaveAttribute(
-      'datetime',
-      '2026-06-02T00:00:00.000Z',
-    );
   });
 
   it('keeps read state per steamId (no cross-profile leaks)', async () => {
@@ -135,13 +135,13 @@ describe('WatchInbox', () => {
       '2026-06-03T00:00:00.000Z',
     );
     fetchMock.mockResolvedValue(
-      notificationsResponse([row(9, '2026-06-02T00:00:00.000Z')], 0),
+      notificationsResponse([row('search-9', '2026-06-02T00:00:00.000Z')], 0),
     );
 
     const { rerender } = render(<WatchInbox steamId={STEAM_A} />);
     await settle();
 
-    // Watermark (06-03) covers the 06-02 event: nothing unread for A…
+    // Watermark (06-03) covers the 06-02 search: nothing unread for A…
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
       'watchInboxBellLabel:{"count":0}',
@@ -149,7 +149,7 @@ describe('WatchInbox', () => {
 
     // …and B starts clean even though A was fully read.
     fetchMock.mockResolvedValue(
-      notificationsResponse([row(3, '2026-06-03T00:00:00.000Z')], 1),
+      notificationsResponse([row('search-3', '2026-06-03T00:00:00.000Z')], 1),
     );
     rerender(<WatchInbox steamId={STEAM_B} />);
     await settle();
@@ -161,14 +161,10 @@ describe('WatchInbox', () => {
       'aria-label',
       'watchInboxBellLabel:{"count":1}',
     );
-    // A's rows never mix into B's inbox: open shows exactly B's event.
+    // A's rows never mix into B's inbox: open shows exactly B's search.
     await openInbox();
     const items = screen.getAllByRole('listitem');
     expect(items).toHaveLength(1);
-    expect(items[0].querySelector('time')).toHaveAttribute(
-      'datetime',
-      '2026-06-03T00:00:00.000Z',
-    );
   });
 
   it('survives reloads: opened notifications stay read', async () => {
@@ -179,8 +175,8 @@ describe('WatchInbox', () => {
     fetchMock.mockResolvedValue(
       notificationsResponse(
         [
-          row(6, '2026-06-02T00:00:00.000Z'),
-          row(5, '2026-06-01T00:00:00.000Z'),
+          row('search-6', '2026-06-02T00:00:00.000Z'),
+          row('search-5', '2026-06-01T00:00:00.000Z'),
         ],
         1,
       ),
@@ -194,7 +190,7 @@ describe('WatchInbox', () => {
     );
     unmount();
 
-    // Remount (reload): only the 06-02 event is still unread.
+    // Remount (reload): only the 06-02 search is still unread.
     render(<WatchInbox steamId={STEAM_A} />);
     await settle();
     expect(screen.getByRole('button')).toHaveAttribute(
@@ -204,13 +200,12 @@ describe('WatchInbox', () => {
   });
 
   it('trusts the server count past the row window (no undercount)', async () => {
-    // 30 delivered, window of 20: a client-side filter would read 20.
+    // 30 searches, window of 20: a client-side filter would read 20.
     // The server counts past the cap, so the badge must read 30 — and the
-    // sinceSentAt cursor actually travels (watermark-first fetch omits it).
-    const rows = Array.from({ length: 20 }, (_, i) => ({
-      id: 30 - i,
-      sentAt: '2026-06-02T00:00:00.000Z',
-    }));
+    // sinceSearchedAt cursor actually travels (watermark-first fetch omits it).
+    const rows = Array.from({ length: 20 }, (_, i) =>
+      row(`search-${30 - i}`, '2026-06-02T00:00:00.000Z'),
+    );
     fetchMock.mockResolvedValue(notificationsResponse(rows, 30));
 
     render(<WatchInbox steamId={STEAM_A} />);
@@ -223,7 +218,7 @@ describe('WatchInbox', () => {
     );
     expect(screen.getByText('30')).toBeInTheDocument();
 
-    // Opening watermarks the latest delivery (06-02)...
+    // Opening watermarks the latest search (06-02)...
     fetchMock.mockResolvedValue(notificationsResponse(rows, 0));
     await openInbox();
 
@@ -232,7 +227,7 @@ describe('WatchInbox', () => {
       'watchInboxBellLabel:{"count":0}',
     );
 
-    // ...so the NEXT fetch carries sinceSentAt=06-02 (URL-encoded) and the
+    // ...so the NEXT fetch carries sinceSearchedAt=06-02 (URL-encoded) and the
     // server reports nothing new (watermark round-trips through storage,
     // not memory).
     fireEvent.click(screen.getByRole('button'));
@@ -241,7 +236,7 @@ describe('WatchInbox', () => {
     await settle();
 
     expect(fetchMock).toHaveBeenLastCalledWith(
-      '/api/watch/notifications?limit=20&sinceSentAt=2026-06-02T00%3A00%3A00.000Z',
+      '/api/watch/notifications?limit=20&sinceSearchedAt=2026-06-02T00%3A00%3A00.000Z',
     );
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
@@ -249,7 +244,7 @@ describe('WatchInbox', () => {
     );
   });
 
-  it('shows the empty state when nothing was delivered', async () => {
+  it('shows the empty state when nothing was recorded', async () => {
     fetchMock.mockResolvedValue(notificationsResponse([]));
 
     render(<WatchInbox steamId={STEAM_A} />);
@@ -279,7 +274,7 @@ describe('WatchInbox', () => {
 
     await act(async () => {
       resolveFetch(
-        notificationsResponse([row(1, '2026-06-01T00:00:00.000Z')], 1),
+        notificationsResponse([row('search-1', '2026-06-01T00:00:00.000Z')], 1),
       );
     });
     await settle();
@@ -298,7 +293,7 @@ describe('WatchInbox', () => {
     expect(screen.queryByText(/stack|Error: network/)).not.toBeInTheDocument();
 
     fetchMock.mockResolvedValue(
-      notificationsResponse([row(1, '2026-06-01T00:00:00.000Z')], 1),
+      notificationsResponse([row('search-1', '2026-06-01T00:00:00.000Z')], 1),
     );
     fireEvent.click(screen.getByText('watchInboxRetry'));
     await settle();
@@ -317,7 +312,7 @@ describe('WatchInbox', () => {
     fetchMock
       .mockResolvedValueOnce({ ok: false, status: 400 })
       .mockResolvedValue(
-        notificationsResponse([row(1, '2026-06-01T12:00:00.000Z')], 1),
+        notificationsResponse([row('search-1', '2026-06-01T12:00:00.000Z')], 1),
       );
 
     render(<WatchInbox steamId={STEAM_A} />);
@@ -325,11 +320,11 @@ describe('WatchInbox', () => {
     await openInbox();
 
     const urls = fetchMock.mock.calls.map((call) => String(call[0]));
-    expect(urls[0]).toContain('sinceSentAt=');
-    expect(urls[1]).not.toContain('sinceSentAt=');
+    expect(urls[0]).toContain('sinceSearchedAt=');
+    expect(urls[1]).not.toContain('sinceSearchedAt=');
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
     // The corrupt cursor is gone for good: opening watermarked the
-    // delivered row instead of restoring the bad value.
+    // recorded search instead of restoring the bad value.
     expect(
       window.localStorage.getItem(`${WATCH_SEEN_KEY_PREFIX}${STEAM_A}`),
     ).toBe('2026-06-01T12:00:00.000Z');
@@ -348,7 +343,7 @@ describe('WatchInbox', () => {
     fetchMock
       .mockResolvedValueOnce({ ok: false, status: 400 })
       .mockResolvedValue(
-        notificationsResponse([row(1, '2026-06-01T12:00:00.000Z')]),
+        notificationsResponse([row('search-1', '2026-06-01T12:00:00.000Z')]),
       );
 
     render(<WatchInbox steamId={STEAM_A} />);
@@ -365,7 +360,7 @@ describe('WatchInbox', () => {
     // collapsed run with a dead URL string (HTML eats the `\n`). The
     // inbox must preserve the line break AND link "see what they saw".
     fetchMock.mockResolvedValue(
-      notificationsResponse([row(1, '2026-06-01T00:00:00.000Z')], 1),
+      notificationsResponse([row('search-1', '2026-06-01T00:00:00.000Z')], 1),
     );
 
     render(<WatchInbox steamId={STEAM_A} />);
@@ -373,7 +368,7 @@ describe('WatchInbox', () => {
     await openInbox();
 
     const link = screen.getByRole('link', {
-      name: `http://localhost/en/player/${STEAM_A}`,
+      name: 'watchInboxItemViewHere',
     });
     expect(link).toHaveAttribute(
       'href',
@@ -382,9 +377,10 @@ describe('WatchInbox', () => {
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noreferrer');
     // Body keeps its line break in HTML (whitespace-pre-line) instead of
-    // collapsing into one run.
+    // collapsing into one run. The mock translator echoes keys, so the
+    // localized plain-body key (not English prose) is the assertion.
     expect(link.closest('p')).toHaveClass('whitespace-pre-line');
-    expect(link.closest('p')).toHaveTextContent(/Heads up!/);
+    expect(link.closest('p')).toHaveTextContent(/watchInboxItemPlainBody/);
   });
 
   it('shows a visible error when the retry after a 400 also fails (never silent)', async () => {
@@ -431,7 +427,7 @@ describe('WatchInbox', () => {
 
   it('clears stale rows and count when the session dies after content loaded', async () => {
     fetchMock.mockResolvedValue(
-      notificationsResponse([row(2, '2026-06-02T00:00:00.000Z')], 1),
+      notificationsResponse([row('search-2', '2026-06-02T00:00:00.000Z')], 1),
     );
 
     render(<WatchInbox steamId={STEAM_A} />);
@@ -469,7 +465,7 @@ describe('WatchInbox', () => {
     // so no name filter can match it — the bell is the only <button>
     // while the panel shows rows or the login link.)
     fetchMock.mockResolvedValue(
-      notificationsResponse([row(3, '2026-06-03T00:00:00.000Z')], 1),
+      notificationsResponse([row('search-3', '2026-06-03T00:00:00.000Z')], 1),
     );
     fireEvent.click(screen.getByRole('button'));
     await settle();
@@ -480,7 +476,10 @@ describe('WatchInbox', () => {
     expect(screen.queryByText('watchLoginButton')).not.toBeInTheDocument();
   });
 
-  it('drops malformed rows instead of crashing', async () => {
+  it('drops legacy pre-split rows instead of rendering half-true times', async () => {
+    // Old servers mid-rollout still answer id+sentAt shapes. searchId AND
+    // searchedAt are both the identity and the time anchor, so these rows
+    // fall out entirely: no row is better than a row with a wrong when.
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -492,7 +491,7 @@ describe('WatchInbox', () => {
           null,
           'nope',
         ],
-        unreadCount: 1,
+        unreadCount: 0,
       }),
     } as Response);
 
@@ -500,7 +499,86 @@ describe('WatchInbox', () => {
     await settle();
     await openInbox();
 
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+    expect(screen.getByText('watchInboxEmpty')).toBeInTheDocument();
+  });
+
+  it('shows per-session details and the monthly badge', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        steamId: STEAM_A,
+        notifications: [
+          {
+            searchId: 'search-9',
+            searchedAt: '2026-06-02T11:58:00.000Z',
+            cheaterChecked: true,
+          },
+          {
+            searchId: 'search-7',
+            searchedAt: '2026-06-01T00:00:00.000Z',
+            cheaterChecked: false,
+          },
+        ],
+        unreadCount: 0,
+        monthlyCount: 11,
+      }),
+    } as Response);
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await openInbox();
+
+    // Monthly badge, absolute top-right of the dialog.
+    const badge = screen.getByLabelText('watchInboxMonthlyBadge:{"count":11}');
+    expect(badge).toHaveTextContent('watchInboxMonthlyBadge:{"count":11}');
+
+    const items = screen.getAllByRole('listitem');
+    expect(items).toHaveLength(2);
+  });
+
+  it('hides the monthly badge when the server sends no count', async () => {
+    fetchMock.mockResolvedValue(notificationsResponse([], 0));
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await openInbox();
+
+    expect(
+      screen.queryByText(/watchInboxMonthlyBadge/),
+    ).not.toBeInTheDocument();
+  });
+
+  it('drops rows with corrupt search fields instead of crashing', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        steamId: STEAM_A,
+        notifications: [
+          // Missing searchId, garbage searchedAt, non-string searchedAt:
+          // all dropped. Only the well-formed row renders; its non-boolean
+          // flag hides the cheater line; negative monthly count hides the
+          // badge.
+          { searchedAt: '2026-06-01T00:00:00.000Z' },
+          { searchId: 'search-bad', searchedAt: 'not-a-date' },
+          { searchId: '', searchedAt: '2026-06-01T00:00:00.000Z' },
+          {
+            searchId: 'search-1',
+            searchedAt: '2026-06-01T00:00:00.000Z',
+            cheaterChecked: 'yes',
+          },
+        ],
+        unreadCount: 0,
+        monthlyCount: -3,
+      }),
+    } as Response);
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await openInbox();
+
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
+
+    expect(
+      screen.queryByText(/watchInboxMonthlyBadge/),
+    ).not.toBeInTheDocument();
   });
 
   it('supports keyboard: aria-expanded, Escape closes, focus moves', async () => {

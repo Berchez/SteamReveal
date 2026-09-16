@@ -4,9 +4,11 @@
  *
  * Templates live in @/lib/watch/notificationText (WB-15 shared base, not
  * in next-intl messages/*.json): the bot process has no React/intl
- * provider, the site inbox renders the same base text for the same event,
- * and the language comes from the locale stored on watched_profiles, not
- * from any page locale. See the base module for the content contract.
+ * provider. The bot sends the SHORT teaser here; the site inbox renders
+ * the FULL text plus per-session details for the same event — same
+ * module, separate functions, so neither side can drift unnoticed. The
+ * language comes from the locale stored on watched_profiles, not from
+ * any page locale. See the base module for the content contract.
  */
 import { generateHexToken } from '../lib/watch/tokens';
 import { sanitizeSteamNickname } from '../lib/steamNickname';
@@ -14,7 +16,7 @@ import {
   DEFAULT_WATCH_LOCALE,
   getConfirmExpiredText,
   getConfirmText,
-  getNotifyText,
+  getNotifyTeaserText,
 } from '../lib/watch/notificationText';
 import getSteamApiKey from '../lib/getSteamApiKey';
 import withTimeout from '../lib/withTimeout';
@@ -90,9 +92,13 @@ export const resolveNotifyDisplayName = async (
 };
 
 /**
- * Resolves the notify text for a requester locale ('pt-BR' -> 'pt'),
+ * Resolves the notify teaser for a requester locale ('pt-BR' -> 'pt'),
  * falling back to English for anything unknown or absent. Never throws
  * (unknown locales must degrade to English, not crash the poller).
+ *
+ * Teaser, not the full text: Steam chat carries the hook + player-page
+ * link only, while the site inbox renders the full text plus per-session
+ * details (see getNotifyText / the notifications API).
  */
 export const getNotifyMessage = (
   locale: string | null | undefined,
@@ -101,7 +107,7 @@ export const getNotifyMessage = (
   siteUrl: string | null = null,
   antiLoopToken: string | null = null,
 ): string =>
-  getNotifyText(locale, steamId, { nickname, siteUrl, antiLoopToken });
+  getNotifyTeaserText(locale, steamId, { nickname, siteUrl, antiLoopToken });
 
 /**
  * Minimal structural surface of the Steam chat sender (steam-user's

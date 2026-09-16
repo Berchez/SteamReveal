@@ -18,6 +18,7 @@ import {
   hashConfirmToken,
 } from '@/lib/analytics/db';
 import { CONFIRM_PAGE_TEXT, type ConfirmPageText } from './confirmText';
+import { buildConfirmAutoSubmitScript } from './confirmAutoSubmit';
 
 export const runtime = 'nodejs';
 
@@ -47,16 +48,23 @@ const confirmPostRateLimiter = createRateLimiter(
  *
  * Two legs, split precisely so prefetch can never mutate:
  * - GET renders an intermediate page and NOTHING ELSE: no consume, no
- *   activate, no session. Chat linkifiers, antivirus URL-scanning and
- *   browser prefetch all perform GETs before the real click — under the
- *   old single-GET design any of those SPENT the token (and, once
- *   activation gated on the click, would have ACTIVATED the watch), landing
- *   the user on an error page for a link they never touched. A prefetched
- *   page is now just a page.
- * - POST (explicit button click) consumes the token, activates the watch,
- *   enqueues the bot welcome, seals the session, and redirects. CSRF-gated
- *   like every authenticated POST (the form posts same-origin, so
- *   legitimate clicks always carry a matching Origin).
+ *   activate, no session. The valid variant carries one inline auto-submit
+ *   script, so opening the link activates with no button step — but the
+ *   submit is gated on human presence (visible + focused at load, else
+ *   first visibility/focus/pointer/key event). Linkifiers, antivirus
+ *   scanners, prerender and background tabs never satisfy the gate, so for
+ *   them the page stays exactly what it was. The expired variant carries
+ *   no script and stays readable (resend path). Chat linkifiers, antivirus
+ *   URL-scanning and browser prefetch all perform GETs before the real
+ *   click — under the old single-GET design any of those SPENT the token
+ *   (and, once activation gated on the click, would have ACTIVATED the
+ *   watch), landing the user on an error page for a link they never
+ *   touched. A prefetched page is now just a page.
+ * - POST (auto-submit on load, manual button as the no-JS fallback)
+ *   consumes the token, activates the watch, enqueues the bot welcome,
+ *   seals the session, and redirects. CSRF-gated like every authenticated
+ *   POST (the form posts same-origin, so legitimate submissions always
+ *   carry a matching Origin).
  *
  * Deliberately works LOGGED OUT (no session required): proving access to
  * the Steam account's chat IS the confirmation, so demanding a prior
@@ -86,11 +94,32 @@ const confirmPostRateLimiter = createRateLimiter(
  * one-shot login-by-link flow, documented here for visibility.
  */
 /**
- * Self-contained confirm page (no JS, no assets — a plain form POST, so it
- * works with scripts disabled and can never be "prefetched into" a state
- * change). Every interpolated value is either a fixed locale string from
- * the table above or the token itself, which is shape-gated to 64 hex
- * chars before this is ever called — neither can break out of markup.
+ * Self-contained confirm page (no assets — a plain form POST, so it works
+ * with scripts disabled and can never be "prefetched into" a state
+ * change). The valid variant auto-submits via one inline script so opening
+ * the link activates with no button step — BUT only while a human is
+ * actually present: the submit fires on load solely when the page is both
+ * visible and focused, otherwise on the first visibility/focus/pointer/key
+ * event. Background tabs, not-yet-activated prerenders and scriptless
+ * fetchers (linkifiers, antivirus GETs) never satisfy the gate, so for
+ * them the page stays exactly what it was: a harmless read. Automation
+ * driving a full Chromium that reports visible+focused (corporate link
+ * detonators, headless crawlers) DOES satisfy it — that is the residual
+ * below, not one of the safe classes above. Only the
+ * EXPIRED variant omits the script — it must stay readable (the resend
+ * path) instead of bouncing straight to the error landing. Unknown hashes
+ * render byte-identical to valid ones, script included, so a prober learns
+ * nothing from GET bytes or timing; a JS prober that follows through lands
+ * on the same error page as a manual click. Residual accepted risk: a
+ * full-browser detonation chamber that reports visible+focused could
+ * still fire the POST — and that is an activation+login, not just a
+ * burned link — recoverable via the site resend flow, and documented in
+ * the PROD_READINESS sign-off. Framing is denied outright below
+ * (X-Frame-Options + frame-ancestors), so the residual is limited to
+ * top-level loads, never silent third-party embeds. Every
+ * interpolated value is either a fixed locale string from the table above
+ * or the token itself, which is shape-gated to 64 hex chars before this is
+ * ever called — neither can break out of markup.
  */
 const renderConfirmPage = (
   text: ConfirmPageText,
@@ -98,9 +127,22 @@ const renderConfirmPage = (
   homePath: string,
   expired: boolean,
 ): string => {
+  // Single-submission guard, both legs AND across paths: the script flag
+  // stops a second auto-submit, and the script additionally disables the
+  // button on its own path (a later native click then no-ops) while
+  // standing down when the button is already disabled (a native click
+  // won — its onsubmit disable ran first). Without the cross-path half,
+  // a background→foreground switch landing within milliseconds of a
+  // manual click would double-POST: the single-use token burns on the
+  // first arrival and the second renders the error page over a success.
+  // form.submit() bypasses onsubmit, so the onsubmit button-disable alone
+  // cannot cover the programmatic path. The script text itself lives in
+  // ./confirmAutoSubmit (shared with the e2e mock, so the two can never
+  // drift apart).
+  const autoSubmit = buildConfirmAutoSubmitScript();
   const inner = expired
     ? `<h1>${text.expiredTitle}</h1><p>${text.expiredBody}</p><a href="${homePath}">${text.homeLink}</a>`
-    : `<h1>${text.title}</h1><p>${text.body}</p><form method="post" action="/api/watch/confirm?token=${token}"><button type="submit">${text.button}</button></form>`;
+    : `<h1>${text.title}</h1><p>${text.body}</p><form method="post" action="/api/watch/confirm?token=${token}" onsubmit="this.querySelector('button').disabled=true"><button type="submit">${text.button}</button></form>${autoSubmit}`;
   return (
     `<!DOCTYPE html>` +
     `<html lang="${text.lang}">` +
@@ -120,6 +162,17 @@ const confirmPageResponse = (html: string): Response =>
       // Token-bearing page: never cache, never sniff.
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
+      // This page auto-submits on visible+focused: it must never run
+      // embedded in another origin's iframe (a hidden 1x1 frame still
+      // reports visible when the tab is foregrounded, and .focus() on
+      // the frame element is allowed cross-origin — enough to satisfy
+      // the human-presence gate without any victim gesture and burn a
+      // leaked token into an activation+login). DENY outright instead of
+      // relying on the global SAMEORIGIN: nothing legitimately frames
+      // this page, not even same-origin. Belt and suspenders (legacy +
+      // modern engines) on purpose.
+      'X-Frame-Options': 'DENY',
+      'Content-Security-Policy': "frame-ancestors 'none'",
     },
   });
 

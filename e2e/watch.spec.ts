@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { test, expect, loginTestUser } from './support/fixtures';
+import { buildConfirmAutoSubmitScript } from '@/app/api/watch/confirm/confirmAutoSubmit';
 
 // Full Watch flow E2E (navbar era) — NEVER touches Steam or a real
 // database: the watch lanes + signup are fulfilled at the network layer
@@ -34,15 +35,28 @@ const statusBody = (status: string, extra: Record<string, unknown> = {}) => ({
 });
 
 const notificationsBody = (
-  rows: Array<{ id: number; sentAt: string }>,
+  rows: Array<{
+    searchId: string;
+    searchedAt: string;
+    cheaterChecked?: boolean;
+  }>,
   unreadCount: number,
+  monthlyCount?: number,
 ) => ({
   status: 200,
   contentType: 'application/json',
-  body: JSON.stringify({ steamId: STEAM_ID, notifications: rows, unreadCount }),
+  body: JSON.stringify({
+    steamId: STEAM_ID,
+    notifications: rows,
+    unreadCount,
+    ...(monthlyCount === undefined ? {} : { monthlyCount }),
+  }),
 });
 
-const row = (id: number, sentAt: string) => ({ id, sentAt });
+const row = (searchId: string, searchedAt: string) => ({
+  searchId,
+  searchedAt,
+});
 
 // Deterministic in mock mode (see NOTE above): every logged-in session
 // renders the MockUser avatar button.
@@ -140,9 +154,17 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
       route.fulfill(notificationsBody([], 0)),
     );
     // The confirm page itself is mocked at the network layer (the real
-    // route is unit-covered): GET renders the form without consuming
-    // anything, POST consumes and redirects to the success landing.
+    // route is unit-covered): GET renders the gated auto-submit form
+    // without consuming anything, POST consumes and redirects to the
+    // success landing. The auto-submit script comes from the same builder
+    // the route uses (./confirmAutoSubmit sidecar), so the mock can never
+    // drift from production; GET-idempotency for scriptless fetchers is
+    // pinned by the route unit tests and the no-JS test below.
     const confirmToken = 'ab'.repeat(32);
+    const confirmPageHtml =
+      `<form method="post" action="/api/watch/confirm?token=${confirmToken}" onsubmit="this.querySelector('button').disabled=true">` +
+      `<button>Confirm and activate</button></form>` +
+      buildConfirmAutoSubmitScript();
     await page.route('**/api/watch/confirm*', async (route) => {
       if (route.request().method() === 'POST') {
         confirmed = true;
@@ -155,9 +177,7 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
       return route.fulfill({
         status: 200,
         contentType: 'text/html',
-        body:
-          `<form method="post" action="/api/watch/confirm?token=${confirmToken}">` +
-          `<button>Confirm and activate</button></form>`,
+        body: confirmPageHtml,
       });
     });
 
@@ -184,22 +204,16 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     ).toBeVisible({ timeout: 15000 });
 
     // The confirm link arrives over Steam chat (bot side, mocked away
-    // here): opening it shows the intermediate page, and reloading it
-    // (what a link previewer does) spends nothing — the form is still
-    // there on the second GET.
+    // here): the load path may already have submitted (focused headless)
+    // or still be waiting for intent — either way exactly one POST
+    // activates. A real keypress (trusted keydown) covers the waiting
+    // case and is harmless if the submit already fired, so the assertion
+    // below is deterministic in both worlds. The POST is the sole
+    // activator: success lands with the one-shot toast, and the next
+    // status poll flips the panel.
     await page.goto(`/api/watch/confirm?token=${confirmToken}`);
-    const confirmButton = page.getByRole('button', {
-      name: 'Confirm and activate',
-    });
-    await expect(confirmButton).toBeVisible();
-    await page.reload();
-    await expect(
-      page.getByRole('button', { name: 'Confirm and activate' }),
-    ).toBeVisible();
-
-    // The click (POST) is the sole activator: success lands with the
-    // one-shot toast, and the next status poll flips the panel.
-    await confirmButton.click();
+    await page.keyboard.press('Tab');
+    await expect(page).toHaveURL(/\/en\/\?confirmed=ok/, { timeout: 15000 });
     await expect(
       page.getByText('Watch confirmed! You will be notified here'),
     ).toBeVisible();
@@ -222,6 +236,60 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
       'src',
       /^data:image\//,
     );
+  });
+
+  test('no-JS: opening and reloading the link spends nothing, the button still activates', async ({
+    browser,
+  }) => {
+    // Browser-level proof for linkifiers, antivirus scanners and
+    // prefetchers: without JS the gated auto-submit never runs, so open +
+    // reload are pure reads and the visible button remains the sole
+    // activator. Needs its own context — javaScriptEnabled is per context,
+    // and the shared page fixture runs with JS on.
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const noJs = await context.newPage();
+    try {
+      await loginTestUser(noJs, STEAM_ID);
+      let posts = 0;
+      const confirmToken = 'ab'.repeat(32);
+      await noJs.route('**/api/watch/confirm*', async (route) => {
+        if (route.request().method() === 'POST') {
+          posts += 1;
+          return route.fulfill({
+            status: 302,
+            headers: { location: '/en/?confirmed=ok' },
+            body: '',
+          });
+        }
+        return route.fulfill({
+          status: 200,
+          contentType: 'text/html',
+          body:
+            `<form method="post" action="/api/watch/confirm?token=${confirmToken}">` +
+            `<button>Confirm and activate</button></form>` +
+            `<script>document.forms[0].submit();</script>`,
+        });
+      });
+
+      await noJs.goto(`/api/watch/confirm?token=${confirmToken}`);
+      const confirmButton = noJs.getByRole('button', {
+        name: 'Confirm and activate',
+      });
+      await expect(confirmButton).toBeVisible();
+      await noJs.reload();
+      await expect(
+        noJs.getByRole('button', { name: 'Confirm and activate' }),
+      ).toBeVisible();
+      // Open + reload with no JS fired zero POSTs: nothing was spent.
+      expect(posts).toBe(0);
+
+      // ...and the manual button path still activates exactly once.
+      await confirmButton.click();
+      await expect(noJs).toHaveURL(/\/en\/\?confirmed=ok/);
+      expect(posts).toBe(1);
+    } finally {
+      await context.close();
+    }
   });
 
   test('no click, no active: pending never self-activates and GETs spend nothing', async ({
@@ -419,20 +487,20 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     );
     let delivered = false;
     // Watermark-aware like the real route: once the client reports a
-    // sinceSentAt at/after the newest delivery, the count drops to zero.
+    // sinceSearchedAt at/after the newest search, the count drops to zero.
     await page.route('**/api/watch/notifications*', async (route) => {
       if (!delivered) {
         return route.fulfill(notificationsBody([], 0));
       }
       const since = new URL(route.request().url()).searchParams.get(
-        'sinceSentAt',
+        'sinceSearchedAt',
       );
       const seen = since !== null && since >= '2026-06-02T12:00:00.000Z';
       return route.fulfill(
         notificationsBody(
           [
-            row(2, '2026-06-02T12:00:00.000Z'),
-            row(1, '2026-06-01T12:00:00.000Z'),
+            row('search-2', '2026-06-02T12:00:00.000Z'),
+            row('search-1', '2026-06-01T12:00:00.000Z'),
           ],
           seen ? 0 : 2,
         ),
@@ -484,7 +552,7 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     );
 
     // …and it stays gone across a reload (localStorage watermark; the
-    // watermark-aware mock above answers the sinceSentAt fetch with 0).
+    // watermark-aware mock above answers the sinceSearchedAt fetch with 0).
     await page.reload();
     await expect(
       page.getByRole('button', { name: /Watch notifications/ }),
@@ -563,7 +631,7 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
         return route.fulfill({ status: 500, body: 'boom' });
       }
       return route.fulfill(
-        notificationsBody([row(1, '2026-06-01T12:00:00.000Z')], 1),
+        notificationsBody([row('search-1', '2026-06-01T12:00:00.000Z')], 1),
       );
     });
 
@@ -637,7 +705,17 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
         return route.fulfill(notificationsBody([], 0));
       }
       return route.fulfill(
-        notificationsBody([row(7, '2026-06-04T12:00:00.000Z')], 1),
+        notificationsBody(
+          [
+            {
+              searchId: 'search-7',
+              searchedAt: '2026-06-04T11:58:00.000Z',
+              cheaterChecked: true,
+            },
+          ],
+          1,
+          4,
+        ),
       );
     });
     await page.route('**/api/auth/signup', async (route) =>
@@ -669,7 +747,10 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     await expect(page.getByRole('listitem')).toHaveCount(1);
     await expect(page.getByRole('listitem').locator('time')).toHaveAttribute(
       'datetime',
-      '2026-06-04T12:00:00.000Z',
+      '2026-06-04T11:58:00.000Z',
     );
+    // Per-session details ride along: cheater-check flag + monthly badge.
+    await expect(page.getByText('Cheater report opened')).toBeVisible();
+    await expect(page.getByText(/searches this month/)).toBeVisible();
   });
 });

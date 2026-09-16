@@ -413,8 +413,9 @@ export const attachFriendGcNames = async (
 // - Epic 4 (notify hook): getWatchStatus + isWithinCooldown gate the enqueue;
 //   enqueueEvent(kind='notify') -> claimNextQueuedEvents(kind='notify') ->
 //   markEventSent/markEventDropped.
-// - Epic 5/6 (inbox + opt-out): watch_events rows ARE the inbox source;
-//   deactivateWatch is the opt-out.
+// - Epic 5/6 (inbox + opt-out): the inbox reads RECORDED SEARCHES
+//   (listProfileSearches — every view, no cooldown gate), NOT watch_events
+//   (the bot's delivery log stays bot-side); deactivateWatch is the opt-out.
 //
 // Two deliberate deviations from the ticket text, both documented:
 // 1. A transient 'claimed' status exists alongside queued/sent/dropped.
@@ -650,111 +651,201 @@ export const listWatchedProfiles = async (
   );
 };
 
-// Single source of truth for "a delivered notify" (WB-14 inbox predicate),
-// shared by the list and the count so the two can never disagree on what
-// counts as delivered (same principle as OPEN_INVITE_PREDICATE_SQL).
-const DELIVERED_NOTIFY_PREDICATE_SQL = `kind = 'notify' AND status = 'sent'`;
-
 /**
- * Inbox read side (WB-14): delivered notifies for one profile, newest
- * first. ONLY kind='notify' + status='sent' rows qualify — queued (not
- * yet delivered) and dropped (expired/failed/superseded) events must
- * never render as delivered notifications. The sent_at IS NOT NULL guard
- * excludes hand-edited rows (markEventSent always writes sent_at).
+ * Inbox read side: recorded searches on one profile, newest first — every
+ * search SINCE THE WATCH STARTED, with no cooldown gate. The bot keeps
+ * its own strict 24h delivery discipline (see watchNotify + notifyPoller);
+ * the inbox is the relaxed side: cooldown-suppressed views still appear
+ * here, because "who looked me up" must not hide behind a delivery
+ * throttle.
  *
- * Minimal projection by design (id + delivery timestamp): the inbox
- * renders message text from the shared WB-15 base, and search contents
- * stay out of the read path. Limit defaults to WATCH_INBOX_DEFAULT_LIMIT,
- * clamps to [1, WATCH_INBOX_MAX_LIMIT] — an inbox is a recent-history
- * view, not a full export.
+ * Temporal floor (`since`, the watch's activated_at ?? requested_at):
+ * searches is SHARED analytics — every site search lands here, including
+ * ones from before the watch existed. Without the floor, a first-time
+ * confirmer would inherit months of strangers' pre-opt-in lookups (and a
+ * misleading monthly badge). Null keeps the legacy unfiltered read.
  *
- * SCALING NOTE: filters on (steam_id, kind, status) + ORDER BY sent_at,
- * but the 002 indexes only cover (steam_id, status) and (kind, status) —
- * no composite reaches sent_at. Irrelevant at current volume (one bot,
- * ~250 watches, 1 notify/24h/profile), but if watch_events grows unbounded
- * (no TTL cleanup on sent/dropped history by design — Epic 8/runbook
- * territory), add a (steam_id, kind, status, sent_at) covering index via a
- * new forward migration.
+ * Projection (search id + timestamp + cheater flag): the inbox renders
+ * message text from the shared WB-15 base, and the EXISTS adds WHETHER
+ * the cheater report was opened for that search — the profile's own
+ * search metadata, never requester PII (no search_meta columns travel).
+ * Limit defaults to WATCH_INBOX_DEFAULT_LIMIT, clamps to
+ * [1, WATCH_INBOX_MAX_LIMIT] — an inbox is a recent-history view, not a
+ * full export.
+ *
+ * SCALING NOTE: filters on profiles(steam_id) + ORDER BY searched_at;
+ * profiles(steam_id) is indexed by 009, searched_at ordering sorts one
+ * profile's rows only (small by construction), so no composite index.
  */
-export const listSentNotifications = async (
+export const listProfileSearches = async (
   steamId: string,
   limit = WATCH_INBOX_DEFAULT_LIMIT,
+  since: string | null = null,
 ): Promise<WatchNotification[]> => {
   assertSteamId64(steamId);
   if (!Number.isFinite(limit)) {
-    throw new Error('Invalid notification limit: expected a finite number');
+    throw new Error('Invalid search limit: expected a finite number');
+  }
+  if (
+    since !== null &&
+    (typeof since !== 'string' || !Number.isFinite(Date.parse(since)))
+  ) {
+    throw new Error(
+      'Invalid since for profile searches: expected an ISO-8601 timestamp or null',
+    );
   }
   const n = Math.max(1, Math.min(WATCH_INBOX_MAX_LIMIT, Math.floor(limit)));
   const db = await getClient();
 
+  // Same incremental-clauses shape as countSearchesSince below: one
+  // SELECT, so a projection change can never drift between branches.
+  const clauses = ['p.steam_id = ?'];
+  const args: (string | number)[] = [steamId];
+  if (since !== null) {
+    clauses.push('s.searched_at >= ?');
+    args.push(since);
+  }
+  args.push(n);
   const rows = await withSchemaHint(
     db.execute({
-      sql: `SELECT id, sent_at FROM watch_events
-            WHERE steam_id = ? AND ${DELIVERED_NOTIFY_PREDICATE_SQL}
-              AND sent_at IS NOT NULL
-            ORDER BY sent_at DESC, id DESC LIMIT ?`,
-      args: [steamId, n],
+      sql: `SELECT s.id AS search_id, s.searched_at,
+              EXISTS (
+                SELECT 1 FROM cheater_results c WHERE c.search_id = s.id
+              ) AS cheater_checked
+            FROM searches s
+            JOIN profiles p ON p.search_id = s.id
+            WHERE ${clauses.join(' AND ')}
+            ORDER BY s.searched_at DESC, s.id DESC LIMIT ?`,
+      args,
     }),
   );
 
-  return rows.rows.map((row) => ({
-    id: Number((row as Record<string, unknown>).id),
-    sentAt: (row as Record<string, unknown>).sent_at as string,
-  }));
+  return rows.rows.map((row) => {
+    const record = row as Record<string, unknown>;
+    return {
+      searchId: record.search_id as string,
+      searchedAt: record.searched_at as string,
+      cheaterChecked: Number(record.cheater_checked ?? 0) > 0,
+    };
+  });
 };
 
 /**
- * Unread-count side of the inbox (WB-14): how many delivered notifies sit
- * past a client-supplied delivery watermark (a sent_at ISO, null for
- * "never opened"). Same predicate as listSentNotifications — the two can
- * never disagree on what counts as delivered.
+ * Unread-count side of the inbox: how many recorded searches sit past a
+ * client-supplied search watermark (a searched_at ISO, null for "never
+ * opened"). Same source as listProfileSearches — the two can never
+ * disagree on what counts.
  *
- * The cursor is sent_at, NOT id, deliberately: ids are creation-ordered
- * while deliveries are not. A requeued event keeps its old id but lands a
- * fresh sent_at — an id-cursor would silently skip a late-delivered retry
- * that arrived after a newer id was already seen. sent_at ordering matches
- * the inbox list ordering (sent_at DESC), keeping cursor and display
- * consistent by construction. (Same-millisecond ties across two sends to
- * one profile are the residual micro-window — Turso roundtrips separate
- * consecutive sends by ms in practice; the alternative, a composite
- * (sent_at, id) cursor, was judged not worth doubling the cursor surface.)
+ * The cursor is searched_at, NOT any id: search ids embed wall-clock
+ * time plus randomness, so they are not strictly ordered; searched_at
+ * ordering matches the inbox list ordering (searched_at DESC), keeping
+ * cursor and display consistent by construction.
+ *
+ * `watchSince` is the same temporal floor as listProfileSearches (the
+ * watch's activated_at ?? requested_at, null for no floor): the watermark
+ * cursor stays strict (`>`), the watch floor inclusive (`>=`), and both
+ * compose in one predicate.
  *
  * Why server-side: the inbox page is capped (limit ≤ 50), so a client-side
- * filter undercounts once the backlog exceeds the window (30 delivered,
+ * filter undercounts once the backlog exceeds the window (30 searches,
  * 20 returned → badge would read 20). The client sends its local watermark
- * as sinceSentAt; no `read_at` column needed — the delivery timestamp IS
- * the cursor.
+ * as sinceSearchedAt; no `read_at` column needed — the search timestamp
+ * IS the cursor.
  */
-export const countNotificationsSince = async (
+export const countSearchesSince = async (
   steamId: string,
-  sinceSentAt: string | null = null,
+  sinceSearchedAt: string | null = null,
+  watchSince: string | null = null,
 ): Promise<number> => {
   assertSteamId64(steamId);
   if (
-    sinceSentAt !== null &&
-    (typeof sinceSentAt !== 'string' ||
-      !Number.isFinite(Date.parse(sinceSentAt)))
+    sinceSearchedAt !== null &&
+    (typeof sinceSearchedAt !== 'string' ||
+      !Number.isFinite(Date.parse(sinceSearchedAt)))
   ) {
     throw new Error(
-      'Invalid sinceSentAt for notification count: expected an ISO-8601 timestamp or null',
+      'Invalid sinceSearchedAt for search count: expected an ISO-8601 timestamp or null',
+    );
+  }
+  if (
+    watchSince !== null &&
+    (typeof watchSince !== 'string' || !Number.isFinite(Date.parse(watchSince)))
+  ) {
+    throw new Error(
+      'Invalid watchSince for search count: expected an ISO-8601 timestamp or null',
     );
   }
   const db = await getClient();
 
+  const clauses = ['p.steam_id = ?'];
+  const args: string[] = [steamId];
+  if (sinceSearchedAt !== null) {
+    clauses.push('s.searched_at > ?');
+    args.push(sinceSearchedAt);
+  }
+  if (watchSince !== null) {
+    clauses.push('s.searched_at >= ?');
+    args.push(watchSince);
+  }
   const row = await withSchemaHint(
-    sinceSentAt === null
-      ? db.execute({
-          sql: `SELECT COUNT(*) AS n FROM watch_events
-            WHERE steam_id = ? AND ${DELIVERED_NOTIFY_PREDICATE_SQL}
-              AND sent_at IS NOT NULL`,
-          args: [steamId],
-        })
-      : db.execute({
-          sql: `SELECT COUNT(*) AS n FROM watch_events
-            WHERE steam_id = ? AND ${DELIVERED_NOTIFY_PREDICATE_SQL}
-              AND sent_at > ?`,
-          args: [steamId, sinceSentAt],
-        }),
+    db.execute({
+      sql: `SELECT COUNT(*) AS n FROM searches s
+            JOIN profiles p ON p.search_id = s.id
+            WHERE ${clauses.join(' AND ')}`,
+      args,
+    }),
+  );
+  const count = Number(row.rows[0]?.n ?? 0);
+  return Number.isFinite(count) ? count : 0;
+};
+
+/**
+ * Monthly search counter for the inbox badge: how many recorded searches
+ * targeted this profile since the start of the current UTC calendar month.
+ * Counts SEARCHES (every completed search records one), not delivered
+ * notifies — cooldown-suppressed views still count as "looked up", which
+ * is what the badge promises. `nowMs` is injectable so tests pin the
+ * month boundary deterministically; production passes Date.now().
+ *
+ * `watchSince` is the same temporal floor as listProfileSearches (the
+ * watch's activated_at ?? requested_at, null for no floor): the effective
+ * floor is the later of month-start and watch start, so a first-day
+ * confirmer never inherits a pre-watch monthly total.
+ */
+export const countSearchesInMonth = async (
+  steamId: string,
+  nowMs: number = Date.now(),
+  watchSince: string | null = null,
+): Promise<number> => {
+  assertSteamId64(steamId);
+  if (!Number.isFinite(nowMs)) {
+    throw new Error('Invalid month clock: expected a finite timestamp');
+  }
+  if (
+    watchSince !== null &&
+    (typeof watchSince !== 'string' || !Number.isFinite(Date.parse(watchSince)))
+  ) {
+    throw new Error(
+      'Invalid watchSince for monthly count: expected an ISO-8601 timestamp or null',
+    );
+  }
+  const now = new Date(nowMs);
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+  ).toISOString();
+  // Both bounds are full ISO UTC timestamps: lexicographic max IS the
+  // later instant, no Date math needed.
+  const floor =
+    watchSince !== null && watchSince > monthStart ? watchSince : monthStart;
+  const db = await getClient();
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT COUNT(*) AS n FROM searches s
+            JOIN profiles p ON p.search_id = s.id
+            WHERE p.steam_id = ? AND s.searched_at >= ?`,
+      args: [steamId, floor],
+    }),
   );
   const count = Number(row.rows[0]?.n ?? 0);
   return Number.isFinite(count) ? count : 0;

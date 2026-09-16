@@ -60,6 +60,11 @@ const WATCH_EXPIRE_NOTICE_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const INBOX_INDEX_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '009_inbox_search_indexes.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -91,8 +96,9 @@ type DbApi = {
   markEventDropped: typeof import('./db').markEventDropped;
   resetStaleClaims: typeof import('./db').resetStaleClaims;
   countInvitesSentSince: typeof import('./db').countInvitesSentSince;
-  countNotificationsSince: typeof import('./db').countNotificationsSince;
-  listSentNotifications: typeof import('./db').listSentNotifications;
+  countSearchesSince: typeof import('./db').countSearchesSince;
+  countSearchesInMonth: typeof import('./db').countSearchesInMonth;
+  listProfileSearches: typeof import('./db').listProfileSearches;
   isWithinCooldown: typeof import('./db').isWithinCooldown;
   hashConfirmToken: typeof import('./db').hashConfirmToken;
   createAccount: typeof import('./db').createAccount;
@@ -174,6 +180,11 @@ describe('analytics db integration against real libSQL', () => {
     for (const statement of splitSqlStatements(
       WATCH_EXPIRE_NOTICE_MIGRATION_SQL,
     )) {
+      await db.executeForTests(statement);
+    }
+    // 009 carries the inbox read-path index (profiles.steam_id) the
+    // list/count inbox queries filter on.
+    for (const statement of splitSqlStatements(INBOX_INDEX_MIGRATION_SQL)) {
       await db.executeForTests(statement);
     }
   });
@@ -824,154 +835,209 @@ describe('analytics db integration against real libSQL', () => {
     });
   });
 
-  describe('listSentNotifications inbox read (real SQL)', () => {
+  describe('listProfileSearches inbox read (real SQL)', () => {
     const STEAM = '76561198000000000';
 
-    it('returns only sent notifies, newest first, honoring the limit', async () => {
+    const insertSearch = async (id: string, steamId: string, at: string) => {
+      await db.executeForTests(
+        'INSERT INTO searches (id, searched_at) VALUES (?, ?)',
+        [id, at],
+      );
+      await db.executeForTests(
+        'INSERT INTO profiles (search_id, steam_id) VALUES (?, ?)',
+        [id, steamId],
+      );
+    };
+
+    it('009 migration created the profiles(steam_id) inbox index', async () => {
+      const found = await db.executeForTests(
+        "SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_profiles_steam_id'",
+      );
+      expect(found.rows).toHaveLength(1);
+    });
+
+    it('returns every recorded search, newest first, honoring the limit', async () => {
       await db.createWatchRequest(STEAM);
       await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
 
-      // One of each: sent, queued, dropped notify + a queued invite.
-      await db.enqueueEvent(STEAM, 'notify', 'inbox-sent-1');
-      await db.enqueueEvent(STEAM, 'notify', 'inbox-queued');
-      await db.enqueueEvent(STEAM, 'notify', 'inbox-dropped');
-      await db.enqueueEvent(STEAM, 'invite');
-      const [first, , toDrop] = await db.claimNextQueuedEvents('notify', 10);
-      expect(await db.markEventSent(first.id)).toBe(true);
-      expect(await db.markEventDropped(toDrop.id)).toBe(true);
+      // Two recorded searches for the watched profile — no notify events
+      // at all: the inbox must list them anyway (no cooldown gate here).
+      await insertSearch('inbox-search-1', STEAM, '2000-01-01T00:00:00.000Z');
+      await insertSearch('inbox-search-2', STEAM, '2026-06-02T00:00:00.000Z');
 
-      // A second sent row, strictly newer (backdate the first send so the
-      // ordering assertion cannot tie on millisecond timestamps).
-      await db.enqueueEvent(STEAM, 'notify', 'inbox-sent-2');
-      const [second] = await db.claimNextQueuedEvents('notify', 10);
-      expect(await db.markEventSent(second.id)).toBe(true);
-      await db.executeForTests(
-        "UPDATE watch_events SET sent_at = '2000-01-01T00:00:00.000Z' WHERE id = ?",
-        [first.id],
-      );
-
-      const all = await db.listSentNotifications(STEAM);
+      const all = await db.listProfileSearches(STEAM);
       expect(all).toEqual([
-        { id: second.id, sentAt: expect.any(String) },
-        { id: first.id, sentAt: '2000-01-01T00:00:00.000Z' },
+        {
+          searchId: 'inbox-search-2',
+          searchedAt: '2026-06-02T00:00:00.000Z',
+          cheaterChecked: false,
+        },
+        {
+          searchId: 'inbox-search-1',
+          searchedAt: '2000-01-01T00:00:00.000Z',
+          cheaterChecked: false,
+        },
       ]);
 
-      // Queued/dropped/invite rows never surface; limit truncates.
-      expect(all).toHaveLength(2);
-      const one = await db.listSentNotifications(STEAM, 1);
-      expect(one).toEqual([{ id: second.id, sentAt: expect.any(String) }]);
+      // Limit truncates.
+      const one = await db.listProfileSearches(STEAM, 1);
+      expect(one).toEqual([
+        {
+          searchId: 'inbox-search-2',
+          searchedAt: '2026-06-02T00:00:00.000Z',
+          cheaterChecked: false,
+        },
+      ]);
     });
 
-    it('returns [] for profiles with no delivered notifies', async () => {
+    it('lists cooldown-suppressed views anyway: late search still lists', async () => {
       await db.createWatchRequest(STEAM);
-      await expect(db.listSentNotifications(STEAM)).resolves.toEqual([]);
+      await confirmProfileForTests(db, STEAM);
+      await db.activateWatch(STEAM);
+
+      // First search delivered by the bot; the second lands inside the
+      // bot's 24h cooldown (suppressed from chat) — yet the inbox lists
+      // BOTH. This is the whole point of the split.
+      await insertSearch(
+        'inbox-delivered',
+        STEAM,
+        '2026-06-01T00:00:00.000Z',
+      );
+      await insertSearch(
+        'inbox-suppressed',
+        STEAM,
+        '2026-06-01T12:00:00.000Z',
+      );
+      await db.enqueueEvent(STEAM, 'notify', 'inbox-delivered');
+      const [claimed] = await db.claimNextQueuedEvents('notify', 10);
+      expect(await db.markEventSent(claimed.id)).toBe(true);
+      // Pin the profile clock as if the hook had just delivered: the bot
+      // would suppress the second view from chat (24h), yet the inbox
+      // lists it anyway. This is the whole point of the split. Relative
+      // clock (not a pinned date): a fixed 2026 stamp would age out of
+      // the window and flip this test red on its own.
+      await db.executeForTests(
+        'UPDATE watched_profiles SET last_notified_at = ? WHERE steam_id = ?',
+        [new Date(Date.now() - 3600000).toISOString(), STEAM],
+      );
+      await expect(db.isWithinCooldown(STEAM, 24)).resolves.toBe(true);
+
+      const all = await db.listProfileSearches(STEAM);
+      expect(all.map((row) => row.searchId)).toEqual([
+        'inbox-suppressed',
+        'inbox-delivered',
+      ]);
+    });
+
+    it('joins the cheater flag (real tables)', async () => {
+      await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
+      await db.activateWatch(STEAM);
+
+      // Real recorded search for the watched profile, cheater report opened.
+      await insertSearch('inbox-real-search', STEAM, '2026-06-03T12:00:00.000Z');
+      await db.executeForTests(
+        'INSERT INTO cheater_results (search_id, score, computed_at) VALUES (?, ?, ?)',
+        ['inbox-real-search', 0.42, '2026-06-03T12:01:00.000Z'],
+      );
+
+      const all = await db.listProfileSearches(STEAM);
+      expect(all).toEqual([
+        {
+          searchId: 'inbox-real-search',
+          searchedAt: '2026-06-03T12:00:00.000Z',
+          cheaterChecked: true,
+        },
+      ]);
+    });
+
+    it('excludes pre-watch searches: stranger lookups from before the opt-in never list', async () => {
+      await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
+      await db.activateWatch(STEAM);
+      // Pin the watch lifecycle: requested June 1, activated June 2.
+      await db.executeForTests(
+        'UPDATE watched_profiles SET requested_at = ?, activated_at = ? WHERE steam_id = ?',
+        ['2026-06-01T00:00:00.000Z', '2026-06-02T00:00:00.000Z', STEAM],
+      );
+
+      // A stranger looked this profile up in May — before the watch
+      // existed. Two more lookups landed after activation.
+      await insertSearch('pre-watch-stranger', STEAM, '2026-05-15T00:00:00.000Z');
+      await insertSearch('post-watch-1', STEAM, '2026-06-03T00:00:00.000Z');
+      await insertSearch('post-watch-2', STEAM, '2026-06-04T00:00:00.000Z');
+
+      const watched = await db.getWatchedProfile(STEAM);
+      const floor = watched?.activatedAt ?? watched?.requestedAt ?? null;
+      expect(floor).toBe('2026-06-02T00:00:00.000Z');
+
+      const all = await db.listProfileSearches(STEAM, 25, floor);
+      expect(all.map((row) => row.searchId)).toEqual([
+        'post-watch-2',
+        'post-watch-1',
+      ]);
+      await expect(db.countSearchesSince(STEAM, null, floor)).resolves.toBe(2);
       await expect(
-        db.listSentNotifications('76561198000000009'),
+        db.countSearchesInMonth(STEAM, Date.UTC(2026, 5, 20), floor),
+      ).resolves.toBe(2);
+    });
+
+    it('countSearchesInMonth counts profile searches in the UTC month', async () => {
+      // Two June searches for STEAM, one May search (outside the window),
+      // one June search for another profile (another owner).
+      await insertSearch('m-june-1', STEAM, '2026-06-03T12:00:00.000Z');
+      await insertSearch('m-june-2', STEAM, '2026-06-20T12:00:00.000Z');
+      await insertSearch('m-may', STEAM, '2026-05-31T23:59:59.000Z');
+      await insertSearch(
+        'm-other',
+        '76561198000000009',
+        '2026-06-10T12:00:00.000Z',
+      );
+
+      // Pinned mid-June: the May row and the other profile stay out.
+      await expect(
+        db.countSearchesInMonth(STEAM, Date.UTC(2026, 5, 15)),
+      ).resolves.toBe(2);
+    });
+
+    it('returns [] for profiles with no recorded searches', async () => {
+      await db.createWatchRequest(STEAM);
+      await expect(db.listProfileSearches(STEAM)).resolves.toEqual([]);
+      await expect(
+        db.listProfileSearches('76561198000000009'),
       ).resolves.toEqual([]);
     });
 
-    it('list and count agree on hand-corrupted sent rows (NULL sent_at)', async () => {
-      // A status='sent' row with NULL sent_at (hand edit — the write path
-      // always stamps it) must be invisible to BOTH inbox queries, or the
-      // "never disagree" guarantee between list and count breaks.
+    it('counts searches past a watermark (backlog beyond the window)', async () => {
       await db.createWatchRequest(STEAM);
       await confirmProfileForTests(db, STEAM);
       await db.activateWatch(STEAM);
 
-      await db.enqueueEvent(STEAM, 'notify', 'inbox-corrupt');
-      const [claimed] = await db.claimNextQueuedEvents('notify', 10);
-      expect(await db.markEventSent(claimed.id)).toBe(true);
-      await db.executeForTests(
-        'UPDATE watch_events SET sent_at = NULL WHERE id = ?',
-        [claimed.id],
-      );
-
-      await expect(db.listSentNotifications(STEAM)).resolves.toEqual([]);
-      await expect(
-        db.countNotificationsSince(STEAM, null),
-      ).resolves.toBe(0);
-      await expect(
-        db.countNotificationsSince(STEAM, '2000-01-01T00:00:00.000Z'),
-      ).resolves.toBe(0);
-    });
-
-    it('counts delivered rows past a watermark (backlog beyond the window)', async () => {
-      await db.createWatchRequest(STEAM);
-      await confirmProfileForTests(db, STEAM);
-      await db.activateWatch(STEAM);
-
-      // 25 delivered notifies: the read window (limit 20) cannot see them
-      // all, but the count must stay exact for the badge.
+      // 25 recorded searches: the read window (limit 20) cannot see them
+      // all, but the count must stay exact for the badge. One insert per
+      // second — no shared-millisecond ties on strict >.
       for (let i = 0; i < 25; i += 1) {
-        // eslint-disable-next-line no-await-in-loop
-        await db.enqueueEvent(STEAM, 'notify', `ct-${i}`);
-      }
-      const claimed = await db.claimNextQueuedEvents('notify', 25);
-      for (const event of claimed) {
-        // eslint-disable-next-line no-await-in-loop
-        await db.markEventSent(event.id);
-      }
-      // Pin distinct delivery timestamps (a back-to-back burst could share
-      // a millisecond, which would tie on strict > and flake the count).
-      const delivered = await db.listSentNotifications(STEAM, 25);
-      for (let i = 0; i < delivered.length; i += 1) {
         const stamped = `2026-06-01T00:00:${String(i).padStart(2, '0')}.000Z`;
         // eslint-disable-next-line no-await-in-loop
-        await db.executeForTests(
-          'UPDATE watch_events SET sent_at = ? WHERE id = ?',
-          [stamped, delivered[i].id],
-        );
+        await insertSearch(`ct-${i}`, STEAM, stamped);
       }
-      const sentAts: string[] = [];
-      const restamped = await db.listSentNotifications(STEAM, 25);
-      restamped.forEach((row) => sentAts.push(row.sentAt));
+      const searchedAts: string[] = [];
+      const listed = await db.listProfileSearches(STEAM, 25);
+      listed.forEach((row) => searchedAts.push(row.searchedAt));
 
-      expect(await db.countNotificationsSince(STEAM, null)).toBe(25);
-      expect(await db.countNotificationsSince(STEAM)).toBe(25);
-      const watermark = [...sentAts].sort().reverse()[0];
-      expect(await db.countNotificationsSince(STEAM, watermark)).toBe(0);
+      expect(await db.countSearchesSince(STEAM, null)).toBe(25);
+      expect(await db.countSearchesSince(STEAM)).toBe(25);
+      const watermark = [...searchedAts].sort().reverse()[0];
+      expect(await db.countSearchesSince(STEAM, watermark)).toBe(0);
 
-      const window = await db.listSentNotifications(STEAM, 20);
+      const window = await db.listProfileSearches(STEAM, 20);
       expect(window).toHaveLength(20);
-      // sentAts sorted ascending: the 5 oldest sit below the window, yet
-      // the count past the 5th timestamp still sees the exact visible
+      // searchedAts sorted ascending: the 5 oldest sit below the window,
+      // yet the count past the 5th timestamp still sees the exact visible
       // suffix — count and window agree by construction.
-      const ascending = [...sentAts].sort();
-      expect(await db.countNotificationsSince(STEAM, ascending[4])).toBe(20);
-    });
-
-    it('catches a late-delivered retry past an id-newer watermark', async () => {
-      // The exact P1 scenario: id=5 fails and requeues while id=6 sends
-      // first and gets seen. An id-cursor (id > 6) would skip id=5 forever
-      // even though it delivers LATER (fresher sent_at) — the sent_at
-      // cursor catches it because delivery order, not creation order, is
-      // what the badge tracks.
-      await db.createWatchRequest(STEAM);
-      await confirmProfileForTests(db, STEAM);
-      await db.activateWatch(STEAM);
-
-      await db.enqueueEvent(STEAM, 'notify', 'retry-first');
-      await db.enqueueEvent(STEAM, 'notify', 'retry-second');
-      const [first, second] = await db.claimNextQueuedEvents('notify', 10);
-      // Second delivers first (as if the first needed a retry round).
-      // Backdate it so the later delivery is strictly greater by
-      // construction (two real sends could share a millisecond).
-      expect(await db.markEventSent(second.id)).toBe(true);
-      await db.executeForTests(
-        "UPDATE watch_events SET sent_at = '2026-01-01T00:00:00.000Z' WHERE id = ?",
-        [second.id],
-      );
-      const seen = '2026-01-01T00:00:00.000Z';
-
-      // User opens the inbox now: watermark = second delivery.
-      expect(await db.countNotificationsSince(STEAM, seen)).toBe(0);
-
-      // The retry finally delivers — strictly later, strictly greater
-      // sent_at, SMALLER id. The badge must show 1, not 0.
-      expect(await db.markEventSent(first.id)).toBe(true);
-      expect(await db.countNotificationsSince(STEAM, seen)).toBe(1);
-      expect(first.id).toBeLessThan(second.id);
+      const ascending = [...searchedAts].sort();
+      expect(await db.countSearchesSince(STEAM, ascending[4])).toBe(20);
     });
   });
 

@@ -55,11 +55,21 @@ describe('useWatchStatus', () => {
     props: {
       steamId?: string | null;
       enabled?: boolean;
+      initialWatch?: {
+        status: 'pending' | 'active' | 'none' | null;
+        confirmExpired: boolean;
+        confirmLinkSent: boolean;
+      } | null;
     } = {},
   ) =>
     renderHook(
-      ({ steamId, enabled }) =>
-        useWatchStatus({ steamId, enabled, pollIntervalMs: 5000 }),
+      ({ steamId, enabled, initialWatch }) =>
+        useWatchStatus({
+          steamId,
+          enabled,
+          pollIntervalMs: 5000,
+          initialWatch,
+        }),
       { initialProps: { steamId: STEAM_A, enabled: true, ...props } },
     );
 
@@ -390,6 +400,51 @@ describe('useWatchStatus', () => {
     await flushPolls(1);
     expect(result.current.status).toBe('active');
     expect(mockedToast.success).toHaveBeenCalledTimes(1);
+  });
+
+  it('seeds first paint from the server seed without prefetch', async () => {
+    // Never-resolving fetch: without the seed this would sit on the
+    // skeleton forever; with it the real content paints immediately.
+    fetchMock.mockReturnValue(new Promise<Response>(() => undefined));
+
+    const { result } = render({
+      initialWatch: {
+        status: 'pending',
+        confirmExpired: false,
+        confirmLinkSent: true,
+      },
+    });
+
+    expect(result.current.status).toBe('pending');
+    expect(result.current.confirmExpired).toBe(false);
+    expect(result.current.confirmLinkSent).toBe(true);
+  });
+
+  it('prefers a fresh prefetch over the server seed', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse('active', {
+        confirmExpired: false,
+        confirmLinkSent: false,
+      }),
+    );
+
+    prefetchWatchStatus();
+    await act(async () => {});
+
+    fetchMock.mockReturnValue(new Promise<Response>(() => undefined));
+
+    // Prefetch (active, post-load hover) beats the page-load seed
+    // (pending): freshest warm source wins.
+    const { result } = render({
+      initialWatch: {
+        status: 'pending',
+        confirmExpired: false,
+        confirmLinkSent: true,
+      },
+    });
+
+    expect(result.current.status).toBe('active');
+    expect(result.current.confirmLinkSent).toBe(false);
   });
 
   it('resets per steamId (switching profiles never toasts stale transitions)', async () => {

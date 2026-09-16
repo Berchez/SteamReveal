@@ -172,13 +172,19 @@ export interface ExpiredConfirmCandidate {
 }
 
 /**
- * Inbox row (WB-14): the minimal projection of a delivered notify event.
- * steamId is the query key (echoed by the route, not repeated per row);
- * only id + delivery timestamp travel — no message text is stored (the
- * inbox renders the shared WB-15 base text for the event instead).
+ * Inbox row: one recorded search on the watched profile, newest first.
+ * steamId is the query key (echoed by the route, not repeated per row).
+ * The React key is searchId (searches.id PK — stable forever, unlike
+ * rowids). No message text is stored (the inbox renders the shared WB-15
+ * base text instead) and no requester PII travels — only the searched
+ * profile's own search metadata (when it ran, whether the cheater report
+ * was opened for it).
  */
 export interface WatchNotification {
-  id: number;
-  /** Delivery timestamp (sent_at, always set for status='sent' rows). */
-  sentAt: string;
+  /** Producing search id (searches.id). */
+  searchId: string;
+  /** When the viewed search ran (searches.searched_at, UTC ISO). */
+  searchedAt: string;
+  /** Whether the searcher opened the cheater report (cheater_results row). */
+  cheaterChecked: boolean;
 }
