@@ -1,6 +1,5 @@
 import type { Page } from '@playwright/test';
 import { test, expect, loginTestUser } from './support/fixtures';
-import { buildConfirmAutoSubmitScript } from '@/app/api/watch/confirm/confirmAutoSubmit';
 
 // Full Watch flow E2E (navbar era) — NEVER touches Steam or a real
 // database: the watch lanes + signup are fulfilled at the network layer
@@ -154,17 +153,15 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
       route.fulfill(notificationsBody([], 0)),
     );
     // The confirm page itself is mocked at the network layer (the real
-    // route is unit-covered): GET renders the gated auto-submit form
-    // without consuming anything, POST consumes and redirects to the
-    // success landing. The auto-submit script comes from the same builder
-    // the route uses (./confirmAutoSubmit sidecar), so the mock can never
-    // drift from production; GET-idempotency for scriptless fetchers is
-    // pinned by the route unit tests and the no-JS test below.
+    // route is unit-covered): GET renders the explicit-click form without
+    // consuming anything (no <script> element on the page — open never submits),
+    // POST consumes and redirects to the success landing. GET-idempotency
+    // for scriptless fetchers is pinned by the route unit tests and the
+    // no-JS test below.
     const confirmToken = 'ab'.repeat(32);
     const confirmPageHtml =
       `<form method="post" action="/api/watch/confirm?token=${confirmToken}" onsubmit="this.querySelector('button').disabled=true">` +
-      `<button>Confirm and activate</button></form>` +
-      buildConfirmAutoSubmitScript();
+      `<button>Confirm and activate</button></form>`;
     await page.route('**/api/watch/confirm*', async (route) => {
       if (route.request().method() === 'POST') {
         confirmed = true;
@@ -204,16 +201,20 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     ).toBeVisible({ timeout: 15000 });
 
     // The confirm link arrives over Steam chat (bot side, mocked away
-    // here): the load path may already have submitted (focused headless)
-    // or still be waiting for intent — either way exactly one POST
-    // activates. A real keypress (trusted keydown) covers the waiting
-    // case and is harmless if the submit already fired, so the assertion
-    // below is deterministic in both worlds. The POST is the sole
-    // activator: success lands with the one-shot toast, and the next
-    // status poll flips the panel.
+    // here): opening it shows the intermediate page, and only an
+    // explicit click on the button POSTs and activates. The POST is the
+    // sole activator: success lands with the one-shot toast, and the
+    // next status poll flips the panel.
     await page.goto(`/api/watch/confirm?token=${confirmToken}`);
-    await page.keyboard.press('Tab');
-    await expect(page).toHaveURL(/\/en\/\?confirmed=ok/, { timeout: 15000 });
+    const confirmButton = page.getByRole('button', {
+      name: 'Confirm and activate',
+    });
+    await expect(confirmButton).toBeVisible();
+    await confirmButton.click();
+    // Optional trailing slash: the landing goes through Next's trailing-
+    // slash normalization (/en/ -> /en), so the URL may settle on either
+    // shape before the toast strips the param — match both.
+    await expect(page).toHaveURL(/\/en\/?\?confirmed=ok/, { timeout: 15000 });
     await expect(
       page.getByText('Watch confirmed! You will be notified here'),
     ).toBeVisible();
@@ -242,7 +243,8 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     browser,
   }) => {
     // Browser-level proof for linkifiers, antivirus scanners and
-    // prefetchers: without JS the gated auto-submit never runs, so open +
+    // prefetchers: production ships no <script> element on this page (only the form's inline onsubmit guard), and
+    // even against this hostile auto-submit variant, without JS open +
     // reload are pure reads and the visible button remains the sole
     // activator. Needs its own context — javaScriptEnabled is per context,
     // and the shared page fixture runs with JS on.
@@ -285,7 +287,10 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
 
       // ...and the manual button path still activates exactly once.
       await confirmButton.click();
-      await expect(noJs).toHaveURL(/\/en\/\?confirmed=ok/);
+      // Optional trailing slash (Next normalizes /en/ -> /en); no JS in
+      // this context, so the param is never stripped — only the slash
+      // shape varies.
+      await expect(noJs).toHaveURL(/\/en\/?\?confirmed=ok/);
       expect(posts).toBe(1);
     } finally {
       await context.close();

@@ -148,6 +148,15 @@ const main = (): void => {
     sharedSecret: config.sharedSecret,
     reconnectBaseMs: config.reconnectBaseMs,
     reconnectMaxMs: config.reconnectMaxMs,
+    // Sink-side Sybil bound (single-state auto-accept): without these the
+    // bot accepts every inbound request unbounded — a throwaway-account
+    // burst fills the Steam friends list and blocks all new onboarding.
+    autoAcceptFriendCap: config.autoAcceptFriendCap,
+    autoAcceptDailyLimit: config.autoAcceptDailyLimit,
+    // Identity self-check: the site gates logins on friendship with THIS
+    // id, so a drifted env (or a BOT_DATA_DIR reused from another account)
+    // would silently deny every login — the bot logs LOUDLY on mismatch.
+    expectedBotSteamId: config.botSteamId,
     logger,
     // reconcile() is async but the snapshot event is sync: a rejection
     // here must never become an unhandled rejection that kills the
@@ -436,6 +445,12 @@ const main = (): void => {
   const reconcileTimer = setInterval(() => {
     if (!bot.isConnected()) return;
     convergeFriends({ ...client.myFriends });
+    // Deferred-accept retry (same interval, same gate): inbound requests
+    // refused earlier by the auto-accept ceilings (daily budget, friend
+    // cap) converge here once the UTC day rolls over or slots free up —
+    // without this they would wait for the next reconnect, potentially
+    // days on a stable connection. Fire-and-forget (never throws).
+    bot.sweepPendingRequests();
   }, config.reconcileIntervalMs);
   if (typeof reconcileTimer.unref === 'function') {
     reconcileTimer.unref();

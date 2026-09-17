@@ -84,10 +84,9 @@ describe('GET /api/watch/confirm (intermediate page, never mutates)', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toContain('text/html');
     expect(res.headers.get('cache-control')).toBe('no-store');
-    // The page auto-submits on visible+focused: it must never run framed
-    // (a hidden same-tab iframe still reports visible, and .focus() on
-    // the frame is allowed cross-origin — enough to burn a leaked token
-    // into an activation+login with zero victim gesture).
+    // Token-bearing action page: it must never run framed, even though
+    // confirmation needs an explicit click (defense in depth — nothing
+    // legitimately frames this page, not even same-origin).
     expect(res.headers.get('x-frame-options')).toBe('DENY');
     expect(res.headers.get('content-security-policy')).toContain(
       "frame-ancestors 'none'",
@@ -97,16 +96,12 @@ describe('GET /api/watch/confirm (intermediate page, never mutates)', () => {
       `<form method="post" action="/api/watch/confirm?token=${TOKEN}" onsubmit="this.querySelector('button').disabled=true"`,
     );
     expect(html).toContain('Confirmar e ativar');
-    // Real browsers auto-submit on load (click = monitored, no button
-    // step); the form stays as the no-JS fallback. The submit is gated
-    // on human presence so background/prerender/headless loads never fire.
-    expect(html).toContain("document.visibilityState==='visible'");
-    expect(html).toContain('document.hasFocus()');
-    expect(html).toContain('pointerdown');
-    expect(html).toContain('keydown');
-    expect(html).toContain('document.forms[0].submit()');
-    // Single-submission guard, both legs: script flag + button disable.
-    expect(html).toContain('var submitted=false');
+    // Explicit click only: NO script anywhere on the page — openers,
+    // prefetchers, headless loaders and scanners can load this URL all
+    // day without spending the token. The button is the sole activator.
+    expect(html).not.toContain('<script');
+    // Single-submission guard: the native button disables itself on submit.
+    expect(html).toContain('onsubmit="this.querySelector(\'button\').disabled=true"');
     expect(mockedDb.getAccountByConfirmTokenHash).toHaveBeenCalledWith(
       `hash:${TOKEN}`,
     );
@@ -137,8 +132,9 @@ describe('GET /api/watch/confirm (intermediate page, never mutates)', () => {
     const html = await res.text();
     expect(html).toContain('Este link expirou');
     expect(html).not.toContain('<form');
-    // Expired variant never auto-submits: it must stay readable (resend
-    // path) instead of bouncing straight to the error landing.
+    // Expired variant has no form (and no <script> element anywhere on the
+    // page): it must stay readable (resend path) instead of bouncing
+    // straight to the error landing.
     expect(html).not.toContain('<script');
     expect(html).toContain('href="/pt/"');
     expect(mockedDb.consumeConfirmToken).not.toHaveBeenCalled();
@@ -152,12 +148,11 @@ describe('GET /api/watch/confirm (intermediate page, never mutates)', () => {
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain('<form');
-    // Identical bytes to the valid variant — including the auto-submit
-    // script — so a GET-only prober learns nothing; a JS prober that
-    // follows through gets the same error landing as a manual click.
-    // (The human-presence gate still applies there too — scanners that
-    // never become visible+focused submit nothing.)
-    expect(html).toContain("document.visibilityState==='visible'");
+    // Identical bytes to the valid variant — and still no <script> element
+    // (only the form's inline onsubmit guard) — so a GET-only prober learns
+    // nothing; only a real click-through POST can consume, landing on the
+    // same error page as a manual click.
+    expect(html).not.toContain('<script');
     expect(mockedDb.consumeConfirmToken).not.toHaveBeenCalled();
   });
 

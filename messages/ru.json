@@ -176,6 +176,8 @@
     "watchConfirmError": "Эта ссылка подтверждения недействительна или устарела. Начните наблюдение заново, чтобы получить новую.",
     "watchLoginButton": "Войти через Steam",
     "watchNavSignIn": "Войти",
+    "watchSignInAddBot": "Добавьте бота SteamReveal",
+    "watchLoginNoFriend": "Сначала добавьте бота SteamReveal в друзья в Steam, затем входите. Если вы только что добавили его, подождите минуту и попробуйте снова.",
     "watchAvatarAlt": "Фото профиля {nickname}",
     "watchLoginError": "Не удалось войти через Steam. Повторите попытку чуть позже.",
     "watchLogout": "Выйти",

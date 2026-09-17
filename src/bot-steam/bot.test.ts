@@ -9,6 +9,7 @@ interface FakeClient extends EventEmitter {
   logOn: jest.Mock;
   logOff: jest.Mock;
   setPersona: jest.Mock;
+  addFriend: jest.Mock;
   myFriends: Record<string, number>;
   steamID: { getSteamID64: () => string } | null;
 }
@@ -18,7 +19,13 @@ jest.mock('steam-user', () => {
 
   class FakeSteamUser extends EE {
     static EPersonaState = { Online: 1 };
-    static EFriendRelationship = { None: 0, Blocked: 1, Friend: 3 };
+    static EFriendRelationship = {
+      None: 0,
+      Blocked: 1,
+      RequestRecipient: 2,
+      Friend: 3,
+      RequestInitiator: 4,
+    };
     static EResult = { OK: 1, Fail: 2 };
 
     static created: FakeSteamUser[] = [];
@@ -26,6 +33,7 @@ jest.mock('steam-user', () => {
     logOn = jest.fn();
     logOff = jest.fn();
     setPersona = jest.fn();
+    addFriend = jest.fn(async () => ({ personaName: 'x' }));
     myFriends: Record<string, number> = {};
     steamID: { getSteamID64: () => string } | null = null;
 
@@ -264,6 +272,520 @@ describe('WatchBot', () => {
       { getSteamID64: () => '76561198000000003' },
       2,
     );
+    expect(onFriendRemoved).not.toHaveBeenCalled();
+    bot.stop();
+  });
+
+  it('accepts inbound friend requests (RequestRecipient) via addFriend', async () => {
+    const onFriendRemoved = jest.fn();
+    const onFriendsSnapshot = jest.fn();
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({
+      onFriendRemoved,
+      onFriendsSnapshot,
+      logger,
+    });
+    bot.start();
+
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000001' },
+      2,
+    );
+    // acceptFriendRequest is fire-and-forget: flush microtasks so the
+    // bounded addFriend + log land before asserting.
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    expect(client.addFriend).toHaveBeenCalledTimes(1);
+    expect(client.addFriend).toHaveBeenCalledWith('76561198000000001');
+    expect(onFriendRemoved).not.toHaveBeenCalled();
+    expect(onFriendsSnapshot).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledTimes(1);
+    expect(String(logger.info.mock.calls[0][0])).toContain(
+      'accepted inbound friend request',
+    );
+    expect(logger.error).not.toHaveBeenCalled();
+    bot.stop();
+  });
+
+  it('logs accept failures loudly without crashing (request stays pending)', async () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({ logger });
+    bot.start();
+
+    client.addFriend.mockRejectedValueOnce(new Error('limited account?'));
+    expect(() =>
+      client.emit(
+        'friendRelationship',
+        { getSteamID64: () => '76561198000000002' },
+        2,
+      ),
+    ).not.toThrow();
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    expect(client.addFriend).toHaveBeenCalledWith('76561198000000002');
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(String(logger.error.mock.calls[0][0])).toContain(
+      'friend-accept failed',
+    );
+    // Bot keeps working: a later inbound request is still accepted.
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000003' },
+      2,
+    );
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+    expect(client.addFriend).toHaveBeenCalledWith('76561198000000003');
+    bot.stop();
+  });
+
+  it('sweeps snapshot inbound requests (offline arrivals) sequentially, ignoring the rest', async () => {
+    const onFriendsSnapshot = jest.fn();
+    const { bot, client } = makeBot({ onFriendsSnapshot });
+    bot.start();
+
+    client.myFriends = {
+      '76561198000000001': 3,
+      '76561198000000002': 2,
+      '76561198000000003': 2,
+      '76561198000000004': 1,
+      '76561198000000005': 4,
+    };
+    client.emit('friendsList');
+    for (let i = 0; i < 10; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    // Existing forward behavior preserved untouched.
+    expect(onFriendsSnapshot).toHaveBeenCalledTimes(1);
+    // Only the two inbound-pending ids accepted, in map order.
+    expect(client.addFriend).toHaveBeenCalledTimes(2);
+    expect(client.addFriend).toHaveBeenNthCalledWith(
+      1,
+      '76561198000000002',
+    );
+    expect(client.addFriend).toHaveBeenNthCalledWith(
+      2,
+      '76561198000000003',
+    );
+    bot.stop();
+  });
+
+  it('refuses auto-accept at the friend cap (Sybil bound) without touching Steam', async () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({
+      logger,
+      autoAcceptFriendCap: 2,
+      autoAcceptDailyLimit: 50,
+    });
+    bot.start();
+
+    // 2 FRIEND entries already (pending inbound does NOT count toward it).
+    client.myFriends = {
+      '76561198000000010': 3,
+      '76561198000000011': 3,
+      '76561198000000012': 2,
+    };
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000012' },
+      2,
+    );
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    expect(client.addFriend).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(String(logger.error.mock.calls[0][0])).toContain('REFUSED');
+    expect(String(logger.error.mock.calls[0][0])).toContain('friend cap');
+    bot.stop();
+  });
+
+  it('enforces the daily accept budget and rolls it over on UTC-day change', async () => {
+    let now = Date.parse('2026-09-01T10:00:00.000Z');
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({
+      logger,
+      autoAcceptFriendCap: 240,
+      autoAcceptDailyLimit: 2,
+      nowMs: () => now,
+    });
+    bot.start();
+
+    const emitRequest = (id: string) => {
+      client.emit('friendRelationship', { getSteamID64: () => id }, 2);
+    };
+    const flush = async () => {
+      for (let i = 0; i < 5; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.resolve();
+      }
+    };
+
+    emitRequest('76561198000000021');
+    emitRequest('76561198000000022');
+    await flush();
+    expect(client.addFriend).toHaveBeenCalledTimes(2);
+
+    // Third request same UTC day: refused, budget untouched by the refusal.
+    emitRequest('76561198000000023');
+    await flush();
+    expect(client.addFriend).toHaveBeenCalledTimes(2);
+    expect(
+      logger.error.mock.calls.map((call) => String(call[0])),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('daily accept budget exhausted'),
+      ]),
+    );
+
+    // Next UTC day: budget resets, the deferred request converges.
+    now = Date.parse('2026-09-02T00:00:01.000Z');
+    emitRequest('76561198000000023');
+    await flush();
+    expect(client.addFriend).toHaveBeenCalledTimes(3);
+    expect(client.addFriend).toHaveBeenNthCalledWith(
+      3,
+      '76561198000000023',
+    );
+    bot.stop();
+  });
+
+  it('failed accepts never burn the daily budget', async () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({
+      logger,
+      autoAcceptDailyLimit: 1,
+    });
+    bot.start();
+
+    client.addFriend.mockRejectedValueOnce(new Error('Steam throttled'));
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000031' },
+      2,
+    );
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+    expect(client.addFriend).toHaveBeenCalledTimes(1);
+
+    // The failure above burned nothing: a retry still goes through.
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000032' },
+      2,
+    );
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+    expect(client.addFriend).toHaveBeenCalledTimes(2);
+    bot.stop();
+  });
+
+  it('snapshot sweep pauses at the daily budget with one log line (rest deferred)', async () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const onFriendsSnapshot = jest.fn();
+    const { bot, client } = makeBot({
+      logger,
+      onFriendsSnapshot,
+      autoAcceptDailyLimit: 1,
+    });
+    bot.start();
+
+    client.myFriends = {
+      '76561198000000041': 2,
+      '76561198000000042': 2,
+      '76561198000000043': 2,
+    };
+    client.emit('friendsList');
+    for (let i = 0; i < 10; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    expect(onFriendsSnapshot).toHaveBeenCalledTimes(1);
+    expect(client.addFriend).toHaveBeenCalledTimes(1);
+    expect(client.addFriend).toHaveBeenCalledWith('76561198000000041');
+    const errors = logger.error.mock.calls.map((call) => String(call[0]));
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('sweep paused');
+    expect(errors[0]).toContain('2 request(s) deferred');
+    bot.stop();
+  });
+
+  it('sweepPendingRequests() retries deferred inbound requests on demand (timer path)', async () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({ logger });
+    bot.start();
+
+    // Live map holds a still-pending inbound request (e.g. deferred by an
+    // earlier exhausted budget): the public sweep converges it without any
+    // reconnect — this is what the 10-minute reconcile timer calls.
+    client.myFriends = { '76561198000000051': 2 };
+    bot.sweepPendingRequests();
+    for (let i = 0; i < 10; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    expect(client.addFriend).toHaveBeenCalledTimes(1);
+    expect(client.addFriend).toHaveBeenCalledWith('76561198000000051');
+    expect(logger.error).not.toHaveBeenCalled();
+    bot.stop();
+  });
+
+  it('sweepPendingRequests() never throws (timer-safe)', () => {
+    const { bot } = makeBot();
+    bot.start();
+
+    expect(() => bot.sweepPendingRequests()).not.toThrow();
+    bot.stop();
+  });
+
+  it('logs LOUDLY on logon when the session id differs from expectedBotSteamId', () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({
+      logger,
+      expectedBotSteamId: '76561199000000001',
+    });
+    bot.start();
+
+    client.steamID = { getSteamID64: () => '76561199000000999' };
+    client.emit('loggedOn', {}, {});
+
+    expect(bot.isConnected()).toBe(true);
+    const errors = logger.error.mock.calls.map((call) => String(call[0]));
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('STEAM_BOT_STEAMID mismatch'),
+      ]),
+    );
+    expect(errors.join('\n')).toContain('76561199000000999');
+    expect(errors.join('\n')).toContain('76561199000000001');
+    bot.stop();
+  });
+
+  it('stays silent when the session id matches expectedBotSteamId (or is unreadable)', () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({
+      logger,
+      expectedBotSteamId: '76561199000000001',
+    });
+    bot.start();
+
+    client.steamID = { getSteamID64: () => '76561199000000001' };
+    client.emit('loggedOn', {}, {});
+    expect(
+      logger.error.mock.calls.map((call) => String(call[0]).includes('mismatch')),
+    ).not.toContain(true);
+
+    // Unreadable session id: nothing to compare — silent, not evidence.
+    client.steamID = null;
+    client.emit('disconnected', 2, 'x');
+    client.emit('loggedOn', {}, {});
+    expect(
+      logger.error.mock.calls.map((call) => String(call[0]).includes('mismatch')),
+    ).not.toContain(true);
+    bot.stop();
+  });
+
+  it('dedupes the same steamId across a racing live event and sweep (one budget unit)', async () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({
+      logger,
+      // Budget 2: the sweep pre-check must PASS so the race reaches the
+      // per-id dedupe (with 1 the sweep would pause first and never touch
+      // the id — a different, already-covered path).
+      autoAcceptDailyLimit: 2,
+    });
+    bot.start();
+
+    // addFriend stays pending: the live accept below is still in flight
+    // when the sweep runs into the same id.
+    const pendingAccepts: Array<(value: unknown) => void> = [];
+    client.addFriend.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          pendingAccepts.push(resolve);
+        }),
+    );
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000061' },
+      2,
+    );
+    client.myFriends = { '76561198000000061': 2 };
+    bot.sweepPendingRequests();
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    // Exactly one addFriend despite two paths holding the id — and the
+    // skip logged instead of burning the single daily unit twice.
+    expect(client.addFriend).toHaveBeenCalledTimes(1);
+    expect(
+      logger.info.mock.calls.map((call) => String(call[0])),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('already in flight'),
+      ]),
+    );
+
+    pendingAccepts.forEach((resolve) => resolve({ personaName: 'x' }));
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+    // Owner converged; a later sweep for the same id proceeds normally
+    // (no stuck dedupe entry).
+    expect(client.addFriend).toHaveBeenCalledTimes(1);
+    bot.stop();
+  });
+
+  it('an overlapping sweep stands down instead of piling up (timer race guard)', async () => {
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({ logger });
+    bot.start();
+
+    const resolvers: Array<(value: unknown) => void> = [];
+    client.addFriend.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvers.push(resolve);
+        }),
+    );
+    client.myFriends = {
+      '76561198000000071': 2,
+      '76561198000000072': 2,
+    };
+    bot.sweepPendingRequests();
+    // Second pass while the first is still awaiting Steam: stands down.
+    bot.sweepPendingRequests();
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    expect(
+      logger.info.mock.calls.map((call) => String(call[0])),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('already in flight'),
+      ]),
+    );
+    resolvers.forEach((resolve) => resolve({ personaName: 'x' }));
+    for (let i = 0; i < 10; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+    // Each id accepted exactly once — no double-processing pileup.
+    expect(client.addFriend).toHaveBeenCalledTimes(2);
+    bot.stop();
+  });
+
+  it('a cross-midnight failure refund never perturbs the fresh day\'s budget', async () => {
+    let now = Date.parse('2026-09-01T23:59:59.000Z');
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { bot, client } = makeBot({
+      logger,
+      autoAcceptDailyLimit: 1,
+      nowMs: () => now,
+    });
+    bot.start();
+
+    // Day A: an accept reserves the last slot, then hangs on Steam.
+    const pendingRejects: Array<(reason?: unknown) => void> = [];
+    client.addFriend.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          pendingRejects.push(reject);
+        }),
+    );
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000081' },
+      2,
+    );
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    // UTC day rolls over; a fresh accept on day B consumes ITS only slot.
+    now = Date.parse('2026-09-02T00:00:05.000Z');
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000082' },
+      2,
+    );
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+    expect(client.addFriend).toHaveBeenCalledTimes(2);
+
+    // Day A's hung accept NOW fails: the refund must NOT decrement day
+    // B's counter (old behavior: B would read 0 and admit an extra accept).
+    pendingRejects[0](new Error('Steam hiccup'));
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    // Day B is still at its limit: a new request is refused, not admitted
+    // on top of the cross-midnight refund.
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000083' },
+      2,
+    );
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+    expect(client.addFriend).toHaveBeenCalledTimes(2);
+    expect(
+      logger.error.mock.calls.map((call) => String(call[0])),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('daily accept budget exhausted'),
+      ]),
+    );
+    bot.stop();
+  });
+
+  it('never accepts outgoing pending invites (RequestInitiator)', async () => {
+    const onFriendRemoved = jest.fn();
+    const { bot, client } = makeBot({ onFriendRemoved });
+    bot.start();
+
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000004' },
+      4,
+    );
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    expect(client.addFriend).not.toHaveBeenCalled();
     expect(onFriendRemoved).not.toHaveBeenCalled();
     bot.stop();
   });

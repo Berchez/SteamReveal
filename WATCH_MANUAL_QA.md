@@ -62,11 +62,24 @@ Para voltar ao normal, apague as linhas e reinicie o bot.
 
 ## 1. Jornada feliz (base de tudo)
 
+> Duas lanes (modelo single-state): **(a) lane nova** — usuário deslogado
+> adiciona o bot PRIMEIRO e o login ativa direto (`active`, sem Start nem
+> link; ver `WATCH_MANUAL_QA_CORE.md` QA-C01 para o roteiro curto); **(b)
+> lane legada/confirmação** — abaixo (QA-01→QA-03), via Start com sessão
+> (re-watch pós-opt-out com cookie sobrevivente, ou tokens antigos): Start
+> → pending → convite do bot → link → clique. O `invitePoller` segue ativo
+> para a lane (b); o bot também aceita inbound (lane (a)), limitado por
+> `BOT_AUTO_ACCEPT_DAILY_LIMIT`/`BOT_AUTO_ACCEPT_FRIEND_CAP` (recusas logam
+> `REFUSED` — ver runbook §5).
+
 ### QA-01 — Signup → convite → amizade → link (sem ativar!)
 
 1. Navegador limpo: `http://localhost:3000/en` → mostra **Sign in**, sem
    sino/avatar.
 2. **Sign in with Steam** → login real → volta logado (avatar aparece).
+   (Conta nova SEM amizade prévia cai em `?auth=nofriend` sem sessão — para
+   a lane (b), adicione o bot antes OU use sessão de re-watch; a lane (a)
+   está no doc core.)
 3. Abra o avatar → `Watch a Steam profile` + `Watch your profile`. Logout (Sign
    out) visível ao lado.
 4. Clique `Watch your profile` → heading `Invite sent`.
@@ -79,24 +92,26 @@ Para voltar ao normal, apague as linhas e reinicie o bot.
 9. Banco: `confirm_token_hash` com 64 hex (**nunca o token plano**),
    `confirm_expires_at` ≈ agora+TTL.
 
-### QA-02 — Página intermediária (GET não gasta nada, POST automático com JS)
+### QA-02 — Página intermediária (só o clique confirma, GET nunca gasta)
 
-1. Abra o link do chat → a página `Confirm your Watch request` dá POST
-   sozinha (auto-submit inline) e cai em `/en/?confirmed=ok`. Não há mais
-   botão visível para quem tem JS — clicar virou abrir.
-2. Desligue o JS do navegador e repita: o form + botão `Confirm and
-   activate` aparecem (fallback noscript) e recarregar (F5) 2x mantém o
-   form — simula preview/antivírus, que nunca executam o script.
-   **Esperado sem JS: o form continua lá, nada é gasto.**
+1. Abra o link do chat → página `Confirm your Watch request` com visual do
+   site (card escuro, botão roxo) e um botão `Confirm and activate`.
+   **Nada acontece sozinho**: abra, recarregue, troque de aba e volte —
+   sem clique, sem POST, token intacto. Clique o botão → cai em
+   `/en/?confirmed=ok`.
+2. Desligue o JS do navegador e repita: a mesma página/botão funcionam
+   (nenhum elemento `<script>` — só o guard inline `onsubmit`
+   anti-duplo-clique, inerte sem JS) e recarregar (F5) 2x mantém tudo —
+   simula preview/antivírus, que nunca executam nada.
 3. Banco (antes de qualquer POST): `confirmed_at` NULL, `status` pending,
    hash inalterado.
-4. Extra: `curl.exe -s "LINK" | Select-String "<form"` → o form existe (o
-   `<script>` vem junto no HTML mas curl não o executa — prova de que
-   preview não gasta).
+4. Extra: `curl.exe -s "LINK" | Select-String "<form"` → o form existe e
+   `Select-String "<script"` → **nenhum elemento `<script>`** (prova de que
+   preview não tem o que executar).
 
-### QA-03 — A abertura ativa tudo
+### QA-03 — O clique ativa tudo
 
-1. Na página do QA-02 (com JS), aguarde o auto-submit.
+1. Na página do QA-02, clique `Confirm and activate`.
 2. **Esperado:** redirect `/en/?confirmed=ok` + toast
    `Watch confirmed! You will be notified here whenever your profile is searched.`
    (some sozinho; reload não repete).
@@ -231,7 +246,7 @@ recomeçar (QA-06).
 | ----- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | QA-15 | Token malformado                   | `/api/watch/confirm?token=nope`                                                                                                                                   | Redirect `?confirmed=error`, zero leitura de token no banco                                                                        |
 | QA-16 | Link com ponto grudado             | Cole o link + `.` no fim (linkifier da Steam faz isso)                                                                                                            | Página/form funcionam com o token limpo                                                                                            |
-| QA-17 | Clique duplo                       | Mesmo link em 2 abas, abra as duas quase juntas (cada uma dá auto-submit)                                                                                         | Uma vira `ok`, a outra `error` (single-use: segundo `consume` acha zero linhas)                                                    |
+| QA-17 | Clique duplo                       | Mesmo link em 2 abas, clique nas duas quase juntas                                                                                                                        | Uma vira `ok`, a outra `error` (single-use: segundo `consume` acha zero linhas)                                                    |
 | QA-18 | Re-clique dias depois              | Clique um link já consumido                                                                                                                                       | Página mostra o form (sem oráculo), POST cai em `error`                                                                            |
 | QA-19 | Linha apagada na mão com link vivo | Delete a linha `accounts` com token pendente, clique o link                                                                                                       | Página de erro, **sem crash**; no próximo pass do bot a lane legado (sem linha em `accounts`) ativa direto + welcome — nunca trava |
 | QA-20 | Signup deslogado                   | `POST /api/auth/signup` sem cookie (curl/DevTools)                                                                                                                | `401`                                                                                                                              |

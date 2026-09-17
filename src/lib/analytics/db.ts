@@ -104,7 +104,7 @@ const getClient = (): Promise<Client> => {
 // message that points at the fix, leaving every other error untouched.
 // ---------------------------------------------------------------------------
 
-const SCHEMA_MISSING_TABLE_PATTERN = /no such table/i;
+const SCHEMA_MISSING_PATTERN = /no such (table|column)/i;
 
 // A client that was created fine can still die later (idle timeout, network
 // blip, Turso closing a hrana session). These are the error shapes the driver
@@ -128,7 +128,7 @@ const withSchemaHint = async <T>(operation: Promise<T>): Promise<T> => {
   } catch (error) {
     if (
       error instanceof Error &&
-      SCHEMA_MISSING_TABLE_PATTERN.test(error.message)
+      SCHEMA_MISSING_PATTERN.test(error.message)
     ) {
       throw new Error(
         'Analytics database schema is missing — run `pnpm run db:migrate` first.',
@@ -591,6 +591,169 @@ export const createWatchRequest = async (
   }
 
   return toWatchedProfile(row.rows[0] as Record<string, unknown>);
+};
+
+export interface EnsureActiveWatchResult {
+  profile: WatchedProfile;
+  /**
+   * True when THIS call newly activated the row (fresh insert, or a legacy
+   * pending flip) — the only case the caller enqueues a welcome for.
+   * False when the row was already active (idempotent re-login).
+   */
+  activated: boolean;
+}
+
+/**
+ * Single-state-model watch ensure: fresh profiles insert directly as
+ * active (friendship was just proven at login — there is no pending step
+ * on the fresh lane), already-active rows are untouched, and pending rows
+ * flip ONLY when the click-to-activate gate would also let them through:
+ * no `accounts` row at all (grandfathered pre-confirmation consent) or an
+ * already-confirmed account. A pending row with an UNCONFIRMED account
+ * (the confirm-link lane: Start → invite → link not yet clicked) is LEFT
+ * pending — the link click (confirm route POST) stays its sole activator,
+ * so a re-login can never bypass the click the user still owes.
+ *
+ * That predicate mirrors `activateWatch` on purpose: login proves account
+ * ownership, but the pending row proves the user chose the link lane, and
+ * flipping it here would reopen the exact "friendship alone activates"
+ * bug §12 of the confirm plan closed. Callers seal the session either way
+ * (login succeeds; only the watch state differs), and `activated=false`
+ * tells them no welcome is owed.
+ *
+ * Race-safe by construction: the insert is ON CONFLICT DO NOTHING (one
+ * winner), and the flip is a predicated UPDATE (loser sees 0 rows and
+ * re-reads the now-active row). Exactly one concurrent caller observes
+ * activated=true, so welcome emission never duplicates. A click landing
+ * between the account read and the flip converges harmlessly: the click's
+ * own activate owns the flip + welcome, this call re-reads active with
+ * activated=false.
+ */
+export const ensureActiveWatch = async (
+  steamId: string,
+  locale?: string | null,
+): Promise<EnsureActiveWatchResult> => {
+  assertSteamId64(steamId);
+  const db = await getClient();
+  const now = new Date().toISOString();
+
+  const inserted = await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO watched_profiles
+            (steam_id, status, locale, requested_at, activated_at, last_notified_at)
+            VALUES (?, 'active', ?, ?, ?, NULL)
+            ON CONFLICT(steam_id) DO NOTHING`,
+      args: [steamId, normalizeLocale(locale), now, now],
+    }),
+  );
+  if (Number(inserted.rowsAffected) > 0) {
+    return {
+      profile: {
+        steamId,
+        status: 'active',
+        locale: normalizeLocale(locale),
+        requestedAt: now,
+        activatedAt: now,
+        lastNotifiedAt: null,
+      },
+      activated: true,
+    };
+  }
+
+  const existing = await withSchemaHint(
+    db.execute({
+      sql: `SELECT steam_id, status, locale, requested_at, activated_at, last_notified_at
+            FROM watched_profiles WHERE steam_id = ?`,
+      args: [steamId],
+    }),
+  );
+  if (existing.rows.length === 0) {
+    throw new Error('ensureActiveWatch lost a concurrent race unexpectedly');
+  }
+  const current = toWatchedProfile(existing.rows[0] as Record<string, unknown>);
+  if (current.status === 'active') {
+    // Idempotent re-login: the watch stays active (activated=false so no
+    // welcome re-fires) but the locale refreshes — the login just proved
+    // the user's current language, and bot messages follow it.
+    const refreshed = await withSchemaHint(
+      db.execute({
+        sql: `UPDATE watched_profiles
+              SET locale = COALESCE(?, locale)
+              WHERE steam_id = ? AND status = 'active'`,
+        args: [normalizeLocale(locale), steamId],
+      }),
+    );
+    if (Number(refreshed.rowsAffected) > 0) {
+      return {
+        profile: {
+          ...current,
+          locale: normalizeLocale(locale) ?? current.locale,
+        },
+        activated: false,
+      };
+    }
+    return { profile: current, activated: false };
+  }
+
+  // Confirm-lane check (click-to-activate preservation): a pending row
+  // WITH an unconfirmed account stays pending — its link click is still
+  // outstanding and this login must not spend it. Inline SELECT (not the
+  // getAccount helper below — this function is defined first and the repo
+  // lints no-use-before-define): same predicate as activateWatch (no row
+  // OR confirmed_at IS NOT NULL flips). Reads only the ancient
+  // confirmed_at column (no 010 dependency — recordLogin owns that, and
+  // the callback treats it as non-fatal). Fatal like every other
+  // watch-row op here: a DB blip denies the login loudly rather than
+  // guessing.
+  const accountRow = await withSchemaHint(
+    db.execute({
+      sql: 'SELECT confirmed_at FROM accounts WHERE steam_id = ?',
+      args: [steamId],
+    }),
+  );
+  if (
+    accountRow.rows.length > 0 &&
+    (accountRow.rows[0] as Record<string, unknown>).confirmed_at === null
+  ) {
+    return { profile: current, activated: false };
+  }
+
+  const flipped = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE watched_profiles
+            SET status = 'active', activated_at = ?,
+                locale = COALESCE(?, locale)
+            WHERE steam_id = ? AND status = 'pending'`,
+      args: [now, normalizeLocale(locale), steamId],
+    }),
+  );
+  if (Number(flipped.rowsAffected) === 0) {
+    // Lost the flip race: someone else activated concurrently. Re-read
+    // so the caller still returns the true current row.
+    const reread = await withSchemaHint(
+      db.execute({
+        sql: `SELECT steam_id, status, locale, requested_at, activated_at, last_notified_at
+              FROM watched_profiles WHERE steam_id = ?`,
+        args: [steamId],
+      }),
+    );
+    if (reread.rows.length === 0) {
+      throw new Error('ensureActiveWatch lost a concurrent race unexpectedly');
+    }
+    return {
+      profile: toWatchedProfile(reread.rows[0] as Record<string, unknown>),
+      activated: false,
+    };
+  }
+  return {
+    profile: {
+      ...current,
+      status: 'active',
+      activatedAt: now,
+      locale: normalizeLocale(locale) ?? current.locale,
+    },
+    activated: true,
+  };
 };
 
 /** Current watch status, or null when this profile was never requested. */
@@ -1340,6 +1503,8 @@ const toWatchAccount = (row: Record<string, unknown>): WatchAccount => ({
       ? row.confirm_expires_at
       : null,
   locale: typeof row.locale === 'string' ? row.locale : null,
+  lastLoginAt:
+    typeof row.last_login_at === 'string' ? row.last_login_at : null,
 });
 
 /**
@@ -1408,12 +1573,56 @@ export const getAccount = async (
 
   const row = await withSchemaHint(
     db.execute({
-      sql: `SELECT steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale
+      sql: `SELECT steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale, last_login_at
             FROM accounts WHERE steam_id = ?`,
       args: [steamId],
     }),
   );
   if (row.rows.length === 0) return null;
+  return toWatchAccount(row.rows[0] as Record<string, unknown>);
+};
+
+/**
+ * Login registry write (single-state model: replaces createAccount, whose
+ * only caller — the signup route — no longer exists). Idempotent upsert:
+ * first login inserts the row (created_at pinned, never reset);
+ * every login refreshes last_login_at and the locale when provided.
+ * Concurrent first logins converge on one row (PK conflict → update).
+ */
+export const recordLogin = async (
+  steamId: string,
+  locale?: string | null,
+): Promise<WatchAccount> => {
+  assertSteamId64(steamId);
+  const db = await getClient();
+  const now = new Date().toISOString();
+
+  await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO accounts (steam_id, created_at, locale, last_login_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(steam_id) DO UPDATE SET
+              last_login_at = excluded.last_login_at,
+              locale = COALESCE(excluded.locale, accounts.locale)`,
+      args: [steamId, now, normalizeLocale(locale), now],
+    }),
+  );
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale, last_login_at
+            FROM accounts WHERE steam_id = ?`,
+      args: [steamId],
+    }),
+  );
+
+  // Same unreachable-unless-deleted contract as createWatchRequest (only
+  // opt-out deletes accounts, and no concurrent path does that mid-login).
+  // Throw rather than fabricate a row.
+  if (row.rows.length === 0) {
+    throw new Error('recordLogin lost a concurrent race unexpectedly');
+  }
+
   return toWatchAccount(row.rows[0] as Record<string, unknown>);
 };
 

@@ -7,6 +7,7 @@
  */
 
 import parsePositiveInt from './parsePositiveInt';
+import { isSteamId64 } from '../lib/steamId';
 
 export interface BotConfig {
   accountName: string;
@@ -14,6 +15,20 @@ export interface BotConfig {
   password: string;
   /** Shared secret for TOTP (Steam Guard mobile authenticator). */
   sharedSecret: string;
+  /**
+   * The MAIN bot's own SteamID64. Single-state model: login is gated on
+   * friendship with THIS account (GetFriendList check in the OpenID
+   * callback), so this must be the same account as STEAM_BOT_USERNAME
+   * logs into — and the SAME value must sit in the site (Vercel) env, or
+   * every login is denied. A process/env drift no longer fails silently:
+   * the bot compares its live session id against this value on every
+   * logon and errors LOUDLY on mismatch (see expectedBotSteamId). Its
+   * friends list must stay PUBLIC or every check degrades to unknown
+   * (fail-closed). Reserved: a future acquisition bot gets its own
+   * namespace (e.g. ACQ_BOT_*), never this var — friendship with any
+   * other bot must never satisfy the login gate.
+   */
+  botSteamId: string;
   /** steam-user dataDirectory: machine id / cellid / sentry persistence. */
   dataDirectory: string;
   heartbeatPath: string;
@@ -22,6 +37,24 @@ export interface BotConfig {
   heartbeatStaleMs: number;
   reconnectBaseMs: number;
   reconnectMaxMs: number;
+  /**
+   * Sink-side Sybil bound for INBOUND auto-accepts (mirrors the outbound
+   * invite discipline below): max friend requests the bot accepts per UTC
+   * day. Without it a throwaway-account burst fills the Steam friends list
+   * (default cap 250) in minutes and blocks every new Watch onboarding
+   * (the login gate needs a free slot); with it, exhaustion takes days and
+   * the friend-cap alert below fires first.
+   */
+  autoAcceptDailyLimit: number;
+  /**
+   * Safety ceiling: refuse auto-accepts once FRIEND entries reach this many
+   * (default 240 keeps headroom under Steam's default 250 cap for in-flight
+   * invites/hand-edits). Hitting it logs LOUDLY — a capped bot blocks new
+   * onboarding, so it is an operator-action incident. Raise only if the bot
+   * account's Steam level raises its cap; sharding to a second bot (own
+   * ACQ_BOT_* namespace, never this var) is the real scale answer.
+   */
+  autoAcceptFriendCap: number;
   invitePollIntervalMs: number;
   inviteBatchLimit: number;
   /**
@@ -82,6 +115,8 @@ export interface BotConfig {
   staleClaimWindowMinutes: number;
 }
 
+const DEFAULT_AUTO_ACCEPT_DAILY_LIMIT = 50;
+const DEFAULT_AUTO_ACCEPT_FRIEND_CAP = 240;
 const DEFAULT_DATA_DIRECTORY = '.data/steam-bot';
 const DEFAULT_HEARTBEAT_INTERVAL_MS = 60000;
 const DEFAULT_HEARTBEAT_STALE_MS = 180000;
@@ -122,6 +157,15 @@ const requireSecret = (value: string | undefined, name: string): string => {
   if (typeof value !== 'string' || value.length === 0) {
     throw new Error(
       `${name} is missing — set it in .env (see .env.example). The bot cannot log on without it.`,
+    );
+  }
+  return value;
+};
+
+const requireBotSteamId = (value: string | undefined): string => {
+  if (typeof value !== 'string' || !isSteamId64(value)) {
+    throw new Error(
+      'STEAM_BOT_STEAMID must be the main bot account\u2019s 17-digit SteamID64 (same account as STEAM_BOT_USERNAME) — set it in .env (see .env.example). The login gate checks friendship against this list.',
     );
   }
   return value;
@@ -170,6 +214,7 @@ export const loadBotConfig = (
     env.STEAM_BOT_SHARED_SECRET,
     'STEAM_BOT_SHARED_SECRET',
   );
+  const botSteamId = requireBotSteamId(env.STEAM_BOT_STEAMID);
 
   const dataDirectory =
     typeof env.BOT_DATA_DIR === 'string' && env.BOT_DATA_DIR !== ''
@@ -180,6 +225,7 @@ export const loadBotConfig = (
     accountName,
     password,
     sharedSecret,
+    botSteamId,
     dataDirectory,
     heartbeatPath:
       typeof env.BOT_HEARTBEAT_PATH === 'string' &&
@@ -205,6 +251,16 @@ export const loadBotConfig = (
       env.BOT_RECONNECT_MAX_MS,
       DEFAULT_RECONNECT_MAX_MS,
       'BOT_RECONNECT_MAX_MS',
+    ),
+    autoAcceptDailyLimit: readPositiveInt(
+      env.BOT_AUTO_ACCEPT_DAILY_LIMIT,
+      DEFAULT_AUTO_ACCEPT_DAILY_LIMIT,
+      'BOT_AUTO_ACCEPT_DAILY_LIMIT',
+    ),
+    autoAcceptFriendCap: readPositiveInt(
+      env.BOT_AUTO_ACCEPT_FRIEND_CAP,
+      DEFAULT_AUTO_ACCEPT_FRIEND_CAP,
+      'BOT_AUTO_ACCEPT_FRIEND_CAP',
     ),
     invitePollIntervalMs: readPositiveInt(
       env.BOT_INVITE_POLL_INTERVAL_MS,
@@ -339,6 +395,8 @@ export const loadBotConfig = (
 };
 
 export const BOT_CONFIG_DEFAULTS = {
+  DEFAULT_AUTO_ACCEPT_DAILY_LIMIT,
+  DEFAULT_AUTO_ACCEPT_FRIEND_CAP,
   DEFAULT_DATA_DIRECTORY,
   DEFAULT_HEARTBEAT_INTERVAL_MS,
   DEFAULT_HEARTBEAT_STALE_MS,

@@ -176,6 +176,8 @@
     "watchConfirmError": "This confirmation link is invalid or expired. Start watching again to get a fresh one.",
     "watchLoginButton": "Sign in with Steam",
     "watchNavSignIn": "Sign in",
+    "watchSignInAddBot": "Add the SteamReveal bot",
+    "watchLoginNoFriend": "Add the SteamReveal bot as a friend on Steam first, then sign in. If you just added it, wait a minute and try again.",
     "watchAvatarAlt": "Profile picture of {nickname}",
     "watchLoginError": "Steam login failed. Try again in a moment.",
     "watchLogout": "Sign out",

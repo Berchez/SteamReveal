@@ -665,6 +665,7 @@ describe('watch/outbox DAL (Epic 1)', () => {
       confirmTokenHash: null,
       confirmExpiresAt: null,
       locale: 'pt',
+      lastLoginAt: null,
     });
     const insert = mockExecute.mock.calls.find((call) =>
       String(call[0]?.sql ?? call[0]).includes('INSERT INTO accounts'),
@@ -694,6 +695,273 @@ describe('watch/outbox DAL (Epic 1)', () => {
 
     expect(account.confirmedAt).toBe('2026-09-02T00:00:00.000Z');
     expect(account.createdAt).toBe('2026-09-01T00:00:00.000Z');
+  });
+
+  it('recordLogin upserts (first insert, then last_login_at refresh) and maps the row', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'pt',
+          last_login_at: '2026-09-16T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const { recordLogin } = require('./db');
+    const account = await recordLogin(STEAM, 'pt');
+
+    expect(account).toEqual({
+      steamId: STEAM,
+      createdAt: '2026-09-01T00:00:00.000Z',
+      confirmedAt: null,
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+      locale: 'pt',
+      lastLoginAt: '2026-09-16T00:00:00.000Z',
+    });
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO accounts'),
+    );
+    const sql = String(insert[0]?.sql ?? insert[0]);
+    // Upsert semantics: PK conflict refreshes the audit clock + locale,
+    // never resets created_at (no DO NOTHING — that would pin
+    // last_login_at at the first login forever).
+    expect(sql).toContain('ON CONFLICT(steam_id) DO UPDATE SET');
+    expect(sql).toContain('last_login_at = excluded.last_login_at');
+    expect(sql).toContain('locale = COALESCE(excluded.locale, accounts.locale)');
+  });
+
+  it('recordLogin validates before touching the client', async () => {
+    const { recordLogin } = require('./db');
+    await expect(recordLogin('short')).rejects.toThrow(/17 digits/);
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it('ensureActiveWatch inserts fresh profiles straight to active (no follow-up reads)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(true);
+    expect(profile).toMatchObject({
+      steamId: STEAM,
+      status: 'active',
+      locale: 'pt',
+      lastNotifiedAt: null,
+    });
+    expect(profile.activatedAt).toBe(profile.requestedAt);
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watched_profiles'),
+    );
+    expect(String(insert[0]?.sql ?? insert[0])).toContain(
+      "VALUES (?, 'active'",
+    );
+    // Winner path: the INSERT decided everything — no follow-up reads.
+    // (Cold-start PRAGMA counts as a call too; asserting on statement
+    // SHAPE, not raw totals, keeps this decoupled from that plumbing.)
+    const selects = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0])
+        .trimStart()
+        .startsWith('SELECT'),
+    );
+    expect(selects).toHaveLength(0);
+    const updates = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0])
+        .trimStart()
+        .startsWith('UPDATE'),
+    );
+    expect(updates).toHaveLength(0);
+  });
+
+  it('ensureActiveWatch is idempotent on active rows (activated=false, locale refreshed)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'active',
+          locale: 'pt',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: '2026-09-01T00:00:00.000Z',
+          last_notified_at: null,
+        },
+      ],
+    });
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'en');
+
+    expect(activated).toBe(false);
+    expect(profile.status).toBe('active');
+    expect(profile.locale).toBe('en');
+    const update = mockExecute.mock.calls.find(
+      (call) =>
+        String(call[0]?.sql ?? call[0]).includes('SET locale = COALESCE') &&
+        String(call[0]?.sql ?? call[0]).includes("status = 'active'"),
+    );
+    expect(String(update[0]?.sql ?? update[0])).toContain(
+      'COALESCE(?, locale)',
+    );
+  });
+
+  it('ensureActiveWatch flips account-less legacy pending rows to active (grandfathered consent)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'pending',
+          locale: 'es',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: null,
+          last_notified_at: null,
+        },
+      ],
+    });
+    // No accounts row (pre-confirmation rows never created one).
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(true);
+    expect(profile.status).toBe('active');
+    expect(profile.locale).toBe('pt');
+    const flip = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes("SET status = 'active'"),
+    );
+    expect(String(flip[0]?.sql ?? flip[0])).toContain(
+      "AND status = 'pending'",
+    );
+  });
+
+  it('ensureActiveWatch flips pending rows with a CONFIRMED account', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'pending',
+          locale: 'es',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: null,
+          last_notified_at: null,
+        },
+      ],
+    });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: '2026-09-02T00:00:00.000Z',
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'es',
+          last_login_at: null,
+        },
+      ],
+    });
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(true);
+    expect(profile.status).toBe('active');
+  });
+
+  it('ensureActiveWatch LEAVES pending rows with an UNCONFIRMED account (link click owns them)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'pending',
+          locale: 'es',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: null,
+          last_notified_at: null,
+        },
+      ],
+    });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: 'ab'.repeat(32),
+          confirm_expires_at: '2026-09-03T00:00:00.000Z',
+          locale: 'es',
+          last_login_at: null,
+        },
+      ],
+    });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    // No flip, no welcome owed — the outstanding link click activates.
+    expect(activated).toBe(false);
+    expect(profile.status).toBe('pending');
+    const flips = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes("SET status = 'active'"),
+    );
+    expect(flips).toHaveLength(0);
+  });
+
+  it('ensureActiveWatch handles a lost flip race by rereading (activated=false)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'pending',
+          locale: 'pt',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: null,
+          last_notified_at: null,
+        },
+      ],
+    });
+    // No accounts row: the flip branch is reached, then loses the race.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'active',
+          locale: 'pt',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: '2026-09-02T00:00:00.000Z',
+          last_notified_at: null,
+        },
+      ],
+    });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(false);
+    expect(profile.status).toBe('active');
+    expect(profile.activatedAt).toBe('2026-09-02T00:00:00.000Z');
+  });
+
+  it('ensureActiveWatch validates before touching the client', async () => {
+    const { ensureActiveWatch } = require('./db');
+    await expect(ensureActiveWatch('short')).rejects.toThrow(/17 digits/);
+    expect(mockExecute).not.toHaveBeenCalled();
   });
 
   it('getAccount returns the row or null', async () => {

@@ -64,6 +64,8 @@ lives in `.env.example` under "Watch Bot"):
 
 | Var                                              | Default                     | Meaning                                          |
 | ------------------------------------------------ | --------------------------- | ------------------------------------------------ |
+| `BOT_AUTO_ACCEPT_DAILY_LIMIT`                    | `50`                        | Max INBOUND friend-request accepts per UTC day (Sybil bound at the sink — mirrors the invite cap; only successful accepts burn budget) |
+| `BOT_AUTO_ACCEPT_FRIEND_CAP`                     | `240`                       | Safety ceiling: refuse auto-accepts once FRIEND entries reach this many (headroom under Steam's default 250 cap; hitting it logs `REFUSED` loudly — operator-action incident) |
 | `BOT_DATA_DIR`                                   | `.data/steam-bot`           | Session/sentry persistence (gitignored)          |
 | `BOT_HEARTBEAT_PATH`                             | `<data dir>/heartbeat.json` | Liveness file                                    |
 | `BOT_HEARTBEAT_INTERVAL_MS`                      | `60000`                     | Heartbeat write cadence                          |
@@ -139,7 +141,35 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   supervisor `ExecStartPost`): alert on non-zero exit. A stale heartbeat with
   the process alive usually means the Steam session died and the reconnect loop
   is backing off — check the logs before restarting.
-- Useful log greps: `invite poll done` (per-pass claimed/sent/retried/ dropped),
+- Friend-cap alert (Steam list is finite — default 250, higher for leveled
+  accounts): alert on ANY `friend-accept REFUSED` or `sweep paused` line, and
+  watch the `friends=` gauge on the accept lines as it approaches
+  `BOT_AUTO_ACCEPT_FRIEND_CAP` (default 240). A capped bot defers ALL new
+  Watch onboarding (the site login gate needs a free friend slot), so this is
+  a product-availability incident, not bot noise. Response: check for Sybil
+  (burst of throwaway accept lines), prune dead friends by hand in the Steam
+  client if legitimate growth caused it, and plan the second-bot shard
+  (own `ACQ_BOT_*` namespace — friendship with any other bot must never
+  satisfy the login gate, see `config.ts`).
+- Durability split for the auto-accept ceilings (explicit, not a bug): the
+  DAILY budget (`BOT_AUTO_ACCEPT_DAILY_LIMIT`) is IN-MEMORY per process — a
+  restart/deploy resets the day's tally, so frequent restarts within one UTC
+  day each reopen the full budget (unlike the DB-backed outbound invite
+  count, which survives restarts). Accepted: restarts are operator-driven,
+  never attacker-triggerable, and the FRIEND CAP reads live Steam state on
+  every decision — it is the restart-proof hard backstop. Deferred requests
+  are retried by the 10-minute reconcile timer (UTC-day rollover and freed
+  slots converge without waiting for a reconnect).
+- Useful log greps: `accepted inbound friend request` (per-accept, carries
+  `friends=` + `acceptedToday=` — the friend-count gauge for the Steam cap),
+  `friend-accept REFUSED` (safety ceiling hit: friend cap or daily budget —
+  operator-action incident, new onboarding is deferred, investigate the
+  request source for Sybil), `pending-accept sweep paused` (offline-arrival
+  backlog deferred to a later sweep, same incident class),
+  `STEAM_BOT_STEAMID mismatch` (this process logged in as a different
+  account than configured — EVERY login is gated on the configured id, so
+  treat as a login outage until the envs agree on both sides),
+  `invite poll done` (per-pass claimed/sent/retried/ dropped),
   `daily send cap reached` (abuse cap engaging — investigate the request
   source), `dropped after` (events hitting the attempt cap),
   `invite dropped:` (already-friends drops — benign, no attempt burned),
@@ -194,17 +224,35 @@ failing 100% with Steam-side errors, or a Valve notice on the account. Plan B:
 
 1. Stop the bot (`SIGTERM`; confirm exit).
 2. Create a FRESH dedicated Steam account (never reuse a flagged one) and
-   complete the ~US$5 direct spend so it can send friend invites.
+   complete the ~US$5 direct spend so it can send friend invites (the
+   re-watch lane still uses outbound invites).
 3. Set up a new mobile authenticator; take the new `shared_secret`.
 4. Update `STEAM_BOT_USERNAME`, `STEAM_BOT_PASSWORD`, `STEAM_BOT_SHARED_SECRET`
-   in the environment.
+   AND `STEAM_BOT_STEAMID` (the new account's 17-digit ID) in the environment —
+   on the bot host AND on Vercel (the site's login gate reads the same var;
+   a drifted Vercel value denies every login, and the bot logs
+   `STEAM_BOT_STEAMID mismatch` LOUDLY on every logon while drifted — grep
+   for it first if logins break after a swap).
 5. Point `BOT_DATA_DIR` at a fresh empty directory (never reuse sentry files
    across accounts).
 6. Start the bot and do the Section 3 first-login approval.
-7. No DB migration is needed: watches live in the shared Turso DB and keep
-   working. Users must accept ONE new friend invite (from the new account) —
-   pending watches re-activate on acceptance exactly like before. Expect a
-   support blip ("who is this new bot?") proportional to active watches.
+7. No DB migration is needed: watches live in the shared Turso DB. BUT the
+   single-state model makes a swap bigger than it used to be — expect ALL of
+   this, not just new invites:
+   - Every login now gates on friendship with the NEW id, so ALL existing
+     users (active included) must add the new bot and log in again — until
+     they do, their logins land on `?auth=nofriend`.
+   - The new bot starts with an EMPTY friends list, so its first reconcile
+     DEACTIVATES every still-`active` watch whose user hasn't re-added yet
+     (active + not-a-friend of the new bot reads as opt-out — same DAL call
+     as an unfriend, no duplicated logic). This is correct per policy (the
+     new bot cannot message non-friends), but it means the swap visibly
+     resets the whole base: users come back via add-bot → login → active
+     directly (no link needed on the fresh lane), NOT via the old
+     invite-accept path.
+   - Support blip is proportional to the whole active base ("who is this new
+     bot? why did my watch stop?"), larger than the old pending-only blip.
+     Announce the new profile URL ahead of the swap if possible.
 
 ## 8. Credential rotation (no ban)
 

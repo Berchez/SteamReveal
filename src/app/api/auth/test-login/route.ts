@@ -6,6 +6,7 @@ import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { isSteamId64 } from '@/lib/steamId';
 import timingSafeEqualStrings from '@/lib/timingSafeEqualStrings';
+import { ensureActiveWatch } from '@/lib/analytics/db';
 import { saveWatchSession } from '@/lib/watch/session';
 
 export const runtime = 'nodejs';
@@ -81,6 +82,21 @@ export async function POST(req: Request) {
   }
 
   try {
+    // Single-state invariant, best-effort HERE ONLY: the e2e web server
+    // deliberately runs WITHOUT DATABASE_URL (watch state is mocked at
+    // the network layer in those suites), and this seam's contract is
+    // "seals a session deterministically". The PRODUCTION invariant —
+    // no session without an active watch row — is enforced by the OpenID
+    // callback, the only production login path. A failure here logs
+    // loudly (env present + transport down = a real local-dev incident)
+    // and the session still seals.
+    try {
+      await ensureActiveWatch(steamId, null);
+    } catch (error) {
+      logRouteError('testLogin:watchEnsure', sanitizeError(error), {
+        steamId,
+      });
+    }
     await saveWatchSession(cookies(), steamId);
     return NextResponse.json({ ok: true, steamId }, { status: 200 });
   } catch (error) {

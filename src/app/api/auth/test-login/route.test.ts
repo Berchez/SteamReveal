@@ -12,12 +12,19 @@ jest.mock('@/lib/watch/session', () => ({
   saveWatchSession: jest.fn(),
 }));
 
+jest.mock('@/lib/analytics/db', () => ({
+  ensureActiveWatch: jest.fn(),
+}));
+
 jest.mock('@/mocks/devFixtures', () => ({
   isMockModeEnabled: jest.fn(),
 }));
 
 const { saveWatchSession } = jest.requireMock('@/lib/watch/session') as {
   saveWatchSession: jest.Mock;
+};
+const { ensureActiveWatch } = jest.requireMock('@/lib/analytics/db') as {
+  ensureActiveWatch: jest.Mock;
 };
 const { isMockModeEnabled } = jest.requireMock('@/mocks/devFixtures') as {
   isMockModeEnabled: jest.Mock;
@@ -46,6 +53,7 @@ describe('POST /api/auth/test-login', () => {
     jest.clearAllMocks();
     isMockModeEnabled.mockReturnValue(true);
     saveWatchSession.mockResolvedValue(undefined);
+    ensureActiveWatch.mockResolvedValue({ profile: null, activated: true });
     process.env.E2E_TEST_SECRET = SECRET;
   });
 
@@ -58,6 +66,22 @@ describe('POST /api/auth/test-login', () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, steamId: STEAM });
+    expect(saveWatchSession).toHaveBeenCalledTimes(1);
+    // Single-state seam: the e2e session lands on an ACTIVE watch row
+    // (locale-less — e2e drives locale through its own mocks).
+    expect(ensureActiveWatch).toHaveBeenCalledWith(STEAM, null);
+  });
+
+  it('still seals when the watch ensure fails (e2e runs without DATABASE_URL)', async () => {
+    // Best-effort by contract: a DB-less e2e web server must not break
+    // the seam — the failure logs loudly and the session still seals.
+    ensureActiveWatch.mockRejectedValueOnce(
+      new Error('DATABASE_URL is missing'),
+    );
+
+    const res = await postLogin({ steamId: STEAM });
+
+    expect(res.status).toBe(200);
     expect(saveWatchSession).toHaveBeenCalledTimes(1);
   });
 

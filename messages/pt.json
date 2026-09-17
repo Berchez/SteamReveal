@@ -176,6 +176,8 @@
     "watchConfirmError": "Este link de confirmação é inválido ou expirou. Comece a monitorar de novo para gerar outro.",
     "watchLoginButton": "Entrar com Steam",
     "watchNavSignIn": "Entrar",
+    "watchSignInAddBot": "Adicione o bot SteamReveal",
+    "watchLoginNoFriend": "Adicione o bot SteamReveal como amigo na Steam antes de entrar. Se acabou de adicionar, aguarde um minuto e tente de novo.",
     "watchAvatarAlt": "Foto de perfil de {nickname}",
     "watchLoginError": "O login com Steam falhou. Tente de novo em instantes.",
     "watchLogout": "Sair",

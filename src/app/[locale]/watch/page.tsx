@@ -8,8 +8,9 @@ type WatchPageProps = {
 // Known one-shot toast params (see QueryToast): forwarded so old
 // bookmarks/back-button URLs like /watch?auth=error keep their feedback
 // instead of landing silently. Anything else is dropped — the legacy page
-// takes no other input.
-const FORWARDED_PARAMS = ['confirmed', 'auth'] as const;
+// takes no other input. `watch=new` is the single-state first-login
+// toast; `confirmed` is the legacy bot-link landing.
+const FORWARDED_PARAMS = ['confirmed', 'watch', 'auth'] as const;
 
 /**
  * Legacy standalone /watch page: the flow now lives in the navbar avatar

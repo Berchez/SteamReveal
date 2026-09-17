@@ -139,10 +139,14 @@ export interface WatchEvent {
 }
 
 /**
- * Watch account (navbar-global signup + bot-link confirmation).
- * One row per signed-up Steam profile: `confirmed_at` NULL means the bot
- * link was never clicked. Token columns are NULL outside a pending
- * confirmation window (single outstanding token by construction).
+ * Watch account (single-state model: the login registry).
+ * One row per Steam profile that ever logged in: `created_at` keeps the
+ * FIRST login (never reset), `last_login_at` tracks the latest one (the
+ * ops answer to "who is logging into the site"). The confirm columns
+ * (`confirmed_at`, `confirm_token_hash`, `confirm_expires_at`) are still
+ * written on the confirm-link lane (`createAccount` / `issueConfirmToken`
+ * / `consumeConfirmToken` serve the post-opt-out re-watch Start → link →
+ * click flow) — the fresh single-state lane just never touches them.
  */
 export interface WatchAccount {
   steamId: string;
@@ -151,8 +155,14 @@ export interface WatchAccount {
   /** SHA-256 hex of the pending token (never the token itself). */
   confirmTokenHash: string | null;
   confirmExpiresAt: string | null;
-  /** Signup requester locale for bot messages, null when unknown. */
+  /** Requester locale for bot messages, null when unknown. */
   locale: string | null;
+  /**
+   * Last successful login (ISO-8601 UTC), null until migration 010 +
+   * first recordLogin. Optional (not load-bearing): purely an ops/audit
+   * field — the confirm-stack fixtures predate it and don't read it.
+   */
+  lastLoginAt?: string | null;
 }
 
 /**

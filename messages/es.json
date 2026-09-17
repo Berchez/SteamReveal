@@ -176,6 +176,8 @@
     "watchConfirmError": "Este enlace de confirmación no es válido o ha caducado. Empieza a vigilar de nuevo para generar otro.",
     "watchLoginButton": "Iniciar sesión con Steam",
     "watchNavSignIn": "Iniciar sesión",
+    "watchSignInAddBot": "Añade el bot de SteamReveal",
+    "watchLoginNoFriend": "Añade al bot de SteamReveal como amigo en Steam antes de iniciar sesión. Si acabas de añadirlo, espera un minuto e inténtalo de nuevo.",
     "watchAvatarAlt": "Foto de perfil de {nickname}",
     "watchLoginError": "El inicio de sesión con Steam falló. Inténtalo de nuevo en un momento.",
     "watchLogout": "Cerrar sesión",

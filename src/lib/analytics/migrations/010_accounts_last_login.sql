@@ -1,0 +1,52 @@
+-- =====================================================================
+-- Turso (SQLite) schema — login audit for the accounts registry.
+-- Migration: 010_accounts_last_login.sql
+--
+-- Idempotent via the runner, not via SQL: SQLite has no
+-- ALTER TABLE ... IF NOT EXISTS, so re-running the bare ALTER errors.
+-- scripts/migrate-db.ts tracks applied files in _migrations and never
+-- replays them (that table is the idempotency mechanism here).
+-- NEVER RENAME this file after it has been applied anywhere: the runner
+-- keys on filename, so a rename replays the ALTER and fails with
+-- "duplicate column" (real incident with 007, which was applied as
+-- 006_watch_anti_loop_token.sql and then renamed). Apply with
+-- `pnpm run db:migrate`.
+--
+-- Design notes:
+-- - Single-state model: `accounts` is the login registry (who logs in +
+--   when), written by recordLogin() on every successful OpenID login.
+--   created_at keeps the FIRST login (never reset); last_login_at tracks
+--   the latest one (the ops answer to "who is logging into the site").
+-- - The confirm columns (confirmed_at, confirm_token_hash,
+--   confirm_expires_at, confirm_expire_noticed_for) are still written on
+--   the confirm-link lane (post-opt-out re-watch: Start → link → click) —
+--   the fresh single-state lane just never touches them. (Comment-only
+--   note: no DROP here — shared prod DB stays additive-only; a DROP, if
+--   ever wanted, lives in a future migration.)
+-- - DEPLOY ORDER (load-bearing): the code shipping with this migration
+--   SELECTs/INSERTs last_login_at (getAccount, recordLogin). Deploying
+--   that code BEFORE running this migration turns every getAccount read
+--   into a loud "run db:migrate" failure (the withSchemaHint contract):
+--   the SSR seed degrades to cold opens, recordLogin audit writes fail
+--   loudly — logins still succeed (the watch row itself never touches
+--   this column). Run `pnpm run db:migrate` as the FIRST deploy step,
+--   same contract as every migration here.
+-- =====================================================================
+
+-- Last successful login (ISO-8601 UTC). NULL only for rows created
+-- before this migration ran (backfilled on next login).
+-- (see idempotency note above: safe to run once via the runner).
+ALTER TABLE accounts ADD COLUMN last_login_at TEXT;
+
+-- =====================================================================
+-- ROLLBACK (manual only — READ THIS BEFORE COPYING ANYTHING OUT).
+--
+-- The migrate runner (scripts/migrate-db.ts) executes EVERY file matching
+-- NNN_*.sql as a FORWARD migration, so a down script must NEVER live in a
+-- separate file in this directory: it would be applied as a forward
+-- migration and DROP THE COLUMN. The rollback lives here, commented out,
+-- as documentation for a human running it by hand (sqlite3 / Turso shell):
+--
+--   ALTER TABLE accounts DROP COLUMN last_login_at;
+--   DELETE FROM _migrations WHERE filename = '010_accounts_last_login.sql';
+-- =====================================================================

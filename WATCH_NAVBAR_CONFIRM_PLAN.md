@@ -100,12 +100,10 @@ CREATE TABLE IF NOT EXISTS accounts (
   seria contornado).
 - **Clique**: `GET /api/watch/confirm` virou página intermediária (imune a
   prefetch/linkifier/antivírus); `POST` consome + ativa + enfileira
-  `welcome` + sela sessão. CSRF de Origin como signup/logout. Emenda
-  pós-review: a variante válida dá auto-submit via script inline SOMENTE
-  com presença humana (visível + focado no load, senão primeiro evento
-  visibility/focus/pointer/key; noscript mantém o botão) — prerender,
-  abas em background e fetchers sem JS nunca disparam; ver sign-off 7 em
-  `WATCH_PROD_READINESS.md` para o residual aceito (detonação visible).
+  `welcome` + sela sessão. CSRF de Origin como signup/logout. Decisão
+  pós-review (auto-submit removido): a página NÃO carrega elemento <script> —
+  só o clique explícito no botão confirma, então abrir/previewar a URL
+  nunca gasta o token em nenhum contexto (nem headless visível+focado).
 - **Welcome**: evento `welcome` entregue pelo bot (o site não alcança o
   chat). POST só enfileira quando ele mesmo ativou (backstop ativa via
   `onActivated` e dá seu próprio welcome — sem duplo).
@@ -128,3 +126,42 @@ CREATE TABLE IF NOT EXISTS accounts (
   route/UI, journey e2e reescrita (aceite→pending sem toast; POST→active;
   expirado→resend). `useWatchStatus` inalterado (o toast passa a significar
   "confirmado" de verdade).
+
+## 13. Emenda — modelo single-state (login gated por amizade)
+
+ Troca o funil para usuários novos deslogados: **adicionar o bot → Sign in
+ with Steam → watch `active` direto** (sem Start, sem pending, sem link).
+ O que muda e o que NÃO muda:
+
+- **Callback OpenID** (`callback/route.ts`): 3º gate — `isBotFriend` via
+  `GetFriendList` da conta `STEAM_BOT_STEAMID` (lista do bot tem que ficar
+  PÚBLICA), 8s timeout, fail-closed (`false` → `?auth=nofriend` com toast
+  que ensina o fluxo; `null`/env ruim → `?auth=error`, sem sessão).
+  Ordem load-bearing: `ensureActiveWatch` (fatal) → `recordLogin` (audit,
+  non-fatal, migration 010) → welcome UMA vez se ativou (3 tentativas,
+  non-fatal) → `saveWatchSession`. `?watch=new` é o único sinal de
+  "watch live" (não existe mais pending para estrear).
+- **Bot aceita inbound** (`bot.ts`): `RequestRecipient` → `addFriend`
+  (live + sweep de chegadas offline, sequencial). LIMITADO no sink:
+  `BOT_AUTO_ACCEPT_DAILY_LIMIT` (50/dia UTC, só sucesso consome) +
+  `BOT_AUTO_ACCEPT_FRIEND_CAP` (240 amigos, headroom sob o teto Steam de
+  250) — recusa loga `REFUSED`/`sweep paused` (alerta de disponibilidade,
+  runbook §5); exaustão (ataque ou crescimento) adia onboarding novo até
+  intervenção — shard `ACQ_BOT_*` é a resposta de escala (backlog).
+- **NÃO morreu**: `POST /api/auth/signup` + botão Start + `invitePoller` +
+  `GET/POST /api/watch/confirm` seguem vivos para o **re-watch pós-opt-out**
+  (o cookie sobrevive ao unfriend: stale `none` → Start → pending →
+  convite do bot → link → clique) e para tokens legados. Usuário novo
+  deslogado nunca encosta nisso. `activateWatch` mantém o gate
+  `confirmed_at` para a lane do link, e `ensureActiveWatch` espelha o
+  MESMO predicado no login (vira `active` só sem linha em `accounts`
+  — carve-out legado — ou com conta já confirmada; pending + conta
+  não-confirmada continua pending até o clique). Re-login nunca pula o
+  clique: §12 segue valendo em todas as lanes (sign-off 8b).
+- **Retry de accepts diferidos**: o sweep de inbound (`acceptPendingRequests`)
+  roda no `friendsList` E no timer de reconcile (10min) — teto/diário
+  adiados convergem sem reconnect (virada do dia UTC, slots liberados).
+- **Latência/quota do login** (aceito, monitorar): +1 `GetFriendList` (8s
+  cap) + 1-3 queries + audit por login; quota `STEAM_API_KEY`/`_2`
+  compartilhada com busca (mitigação atual: sorteio entre as duas chaves).
+  Medir p95/p99 pós-deploy; sem chave dedicada por ora.

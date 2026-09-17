@@ -4,7 +4,13 @@ import React, { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { ToastContainer, toast } from 'react-toastify';
 
-type ToastKind = 'confirm-ok' | 'confirm-error' | 'auth-error' | null;
+type ToastKind =
+  | 'confirm-ok'
+  | 'confirm-error'
+  | 'watch-new'
+  | 'auth-error'
+  | 'auth-nofriend'
+  | null;
 
 // Scoped container: the fire-on-load toast must not depend on the global
 // ToastContainer's mount timing (a global-container race drops the toast
@@ -17,11 +23,14 @@ const QUERY_TOAST_CONTAINER_ID = 'query-toast';
 
 /**
  * One-shot query-param toast for landings that redirect back to /: the
- * bot-link confirm endpoint (`?confirmed=ok|error`) and the failed Steam
- * callback leg (`?auth=error`). Fires once through react-toastify (the
- * single toast mechanism in this app), then strips the param so a
- * refresh/back-navigation never replays it. Unknown values fire nothing
- * (never a wrong message).
+ * bot-link confirm endpoint (`?confirmed=ok|error`), the single-state
+ * first-login landing (`?watch=new` — "your watch is live", the only
+ * such signal now that no pending state ever exists), and the Steam
+ * callback legs (`?auth=error` generic, `?auth=nofriend` the add-the-
+ * bot-first denial that teaches the sign-in flow). Fires once through
+ * react-toastify (the single toast mechanism in this app), then strips
+ * the param so a refresh/back-navigation never replays it. Unknown
+ * values fire nothing (never a wrong message).
  */
 function QueryToast() {
   const t = useTranslations('Watch');
@@ -38,10 +47,13 @@ function QueryToast() {
     const timer = setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
       let kind: ToastKind = null;
-      // confirmed wins when both land together (the confirm endpoint never
-      // emits auth, so the overlap is only hand-crafted URLs).
+      // confirmed wins when several land together (each producer emits at
+      // most one param; the overlap is only hand-crafted URLs). watch-new
+      // (single-state first login) beats auth for the same reason.
       if (params.get('confirmed') === 'ok') kind = 'confirm-ok';
       else if (params.get('confirmed') === 'error') kind = 'confirm-error';
+      else if (params.get('watch') === 'new') kind = 'watch-new';
+      else if (params.get('auth') === 'nofriend') kind = 'auth-nofriend';
       else if (params.get('auth') === 'error') kind = 'auth-error';
     if (kind === null) return;
     // Explicit roles: react-toastify defaults EVERYTHING to role="alert"
@@ -53,9 +65,14 @@ function QueryToast() {
       toast.success(t('watchConfirmOk'), { ...base, role: 'status' });
     else if (kind === 'confirm-error')
       toast.error(t('watchConfirmError'), { ...base, role: 'alert' });
+    else if (kind === 'watch-new')
+      toast.success(t('watchWelcome'), { ...base, role: 'status' });
+    else if (kind === 'auth-nofriend')
+      toast.error(t('watchLoginNoFriend'), { ...base, role: 'alert' });
     else toast.error(t('watchLoginError'), { ...base, role: 'alert' });
       const url = new URL(window.location.href);
       url.searchParams.delete('confirmed');
+      url.searchParams.delete('watch');
       url.searchParams.delete('auth');
       window.history.replaceState(null, '', url.toString());
     }, 0);

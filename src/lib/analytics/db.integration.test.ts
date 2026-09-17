@@ -65,6 +65,11 @@ const INBOX_INDEX_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const ACCOUNTS_LAST_LOGIN_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '010_accounts_last_login.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -100,6 +105,8 @@ type DbApi = {
   countSearchesInMonth: typeof import('./db').countSearchesInMonth;
   listProfileSearches: typeof import('./db').listProfileSearches;
   isWithinCooldown: typeof import('./db').isWithinCooldown;
+  recordLogin: typeof import('./db').recordLogin;
+  ensureActiveWatch: typeof import('./db').ensureActiveWatch;
   hashConfirmToken: typeof import('./db').hashConfirmToken;
   createAccount: typeof import('./db').createAccount;
   getAccount: typeof import('./db').getAccount;
@@ -185,6 +192,12 @@ describe('analytics db integration against real libSQL', () => {
     // 009 carries the inbox read-path index (profiles.steam_id) the
     // list/count inbox queries filter on.
     for (const statement of splitSqlStatements(INBOX_INDEX_MIGRATION_SQL)) {
+      await db.executeForTests(statement);
+    }
+    // 010 carries accounts.last_login_at (login-registry audit column).
+    for (const statement of splitSqlStatements(
+      ACCOUNTS_LAST_LOGIN_MIGRATION_SQL,
+    )) {
       await db.executeForTests(statement);
     }
   });
@@ -1046,6 +1059,137 @@ describe('analytics db integration against real libSQL', () => {
     const hashFor = (token: string) => db.hashConfirmToken(token);
     const future = '2999-01-01T00:00:00.000Z';
     const past = '2000-01-01T00:00:00.000Z';
+
+    describe('recordLogin (single-state login registry, real SQL)', () => {
+      const OTHER = '76561198000000002';
+
+      it('inserts on first login (created_at pinned) and refreshes last_login_at on re-login', async () => {
+        const first = await db.recordLogin(STEAM, 'pt');
+        expect(first).toMatchObject({ steamId: STEAM, locale: 'pt' });
+        expect(first.createdAt).toBe(first.lastLoginAt);
+        // created_at is pinned, never reset.
+        const firstCreatedAt = first.createdAt;
+
+        const second = await db.recordLogin(STEAM, 'en');
+        expect(second.createdAt).toBe(firstCreatedAt);
+        expect(second.lastLoginAt).not.toBeNull();
+        // A real re-login later must move the clock forward; pin by
+        // injecting a distinct write would need SQL — assert ordering only.
+        expect(second.locale).toBe('en');
+
+        // The audit answer: one row, latest login visible.
+        const row = await db.getAccount(STEAM);
+        expect(row?.createdAt).toBe(firstCreatedAt);
+        expect(row?.lastLoginAt).toBe(second.lastLoginAt);
+      });
+
+      it('keeps distinct rows per steamId (each login audited separately)', async () => {
+        await db.recordLogin(STEAM, 'pt');
+        const other = await db.recordLogin(OTHER, 'es');
+        expect(other.steamId).toBe(OTHER);
+        expect(await db.getAccount(OTHER)).toMatchObject({ steamId: OTHER });
+
+        const rows = await db.executeForTests(
+          'SELECT COUNT(*) AS n FROM accounts',
+        );
+        expect(Number(rows.rows[0].n)).toBe(2);
+      });
+
+      it('COALESCE keeps an existing locale when the new one is absent', async () => {
+        await db.recordLogin(STEAM, 'de');
+        const relogin = await db.recordLogin(STEAM, null);
+        expect(relogin.locale).toBe('de');
+      });
+
+      it('validates the steamId before touching the client', async () => {
+        await expect(db.recordLogin('short')).rejects.toThrow(/17 digits/);
+      });
+    });
+
+    describe('ensureActiveWatch (single-state active watch, real SQL)', () => {
+      it('inserts fresh profiles directly as active and reports activated', async () => {
+        const { profile, activated } = await db.ensureActiveWatch(STEAM, 'pt');
+        expect(profile).toMatchObject({
+          steamId: STEAM,
+          status: 'active',
+          locale: 'pt',
+          activatedAt: profile.requestedAt,
+        });
+        expect(activated).toBe(true);
+        await expect(db.getWatchStatus(STEAM)).resolves.toBe('active');
+      });
+
+      it('re-login on an active row is idempotent (activated=false, no flip)', async () => {
+        await db.ensureActiveWatch(STEAM, 'pt');
+        const second = await db.ensureActiveWatch(STEAM, 'en');
+        expect(second.activated).toBe(false);
+        expect(second.profile.status).toBe('active');
+        // Locale refresh still applies on re-login.
+        expect(second.profile.locale).toBe('en');
+      });
+
+      it('flips legacy pending rows to active (grandfathered consent + proven friendship)', async () => {
+        await db.createWatchRequest(STEAM, 'es');
+        expect(await db.getWatchStatus(STEAM)).toBe('pending');
+
+        const { activated, profile } = await db.ensureActiveWatch(STEAM, 'pt');
+        expect(activated).toBe(true);
+        expect(profile.status).toBe('active');
+        expect(await db.getWatchStatus(STEAM)).toBe('active');
+      });
+
+      it('leaves pending rows with an UNCONFIRMED account (link click owns them)', async () => {
+        await db.createWatchRequest(STEAM, 'es');
+        await db.createAccount(STEAM, 'es');
+        expect(await db.getWatchStatus(STEAM)).toBe('pending');
+
+        const { activated, profile } = await db.ensureActiveWatch(STEAM, 'pt');
+        expect(activated).toBe(false);
+        expect(profile.status).toBe('pending');
+        expect(await db.getWatchStatus(STEAM)).toBe('pending');
+      });
+
+      it('flips pending rows once the account confirms (click happened first)', async () => {
+        await db.createWatchRequest(STEAM, 'es');
+        await db.createAccount(STEAM, 'es');
+        const token = 'cd'.repeat(32);
+        expect(
+          await db.issueConfirmToken(
+            STEAM,
+            db.hashConfirmToken(token),
+            new Date(Date.now() + 3600000).toISOString(),
+          ),
+        ).toBe(true);
+        expect(await db.consumeConfirmToken(db.hashConfirmToken(token))).toBe(
+          STEAM,
+        );
+
+        const { activated, profile } = await db.ensureActiveWatch(STEAM, 'pt');
+        expect(activated).toBe(true);
+        expect(profile.status).toBe('active');
+        expect(await db.getWatchStatus(STEAM)).toBe('active');
+      });
+
+      it('concurrent first-calls converge on ONE activated=true and one active row', async () => {
+        const results = await Promise.all([
+          db.ensureActiveWatch(STEAM, 'pt'),
+          db.ensureActiveWatch(STEAM, 'pt'),
+        ]);
+        const activations = results.filter((r) => r.activated).length;
+        expect(activations).toBe(1);
+        const rows = await db.executeForTests(
+          'SELECT COUNT(*) AS n FROM watched_profiles WHERE steam_id = ?',
+          [STEAM],
+        );
+        expect(Number(rows.rows[0].n)).toBe(1);
+      });
+
+      it('validates the steamId before touching the client', async () => {
+        await expect(db.ensureActiveWatch('short')).rejects.toThrow(
+          /17 digits/,
+        );
+      });
+    });
 
     it('createAccount inserts unconfirmed and getAccount round-trips it', async () => {
       expect(await db.getAccount(STEAM)).toBeNull();

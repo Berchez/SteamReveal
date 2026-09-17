@@ -18,7 +18,6 @@ import {
   hashConfirmToken,
 } from '@/lib/analytics/db';
 import { CONFIRM_PAGE_TEXT, type ConfirmPageText } from './confirmText';
-import { buildConfirmAutoSubmitScript } from './confirmAutoSubmit';
 
 export const runtime = 'nodejs';
 
@@ -48,20 +47,19 @@ const confirmPostRateLimiter = createRateLimiter(
  *
  * Two legs, split precisely so prefetch can never mutate:
  * - GET renders an intermediate page and NOTHING ELSE: no consume, no
- *   activate, no session. The valid variant carries one inline auto-submit
- *   script, so opening the link activates with no button step — but the
- *   submit is gated on human presence (visible + focused at load, else
- *   first visibility/focus/pointer/key event). Linkifiers, antivirus
- *   scanners, prerender and background tabs never satisfy the gate, so for
- *   them the page stays exactly what it was. The expired variant carries
- *   no script and stays readable (resend path). Chat linkifiers, antivirus
- *   URL-scanning and browser prefetch all perform GETs before the real
- *   click — under the old single-GET design any of those SPENT the token
- *   (and, once activation gated on the click, would have ACTIVATED the
- *   watch), landing the user on an error page for a link they never
- *   touched. A prefetched page is now just a page.
- * - POST (auto-submit on load, manual button as the no-JS fallback)
- *   consumes the token, activates the watch, enqueues the bot welcome,
+ *   activate, no session. Activation requires an explicit click on the
+ *   page's button — a plain form POST, with no <script> element on the
+ *   page (the only inline JS is the form's onsubmit double-submit guard,
+ *   inert without a real click). Linkifiers, antivirus scanners,
+ *   prerender, background tabs and
+ *   headless loaders can all fetch this page without spending anything.
+ *   The expired variant stays readable (resend path). Chat linkifiers,
+ *   antivirus URL-scanning and browser prefetch all perform GETs before
+ *   the real click — under the old single-GET design any of those SPENT
+ *   the token (and, once activation gated on the click, would have
+ *   ACTIVATED the watch), landing the user on an error page for a link
+ *   they never touched. A prefetched page is now just a page.
+ * - POST (explicit button click only) consumes the token, activates the
  *   seals the session, and redirects. CSRF-gated like every authenticated
  *   POST (the form posts same-origin, so legitimate submissions always
  *   carry a matching Origin).
@@ -94,32 +92,25 @@ const confirmPostRateLimiter = createRateLimiter(
  * one-shot login-by-link flow, documented here for visibility.
  */
 /**
- * Self-contained confirm page (no assets — a plain form POST, so it works
- * with scripts disabled and can never be "prefetched into" a state
- * change). The valid variant auto-submits via one inline script so opening
- * the link activates with no button step — BUT only while a human is
- * actually present: the submit fires on load solely when the page is both
- * visible and focused, otherwise on the first visibility/focus/pointer/key
- * event. Background tabs, not-yet-activated prerenders and scriptless
- * fetchers (linkifiers, antivirus GETs) never satisfy the gate, so for
- * them the page stays exactly what it was: a harmless read. Automation
- * driving a full Chromium that reports visible+focused (corporate link
- * detonators, headless crawlers) DOES satisfy it — that is the residual
- * below, not one of the safe classes above. Only the
- * EXPIRED variant omits the script — it must stay readable (the resend
- * path) instead of bouncing straight to the error landing. Unknown hashes
- * render byte-identical to valid ones, script included, so a prober learns
- * nothing from GET bytes or timing; a JS prober that follows through lands
- * on the same error page as a manual click. Residual accepted risk: a
- * full-browser detonation chamber that reports visible+focused could
- * still fire the POST — and that is an activation+login, not just a
- * burned link — recoverable via the site resend flow, and documented in
- * the PROD_READINESS sign-off. Framing is denied outright below
- * (X-Frame-Options + frame-ancestors), so the residual is limited to
- * top-level loads, never silent third-party embeds. Every
- * interpolated value is either a fixed locale string from the table above
- * or the token itself, which is shape-gated to 64 hex chars before this is
- * ever called — neither can break out of markup.
+ * Self-contained confirm page (no assets, no <script> elements — a plain
+ * form POST, so it works with scripts disabled and can never be
+ * "prefetched into" a state change, with or without JS). Activation
+ * happens ONLY on an explicit click of the page's button: opening,
+ * previewing, prefetching or headlessly loading the URL spends nothing,
+ * ever. Unknown hashes render byte-identical to valid ones, so a prober
+ * learns nothing from GET bytes or timing; only a real click-through POST
+ * can consume. CSP note: a future script-src without 'unsafe-inline'
+ * would neuter the onsubmit double-submit guard — graceful degradation
+ * (a double-click just risks a second POST, whose loser lands on the
+ * error page; the single-use token keeps state uncorrupted).
+ *
+ * Visuals mirror the site (dark gray-900 card, purple-600 pill button,
+ * Roboto/system stack, SteamReveal wordmark) without pulling any site
+ * assets: this response must stay dependency-free — it renders for
+ * logged-out users on a cold path, and every byte here ships per confirm
+ * view. Every interpolated value is either a fixed locale string from
+ * the table above or the token itself, which is shape-gated to 64 hex
+ * chars before this is ever called — neither can break out of markup.
  */
 const renderConfirmPage = (
   text: ConfirmPageText,
@@ -127,29 +118,21 @@ const renderConfirmPage = (
   homePath: string,
   expired: boolean,
 ): string => {
-  // Single-submission guard, both legs AND across paths: the script flag
-  // stops a second auto-submit, and the script additionally disables the
-  // button on its own path (a later native click then no-ops) while
-  // standing down when the button is already disabled (a native click
-  // won — its onsubmit disable ran first). Without the cross-path half,
-  // a background→foreground switch landing within milliseconds of a
-  // manual click would double-POST: the single-use token burns on the
-  // first arrival and the second renders the error page over a success.
-  // form.submit() bypasses onsubmit, so the onsubmit button-disable alone
-  // cannot cover the programmatic path. The script text itself lives in
-  // ./confirmAutoSubmit (shared with the e2e mock, so the two can never
-  // drift apart).
-  const autoSubmit = buildConfirmAutoSubmitScript();
+  // Double-click guard: disabling the button in onsubmit stops a second
+  // native submit. This is the ONLY submission path — there is no <script>
+  // element on this page by design (explicit click is the activator; the
+  // inline onsubmit cannot fire without one), so no cross-path
+  // coordination is needed.
   const inner = expired
-    ? `<h1>${text.expiredTitle}</h1><p>${text.expiredBody}</p><a href="${homePath}">${text.homeLink}</a>`
-    : `<h1>${text.title}</h1><p>${text.body}</p><form method="post" action="/api/watch/confirm?token=${token}" onsubmit="this.querySelector('button').disabled=true"><button type="submit">${text.button}</button></form>${autoSubmit}`;
+    ? `<p class="brand">SteamReveal</p><h1>${text.expiredTitle}</h1><p>${text.expiredBody}</p><a class="homelink" href="${homePath}">${text.homeLink}</a>`
+    : `<p class="brand">SteamReveal</p><h1>${text.title}</h1><p>${text.body}</p><form method="post" action="/api/watch/confirm?token=${token}" onsubmit="this.querySelector('button').disabled=true"><button type="submit">${text.button}</button></form>`;
   return (
     `<!DOCTYPE html>` +
     `<html lang="${text.lang}">` +
     `<head><meta charset="utf-8">` +
     `<meta name="viewport" content="width=device-width, initial-scale=1">` +
     `<title>${text.title} — SteamReveal</title>` +
-    `<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f0f14;color:#e5e5e5;font-family:system-ui,-apple-system,sans-serif;padding:24px;box-sizing:border-box}.card{max-width:480px;width:100%;background:#17171f;border:1px solid #2c2c38;border-radius:16px;padding:32px;text-align:center}h1{font-size:22px;margin:0 0 16px}p{color:#b9b9c7;line-height:1.6;margin:0 0 24px}button{height:48px;padding:0 24px;border:0;border-radius:999px;background:#7c3aed;color:#fff;font-weight:600;font-size:15px;cursor:pointer}a{color:#a78bfa}</style>` +
+    `<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background-color:#050508;background-image:radial-gradient(circle at 12% 18%,rgba(154,100,255,.22),transparent 44%),radial-gradient(circle at 88% 82%,rgba(61,90,254,.18),transparent 48%),radial-gradient(circle at 82% 8%,rgba(255,27,206,.10),transparent 42%),radial-gradient(rgba(148,163,184,.14) 1px,transparent 1.6px);background-size:auto,auto,auto,26px 26px;color:#e5e7eb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}.card{max-width:480px;width:100%;background:#111827;border:1px solid #4b5563;border-radius:16px;padding:32px;text-align:center;box-shadow:0 25px 50px -12px rgba(0,0,0,.6)}.brand{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#c4b5fd;margin:0 0 12px}h1{font-size:22px;line-height:1.3;margin:0 0 12px;color:#f3f4f6}p{color:#d1d5db;line-height:1.6;margin:0 0 24px;font-size:15px}button{height:48px;width:100%;padding:0 24px;border:0;border-radius:9999px;background:#7c3aed;color:#fff;font-weight:600;font-size:16px;cursor:pointer}button:hover{background:#6d28d9}button:focus-visible{outline:2px solid #a78bfa;outline-offset:2px}button:disabled{opacity:.6;cursor:default}a{color:#d8b4fe}a.homelink{display:inline-block;height:44px;line-height:44px;padding:0 24px;border-radius:9999px;border:1px solid #6b7280;color:#e5e7eb;text-decoration:none;font-weight:600;font-size:15px}</style>` +
     `</head><body><main class="card">${inner}</main></body></html>`
   );
 };
@@ -159,18 +142,13 @@ const confirmPageResponse = (html: string): Response =>
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      // Token-bearing page: never cache, never sniff.
+      // Token-bearing action page: never cache, never sniff, never frame.
+      // Confirmation needs an explicit click, but defense in depth all
+      // the same: nothing legitimately frames this page, not even
+      // same-origin. DENY outright instead of relying on the global
+      // SAMEORIGIN. Belt and suspenders (legacy + modern engines).
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
-      // This page auto-submits on visible+focused: it must never run
-      // embedded in another origin's iframe (a hidden 1x1 frame still
-      // reports visible when the tab is foregrounded, and .focus() on
-      // the frame element is allowed cross-origin — enough to satisfy
-      // the human-presence gate without any victim gesture and burn a
-      // leaked token into an activation+login). DENY outright instead of
-      // relying on the global SAMEORIGIN: nothing legitimately frames
-      // this page, not even same-origin. Belt and suspenders (legacy +
-      // modern engines) on purpose.
       'X-Frame-Options': 'DENY',
       'Content-Security-Policy': "frame-ancestors 'none'",
     },

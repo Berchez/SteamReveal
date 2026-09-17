@@ -34,6 +34,17 @@ const INBOX_KEYS = [
   'watchInboxCheaterChecked',
 ];
 
+// Navbar login-flow keys (SiteNavSignIn + QueryToast). Pinned explicitly
+// because the set-parity test above cannot catch a key missing from ALL
+// FIVE files uniformly (the sets would still be identical) — and a raw
+// key string rendering in the navbar is exactly the silent drift this
+// suite exists to prevent.
+const NAV_KEYS = [
+  'watchNavSignIn',
+  'watchSignInAddBot',
+  'watchLoginNoFriend',
+];
+
 const ITEM_BODY_KEYS = ['watchInboxItemCheckedBody', 'watchInboxItemPlainBody'];
 
 const loadMessages = (locale: string): Record<string, unknown> => {
@@ -70,6 +81,16 @@ describe('Watch locale parity (WB-15)', () => {
     for (const locale of LOCALES) {
       const watch = loadMessages(locale).Watch as Record<string, unknown>;
       for (const key of INBOX_KEYS) {
+        expect(typeof watch[key]).toBe('string');
+        expect((watch[key] as string).length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('carries every navbar login-flow key, non-empty, in all locales', () => {
+    for (const locale of LOCALES) {
+      const watch = loadMessages(locale).Watch as Record<string, unknown>;
+      for (const key of NAV_KEYS) {
         expect(typeof watch[key]).toBe('string');
         expect((watch[key] as string).length).toBeGreaterThan(0);
       }

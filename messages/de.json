@@ -176,6 +176,8 @@
     "watchConfirmError": "Dieser Bestätigungslink ist ungültig oder abgelaufen. Starte die Beobachtung erneut, um einen neuen zu erhalten.",
     "watchLoginButton": "Mit Steam anmelden",
     "watchNavSignIn": "Anmelden",
+    "watchSignInAddBot": "SteamReveal-Bot hinzufügen",
+    "watchLoginNoFriend": "Füge den SteamReveal-Bot erst auf Steam als Freund hinzu und melde dich dann an. Falls du ihn gerade erst hinzugefügt hast, warte eine Minute und versuche es erneut.",
     "watchAvatarAlt": "Profilbild von {nickname}",
     "watchLoginError": "Steam-Anmeldung fehlgeschlagen. Versuche es gleich noch einmal.",
     "watchLogout": "Abmelden",

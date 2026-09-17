@@ -4,6 +4,7 @@ const FULL_ENV = {
   STEAM_BOT_USERNAME: 'botuser',
   STEAM_BOT_PASSWORD: 'botpass',
   STEAM_BOT_SHARED_SECRET: 'botsecret',
+  STEAM_BOT_STEAMID: '76561199000000001',
   WATCH_SITE_URL: 'https://steam-reveal.vercel.app',
 };
 
@@ -15,6 +16,7 @@ describe('loadBotConfig', () => {
       accountName: 'botuser',
       password: 'botpass',
       sharedSecret: 'botsecret',
+      botSteamId: '76561199000000001',
       siteUrl: 'https://steam-reveal.vercel.app',
       dataDirectory: BOT_CONFIG_DEFAULTS.DEFAULT_DATA_DIRECTORY,
       heartbeatPath: `${BOT_CONFIG_DEFAULTS.DEFAULT_DATA_DIRECTORY}/heartbeat.json`,
@@ -22,6 +24,9 @@ describe('loadBotConfig', () => {
       heartbeatStaleMs: BOT_CONFIG_DEFAULTS.DEFAULT_HEARTBEAT_STALE_MS,
       reconnectBaseMs: BOT_CONFIG_DEFAULTS.DEFAULT_RECONNECT_BASE_MS,
       reconnectMaxMs: BOT_CONFIG_DEFAULTS.DEFAULT_RECONNECT_MAX_MS,
+      autoAcceptDailyLimit:
+        BOT_CONFIG_DEFAULTS.DEFAULT_AUTO_ACCEPT_DAILY_LIMIT,
+      autoAcceptFriendCap: BOT_CONFIG_DEFAULTS.DEFAULT_AUTO_ACCEPT_FRIEND_CAP,
       invitePollIntervalMs: BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_POLL_INTERVAL_MS,
       inviteBatchLimit: BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_BATCH_LIMIT,
       inviteDailyLimit: BOT_CONFIG_DEFAULTS.DEFAULT_INVITE_DAILY_LIMIT,
@@ -83,6 +88,22 @@ describe('loadBotConfig', () => {
     expect(() => loadBotConfig(env)).toThrow(name);
   });
 
+  it.each([[''], ['short'], ['7656119900000000a'], ['765611990000000011']])(
+    'rejects a malformed STEAM_BOT_STEAMID (%s) at boot, not at login-gate time',
+    (value) => {
+      expect(() =>
+        loadBotConfig({ ...FULL_ENV, STEAM_BOT_STEAMID: value }),
+      ).toThrow('STEAM_BOT_STEAMID');
+    },
+  );
+
+  it('throws naming a missing STEAM_BOT_STEAMID', () => {
+    const env = { ...FULL_ENV };
+    delete (env as Record<string, string | undefined>).STEAM_BOT_STEAMID;
+
+    expect(() => loadBotConfig(env)).toThrow('STEAM_BOT_STEAMID');
+  });
+
   it('requires WATCH_SITE_URL and strips trailing slashes', () => {
     const env = { ...FULL_ENV };
     delete (env as Record<string, string | undefined>).WATCH_SITE_URL;
@@ -113,6 +134,9 @@ describe('loadBotConfig', () => {
     ['BOT_HEARTBEAT_STALE_MS', '-5'],
     ['BOT_RECONNECT_BASE_MS', 'not-a-number'],
     ['BOT_RECONNECT_MAX_MS', 'Infinity'],
+    ['BOT_AUTO_ACCEPT_DAILY_LIMIT', '0'],
+    ['BOT_AUTO_ACCEPT_FRIEND_CAP', '0'],
+    ['BOT_AUTO_ACCEPT_DAILY_LIMIT', 'not-a-number'],
     ['BOT_INVITE_POLL_INTERVAL_MS', '0'],
     ['BOT_INVITE_BATCH_LIMIT', '-1'],
     ['BOT_INVITE_DAILY_LIMIT', '0'],
