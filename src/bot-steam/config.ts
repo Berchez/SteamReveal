@@ -32,6 +32,15 @@ export interface BotConfig {
   /** steam-user dataDirectory: machine id / cellid / sentry persistence. */
   dataDirectory: string;
   heartbeatPath: string;
+  /**
+   * Heartbeat write cadence (file beat + Turso mirror). COUPLED THRESHOLDS:
+   * the site's liveness gate treats a beat older than ~4 min as offline
+   * (process down) and a `connected=0` streak older than ~5 min as offline
+   * too (sustained Steam-session outage) — see
+   * src/lib/watch/botLiveness.ts. Raising this interval toward those
+   * thresholds makes the site see a HEALTHY bot as flapping/offline, so
+   * keep it well below both.
+   */
   heartbeatIntervalMs: number;
   /** Healthcheck: heartbeat older than this is stale. */
   heartbeatStaleMs: number;

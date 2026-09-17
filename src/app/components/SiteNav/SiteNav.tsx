@@ -32,7 +32,7 @@ export default async function SiteNav({ locale }: { locale: string }) {
     <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
       <LanguageSwitcher />
       {state.steamId === null ? (
-        <SiteNavSignIn />
+        <SiteNavSignIn botOnline={state.botOnline} />
       ) : (
         <>
           <WatchInbox steamId={state.steamId} />

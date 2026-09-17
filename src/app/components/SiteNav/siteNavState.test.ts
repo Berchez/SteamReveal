@@ -22,6 +22,10 @@ jest.mock('@/lib/analytics/db', () => ({
   getAccount: jest.fn(),
 }));
 
+jest.mock('@/lib/watch/botLiveness', () => ({
+  isBotOnline: jest.fn(),
+}));
+
 const { resolveWatchSession } = jest.requireMock('@/lib/watch/session') as {
   resolveWatchSession: jest.Mock;
 };
@@ -36,6 +40,10 @@ const { getWatchStatus, getAccount } = jest.requireMock(
   getAccount: jest.Mock;
 };
 
+const { isBotOnline } = jest.requireMock('@/lib/watch/botLiveness') as {
+  isBotOnline: jest.Mock;
+};
+
 const STEAM = '76561198000000001';
 const COOKIES = { get: jest.fn() };
 
@@ -47,6 +55,8 @@ describe('resolveSiteNavState', () => {
     global.console.error = consoleError;
     getWatchStatus.mockResolvedValue(null);
     getAccount.mockResolvedValue(null);
+    // Bot-liveness gate default: online (button shows).
+    isBotOnline.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -194,8 +204,34 @@ describe('resolveSiteNavState', () => {
     resolveWatchSession.mockResolvedValue({ status: 'unauthenticated' });
     await expect(resolveSiteNavState(COOKIES as never)).resolves.toEqual({
       steamId: null,
+      botOnline: true,
     });
     expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  it('reports bot offline to hide the sign-in button (the liveness gate)', async () => {
+    resolveWatchSession.mockResolvedValue({ status: 'unauthenticated' });
+    isBotOnline.mockResolvedValue(false);
+
+    await expect(resolveSiteNavState(COOKIES as never)).resolves.toEqual({
+      steamId: null,
+      botOnline: false,
+    });
+  });
+
+  it('never calls the bot-liveness gate for logged-in sessions', async () => {
+    resolveWatchSession.mockResolvedValue({
+      status: 'authenticated',
+      steamId: STEAM,
+    });
+    getSteamIdentity.mockResolvedValue({
+      nickname: 'AvatarUser',
+      avatarUrl: null,
+    });
+
+    await resolveSiteNavState(COOKIES as never);
+
+    expect(isBotOnline).not.toHaveBeenCalled();
   });
 
   it('degrades error sessions to logged-out WITH a trace (sick config must not read as idle)', async () => {
@@ -205,6 +241,7 @@ describe('resolveSiteNavState', () => {
     });
     await expect(resolveSiteNavState(COOKIES as never)).resolves.toEqual({
       steamId: null,
+      botOnline: true,
     });
     expect(consoleError).toHaveBeenCalledTimes(1);
     expect(String(consoleError.mock.calls[0][0])).toContain('[SiteNav]');
@@ -213,11 +250,13 @@ describe('resolveSiteNavState', () => {
 
   it('degrades to logged-out (loudly) on unexpected throws, never rejects', async () => {
     // The blast-radius contract: a broken session/avatar layer must cost
-    // the bell, never the page.
+    // the bell, never the page. The bot-liveness flag fails OPEN in this
+    // branch (the button must never hide on an unrelated surprise).
     resolveWatchSession.mockRejectedValue(new Error('cookie store blew up'));
 
     await expect(resolveSiteNavState(COOKIES as never)).resolves.toEqual({
       steamId: null,
+      botOnline: true,
     });
     expect(consoleError).toHaveBeenCalledTimes(1);
     expect(String(consoleError.mock.calls[0][0])).toContain('[SiteNav]');
@@ -232,7 +271,10 @@ describe('resolveSiteNavState', () => {
     getSteamIdentity.mockRejectedValue(new Error('steam exploded'));
     await expect(resolveSiteNavState(COOKIES as never)).resolves.toEqual({
       steamId: null,
+      botOnline: true,
     });
     expect(consoleError).toHaveBeenCalledTimes(2);
+    // No further liveness read inside the catch (fail-open is hardcoded).
+    expect(isBotOnline).not.toHaveBeenCalled();
   });
 });

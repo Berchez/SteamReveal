@@ -17,12 +17,21 @@ import resolveLoginNext from '@/lib/watch/loginNext';
  * to /player/x, not the home page). The login route re-validates `next`
  * as an internal path server-side, so this is convenience, not a trust
  * boundary.
+ *
+ * `botOnline` is the bot-liveness gate (server-computed, fail-open): when
+ * the bot is offline the whole cluster renders NOTHING, so a user never
+ * burns a Steam login round-trip only to hit the waiting room that can't
+ * complete. Absence is deliberate — no disabled pill, no copy, no raised
+ * expectation. The cluster is fixed-position, so disappearing causes zero
+ * CLS.
  */
-function SiteNavSignIn() {
+function SiteNavSignIn({ botOnline }: { botOnline: boolean }) {
   const t = useTranslations('Watch');
   const locale = useLocale();
   const pathname = usePathname();
   const next = resolveLoginNext(pathname, locale);
+
+  if (!botOnline) return null;
 
   return (
     <div className="flex items-center gap-2">

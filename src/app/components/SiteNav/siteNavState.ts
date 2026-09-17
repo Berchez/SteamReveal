@@ -10,6 +10,7 @@ import { sanitizeError } from '@/lib/sanitizeError';
 import { resolveConfirmLinkState } from '@/lib/watch/confirmLinkState';
 import type { WarmWatchStatusSnapshot } from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
 import { resolveWatchSession } from '@/lib/watch/session';
+import { isBotOnline } from '@/lib/watch/botLiveness';
 
 export type SiteNavState =
   | {
@@ -18,7 +19,19 @@ export type SiteNavState =
       avatarUrl: string | null;
       initialWatch: WarmWatchStatusSnapshot | null;
     }
-  | { steamId: null };
+  | { steamId: null; botOnline: boolean };
+
+/**
+ * The logged-out cluster (bot-liveness gate included). Shared by the
+ * session-error and unauthenticated branches below so the shape — and
+ * the gate read — can never drift between them. The outer catch stays
+ * separate ON PURPOSE: it hardcodes botOnline=true (fail-open) and must
+ * never re-read anything from inside the "everything broke" branch.
+ */
+const toLoggedOutState = async (): Promise<SiteNavState> => ({
+  steamId: null,
+  botOnline: await isBotOnline(),
+});
 
 /**
  * Mirrors the watch/status poll source of truth for the navbar seed: the
@@ -118,11 +131,18 @@ export const resolveSiteNavState = async (
       console.error(
         `[SiteNav] session resolution errored, degrading to logged-out: ${sanitizeError(session.error)}`,
       );
-      return { steamId: null };
+      return toLoggedOutState();
     }
     const steamId =
       session.status === 'authenticated' ? session.steamId : null;
-    if (steamId === null) return { steamId: null };
+    if (steamId === null) {
+      // Bot-liveness gate (logged-out cluster only): hide the sign-in
+      // button while the bot is offline. This is the ONLY logged-out DB
+      // read in the layout — memoized (~1 read/min/instance) and
+      // fail-open (never hides on a DB/transport blip), so the cost and
+      // the blast radius stay bounded.
+      return toLoggedOutState();
+    }
     // Identity (Steam network round-trip, the long pole) and the watch
     // seed (two indexed PK reads) are independent given the steamId — run
     // them together so the cluster waits on the slower lane only, never
@@ -144,6 +164,9 @@ export const resolveSiteNavState = async (
     console.error(
       `[SiteNav] identity resolution failed, degrading to logged-out: ${sanitizeError(error)}`,
     );
-    return { steamId: null };
+    // Last-resort net: never call isBotOnline again from inside the catch
+    // (it is already the "everything broke" branch) — fail open instead,
+    // the button must never hide on an unrelated surprise.
+    return { steamId: null, botOnline: true };
   }
 };

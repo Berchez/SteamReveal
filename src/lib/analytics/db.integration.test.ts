@@ -70,6 +70,11 @@ const ACCOUNTS_LAST_LOGIN_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const BOT_HEARTBEAT_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '011_bot_heartbeat.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -115,6 +120,8 @@ type DbApi = {
   getAccountByConfirmTokenHash: typeof import('./db').getAccountByConfirmTokenHash;
   listExpiredUnnoticedConfirms: typeof import('./db').listExpiredUnnoticedConfirms;
   markExpireNoticed: typeof import('./db').markExpireNoticed;
+  recordBotHeartbeat: typeof import('./db').recordBotHeartbeat;
+  getBotHeartbeat: typeof import('./db').getBotHeartbeat;
 };
 
 /**
@@ -200,6 +207,10 @@ describe('analytics db integration against real libSQL', () => {
     )) {
       await db.executeForTests(statement);
     }
+    // 011 carries bot_heartbeat (bot-liveness bridge for the site gate).
+    for (const statement of splitSqlStatements(BOT_HEARTBEAT_MIGRATION_SQL)) {
+      await db.executeForTests(statement);
+    }
   });
 
   beforeEach(async () => {
@@ -210,6 +221,7 @@ describe('analytics db integration against real libSQL', () => {
     await db.executeForTests('DELETE FROM watch_events');
     await db.executeForTests('DELETE FROM watched_profiles');
     await db.executeForTests('DELETE FROM accounts');
+    await db.executeForTests('DELETE FROM bot_heartbeat');
   });
 
   afterAll(async () => {
@@ -1425,6 +1437,68 @@ describe('analytics db integration against real libSQL', () => {
           expiresAt: '2001-01-01T00:00:00.000Z',
         });
       });
+    });
+  });
+
+  describe('bot heartbeat (bot-liveness bridge)', () => {
+    const BOT_STEAM = '76561199000000001';
+
+    it('round-trips the upsert: write, read, overwrite — still one row', async () => {
+      await db.recordBotHeartbeat(true, BOT_STEAM);
+      await expect(db.getBotHeartbeat()).resolves.toEqual({
+        beatAt: expect.any(String),
+        connected: true,
+        steamId: BOT_STEAM,
+        disconnectedSince: null,
+      });
+
+      // A later beat overwrites in place (single row, never grows).
+      await db.recordBotHeartbeat(false, null);
+      await expect(db.getBotHeartbeat()).resolves.toEqual({
+        beatAt: expect.any(String),
+        connected: false,
+        steamId: null,
+        disconnectedSince: expect.any(String),
+      });
+      const rows = await db.executeForTests(
+        'SELECT COUNT(*) AS n FROM bot_heartbeat',
+      );
+      expect(Number(rows.rows[0].n)).toBe(1);
+    });
+
+    it('maintains disconnected_since atomically: earliest survives, reconnect clears', async () => {
+      // First disconnected beat opens the window at its own beat time.
+      await db.recordBotHeartbeat(false, null);
+      const first = await db.getBotHeartbeat();
+      expect(first?.disconnectedSince).toBe(first?.beatAt);
+      expect(Number.isFinite(Date.parse(first?.disconnectedSince ?? ''))).toBe(
+        true,
+      );
+
+      // A later disconnected beat must NOT restart the window (COALESCE
+      // keeps the earliest) — this is the gate's sustained-outage clock.
+      await db.recordBotHeartbeat(false, null);
+      const second = await db.getBotHeartbeat();
+      expect(second?.beatAt && second?.beatAt >= (first?.beatAt ?? '')).toBe(
+        true,
+      );
+      expect(second?.disconnectedSince).toBe(first?.disconnectedSince);
+
+      // Reconnect clears the window: the gate immediately trusts the bot
+      // again (a reconnection genuinely restores login capability).
+      await db.recordBotHeartbeat(true, BOT_STEAM);
+      const reconnected = await db.getBotHeartbeat();
+      expect(reconnected?.connected).toBe(true);
+      expect(reconnected?.disconnectedSince).toBeNull();
+
+      // A new disconnect opens a FRESH window (the old one is gone).
+      await db.recordBotHeartbeat(false, null);
+      const reopened = await db.getBotHeartbeat();
+      expect(reopened?.disconnectedSince).toBe(reopened?.beatAt);
+    });
+
+    it('returns null before the first beat (fail-open upstream)', async () => {
+      await expect(db.getBotHeartbeat()).resolves.toBeNull();
     });
   });
 });

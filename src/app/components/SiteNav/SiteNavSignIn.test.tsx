@@ -25,7 +25,7 @@ jest.mock('next-intl/navigation', () => ({
 
 describe('SiteNavSignIn', () => {
   it('preserves the current page as the post-login destination', () => {
-    render(<SiteNavSignIn />);
+    render(<SiteNavSignIn botOnline />);
 
     expect(
       screen.getByRole('link', { name: 'watchNavSignIn' }),
@@ -37,7 +37,7 @@ describe('SiteNavSignIn', () => {
 
   it('falls back to the locale home without a pathname', () => {
     mockUsePathname.mockReturnValueOnce(null);
-    render(<SiteNavSignIn />);
+    render(<SiteNavSignIn botOnline />);
 
     expect(
       screen.getByRole('link', { name: 'watchNavSignIn' }),
@@ -45,7 +45,7 @@ describe('SiteNavSignIn', () => {
   });
 
   it('renders ONLY the sign-in pill (login-first: no separate add-bot step)', () => {
-    render(<SiteNavSignIn />);
+    render(<SiteNavSignIn botOnline />);
 
     // The add-the-bot step moved into the waiting room: a single link
     // here, never a chip + pill pair.
@@ -53,5 +53,14 @@ describe('SiteNavSignIn', () => {
     expect(
       screen.getByRole('link', { name: 'watchNavSignIn' }),
     ).toBeInTheDocument();
+  });
+
+  it('renders NOTHING when the bot is offline (absence, not a disabled pill)', () => {
+    const { container } = render(<SiteNavSignIn botOnline={false} />);
+
+    // No sign-in entry at all: a user must never burn a Steam login
+    // round-trip while the bot cannot complete it.
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });

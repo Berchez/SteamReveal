@@ -1486,6 +1486,88 @@ export const getWatchedProfile = async (
 };
 
 // ---------------------------------------------------------------------------
+// Bot heartbeat (bot-liveness bridge for the site's sign-in gate).
+// The bot process mirrors its local heartbeat file into this single-row
+// table every BOT_HEARTBEAT_INTERVAL_MS; the Vercel navbar reads it to
+// hide the sign-in button while the bot is offline (it cannot read the
+// file across hosts). See migrations/011_bot_heartbeat.sql.
+// ---------------------------------------------------------------------------
+
+/** Upserts the single heartbeat row (id=1, never grows). Best-effort by
+ * contract — callers (the bot process) must never crash on a DB blip.
+ *
+ * `disconnected_since` is maintained ATOMICALLY in this one statement (no
+ * read-modify-write, so overlapping beats can never race): a connected
+ * beat clears it; a disconnected beat keeps the EARLIEST existing value
+ * (COALESCE), so the site's liveness gate (botLiveness.ts) always
+ * measures the true sustained-disconnect duration — a bot process alive
+ * behind a dead Steam session (banned account, pending Guard, long Steam
+ * outage) keeps beating fresh, and this column is what lets the gate hide
+ * the sign-in button for that class instead of only for a dead process. */
+export const recordBotHeartbeat = async (
+  connected: boolean,
+  steamId: string | null,
+): Promise<void> => {
+  const db = await getClient();
+  const beatAt = new Date().toISOString();
+  const connectedFlag = toSqlBool(connected);
+  await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO bot_heartbeat (id, beat_at, connected, steam_id, disconnected_since)
+            VALUES (1, ?, ?, ?, CASE WHEN ? = 1 THEN NULL ELSE ? END)
+            ON CONFLICT(id) DO UPDATE SET
+              beat_at = excluded.beat_at,
+              connected = excluded.connected,
+              steam_id = excluded.steam_id,
+              disconnected_since = CASE
+                WHEN excluded.connected = 1 THEN NULL
+                ELSE COALESCE(bot_heartbeat.disconnected_since, excluded.beat_at)
+              END`,
+      args: [beatAt, connectedFlag, steamId, connectedFlag, beatAt],
+    }),
+  );
+};
+
+export interface BotHeartbeat {
+  /** ISO-8601 of the last beat write (the liveness clock). */
+  beatAt: string;
+  /** Whether the Steam session was connected at write time. */
+  connected: boolean;
+  steamId: string | null;
+  /**
+   * ISO-8601 of when the Steam session FIRST went disconnected in the
+   * current streak (null while connected, and for legacy rows written
+   * before the column existed — readers must treat null as "unknown
+   * duration", never as "no disconnection"). Maintained by
+   * recordBotHeartbeat's upsert; read by the site's liveness gate as the
+   * sustained-outage clock.
+   */
+  disconnectedSince: string | null;
+}
+
+/** Latest heartbeat row, or null when the bot never wrote (migration not
+ * yet run / bot not deployed). Null is the liveness gate's fail-open case. */
+export const getBotHeartbeat = async (): Promise<BotHeartbeat | null> => {
+  const db = await getClient();
+  const row = await withSchemaHint(
+    db.execute({
+      sql: 'SELECT beat_at, connected, steam_id, disconnected_since FROM bot_heartbeat WHERE id = 1',
+    }),
+  );
+  if (row.rows.length === 0) return null;
+  const record = row.rows[0] as Record<string, unknown>;
+  return {
+    beatAt: String(record.beat_at),
+    connected: Number(record.connected) > 0,
+    steamId: typeof record.steam_id === 'string' ? record.steam_id : null,
+    disconnectedSince:
+      typeof record.disconnected_since === 'string'
+        ? record.disconnected_since
+        : null,
+  };
+};
+
+// ---------------------------------------------------------------------------
 // Watch accounts (navbar-global signup + bot-link confirmation).
 // ---------------------------------------------------------------------------
 

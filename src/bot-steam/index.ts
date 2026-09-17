@@ -24,6 +24,7 @@ import {
   markEventDropped,
   markEventSent,
   markExpireNoticed,
+  recordBotHeartbeat,
   recordEventAttempt,
   removeWatchAndAccount,
   resetStaleClaims,
@@ -273,6 +274,41 @@ const main = (): void => {
     );
   }
 
+  // Turso heartbeat mirror (bot-liveness for the site): the file beat above
+  // is for healthcheck:bot, but the Vercel navbar cannot read that file
+  // across hosts — so the same facts are upserted into bot_heartbeat on
+  // the same cadence. Best-effort by contract: a DB blip must never crash
+  // the bot (it only degrades to "site assumes online" until the next
+  // successful write). `connected` + session id are ops-visible; the site
+  // gate reads beat age + the sustained-disconnect window (db.ts
+  // recordBotHeartbeat maintains disconnected_since in the upsert SQL).
+  let tursoBeatInFlight = false;
+  const tursoHeartbeat = (): void => {
+    // Overlap guard, same pattern as every poller lane below: a slow Turso
+    // write (network backoff) must not pile concurrent upserts onto one
+    // tick — the upsert is idempotent, so a skipped tick costs nothing
+    // (the next interval writes fresh facts).
+    if (tursoBeatInFlight) return;
+    tursoBeatInFlight = true;
+    recordBotHeartbeat(bot.isConnected(), bot.getSteamId())
+      .catch(
+        (error: unknown) =>
+          console.error(
+            `[WatchBot] turso heartbeat write failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+      )
+      .finally(() => {
+        tursoBeatInFlight = false;
+      });
+  };
+  tursoHeartbeat();
+  const tursoHeartbeatTimer = setInterval(tursoHeartbeat, config.heartbeatIntervalMs);
+  if (typeof tursoHeartbeatTimer.unref === 'function') {
+    tursoHeartbeatTimer.unref();
+  }
+
   // Stale-claim recovery driver: without this interval, rows orphaned in
   // 'claimed' (crashed worker, failed bookkeeping) would sit forever —
   // every comment promising "~30min recovery" refers to this timer.
@@ -463,6 +499,7 @@ const main = (): void => {
     // eslint-disable-next-line no-console
     console.log(`[WatchBot] received ${signal}, shutting down...`);
     heartbeat.stop();
+    clearInterval(tursoHeartbeatTimer);
     staleSweeper.stop();
     clearInterval(reconcileTimer);
     invitePoller?.stop();

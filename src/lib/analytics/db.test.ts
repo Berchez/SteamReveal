@@ -2020,4 +2020,88 @@ describe('watch/outbox DAL (Epic 1)', () => {
       .pop();
     expect(kept[0].args).toEqual([expect.any(String), null, STEAM]);
   });
+
+  it('recordBotHeartbeat upserts the single heartbeat row (id=1, never grows)', async () => {
+    const { recordBotHeartbeat } = require('./db');
+
+    await recordBotHeartbeat(true, STEAM);
+
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO bot_heartbeat'),
+    );
+    expect(String(insert[0]?.sql ?? insert[0])).toContain(
+      'ON CONFLICT(id) DO UPDATE',
+    );
+    // The upsert maintains disconnected_since atomically in SQL.
+    expect(String(insert[0]?.sql ?? insert[0])).toContain(
+      'COALESCE(bot_heartbeat.disconnected_since, excluded.beat_at)',
+    );
+    const args = (insert[0] as { args: unknown[] }).args;
+    // [beatAt, connectedFlag=1, steamId, connectedFlag=1, beatAt]
+    expect(args[0]).toEqual(expect.any(String));
+    expect(args[1]).toBe(1);
+    expect(args[2]).toBe(STEAM);
+    expect(args[3]).toBe(1);
+    expect(args[4]).toBe(args[0]);
+
+    // `connected: false` stores 0 both places and would open the
+    // disconnected_since window (gate + ops visibility).
+    await recordBotHeartbeat(false, null);
+    const second = mockExecute.mock.calls
+      .filter((call) =>
+        String(call[0]?.sql ?? call[0]).includes('INSERT INTO bot_heartbeat'),
+      )
+      .pop();
+    const secondArgs = (second[0] as { args: unknown[] }).args;
+    expect(secondArgs[1]).toBe(0);
+    expect(secondArgs[2]).toBeNull();
+    expect(secondArgs[3]).toBe(0);
+    expect(secondArgs[4]).toBe(secondArgs[0]);
+  });
+
+  it('getBotHeartbeat reads the row shape (incl. disconnected_since)', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          beat_at: '2026-09-01T00:00:00.000Z',
+          connected: 1,
+          steam_id: STEAM,
+          disconnected_since: null,
+        },
+      ],
+    });
+    const { getBotHeartbeat } = require('./db');
+
+    await expect(getBotHeartbeat()).resolves.toEqual({
+      beatAt: '2026-09-01T00:00:00.000Z',
+      connected: true,
+      steamId: STEAM,
+      disconnectedSince: null,
+    });
+
+    // Sustained-disconnect row: disconnected_since passes through as-is.
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          beat_at: '2026-09-01T00:05:00.000Z',
+          connected: 0,
+          steam_id: null,
+          disconnected_since: '2026-09-01T00:00:00.000Z',
+        },
+      ],
+    });
+    await expect(getBotHeartbeat()).resolves.toEqual({
+      beatAt: '2026-09-01T00:05:00.000Z',
+      connected: false,
+      steamId: null,
+      disconnectedSince: '2026-09-01T00:00:00.000Z',
+    });
+  });
+
+  it('getBotHeartbeat returns null when no beat exists yet (fail-open upstream)', async () => {
+    mockExecute.mockResolvedValue({ rows: [] });
+    const { getBotHeartbeat } = require('./db');
+
+    await expect(getBotHeartbeat()).resolves.toBeNull();
+  });
 });

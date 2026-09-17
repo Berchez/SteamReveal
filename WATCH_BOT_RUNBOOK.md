@@ -135,6 +135,17 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
 - Liveness file: `BOT_HEARTBEAT_PATH` (default
   `.data/steam-bot/heartbeat.json`), rewritten every
   `BOT_HEARTBEAT_INTERVAL_MS`. It carries `connected`, `steamId`, `uptimeSec`.
+- Turso heartbeat mirror (site-side gate): on the SAME cadence the bot upserts
+  the same facts into the single-row `bot_heartbeat` table (migration `011`).
+  The Vercel site cannot read the local file across hosts, so the navbar hides
+  the sign-in button while the bot cannot promise a login based on THIS table
+  (see `src/lib/watch/botLiveness.ts`) — two offline causes: a stale beat
+  (process down ≥ ~4 min) or a sustained `connected=0` streak (≥ ~5 min per
+  the SQL-maintained `disconnected_since` column — a banned/flagged account
+  or a never-approved Guard keeps beating fresh, and this is what catches
+  it). Transient reconnects (backoff cap 60s) never reach the window. The
+  write is best-effort: a DB blip never crashes the bot — it only degrades
+  to "site assumes online" until the next successful write.
 - Check: `pnpm run healthcheck:bot` — exit `0` fresh, `1` missing-or-stale
   (older than `BOT_HEARTBEAT_STALE_MS`), `2` misconfigured threshold.
 - Wire it to whatever watches the box (cron every minute, uptime monitor,
@@ -169,6 +180,8 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   `STEAM_BOT_STEAMID mismatch` (this process logged in as a different
   account than configured — EVERY login is gated on the configured id, so
   treat as a login outage until the envs agree on both sides),
+  `turso heartbeat write failed` (liveness bridge down — the site falls back
+  to "bot assumed online", so investigate but it does not crash anything),
   `invite poll done` (per-pass claimed/sent/retried/ dropped),
   `daily send cap reached` (abuse cap engaging — investigate the request
   source), `dropped after` (events hitting the attempt cap),
@@ -220,7 +233,11 @@ alone:
 ## 7. If the bot account is banned / flagged
 
 Symptoms: logon rejected (`InvalidPassword`/banned EResult), invites or messages
-failing 100% with Steam-side errors, or a Valve notice on the account. Plan B:
+failing 100% with Steam-side errors, or a Valve notice on the account. The
+site self-protects on its own: once the sustained disconnect passes ~5 min
+the navbar hides the sign-in button (fresh users are not stranded in the
+waiting room), and it returns automatically as soon as the NEW bot logs on —
+no site change needed during the swap. Plan B:
 
 1. Stop the bot (`SIGTERM`; confirm exit).
 2. Create a FRESH dedicated Steam account (never reuse a flagged one) and
