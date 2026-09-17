@@ -21,3 +21,33 @@ export interface WatchSessionData {
   steamId: string;
   expiresAt: number;
 }
+
+/**
+ * Short-lived pending-login cookie (login-first flow): sealed right after
+ * a successful OpenID assertion for a NOT-YET-friend, holding the verified
+ * identity until the waiting room observes the bot friendship and
+ * completes the login. Same seal as the session (iron-session +
+ * SESSION_SECRET), much shorter life — see pendingLogin.ts.
+ */
+export const PENDING_LOGIN_COOKIE = 'steamreveal_pending_login';
+
+/**
+ * Pending-login payload: the OpenID-verified SteamID64, the validated
+ * post-login destination (re-validated at completion — defense in depth),
+ * and an absolute expiry. Carries NO privilege by itself: completion
+ * re-proves the friendship server-side before sealing anything.
+ *
+ * The explicit `kind` tag is defense in depth against cross-cookie replay:
+ * both cookies share SESSION_SECRET with near-identical shapes, so a
+ * discriminator the validator REQUIRES (not merely carries) makes a
+ * pending value structurally unsealable as a session even if the lib ever
+ * stopped binding ciphertext to the cookie name. (The session side is
+ * deliberately untouched: requiring a tag there would mass-logout every
+ * sealed 30-day session on deploy.)
+ */
+export interface PendingLoginData {
+  kind: 'pending-login';
+  steamId: string;
+  next: string;
+  expiresAt: number;
+}

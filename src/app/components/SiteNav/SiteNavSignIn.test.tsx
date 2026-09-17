@@ -23,11 +23,9 @@ jest.mock('next-intl/navigation', () => ({
   }),
 }));
 
-const BOT_PROFILE = 'https://steamcommunity.com/profiles/76561199000000001';
-
 describe('SiteNavSignIn', () => {
   it('preserves the current page as the post-login destination', () => {
-    render(<SiteNavSignIn botProfileUrl={BOT_PROFILE} />);
+    render(<SiteNavSignIn />);
 
     expect(
       screen.getByRole('link', { name: 'watchNavSignIn' }),
@@ -39,30 +37,19 @@ describe('SiteNavSignIn', () => {
 
   it('falls back to the locale home without a pathname', () => {
     mockUsePathname.mockReturnValueOnce(null);
-    render(<SiteNavSignIn botProfileUrl={BOT_PROFILE} />);
+    render(<SiteNavSignIn />);
 
     expect(
       screen.getByRole('link', { name: 'watchNavSignIn' }),
     ).toHaveAttribute('href', '/api/auth/steam/login?next=%2Fpt%2F');
   });
 
-  it('renders the add-the-bot chip first (single-state step 1) when the URL is known', () => {
-    render(<SiteNavSignIn botProfileUrl={BOT_PROFILE} />);
+  it('renders ONLY the sign-in pill (login-first: no separate add-bot step)', () => {
+    render(<SiteNavSignIn />);
 
-    const chip = screen.getByRole('link', { name: /watchSignInAddBot/ });
-    expect(chip).toHaveAttribute('href', BOT_PROFILE);
-    // Opens Steam in a new tab: the user adds the friend and comes back.
-    expect(chip).toHaveAttribute('target', '_blank');
-    expect(chip).toHaveAttribute('rel', 'noreferrer');
-  });
-
-  it('hides the bot chip when the server env lacks a valid bot id (degraded cluster)', () => {
-    render(<SiteNavSignIn botProfileUrl={null} />);
-
-    expect(
-      screen.queryByRole('link', { name: /watchSignInAddBot/ }),
-    ).not.toBeInTheDocument();
-    // The sign-in pill survives — global chrome never breaks over env.
+    // The add-the-bot step moved into the waiting room: a single link
+    // here, never a chip + pill pair.
+    expect(screen.getAllByRole('link')).toHaveLength(1);
     expect(
       screen.getByRole('link', { name: 'watchNavSignIn' }),
     ).toBeInTheDocument();

@@ -7,9 +7,14 @@ const BOT = '76561199000000001';
 const USER = '76561198000000001';
 const OTHER = '76561198000000002';
 
+// Live wire shape (verified against the real endpoint): `friendslist` at
+// the TOP level — NOT wrapped in `response` like most Steam Web API
+// methods. Mocks MUST use this shape: a previous revision mocked the
+// wrapped shape to mirror the (wrong) implementation, which hid a total
+// login outage from the whole suite.
 const friendsResponse = (friends: unknown) => ({
   ok: true,
-  json: async () => ({ response: { friendslist: { friends } } }),
+  json: async () => ({ friendslist: { friends } }),
 });
 
 const friendEntry = (steamid: string) => ({
@@ -53,6 +58,18 @@ describe('isBotFriend', () => {
 
     mock.mockResolvedValue(friendsResponse([]));
     await expect(isBotFriend('fake-key', BOT, USER)).resolves.toBe(false);
+  });
+
+  it('still accepts the legacy response-wrapped shape (defensive fallback)', async () => {
+    const mock = fetchMock();
+    mock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        response: { friendslist: { friends: [friendEntry(USER)] } },
+      }),
+    });
+
+    await expect(isBotFriend('fake-key', BOT, USER)).resolves.toBe(true);
   });
 
   it('returns null for bad ids, missing keys, and non-ok responses (unknown, never throws)', async () => {

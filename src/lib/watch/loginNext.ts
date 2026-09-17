@@ -36,4 +36,15 @@ export const resolveLocaleHome = (locale: unknown): string => {
     : '/';
 };
 
+/**
+ * Locale for a watch row / login registry / bot message from the page the
+ * user was ON (`next` is locale-prefixed by resolveLoginNext —
+ * '/pt/player/x' -> 'pt'). Unknown shapes resolve to null (bot messages
+ * fall back to English), never block the login. Shared by the OpenID
+ * callback and the pending-login completion route — one parsing rule for
+ * both halves of the login.
+ */
+export const localeFromNextPath = (next: string): string | null =>
+  next.match(/^\/([a-z]{2})(?:\/|$)/i)?.[1]?.toLowerCase() ?? null;
+
 export default resolveLoginNext;

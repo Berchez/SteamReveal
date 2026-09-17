@@ -241,7 +241,12 @@ failing 100% with Steam-side errors, or a Valve notice on the account. Plan B:
    this, not just new invites:
    - Every login now gates on friendship with the NEW id, so ALL existing
      users (active included) must add the new bot and log in again — until
-     they do, their logins land on `?auth=nofriend`.
+     they do, their logins HOLD in the waiting room (`?login=waiting`, no
+     denial). That room is swap-safe by construction: its add-bot link is
+     env-driven, so post-swap it points at the NEW bot, and completing
+     from it re-inserts the watch as fresh-active (self-heal, no link
+     needed) — but only if the user actually opens it and clicks through;
+     silence from the user still reads as churn, so announce anyway.
    - The new bot starts with an EMPTY friends list, so its first reconcile
      DEACTIVATES every still-`active` watch whose user hasn't re-added yet
      (active + not-a-friend of the new bot reads as opt-out — same DAL call

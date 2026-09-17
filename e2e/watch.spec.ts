@@ -121,6 +121,79 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     ).toHaveCount(0);
   });
 
+  test('waiting room completes the login by itself once friendship appears', async ({
+    page,
+  }) => {
+    // Login-first flow, logged OUT, no session anywhere: the room polls
+    // the pending lane and navigates on completion — the server side
+    // (friendship proof, watch activation) is unit-covered, what E2E
+    // proves is the wiring: wait -> auto-navigate -> welcome toast.
+    const BOT_PROFILE = 'https://steamcommunity.com/profiles/76561199000000001';
+    let completed = false;
+    await page.route('**/api/auth/steam/pending', async (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(
+          completed
+            ? { done: true, redirect: '/en/?watch=new', botProfileUrl: BOT_PROFILE }
+            : { done: false, botProfileUrl: BOT_PROFILE },
+        ),
+      }),
+    );
+
+    await page.goto('/en/?login=waiting');
+    await expect(page.getByText('Finish signing in')).toBeVisible();
+    await expect(page.getByText(/To complete your login/)).toBeVisible();
+    // The bot link arrives on the first poll (server env stays server-side).
+    await expect(
+      page.getByRole('link', { name: 'Add the SteamReveal bot' }),
+    ).toHaveAttribute('href', BOT_PROFILE);
+
+    // Friendship appears on the bot side (mocked): the next ≤10s poll
+    // completes and the room navigates by itself — no second Steam dance.
+    completed = true;
+    await expect(page).toHaveURL(/\/en\/?\?watch=new/, { timeout: 20000 });
+    await expect(
+      page.getByText('Watch active! The bot will'),
+    ).toBeVisible();
+  });
+
+  test('expired wait shows the start-over screen (no polling past expiry)', async ({
+    page,
+  }) => {
+    let polls = 0;
+    await page.route('**/api/auth/steam/pending', async (route) => {
+      polls += 1;
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          done: false,
+          expired: true,
+          botProfileUrl: null,
+        }),
+      });
+    });
+
+    await page.goto('/en/?login=waiting');
+    await expect(
+      page.getByText('This login attempt expired.'),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'Sign in again' }),
+    ).toHaveAttribute('href', /\/api\/auth\/steam\/login\?next=/);
+
+    // Expired ends the loop and strips the param: no more polls, and a
+    // reload lands on the plain page instead of the room.
+    await expect(page).not.toHaveURL(/[?&]login=/);
+    // Past one full 10s interval: a runaway loop would poll again, a
+    // stopped one stays put. (Up to 2 initial polls: dev StrictMode mounts
+    // the effect twice — harmless idempotent GETs, not a loop.)
+    await page.waitForTimeout(11000);
+    expect(polls).toBeLessThanOrEqual(2);
+  });
+
   test('legacy /watch redirects home (flow lives in the navbar)', async ({
     page,
   }) => {

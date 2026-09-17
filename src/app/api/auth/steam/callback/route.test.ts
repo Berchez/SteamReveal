@@ -8,8 +8,12 @@ jest.mock('next/headers', () => ({
   cookies: jest.fn(),
 }));
 
-jest.mock('@/lib/watch/session', () => ({
-  saveWatchSession: jest.fn(),
+jest.mock('@/lib/watch/completeLogin', () => ({
+  completeProvenLogin: jest.fn(),
+}));
+
+jest.mock('@/lib/watch/pendingLogin', () => ({
+  savePendingLogin: jest.fn(),
 }));
 
 jest.mock('@/lib/getSteamApiKey', () => ({
@@ -28,11 +32,7 @@ jest.mock('@/lib/withTimeout', () => ({
   default: jest.fn((promise: Promise<unknown>) => promise),
 }));
 
-jest.mock('@/lib/analytics/db', () => ({
-  ensureActiveWatch: jest.fn(),
-  recordLogin: jest.fn(),
-  enqueueEvent: jest.fn(),
-}));
+
 
 jest.mock('@/lib/rateLimit', () => {
   const isRateLimited = jest.fn(() => false);
@@ -54,21 +54,19 @@ const { cookies } = jest.requireMock('next/headers') as {
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
   __testIsRateLimited: jest.Mock;
 };
-const { saveWatchSession } = jest.requireMock('@/lib/watch/session') as {
-  saveWatchSession: jest.Mock;
+const { savePendingLogin } = jest.requireMock('@/lib/watch/pendingLogin') as {
+  savePendingLogin: jest.Mock;
+};
+const { completeProvenLogin } = jest.requireMock(
+  '@/lib/watch/completeLogin',
+) as {
+  completeProvenLogin: jest.Mock;
 };
 const getSteamApiKey = jest.requireMock('@/lib/getSteamApiKey').default as jest.Mock;
 const { isBotFriend } = jest.requireMock('@/lib/steamFriendList') as {
   isBotFriend: jest.Mock;
 };
 const withTimeoutMock = jest.requireMock('@/lib/withTimeout').default as jest.Mock;
-const { ensureActiveWatch, recordLogin, enqueueEvent } = jest.requireMock(
-  '@/lib/analytics/db',
-) as {
-  ensureActiveWatch: jest.Mock;
-  recordLogin: jest.Mock;
-  enqueueEvent: jest.Mock;
-};
 const { verifySteamAssertion } = jest.requireMock(
   '@/lib/watch/steamOpenId',
 ) as {
@@ -80,15 +78,6 @@ const BOT = '76561199000000001';
 const BASE = 'http://localhost:3000';
 const CALLBACK = `${BASE}/api/auth/steam/callback`;
 const STATE = 'state-nonce-123';
-
-const ACTIVE_PROFILE = {
-  steamId: STEAM,
-  status: 'active',
-  locale: 'pt',
-  requestedAt: '2026-09-16T00:00:00.000Z',
-  activatedAt: '2026-09-16T00:00:00.000Z',
-  lastNotifiedAt: null,
-};
 
 const callbackUrl = (extra = '') =>
   `${CALLBACK}?openid.mode=id_res&openid.claimed_id=https%3A%2F%2Fsteamcommunity.com%2Fopenid%2Fid%2F${STEAM}&openid.sig=abc&next=/pt/watch${extra}`;
@@ -103,17 +92,13 @@ describe('GET /api/auth/steam/callback', () => {
         name === 'steamreveal_oauth_state' ? { value: STATE } : undefined,
     });
     verifySteamAssertion.mockResolvedValue(STEAM);
-    saveWatchSession.mockResolvedValue(undefined);
+    savePendingLogin.mockResolvedValue(undefined);
     // Single-state gate defaults: configured env + an existing friend.
     getSteamApiKey.mockReturnValue('test-api-key');
     process.env.STEAM_BOT_STEAMID = BOT;
     isBotFriend.mockResolvedValue(true);
-    ensureActiveWatch.mockResolvedValue({
-      profile: ACTIVE_PROFILE,
-      activated: false,
-    });
-    recordLogin.mockResolvedValue({ ...ACTIVE_PROFILE, createdAt: ACTIVE_PROFILE.requestedAt });
-    enqueueEvent.mockResolvedValue({ eventId: 1, duplicate: false });
+    // Shared completion defaults to the idempotent re-login (no welcome).
+    completeProvenLogin.mockResolvedValue({ activated: false, locale: 'pt' });
   });
 
   afterEach(() => {
@@ -121,7 +106,7 @@ describe('GET /api/auth/steam/callback', () => {
     jest.restoreAllMocks();
   });
 
-  it('verifies state, gates on friendship, ensures the watch, records the login, seals the session', async () => {
+  it('verifies state, gates on friendship, and completes via the shared helper', async () => {
     const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
 
     expect(res.status).toBe(302);
@@ -129,49 +114,43 @@ describe('GET /api/auth/steam/callback', () => {
     expect(res.headers.get('location')).toBe(`${BASE}/pt/watch`);
     expect(isBotFriend).toHaveBeenCalledTimes(1);
     expect(isBotFriend).toHaveBeenCalledWith('test-api-key', BOT, STEAM);
-    // Locale for the watch/login rows comes from the page the user was
-    // on (next carries the locale prefix).
-    expect(ensureActiveWatch).toHaveBeenCalledWith(STEAM, 'pt');
-    expect(recordLogin).toHaveBeenCalledWith(STEAM, 'pt');
-    expect(enqueueEvent).not.toHaveBeenCalled();
-    expect(saveWatchSession).toHaveBeenCalledTimes(1);
+    // One call carries steamId + destination + log scope (the helper owns
+    // ensure/record/welcome/seal — asserted in completeLogin.test.ts).
+    expect(completeProvenLogin).toHaveBeenCalledTimes(1);
+    expect(completeProvenLogin).toHaveBeenCalledWith(
+      expect.anything(),
+      STEAM,
+      '/pt/watch',
+      'steamCallback',
+    );
     // Single-use nonce: consumed on success…
     expect(res.headers.get('set-cookie')).toContain(
       'steamreveal_oauth_state=;',
     );
   });
 
-  it('first login (activated=true): enqueues ONE welcome and lands with the one-shot watch param', async () => {
-    ensureActiveWatch.mockResolvedValueOnce({
-      profile: ACTIVE_PROFILE,
+  it('first login (activated=true): lands with the one-shot watch param', async () => {
+    completeProvenLogin.mockResolvedValueOnce({
       activated: true,
+      locale: 'pt',
     });
 
     const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
 
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe(`${BASE}/pt/watch?watch=new`);
-    expect(enqueueEvent).toHaveBeenCalledTimes(1);
-    expect(enqueueEvent).toHaveBeenCalledWith(STEAM, 'welcome');
-    expect(saveWatchSession).toHaveBeenCalledTimes(1);
   });
 
-  it('confirm-lane re-login (pending preserved, activated=false): session seals, no welcome, no watch param', async () => {
-    // ensureActiveWatch leaves pending rows with an unconfirmed account
-    // alone (the outstanding link click owns them) — the login still
-    // succeeds, it just does not activate or welcome.
-    ensureActiveWatch.mockResolvedValueOnce({
-      profile: { ...ACTIVE_PROFILE, status: 'pending', activatedAt: null },
-      activated: false,
-    });
+  it('confirm-lane re-login (activated=false): lands clean, no watch param', async () => {
+    // Pending-preservation lives in the shared helper (pinned there and
+    // in the DAL) — the route just honors activated=false.
+    completeProvenLogin.mockResolvedValueOnce({ activated: false, locale: 'pt' });
 
     const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
 
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe(`${BASE}/pt/watch`);
-    expect(recordLogin).toHaveBeenCalledTimes(1);
-    expect(enqueueEvent).not.toHaveBeenCalled();
-    expect(saveWatchSession).toHaveBeenCalledTimes(1);
+    expect(completeProvenLogin).toHaveBeenCalledTimes(1);
   });
 
   it('rejects mismatched, missing, or absent state before touching Steam or the gate', async () => {
@@ -192,7 +171,7 @@ describe('GET /api/auth/steam/callback', () => {
 
     expect(verifySteamAssertion).not.toHaveBeenCalled();
     expect(isBotFriend).not.toHaveBeenCalled();
-    expect(saveWatchSession).not.toHaveBeenCalled();
+    expect(completeProvenLogin).not.toHaveBeenCalled();
   });
 
   it('redirects to next?auth=error when Steam rejects the assertion (gate untouched)', async () => {
@@ -203,23 +182,27 @@ describe('GET /api/auth/steam/callback', () => {
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe(`${BASE}/pt/watch?auth=error`);
     expect(isBotFriend).not.toHaveBeenCalled();
-    expect(saveWatchSession).not.toHaveBeenCalled();
+    expect(completeProvenLogin).not.toHaveBeenCalled();
   });
 
-  it('denies a non-friend with the distinct auth=nofriend landing (no session, no writes)', async () => {
+  it('holds (never denies) a non-friend in the waiting room: pending sealed, no session, no writes', async () => {
     isBotFriend.mockResolvedValueOnce(false);
 
     const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
 
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe(
-      `${BASE}/pt/watch?auth=nofriend`,
+      `${BASE}/pt/watch?login=waiting`,
     );
-    expect(saveWatchSession).not.toHaveBeenCalled();
-    expect(ensureActiveWatch).not.toHaveBeenCalled();
-    expect(recordLogin).not.toHaveBeenCalled();
-    expect(enqueueEvent).not.toHaveBeenCalled();
-    // Single-use nonce is consumed on the denial too.
+    // The verified identity is held for the waiting room — nothing else.
+    expect(savePendingLogin).toHaveBeenCalledTimes(1);
+    expect(savePendingLogin).toHaveBeenCalledWith(
+      expect.anything(),
+      STEAM,
+      '/pt/watch',
+    );
+    expect(completeProvenLogin).not.toHaveBeenCalled();
+    // Single-use nonce is consumed on the hold too.
     expect(res.headers.get('set-cookie')).toContain(
       'steamreveal_oauth_state=;',
     );
@@ -232,8 +215,7 @@ describe('GET /api/auth/steam/callback', () => {
 
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe(`${BASE}/pt/watch?auth=error`);
-    expect(saveWatchSession).not.toHaveBeenCalled();
-    expect(ensureActiveWatch).not.toHaveBeenCalled();
+    expect(completeProvenLogin).not.toHaveBeenCalled();
 
     // Same fail-closed posture when the bounded check itself times out.
     withTimeoutMock.mockRejectedValueOnce(
@@ -243,7 +225,7 @@ describe('GET /api/auth/steam/callback', () => {
     expect(timedOut.headers.get('location')).toBe(
       `${BASE}/pt/watch?auth=error`,
     );
-    expect(saveWatchSession).not.toHaveBeenCalled();
+    expect(completeProvenLogin).not.toHaveBeenCalled();
   });
 
   it('denies fail-closed when the gate is misconfigured (missing key or bad bot id)', async () => {
@@ -252,7 +234,7 @@ describe('GET /api/auth/steam/callback', () => {
     const noKey = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
     expect(noKey.headers.get('location')).toBe(`${BASE}/pt/watch?auth=error`);
     expect(isBotFriend).not.toHaveBeenCalled();
-    expect(saveWatchSession).not.toHaveBeenCalled();
+    expect(completeProvenLogin).not.toHaveBeenCalled();
 
     process.env.STEAM_BOT_STEAMID = 'not-a-steamid';
     const badBotId = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
@@ -262,49 +244,22 @@ describe('GET /api/auth/steam/callback', () => {
     expect(isBotFriend).not.toHaveBeenCalled();
   });
 
-  it('denies login (no session) when ensureActiveWatch fails — the invariant is enforced here', async () => {
-    ensureActiveWatch.mockRejectedValueOnce(new Error('db down'));
+  it('denies login (no session) when the shared completion fails — the invariant is enforced here', async () => {
+    completeProvenLogin.mockRejectedValueOnce(new Error('db down'));
 
     const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
 
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe(`${BASE}/pt/watch?auth=error`);
-    expect(saveWatchSession).not.toHaveBeenCalled();
-    expect(enqueueEvent).not.toHaveBeenCalled();
   });
 
-  it('a failed recordLogin never costs the login (audit is non-fatal)', async () => {
-    recordLogin.mockRejectedValueOnce(new Error('audit down'));
-
-    const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
-
-    expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe(`${BASE}/pt/watch`);
-    expect(saveWatchSession).toHaveBeenCalledTimes(1);
-  });
-
-  it('a failed welcome enqueue is retried 3x and never costs the login', async () => {
-    ensureActiveWatch.mockResolvedValueOnce({
-      profile: ACTIVE_PROFILE,
-      activated: true,
-    });
-    enqueueEvent.mockRejectedValue(new Error('outbox down'));
-
-    const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
-
-    expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe(`${BASE}/pt/watch?watch=new`);
-    expect(enqueueEvent).toHaveBeenCalledTimes(3);
-    expect(saveWatchSession).toHaveBeenCalledTimes(1);
-  });
-
-  it('redirects to next?auth=error when verification or save blows up', async () => {
+  it('redirects to next?auth=error when verification or completion blows up', async () => {
     verifySteamAssertion.mockRejectedValueOnce(new Error('socket hang up'));
     const first = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
     expect(first.headers.get('location')).toBe(`${BASE}/pt/watch?auth=error`);
 
     verifySteamAssertion.mockResolvedValueOnce(STEAM);
-    saveWatchSession.mockRejectedValueOnce(new Error('db down'));
+    completeProvenLogin.mockRejectedValueOnce(new Error('db down'));
     const second = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
     expect(second.headers.get('location')).toBe(`${BASE}/pt/watch?auth=error`);
   });
@@ -319,8 +274,15 @@ describe('GET /api/auth/steam/callback', () => {
     // Success path still lands on the safe fallback — never the evil URL.
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe(`${BASE}/`);
-    // Bare next carries no locale: the watch/login rows record null.
-    expect(ensureActiveWatch).toHaveBeenCalledWith(STEAM, null);
+    // The raw destination rides into the shared completion (locale
+    // resolution for a bare `/` happens there — asserted in
+    // completeLogin.test.ts).
+    expect(completeProvenLogin).toHaveBeenCalledWith(
+      expect.anything(),
+      STEAM,
+      '/',
+      'steamCallback',
+    );
 
     verifySteamAssertion.mockResolvedValueOnce(null);
     const failed = await GET(

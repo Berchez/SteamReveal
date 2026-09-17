@@ -1,16 +1,18 @@
 # QA Core — Watch happy path (bot com conta limitada)
 
 Versão resumida de `WATCH_MANUAL_QA.md`: só o núcleo feliz
-(amizade → login → notify → inbox → opt-out), mais a lane legada
+(login → espera → amizade → notify → inbox → opt-out), mais a lane legada
 (Start → link → clique) para o re-watch pós-opt-out.
 Casos de borda, expiração, throttling, erros, i18n e segurança ficam no
 doc completo — ver "Fora de escopo" no fim.
 
-> Modelo single-state: usuário novo deslogado NUNCA aperta Start — a
-> ordem é **adicionar o bot PRIMEIRO, entrar DEPOIS** (o login já ativa
-> direto, sem pending/link). A lane Start→pending→link→clique segue viva
-> só para o re-watch pós-opt-out (o cookie sobrevive ao unfriend) e para
-> tokens legados — QA-C02/C03 cobrem essa lane.
+> Modelo single-state login-first: usuário novo deslogado NUNCA aperta
+> Start e NÃO precisa de ordem — **entra primeiro, a sala de espera
+> segura o login verificado e conclui sozinha quando a amizade aparece**
+> (quem adiciona o bot antes pula a sala). A lane
+> Start→pending→link→clique segue viva só para o re-watch pós-opt-out
+> (o cookie sobrevive ao unfriend) e para tokens legados — QA-C02/C03
+> cobrem essa lane.
 
 > Escopo: comportamento observável com contas Steam reais + banco Turso
 > de DEV. **Nunca rode contra produção.**
@@ -84,24 +86,26 @@ pendente para o próximo sweep/dia, não é perda. Com `.env` default
 
 ---
 
-## 1. QA-C01 — Amizade → login → active direto (lane nova, sem Start)
+## 1. QA-C01 — Login → espera → amizade → active sozinho (lane nova, sem Start)
 
-1. Navegador limpo: `http://localhost:3000/en` → mostra o cluster
-   deslogado (**Add the SteamReveal bot** + **Sign in**), sem sino/avatar.
-2. **Negativo primeiro (30 segundos, vale ouro):** clique **Sign in**
-   SEM ter adicionado o bot → volta em `/en/?auth=nofriend` + toast
-   "Add the SteamReveal bot as a friend on Steam first" — e SEGUE
-   deslogado (sem avatar, sem cookie `steamreveal_watch_session`). Prova
-   que o gate barra sem amizade.
-3. **Adicione o bot** na Steam do testador (perfil pela URL direta, §0.1)
-   e aguarde o `accepted inbound friend request` no log.
-4. **Sign in with Steam** (conta testadora) → volta logado com o toast
-   `Watch active! ...` (landing `?watch=new`, some sozinho; reload não
+1. Navegador limpo: `http://localhost:3000/en` → mostra SÓ **Sign in**
+   (sem chip separado), sem sino/avatar.
+2. **Sign in with Steam** (conta testadora) SEM ter adicionado o bot →
+   volta em `/en/?login=waiting` com a sala **"Conclua seu login"** (sem
+   erro, sem sessão ainda: sem avatar, sem cookie
+   `steamreveal_watch_session`). Prova que o login segura em vez de negar.
+3. **Adicione o bot** na Steam do testador (botão da sala, perfil em nova
+   aba, §0.1) e aguarde o `accepted inbound friend request` no log.
+4. Sem clicar em mais nada: em ~10s a sala conclui sozinha → landing
+   `?watch=new` + toast `Watch active! ...` (some sozinho; reload não
    repete) e o avatar aparece.
 5. Abra o avatar → heading `Watching` (nunca `Invite sent` — não houve
    Start). Banco: `watched_profiles.status='active'` + `activated_at`;
    `accounts.last_login_at` preenchido.
 6. Cookie `steamreveal_watch_session` presente.
+7. **Reload no meio da espera:** recarregue `/en/?login=waiting` antes de
+   adicionar o bot → a sala volta e continua esperando (o pendente
+   sobrevive a reload); o poll segue sem duplicar nada.
 
 ## 2. QA-C02 — Página de confirmação, lane legada (só o clique confirma)
 
@@ -172,7 +176,7 @@ sino some, cookie some.
 
 ## Checklist final de aceite (core)
 
-- [ ] QA-C01 verde (sem amizade → `auth=nofriend` sem sessão; com amizade → login ativa direto + toast `watch=new`, sem Start)
+- [ ] QA-C01 verde (sem amizade → sala `?login=waiting` sem erro; adiciona o bot → conclui sozinha + toast `watch=new`, sem Start, sem segundo login)
 - [ ] QA-C02 verde (lane legada: só o clique confirma; sem JS o form sobrevive a reloads)
 - [ ] QA-C03 verde (`confirmed_at` + `active` + welcome no chat + toast)
 - [ ] QA-C04 verde (notify no chat + item no sino + badge zera; cooldown só no bot)

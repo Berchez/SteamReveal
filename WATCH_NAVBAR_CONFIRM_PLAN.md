@@ -129,18 +129,26 @@ CREATE TABLE IF NOT EXISTS accounts (
 
 ## 13. Emenda — modelo single-state (login gated por amizade)
 
- Troca o funil para usuários novos deslogados: **adicionar o bot → Sign in
- with Steam → watch `active` direto** (sem Start, sem pending, sem link).
- O que muda e o que NÃO muda:
+ Troca o funil para usuários novos deslogados: **Sign in with Steam →
+ sala de espera → adiciona o bot → login conclui sozinho → watch `active`
+ direto** (sem Start, sem pending, sem link; quem adiciona o bot ANTES
+ pula a sala). Não existe mais ordem obrigatória. O que muda e o que
+ NÃO muda:
 
 - **Callback OpenID** (`callback/route.ts`): 3º gate — `isBotFriend` via
   `GetFriendList` da conta `STEAM_BOT_STEAMID` (lista do bot tem que ficar
-  PÚBLICA), 8s timeout, fail-closed (`false` → `?auth=nofriend` com toast
-  que ensina o fluxo; `null`/env ruim → `?auth=error`, sem sessão).
-  Ordem load-bearing: `ensureActiveWatch` (fatal) → `recordLogin` (audit,
-  non-fatal, migration 010) → welcome UMA vez se ativou (3 tentativas,
-  non-fatal) → `saveWatchSession`. `?watch=new` é o único sinal de
-  "watch live" (não existe mais pending para estrear).
+  PÚBLICA), 8s timeout. Já-amigo completa na hora; `false` SEGURA o login
+  verificado num pendente selado de 30min e cai na sala de espera
+  (`?login=waiting`, poll de 10s em `GET /api/auth/steam/pending` que
+  re-prova tudo server-side e conclui sozinho — sem segundo OpenID);
+  `null`/env ruim → `?auth=error` fail-closed, sem sessão.
+  Ordem load-bearing em `completeLogin.ts` (única implementação, usada pelo
+  callback E pela conclusão): `ensureActiveWatch` (fatal) → `recordLogin`
+  (audit, non-fatal, migration 010) → `saveWatchSession` → welcome UMA vez
+  se ativou (3 tentativas, non-fatal) → (+ limpa o pendente na rota pending).
+  Seal-antes-welcome de propósito: falha no seal nunca deixa um welcome
+  órfão. `?watch=new` é o único sinal de "watch live" (não existe mais
+  pending para estrear).
 - **Bot aceita inbound** (`bot.ts`): `RequestRecipient` → `addFriend`
   (live + sweep de chegadas offline, sequencial). LIMITADO no sink:
   `BOT_AUTO_ACCEPT_DAILY_LIMIT` (50/dia UTC, só sucesso consome) +

@@ -62,9 +62,11 @@ Para voltar ao normal, apague as linhas e reinicie o bot.
 
 ## 1. Jornada feliz (base de tudo)
 
-> Duas lanes (modelo single-state): **(a) lane nova** — usuário deslogado
-> adiciona o bot PRIMEIRO e o login ativa direto (`active`, sem Start nem
-> link; ver `WATCH_MANUAL_QA_CORE.md` QA-C01 para o roteiro curto); **(b)
+> Duas lanes (modelo single-state login-first): **(a) lane nova** — usuário
+> deslogado entra primeiro e cai na sala de espera (`?login=waiting`, sem
+> erro); adiciona o bot e o login conclui sozinho (`active`, sem Start nem
+> link; ver `WATCH_MANUAL_QA_CORE.md` QA-C01 para o roteiro curto — sem
+> ordem obrigatória: quem adiciona antes pula a sala); **(b)
 > lane legada/confirmação** — abaixo (QA-01→QA-03), via Start com sessão
 > (re-watch pós-opt-out com cookie sobrevivente, ou tokens antigos): Start
 > → pending → convite do bot → link → clique. O `invitePoller` segue ativo
@@ -77,9 +79,8 @@ Para voltar ao normal, apague as linhas e reinicie o bot.
 1. Navegador limpo: `http://localhost:3000/en` → mostra **Sign in**, sem
    sino/avatar.
 2. **Sign in with Steam** → login real → volta logado (avatar aparece).
-   (Conta nova SEM amizade prévia cai em `?auth=nofriend` sem sessão — para
-   a lane (b), adicione o bot antes OU use sessão de re-watch; a lane (a)
-   está no doc core.)
+   (Conta nova SEM amizade prévia cai na sala `?login=waiting` — para a
+   lane (b), use sessão de re-watch; a lane (a) está no doc core.)
 3. Abra o avatar → `Watch a Steam profile` + `Watch your profile`. Logout (Sign
    out) visível ao lado.
 4. Clique `Watch your profile` → heading `Invite sent`.

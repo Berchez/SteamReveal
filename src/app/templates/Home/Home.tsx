@@ -9,6 +9,7 @@ import targetInfoJsonType, {
 } from '@/@types/targetInfoJsonType';
 
 import QueryToast from '@/app/components/QueryToast';
+import PendingLoginRoom from '@/app/components/PendingLoginRoom';
 
 import { HomeDataContext, HomeActionsContext } from './context';
 import VideoBackground from './sections/VideoBackground';
@@ -120,6 +121,11 @@ export default function Home({
           and the failed Steam callback leg (?auth=error). The toast strips
           its own param. */}
       <QueryToast />
+      {/* Login-first waiting room (?login=waiting): the OpenID identity is
+          already proven, only the bot friendship is outstanding. Polls the
+          pending route until it completes the login by itself; renders
+          null without the param. */}
+      <PendingLoginRoom />
       {showSponsorMe && (
         <SponsorMe
           onClose={() => onCloseSponsorMe(0)}

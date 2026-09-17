@@ -112,20 +112,6 @@ describe('QueryToast', () => {
     expect(replaceState.mock.calls[0][2]).not.toContain('watch');
   });
 
-  it('fires the add-the-bot-first denial (auth=nofriend) and strips the param', async () => {
-    SEARCH('?auth=nofriend');
-    render(<QueryToast />);
-    await settle();
-
-    expect(toastError).toHaveBeenCalledTimes(1);
-    expect(toastError).toHaveBeenCalledWith('watchLoginNoFriend', {
-      containerId: 'query-toast',
-      role: 'alert',
-    });
-    expect(replaceState).toHaveBeenCalledTimes(1);
-    expect(replaceState.mock.calls[0][2]).not.toContain('auth');
-  });
-
   it('ignores unknown param values', async () => {
     SEARCH('?confirmed=maybe&auth=nope');
     render(<QueryToast />);

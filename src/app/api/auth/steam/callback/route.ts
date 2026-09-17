@@ -7,14 +7,10 @@ import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { isSteamId64 } from '@/lib/steamId';
-import { isBotFriend } from '@/lib/steamFriendList';
+import { BOT_FRIENDSHIP_TIMEOUT_MS, isBotFriend } from '@/lib/steamFriendList';
 import withTimeout from '@/lib/withTimeout';
-import {
-  ensureActiveWatch,
-  enqueueEvent,
-  recordLogin,
-} from '@/lib/analytics/db';
-import { saveWatchSession } from '@/lib/watch/session';
+import { completeProvenLogin } from '@/lib/watch/completeLogin';
+import { savePendingLogin } from '@/lib/watch/pendingLogin';
 import { WATCH_OAUTH_STATE_COOKIE } from '@/lib/watch/sessionCookie';
 import { isSafeNextPath, verifySteamAssertion } from '@/lib/watch/steamOpenId';
 import timingSafeEqualStrings from '@/lib/timingSafeEqualStrings';
@@ -35,31 +31,6 @@ const callbackRateLimiter = createRateLimiter(
 );
 
 /**
- * Bounded friendship check: a hung GetFriendList must fail the login
- * visibly (fail-closed), not wedge it for the default fetch timeout.
- * Same accepted limitation as everywhere withTimeout is used: the
- * underlying request is not aborted, only our wait for it.
- */
-const FRIENDSHIP_TIMEOUT_MS = 8000;
-
-/**
- * Welcome-enqueue retries (mirrors the confirm route's 3-attempt
- * discipline): a single DB blip must not silently eat the only welcome
- * — nothing re-emits it later under the single-state model (reconcile
- * only activates pending rows; this row is already active).
- */
-const WELCOME_ATTEMPTS = 3;
-
-/**
- * Locale for the watch row / login registry / bot messages: the page the
- * user is ON carries it (`next` is locale-prefixed by resolveLoginNext
- * — '/pt/player/x' -> 'pt'). Unknown shapes resolve to null (bot
- * messages fall back to English), never block the login.
- */
-const localeFromNext = (next: string): string | null =>
-  next.match(/^\/([a-z]{2})(?:\/|$)/i)?.[1]?.toLowerCase() ?? null;
-
-/**
  * Steam OpenID callback: Steam GETs the signed assertion here after the
  * user approves. Three independent gates, all required:
  * 1. login-CSRF `state`: the query nonce must match the single-use cookie
@@ -69,31 +40,33 @@ const localeFromNext = (next: string): string | null =>
  *    by design: replaying a captured callback URL a second time fails).
  * 2. direct verification: the assertion is replayed (check_authentication)
  *    and the SteamID64 is trusted ONLY on `is_valid:true`.
- * 3. single-state friendship gate (NEW): the user must ALREADY have the
- *    main bot as a Steam friend (GetFriendList against the bot's own
- *    list — it must stay public). Friendship IS the explicit opt-in act
- *    under the single-state model: adding the bot is how you say "watch
- *    me". Not friends -> `next?auth=nofriend` (distinct toast + the
- *    sign-in panel explains the flow); unknown (Steam API down, private
- *    list, misconfigured env) -> the generic `?auth=error`, FAIL-CLOSED
- *    by decision (a login is already Steam-dependent, so this adds no
- *    new dependency class).
+ * 3. single-state friendship gate: the main bot as a Steam friend
+ *    (GetFriendList against the bot's own list — it must stay public).
+ *    Friendship IS the explicit opt-in act under the single-state model:
+ *    adding the bot is how you say "watch me". Already friends -> the
+ *    watch activates and the session seals right here. Not friends -> the
+ *    login is HELD, not denied: a short-lived pending login is sealed and
+ *    the browser lands on the waiting room (`next?login=waiting`), which
+ *    completes the login by itself once the friendship appears — no second
+ *    OpenID dance. Unknown (Steam API down, private list, misconfigured
+ *    env) -> the generic `?auth=error`, FAIL-CLOSED by decision (a login
+ *    is already Steam-dependent, so this adds no new dependency class;
+ *    and waiting cannot help while the gate itself is broken).
  *
-  * Single-state invariant enforced HERE (the only production login path):
-  * fresh logins ALWAYS leave with an ACTIVE watch row (inserted directly),
-  * while a re-login on a confirm-lane pending row (unconfirmed account —
-  * link not yet clicked) preserves the pending state and still seals the
-  * session (login succeeds; the click stays the sole activator). Order is
-  * load-bearing: ensureActiveWatch (fatal) -> recordLogin (audit,
-  * non-fatal) -> welcome once (non-fatal, retried) -> saveWatchSession.
-  * The residual window for a stale sealed cookie after an unfriend is
-  * bounded by the co-checks in the authed routes (status/notifications)
-  * and documented in the PROD_READINESS backlog.
+  * Single-state invariant: fresh logins ALWAYS leave with an ACTIVE watch
+  * row (inserted directly), while a re-login on a confirm-lane pending row
+  * (unconfirmed account — link not yet clicked) preserves the pending state
+  * and still seals the session (login succeeds; the click stays the sole
+  * activator). The completion order is load-bearing and lives in ONE place
+  * (`completeProvenLogin`, shared with the pending route) — this file owns
+  * only the gates above, never the order. The residual window for a stale
+  * sealed cookie after an unfriend is bounded by the co-checks in the
+  * authed routes (status/notifications) and documented in the PROD_READINESS
+  * backlog.
  *
- * Every failure mode lands on `next?auth=error` (or `?auth=nofriend`
- * for the friendship denial), where the home page's one-shot toast shows
- * the error state — never a JSON blob or a stack trace in the browser
- * flow.
+ * Every failure mode lands on `next?auth=error`, where the home page's
+ * one-shot toast shows the error state — never a JSON blob or a stack
+ * trace in the browser flow.
  */
 export async function GET(req: Request) {
   // App Router only routes GET here; kept as defense-in-depth (and so unit
@@ -120,12 +93,12 @@ export async function GET(req: Request) {
     failure.searchParams.set('auth', 'error');
     return failure.toString();
   })();
-  // Distinct denial for the friendship gate: the pre-login panel and this
-  // toast are the two surfaces that teach the add-the-bot-first flow.
-  const nofriendUrl = (() => {
-    const denial = new URL(`${url.origin}${next}`);
-    denial.searchParams.set('auth', 'nofriend');
-    return denial.toString();
+  // Waiting-room landing for the login-first flow: the OpenID identity is
+  // already proven, only the friendship is outstanding.
+  const waitingUrl = (() => {
+    const waiting = new URL(`${url.origin}${next}`);
+    waiting.searchParams.set('login', 'waiting');
+    return waiting.toString();
   })();
   const clearStateCookie = (response: NextResponse): NextResponse => {
     response.cookies.set(WATCH_OAUTH_STATE_COOKIE, '', {
@@ -172,7 +145,7 @@ export async function GET(req: Request) {
       isFriend = await withTimeout(
         isBotFriend(apiKey, botSteamId, steamId),
         'steamCallback: GetFriendList',
-        FRIENDSHIP_TIMEOUT_MS,
+        BOT_FRIENDSHIP_TIMEOUT_MS,
       );
     } catch (error) {
       logRouteError('steamCallback:friendship', sanitizeError(error), {
@@ -181,7 +154,12 @@ export async function GET(req: Request) {
       isFriend = null;
     }
     if (isFriend === false) {
-      return clearStateCookie(NextResponse.redirect(nofriendUrl, 302));
+      // Login-first flow: HOLD the verified identity instead of denying.
+      // The waiting room completes the login by itself once the friendship
+      // appears (pending route re-proves it server-side). Nothing is
+      // sealed and nothing is written here — the wait simply begins.
+      await savePendingLogin(cookies(), steamId, next);
+      return clearStateCookie(NextResponse.redirect(waitingUrl, 302));
     }
     if (isFriend !== true) {
       logRouteError(
@@ -193,39 +171,14 @@ export async function GET(req: Request) {
     }
 
     // ---- Single-state invariant: active watch BEFORE session ----
-    const locale = localeFromNext(next);
-    const { activated } = await ensureActiveWatch(steamId, locale);
-    // Login registry (ops audit): non-fatal by contract — a failed audit
-    // write costs a log line, never the login (the watch row above is the
-    // load-bearing state; this row only answers "who logs in, when").
-    try {
-      await recordLogin(steamId, locale);
-    } catch (error) {
-      logRouteError('steamCallback:recordLogin', sanitizeError(error), {
-        steamId,
-      });
-    }
-    // Welcome once: ONLY the call that actually flipped the row (fresh
-    // insert or confirmed/grandfathered pending flip) enqueues it —
-    // idempotent re-logins and confirm-lane preservations stay silent.
-    // Retried; still non-fatal (login > welcome).
-    if (activated) {
-      let welcomed = false;
-      for (let attempt = 0; attempt < WELCOME_ATTEMPTS && !welcomed; attempt += 1) {
-        try {
-          // eslint-disable-next-line no-await-in-loop
-          await enqueueEvent(steamId, 'welcome');
-          welcomed = true;
-        } catch (error) {
-          logRouteError('steamCallback:welcome', sanitizeError(error), {
-            steamId,
-            attempt: attempt + 1,
-          });
-        }
-      }
-    }
-
-    await saveWatchSession(cookies(), steamId);
+    // Shared completion (see completeLogin.ts — the same order the pending
+    // route runs; one implementation, never two copies to drift).
+    const { activated } = await completeProvenLogin(
+      cookies(),
+      steamId,
+      next,
+      'steamCallback',
+    );
     const success = new URL(`${url.origin}${next}`);
     // First-login one-shot toast param (QueryToast fires watchWelcome
     // once and strips it): the poll-based pending->active toast is dead

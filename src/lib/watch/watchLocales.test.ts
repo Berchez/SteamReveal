@@ -34,15 +34,20 @@ const INBOX_KEYS = [
   'watchInboxCheaterChecked',
 ];
 
-// Navbar login-flow keys (SiteNavSignIn + QueryToast). Pinned explicitly
-// because the set-parity test above cannot catch a key missing from ALL
-// FIVE files uniformly (the sets would still be identical) — and a raw
-// key string rendering in the navbar is exactly the silent drift this
-// suite exists to prevent.
+// Navbar login-flow keys (SiteNavSignIn + QueryToast + PendingLoginRoom).
+// Pinned explicitly because the set-parity test above cannot catch a key
+// missing from ALL FIVE files uniformly (the sets would still be
+// identical) — and a raw key string rendering in the navbar is exactly
+// the silent drift this suite exists to prevent.
 const NAV_KEYS = [
   'watchNavSignIn',
-  'watchSignInAddBot',
-  'watchLoginNoFriend',
+  'watchWaitTitle',
+  'watchWaitBody',
+  'watchWaitAddBot',
+  'watchWaitWaiting',
+  'watchWaitExpired',
+  'watchWaitRetry',
+  'watchWaitNoScript',
 ];
 
 const ITEM_BODY_KEYS = ['watchInboxItemCheckedBody', 'watchInboxItemPlainBody'];
