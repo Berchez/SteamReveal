@@ -217,6 +217,27 @@ describe('POST /api/recordAnalytics', () => {
     expect(recordSearch).toHaveBeenCalledTimes(1);
   });
 
+  it('records normally when the anti-loop consume throws (fail-open, never a 500 for a plain search)', async () => {
+    // A DB blip inside the secondary suppression feature must degrade to
+    // "record normally": the search is the product, the loop guard is not.
+    consumeAntiLoopToken.mockRejectedValue(new Error('db down'));
+    recordSearch.mockResolvedValue({ id: 'unittest-id' });
+
+    const res = await POST(
+      makeRequest({
+        jsonBody: {
+          profile: { steamId: '76561198000000000' },
+          antiLoopToken: 'ab'.repeat(32),
+        },
+      }),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ ok: true, id: 'unittest-id' });
+    expect(recordSearch).toHaveBeenCalledTimes(1);
+  });
+
   it('records a valid payload directly into Turso', async () => {
     recordSearch.mockResolvedValue({ id: 'unittest-id' });
 

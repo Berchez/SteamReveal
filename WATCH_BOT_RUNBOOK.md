@@ -122,6 +122,12 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   restarts on exit), e.g. a unit whose `ExecStart` is the command above with the
   env file loaded. Single instance only: two bots on one account kick each other
   off Steam.
+- Restart policy for the fatal config exit (code **78**, `EX_CONFIG` — identity
+  mismatch, see below): do NOT rapid-restart on 78. Every restart burns a Steam
+  logon against wrong credentials, and fast logon churn invites Steam-side
+  throttling that outlasts the env fix. systemd: `RestartPreventExitStatus=78`;
+  pm2: `--stop-exit-codes 78`; Docker: cap retries (`on-failure:N`) rather than
+  `always`. Normal crashes still exit non-zero-other and SHOULD restart.
 - Stop gracefully with SIGINT/SIGTERM: the bot stops timers, calls `logOff`, and
   exits ~500ms later so the socket write flushes. Never SIGKILL except as a last
   resort (a killed mid-send worker leaves a `claimed` row for the stale sweep to
@@ -178,8 +184,13 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   request source for Sybil), `pending-accept sweep paused` (offline-arrival
   backlog deferred to a later sweep, same incident class),
   `STEAM_BOT_STEAMID mismatch` (this process logged in as a different
-  account than configured — EVERY login is gated on the configured id, so
-  treat as a login outage until the envs agree on both sides),
+  account than configured — FATAL by design: the bot stops itself and the
+  process exits 78 (EX_CONFIG), so the symptom is a supervisor STOP +
+  stale heartbeat + hidden sign-in button (not a crash-loop — see the
+  restart policy above), and the log names both ids. Treat
+  as an outage until the envs agree on both sides; never "restart and
+  see" — a wrong-account bot would mass-deactivate the base on its next
+  reconcile pass, which is exactly why it refuses to keep running),
   `turso heartbeat write failed` (liveness bridge down — the site falls back
   to "bot assumed online", so investigate but it does not crash anything),
   `invite poll done` (per-pass claimed/sent/retried/ dropped),

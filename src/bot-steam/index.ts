@@ -15,6 +15,7 @@ import { loadEnv } from '../lib/env';
 import {
   activateWatch,
   claimNextQueuedEvents,
+  clearConfirmToken,
   countInvitesSentSince,
   getAccount,
   getWatchedProfile,
@@ -142,6 +143,12 @@ const main = (): void => {
     });
   };
 
+  // sysexits EX_CONFIG: the process refuses to run with a wrong identity.
+  // Supervisors must treat this code as "fix the env, do NOT rapid-restart"
+  // (RestartPreventExitStatus=78 / pm2 --stop-exit-codes / capped Docker
+  // retries) — see the runbook restart policy.
+  const FATAL_CONFIG_EXIT_CODE = 78;
+
   const bot = new WatchBot({
     client,
     accountName: config.accountName,
@@ -156,8 +163,26 @@ const main = (): void => {
     autoAcceptDailyLimit: config.autoAcceptDailyLimit,
     // Identity self-check: the site gates logins on friendship with THIS
     // id, so a drifted env (or a BOT_DATA_DIR reused from another account)
-    // would silently deny every login — the bot logs LOUDLY on mismatch.
+    // would silently deny every login — the bot FAILS FAST on mismatch
+    // (stop + onFatal below), never logging-and-carrying-on.
     expectedBotSteamId: config.botSteamId,
+    // Fatal exit for the identity mismatch (WatchBot stops itself first):
+    // a wrong-account bot is not "degraded", it is DESTRUCTIVE — its next
+    // friendsList snapshot would make reconcile read every active watch as
+    // an opt-out and delete the base. Exit 78 (sysexits EX_CONFIG:
+    // configuration error) instead of logging forever: the supervisor
+    // restart is the loud signal (crash-loop until the envs agree on both
+    // hosts), the heartbeat goes stale (healthcheck:bot alerts, the site's
+    // liveness gate hides sign-in), and no destructive pass ever runs.
+    // Exit code matters here, not just non-zero: 78 tells a configured
+    // supervisor NOT to rapid-restart (RestartPreventExitStatus=78), since
+    // every restart burns a Steam logon and fast logon churn invites
+    // Steam-side throttling that outlasts the env fix — see the runbook
+    // restart policy. The 500ms delay mirrors shutdown's logOff flush.
+    onFatal: (reason: string) => {
+      logger.error(`[WatchBot] FATAL: ${reason} — exiting 78 (supervisor must not rapid-restart: see runbook restart policy)`);
+      setTimeout(() => process.exit(FATAL_CONFIG_EXIT_CODE), 500);
+    },
     logger,
     // reconcile() is async but the snapshot event is sync: a rejection
     // here must never become an unhandled rejection that kills the
@@ -428,6 +453,7 @@ const main = (): void => {
       getWatchedProfile,
       getAccount,
       issueConfirmToken,
+      clearConfirmToken,
     },
     pollIntervalMs: config.resendPollIntervalMs,
     batchLimit: config.resendBatchLimit,

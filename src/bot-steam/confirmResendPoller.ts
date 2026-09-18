@@ -24,6 +24,12 @@
  *   re-issue, which heals the row). Without a floor, Start-spam would
  *   chat-spam: each issue kills the previous link, so the throttle is the
  *   only cost of a re-issue, and it must be bounded at this sink.
+ *   A send that fails AFTER issuing rolls the token back
+ *   (compare-and-delete in the catch below): the throttle derives issue
+ *   time from the live token's expiry, so without the rollback every
+ *   retry of a failed send — automatic or user-requested — would
+ *   throttle-drop on the dead token until the 24h expiry. With it the
+ *   retry sees no hash and re-issues.
  *
  * Single-writer invariant preserved: the SITE never issues tokens (the
  * resend route only enqueues the request) — this poller is the sole
@@ -84,6 +90,16 @@ export interface ConfirmResendPollerDal {
     steamId: string,
     tokenHash: string,
     expiresAt: string,
+  ) => Promise<boolean>;
+  /**
+   * Undelivered-issue rollback (compare-and-delete — clears only the
+   * exact hash this pass issued, never a concurrent click/resend
+   * generation). Routed through the DAL interface like the issuer (not
+   * imported directly) so unit tests never touch a real database.
+   */
+  clearConfirmToken: (
+    steamId: string,
+    tokenHash: string,
   ) => Promise<boolean>;
 }
 
@@ -333,6 +349,10 @@ export const pollConfirmResendQueueOnce = async (
     }
 
     let messageSent = false;
+    // Hash of the token THIS pass issued (set only after a truthy issue):
+    // a send failure from that point on must roll it back (compare-and-
+    // delete) — see the catch below.
+    let issuedHash: string | null = null;
     try {
       // Single writer (alongside the friendship-accept path): overwrite
       // semantics keep at most one link outstanding no matter how the
@@ -340,15 +360,17 @@ export const pollConfirmResendQueueOnce = async (
       // confirmed concurrently — drop quietly, the confirm route owns
       // activation + welcome from there.
       const token = generateHexToken();
+      const tokenHash = hashConfirmToken(token);
       const issued = await dal.issueConfirmToken(
         event.steamId,
-        hashConfirmToken(token),
+        tokenHash,
         new Date(Date.now() + confirmTokenTtlMs).toISOString(),
       );
       if (!issued) {
         await dropEvent(event, 'confirmed-race');
         return;
       }
+      issuedHash = tokenHash;
       // Watchdog: a hung sendFriendMessage (network stall, lib bug) must
       // fail visibly instead of wedging this pass. Only the recipient id
       // is interpolated into the label — never message text.
@@ -377,7 +399,7 @@ export const pollConfirmResendQueueOnce = async (
       }
       report.sent += 1;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      let message = error instanceof Error ? error.message : String(error);
       if (messageSent) {
         // sendFriendMessage SUCCEEDED but the bookkeeping never landed: do
         // NOT call recordEventAttempt (it would requeue and re-send). Loud
@@ -392,6 +414,40 @@ export const pollConfirmResendQueueOnce = async (
           message: `sent but not recorded: ${message}`,
         });
       } else {
+        if (issuedHash !== null) {
+          // Undelivered-issue rollback (same class as activationMessage's
+          // rollbackUndeliveredToken, which covers the friendship-accept
+          // lane — this lane had the same hole): the hash must not outlive
+          // a failed send. Without this, the UI reads "check your Steam
+          // chat" off hash presence, and every retry — the automatic
+          // requeue below OR a fresh user request — dies in the throttle
+          // above, which derives issue time from the dead token's expiry.
+          // The rollback returns the account to never-issued, so the retry
+          // skips the throttle block (no hash) and re-issues. Compare-and-
+          // delete keeps a concurrent click/resend generation safe.
+          // Best-effort: a rollback failure is chained into the message
+          // (loud at drop time), the requeue still happens.
+          // Ambiguity trade-off, stated plainly: a timeout-style send
+          // failure may have delivered without answering, so this rollback
+          // can invalidate a link the user already received — the retry
+          // below may then deliver a second, live one. Bounded at 2-3
+          // messages by the attempt cap, and strictly better than the 24h
+          // lockout; but a "got two links" report traces back here.
+          try {
+            await dal.clearConfirmToken(event.steamId, issuedHash);
+            logger.error(
+              `[WatchBot] resend send failed (possibly ambiguous) for ${event.steamId}: issued token rolled back, retry re-issues: ${message}`,
+            );
+          } catch (rollbackError) {
+            const rollbackText =
+              rollbackError instanceof Error
+                ? rollbackError.message
+                : String(rollbackError);
+            message =
+              `${message} AND token rollback failed (${rollbackText}) — ` +
+              'a stuck hash may block retries in the throttle; clear by hand';
+          }
+        }
         await recordFailure(event, message);
       }
     }

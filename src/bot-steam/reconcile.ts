@@ -43,10 +43,22 @@
  *
  * SteamIDs arrive as strings (object keys of myFriends). Anything that is
  * not a 17-digit id is skipped and counted, never passed to the DAL.
+ *
+ * KNOWN LIMITATION (pre-prod ticket, not handled here): there is no
+ * circuit breaker on mass removal. A wrong/empty/partial friendsList
+ * snapshot (beyond the wrong-account case, which fail-fasts in bot.ts)
+ * makes every active watch read as opted-out and DELETES the base
+ * irreversibly (removeWatchAndAccount drops both rows). The intended
+ * guard: compute the removal set first and abort the pass with an ERROR
+ * log when friends.size === 0 with watches present, or removals exceed
+ * max(20, 10% of the base), behind an explicit override
+ * (RECONCILE_ALLOW_MASS_REMOVE=1). Until that exists, treat any
+ * unexpected mass-deactivation as a stop-the-line incident, not noise.
  */
 
 import type { RemoveWatchResult } from '../lib/analytics/db';
 import type { WatchAccount } from '../lib/analytics/types';
+import { isSteamId64 } from '../lib/steamId';
 import type { WatchBotLogger } from './logger';
 
 export interface ReconcileDal {
@@ -99,8 +111,6 @@ export type ConfirmLinkHandler = (profile: {
   locale: string | null;
 }) => Promise<boolean> | boolean;
 
-const STEAM_ID64_RE = /^\d{17}$/;
-
 const runReconcilePass = async (
   friendsById: Record<string, number>,
   friendRelationshipValue: number,
@@ -123,7 +133,9 @@ const runReconcilePass = async (
 
   const friends = new Set<string>();
   Object.entries(friendsById).forEach(([id, relationship]) => {
-    if (!STEAM_ID64_RE.test(id)) {
+    // Single source of truth (src/lib/steamId.ts) — never fork the shape
+    // per call site, per that module's contract.
+    if (!isSteamId64(id)) {
       report.skippedInvalidIds += 1;
     } else if (relationship === friendRelationshipValue) {
       friends.add(id);
@@ -138,7 +150,7 @@ const runReconcilePass = async (
   // an async forEach would fire them all concurrently as floating promises.
   // eslint-disable-next-line no-restricted-syntax
   for (const watch of watches) {
-    if (!STEAM_ID64_RE.test(watch.steamId)) {
+    if (!isSteamId64(watch.steamId)) {
       report.skippedInvalidIds += 1;
     } else {
       try {

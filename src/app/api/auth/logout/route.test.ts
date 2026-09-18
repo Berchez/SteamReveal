@@ -21,11 +21,20 @@ jest.mock('@/lib/watch/session', () => ({
   destroyWatchSession: jest.fn(),
 }));
 
+jest.mock('@/lib/watch/pendingLogin', () => ({
+  clearPendingLogin: jest.fn(),
+}));
+
 const { cookies } = jest.requireMock('next/headers') as {
   cookies: jest.Mock;
 };
 const { destroyWatchSession } = jest.requireMock('@/lib/watch/session') as {
   destroyWatchSession: jest.Mock;
+};
+const { clearPendingLogin } = jest.requireMock(
+  '@/lib/watch/pendingLogin',
+) as {
+  clearPendingLogin: jest.Mock;
 };
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
@@ -55,6 +64,13 @@ describe('POST /api/auth/logout', () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
     expect(destroyWatchSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('also clears a mid-waiting-room pending login (no stale cookie outlives the session)', async () => {
+    const res = await POST(postRequest(BASE));
+
+    expect(res.status).toBe(200);
+    expect(clearPendingLogin).toHaveBeenCalledTimes(1);
   });
 
   it('rejects cross-origin and origin-less POSTs (CSRF fail-closed)', async () => {

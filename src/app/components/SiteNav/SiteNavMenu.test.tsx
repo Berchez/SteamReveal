@@ -64,18 +64,37 @@ describe('SiteNavMenu', () => {
     expect(screen.getByText('A')).toBeInTheDocument();
   });
 
+  it('falls back to the letter initial when the avatar image fails to load', () => {
+    // CDN hiccup (or a future Steam avatar-host migration): a broken image
+    // in the navbar degrades to the initial, never to a broken <img>.
+    render(
+      <SiteNavMenu
+        steamId={STEAM}
+        nickname="AvatarUser"
+        avatarUrl="https://cdn.test/a.jpg"
+        avatarAlt="Profile picture of AvatarUser"
+      />,
+    );
+    expect(screen.getByAltText('')).toBeInTheDocument();
+
+    fireEvent.error(screen.getByAltText(''));
+
+    expect(screen.queryByAltText('')).not.toBeInTheDocument();
+    expect(screen.getByText('A')).toBeInTheDocument();
+  });
+
   it('labels the button with the translated avatar alt', () => {
     render(
       <SiteNavMenu
         steamId={STEAM}
         nickname="AvatarUser"
         avatarUrl={null}
-        avatarAlt="Foto de perfil de AvatarUser"
+        avatarAlt="Profile picture of AvatarUser"
       />,
     );
 
     expect(
-      screen.getByRole('button', { name: 'Foto de perfil de AvatarUser' }),
+      screen.getByRole('button', { name: 'Profile picture of AvatarUser' }),
     ).toBeInTheDocument();
   });
 

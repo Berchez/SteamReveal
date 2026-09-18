@@ -27,7 +27,11 @@ const writeRateLimiter = createRateLimiter(
  *
  * Best-effort: without DATABASE_URL (e.g. an env that lacks Turso) it
  * returns the same `{ id: null, skipped: true }` shape as before, so
- * callers never mistake a skip for a real record id.
+ * callers never mistake a skip for a real record id. Ordering note
+ * (deliberate): the body is parsed BEFORE the DATABASE_URL skip — the
+ * anti-loop consume below needs the parsed steamId, and a malformed
+ * body is a client bug regardless of DB presence (400), while VALID
+ * searches still get the skip shape in DB-less envs.
  *
  * Path: src/app/api/recordAnalytics/route.ts
  */
@@ -96,10 +100,30 @@ export async function POST(req: Request) {
     // stale/double-clicked links are normal user behavior, not errors.
     const antiLoopToken = body?.antiLoopToken;
     if (typeof antiLoopToken === 'string' && antiLoopToken !== '') {
-      const consumed = await consumeAntiLoopToken(
-        parsedInput.profile.steamId,
-        hashAntiLoopToken(antiLoopToken),
-      );
+      // Fail-open by design: loop suppression is a secondary feature —
+      // a sick DB must degrade to "record normally", never 500 a plain
+      // search. (Same contract as the notify hook's defensive .catch
+      // below; the consume itself stays atomic inside the DAL. A false
+      // return is normal — stale/double-clicked links — and stays silent
+      // as before; only a THROW logs.)
+      // Accepted residual of that fail-open: if the consume throws while
+      // the record succeeds, a bot-link search records AND notifies once
+      // (a single-cycle loop). The 24h notify cooldown bounds it to one
+      // spurious notice per day — strictly better than dropping real
+      // searches on a DB blip.
+      let consumed = false;
+      try {
+        consumed = await consumeAntiLoopToken(
+          parsedInput.profile.steamId,
+          hashAntiLoopToken(antiLoopToken),
+        );
+      } catch (antiLoopError) {
+        logRouteError(
+          'recordAnalytics',
+          `anti-loop consume failed (fail-open): ${sanitizeError(antiLoopError)}`,
+          { steamId: parsedInput.profile.steamId },
+        );
+      }
       if (consumed) {
         return NextResponse.json({ id: null, skipped: true, reason: 'anti_loop' }, { status: 200 });
       }

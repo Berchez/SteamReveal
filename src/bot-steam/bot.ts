@@ -68,11 +68,29 @@ export interface WatchBotOptions {
    * as STEAM_BOT_STEAMID — the site's login gate checks friendship against
    * that list). Verified against the live session on every logon: a typo,
    * a Vercel/bot-host env drift, or a reused BOT_DATA_DIR from another
-   * account would otherwise deny every login (or point the navbar chip at
-   * the wrong profile) with no bot-side signal. Mismatches log LOUDLY;
-   * matches stay silent. index.ts wires this from the bot config.
+   * account would otherwise go unnoticed — and a wrong-account bot is not
+   * "degraded", it is DESTRUCTIVE: its friendsList snapshot describes the
+   * wrong account, so the next reconcile pass reads every active watch
+   * whose user is not a friend of the wrong account as an opt-out and
+   * DELETES the whole base (removeWatchAndAccount, same DAL as a genuine
+   * unfriend). Mismatches are therefore FATAL, not advisory: the bot
+   * stops itself (logOff, no reconnect) and invokes onFatal, which the
+   * host wires to a process exit — the supervisor restart becomes a loud
+   * crash-loop, the heartbeat goes stale (healthcheck:bot alerts, the
+   * site's liveness gate hides sign-in), and no destructive pass ever
+   * runs. Unreadable session ids stay silent (nothing to compare yet,
+   * not evidence of drift). index.ts wires this from the bot config.
    */
   expectedBotSteamId?: string;
+  /**
+   * Fatal-condition hook (currently only the identity mismatch above):
+   * invoked AFTER the bot already stopped itself (containment is not the
+   * host's job — stop() runs unconditionally so even an unwired host
+   * cannot keep a wrong-account session up). The host owns the process
+   * lifetime (exit code, supervisor alerting); exceptions are contained
+   * and logged by the bot.
+   */
+  onFatal?: (reason: string) => void;
   onFriendsSnapshot?: BotSnapshotListener;
   /**
    * Fired with the affected steamId when the bot observes a friendship
@@ -149,6 +167,8 @@ export class WatchBot {
 
   private readonly expectedBotSteamId: string | null;
 
+  private readonly onFatal: ((reason: string) => void) | null;
+
   private stopped = false;
 
   private connected = false;
@@ -178,6 +198,19 @@ export class WatchBot {
       options.autoAcceptDailyLimit ?? DEFAULT_AUTO_ACCEPT_DAILY_LIMIT;
     this.nowMs = options.nowMs ?? Date.now;
     this.expectedBotSteamId = options.expectedBotSteamId ?? null;
+    this.onFatal = options.onFatal ?? null;
+    // Safety net for incomplete wiring: the identity self-check is only
+    // fully protective with onFatal connected (index.ts exits the process
+    // so the supervisor crash-loops and alerts). Without it a mismatch
+    // still stops the bot, but nothing pages anyone — say so once, at
+    // boot, at error level (a miswired identity check deserves attention,
+    // not debug-level silence), when the check is armed but the exit is
+    // not.
+    if (this.expectedBotSteamId !== null && this.onFatal === null) {
+      this.logger.error(
+        '[WatchBot] expectedBotSteamId is set without onFatal: a session-id mismatch will stop the bot but NOT exit the process (no supervisor crash-loop alert) — wire onFatal to process.exit like index.ts does',
+      );
+    }
   }
 
   /** Starts the session: attaches listeners once, then logs on. */
@@ -243,9 +276,11 @@ export class WatchBot {
       // Identity self-check (deploy footgun guard): the site's login gate
       // checks friendship against STEAM_BOT_STEAMID, so this process MUST be
       // that account. A mismatch (typo'd env, drifted Vercel/bot-host envs,
-      // or a BOT_DATA_DIR reused from another account) would silently deny
-      // every login or strand users on the wrong profile — log LOUDLY on
-      // every (re)logon until an operator fixes it. Unreadable session id
+      // or a BOT_DATA_DIR reused from another account) is FATAL, not
+      // advisory — a wrong-account bot's next friendsList snapshot would
+      // make reconcile read every active watch as an opt-out and delete
+      // the base. Stop unconditionally (even unwired: containment is the
+      // default), then hand the exit to onFatal. Unreadable session id
       // stays silent (nothing to compare yet, not evidence of drift).
       if (this.expectedBotSteamId !== null) {
         const actualBotSteamId = this.getSteamId();
@@ -253,11 +288,25 @@ export class WatchBot {
           actualBotSteamId !== null &&
           actualBotSteamId !== this.expectedBotSteamId
         ) {
-          this.logger.error(
-            `[WatchBot] STEAM_BOT_STEAMID mismatch: logged in as ${actualBotSteamId} ` +
-              `but configured as ${this.expectedBotSteamId} — fix the env on THIS host AND on Vercel ` +
-              `(every login is gated on friendship with the configured id)`,
-          );
+          const mismatchReason =
+            `STEAM_BOT_STEAMID mismatch: logged in as ${actualBotSteamId} ` +
+            `but configured as ${this.expectedBotSteamId} — fix the env on THIS host AND on Vercel ` +
+            `(every login is gated on friendship with the configured id; a wrong-account bot ` +
+            'would mass-deactivate the base on its next reconcile pass)';
+          this.logger.error(`[WatchBot] ${mismatchReason} — stopping the bot (fail-fast)`);
+          this.stop();
+          if (this.onFatal !== null) {
+            try {
+              this.onFatal(mismatchReason);
+            } catch (fatalError) {
+              this.logger.error(
+                `[WatchBot] onFatal handler failed: ${
+                  fatalError instanceof Error ? fatalError.message : String(fatalError)
+                } (bot already stopped)`,
+              );
+            }
+          }
+          return;
         }
       }
       if (this.onConnected) {
@@ -274,6 +323,11 @@ export class WatchBot {
     });
 
     this.client.on('disconnected', (eresult, msg) => {
+      // Stopped bots ignore every client event: graceful shutdown noise,
+      // and — critically — any event landing between a fatal identity
+      // stop and the host's process.exit must not resurrect work against
+      // the wrong account.
+      if (this.stopped) return;
       this.connected = false;
       this.logger.error(
         `[WatchBot] disconnected (${describeEResult(eresult)}${msg ? `: ${msg}` : ''}) — scheduling reconnect`,
@@ -282,6 +336,8 @@ export class WatchBot {
     });
 
     this.client.on('error', (err) => {
+      // Same stopped-deafness as 'disconnected' above.
+      if (this.stopped) return;
       this.connected = false;
       this.logger.error(
         `[WatchBot] client error (${describeEResult(err?.eresult)}) — scheduling reconnect`,
@@ -290,6 +346,12 @@ export class WatchBot {
     });
 
     this.client.on('friendsList', () => {
+      // Stopped-deafness is load-bearing here, not hygiene: the server's
+      // initial friendsList sync typically lands inside the ~500ms window
+      // between a fatal identity stop and the host's process.exit —
+      // without this guard it would reconcile (and mass-deactivate)
+      // against the wrong account's friends.
+      if (this.stopped) return;
       if (!this.onFriendsSnapshot) return;
       try {
         // Snapshot the live map: reconcile must see a stable copy, not a
@@ -316,6 +378,10 @@ export class WatchBot {
     });
 
     this.client.on('friendRelationship', (sid, relationship) => {
+      // Stopped bots ignore removals AND accepts alike: post-fatal, a
+      // removal must not deactivate and a request must not be accepted on
+      // behalf of the wrong account.
+      if (this.stopped) return;
       // WB-8 opt-out: only terminal non-friend states route to the removal
       // handler. Verified against the installed steam-user v5 source
       // (components/friends.js): this event fires on incremental

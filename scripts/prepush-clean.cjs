@@ -26,12 +26,21 @@
  */
 
 const { execFileSync, spawnSync } = require('node:child_process');
+const path = require('node:path');
 
 const PORTS = [3100, 3101];
 const SETTLE_WAIT_MS = 5000;
 const SETTLE_POLL_MS = 500;
 
 const isWindows = process.platform === 'win32';
+
+// Match THIS checkout regardless of its folder name: the original literal
+// "osint-steam" marker silently stopped matching renamed clones/forks,
+// making the script refuse to free the ports (push fails asking for manual
+// cleanup) even for its own orphaned dev server. Deriving the marker from
+// the script's own location keeps the safety contract — only servers
+// spawned from THIS checkout die — while working for any checkout path.
+const DEFAULT_REPO_ROOT = path.resolve(__dirname, '..');
 
 /**
  * Parse `netstat -ano` output, returning PIDs in LISTENING state on the
@@ -76,16 +85,25 @@ const parseLsofListeningPids = (output) => {
 /**
  * True only for a Next.js dev server command line of THIS repo. Deliberately
  * narrow: ts-node scripts (bot, proxy, smokes), jest workers, editors and
- * any other project's servers must never match. Pure (unit-tested).
+ * any other project's servers must never match. Pure (unit-tested) —
+ * pass an explicit repoRoot to keep tests checkout-independent.
  */
-const isRepoDevServer = (commandLine) => {
+const isRepoDevServer = (commandLine, repoRoot = DEFAULT_REPO_ROOT) => {
   const cmd = String(commandLine || '');
   if (/bot-steam|proxy-local|ts-node|jest|vitest/i.test(cmd)) return false;
   const isNextDev =
     /start-server\.js/i.test(cmd) ||
     /next([\\/]dist[\\/]bin[\\/]next)?\s+dev/i.test(cmd);
   if (!isNextDev) return false;
-  return /osint-steam/i.test(cmd);
+  // Slash-normalized, case-insensitive DIRECTORY match: Windows command
+  // lines may mix separator style and casing vs the resolved root. The
+  // trailing slash is load-bearing — a bare substring would also match
+  // sibling checkouts sharing the name prefix (e.g. a git worktree at
+  // `<root>-wt`), and this script must only ever kill THIS checkout.
+  const normalize = (value) =>
+    String(value).replace(/\\/g, '/').toLowerCase();
+  const root = normalize(repoRoot).replace(/\/+$/, '') + '/';
+  return normalize(cmd).includes(root);
 };
 
 const runQuiet = (file, args) => {

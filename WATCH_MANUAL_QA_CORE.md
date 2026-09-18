@@ -1,195 +1,199 @@
-# QA Core — Watch happy path (bot com conta limitada)
+# QA Core — Watch happy path (bot on a limited account)
 
-Versão resumida de `WATCH_MANUAL_QA.md`: só o núcleo feliz
-(login → espera → amizade → notify → inbox → opt-out), mais a lane legada
-(Start → link → clique) para o re-watch pós-opt-out.
-Casos de borda, expiração, throttling, erros, i18n e segurança ficam no
-doc completo — ver "Fora de escopo" no fim.
+Short version of `WATCH_MANUAL_QA.md`: just the happy core
+(login → wait → friendship → notify → inbox → opt-out), plus the legacy lane
+(Start → link → click) for post-opt-out re-watch.
+Edge cases, expiry, throttling, errors, i18n and security stay in the
+full doc — see "Out of scope" at the end.
 
-> Modelo single-state login-first: usuário novo deslogado NUNCA aperta
-> Start e NÃO precisa de ordem — **entra primeiro, a sala de espera
-> segura o login verificado e conclui sozinha quando a amizade aparece**
-> (quem adiciona o bot antes pula a sala). A lane
-> Start→pending→link→clique segue viva só para o re-watch pós-opt-out
-> (o cookie sobrevive ao unfriend) e para tokens legados — QA-C02/C03
-> cobrem essa lane.
+> Single-state login-first model: a fresh logged-out user NEVER presses
+> Start and needs NO order — **enter first, the waiting room holds the
+> verified login and completes by itself when the friendship appears**
+> (whoever adds the bot first skips the room). The
+> Start→pending→link→click lane stays alive only for post-opt-out
+> re-watch (the cookie survives the unfriend) and for legacy tokens —
+> QA-C02/C03 cover that lane.
 
-> Escopo: comportamento observável com contas Steam reais + banco Turso
-> de DEV. **Nunca rode contra produção.**
+> Scope: observable behavior with real Steam accounts + DEV Turso
+> database. **Never run against production.**
 
 ---
 
-## 0. Pré-requisitos
+## 0. Prerequisites
 
-| #   | Item              | Detalhe                                                                                                                                                                                                                        |
-| --- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | 2 contas Steam    | **Bot** (pode ser **limitada**: sem gasto de US$5 — ela nunca precisa *enviar* convite neste roteiro, só receber/aceitar e conversar) + **testador FULL** (precisa *enviar* o pedido de amizade para o bot). Use só contas próprias. |
-| 2   | Banco Turso de DEV | Crie um só para isso. **Nunca contra produção.**                                                                                                                                                                               |
-| 3   | `.env` local      | `DATABASE_URL` + `DATABASE_TOKEN` (DEV); `SESSION_SECRET` com 32+ chars; `STEAM_BOT_USERNAME`, `STEAM_BOT_PASSWORD`, `STEAM_BOT_SHARED_SECRET`; `WATCH_SITE_URL=http://localhost:3000`; `STEAM_API_KEY` opcional (sem ela o avatar cai em fallback de letra, o fluxo funciona). `DEV_TEST_MODE` **desligado/ausente**. |
-| 4   | Primeira vez      | `pnpm run start:bot` interativo e aprove o Steam Guard no celular (ver `WATCH_BOT_RUNBOOK.md` §3). Anote o **perfil/ID64 do bot** — o testador vai adicioná-lo direto pela URL (contas limitadas podem não aparecer na busca de amizade). |
-| 5   | Migração          | `pnpm run db:migrate` → `✔ All migrations applied.`                                                                                                                                                                            |
-| 6   | Subir tudo        | Terminal 1: `pnpm run dev` (`:3000`). Terminal 2: `pnpm run start:bot`.                                                                                                                                                         |
+| #   | Item              | Detail                                                                                                                                                                                                                     |
+| --- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 2 Steam accounts  | **Bot** (may be **limited**: no US$5 spend — it never needs to *send* invites in this script, only receive/accept and chat) + **FULL tester** (must *send* the friend request to the bot). Use your own accounts only. |
+| 2   | DEV Turso database | Create one just for this. **Never against production.**                                                                                                                                                                    |
+| 3   | Local `.env`      | `DATABASE_URL` + `DATABASE_TOKEN` (DEV); `SESSION_SECRET` with 32+ chars; `STEAM_BOT_USERNAME`, `STEAM_BOT_PASSWORD`, `STEAM_BOT_SHARED_SECRET`; `WATCH_SITE_URL=http://localhost:3000`; `STEAM_API_KEY` optional (without it the avatar falls back to a letter, the flow works). `DEV_TEST_MODE` **off/absent**. |
+| 4   | First time        | Interactive `pnpm run start:bot` and approve Steam Guard on the phone (see `WATCH_BOT_RUNBOOK.md` §3). Note the **bot's profile/ID64** — the tester will add it directly via URL (limited accounts may not show up in friend search). |
+| 5   | Migration         | `pnpm run db:migrate` → `✔ All migrations applied.`                                                                                                                                                                         |
+| 6   | Boot everything   | Terminal 1: `pnpm run dev` (`:3000`). Terminal 2: `pnpm run start:bot`.                                                                                                                                                      |
 
-Sem aceleração de TTL (só serve para testes de expiração, fora deste roteiro).
+No TTL fast-forward (only useful for expiry tests, out of this script).
 
-### 0.1. A direção da amizade (leia antes de começar)
+### 0.1. Friendship direction (read before starting)
 
-Conta limitada **não envia** convites, mas **aceita** os recebidos — e no
-modelo single-state a direção é exatamente essa: **o testador adiciona o
-bot** (pedido inbound), o bot aceita sozinho via `addFriend` (limite
-diário 50 + teto 240 amigos — ver runbook §5), e o login prova a amizade.
-Nenhum convite do bot é necessário na lane nova.
+A limited account does **not send** invites, but **accepts** received ones — and
+in the single-state model the direction is exactly that: **the tester adds
+the bot** (inbound request), the bot accepts by itself via `addFriend` (daily
+limit 50 + 240 friends cap — see runbook §5), and the login proves the
+friendship. No bot invite is needed on the new lane.
 
-**Caminho A — com o bot ligado (comece por aqui):**
+**Path A — with the bot running (start here):**
 
-1. Na Steam do **testador**, abra o **perfil do bot pela URL direta** e
-   envie o pedido de amizade.
-2. Aguarde ~1 min: log do bot mostra `accepted inbound friend request
-   (... friends=... acceptedToday=...)`. Confira a amizade nas duas contas.
-3. Faça o login no site (QA-C01 abaixo) — cai `active` direto.
+1. On the **tester's** Steam, open the **bot's profile via direct URL** and
+   send the friend request.
+2. Wait ~1 min: the bot log shows `accepted inbound friend request
+   (... friends=... acceptedToday=...)`. Confirm the friendship on both accounts.
+3. Log in on the site (QA-C01 below) — lands `active` directly.
 
-**Caminho B — fallback determinístico (se o A não convergir em ~3 min):**
+**Path B — deterministic fallback (if A doesn't converge in ~3 min):**
 
-1. **Pare o bot** (`Ctrl+C`).
-2. Na conta do **bot** (cliente Steam ou mobile), **aceite manualmente** o
-   pedido pendente do testador.
-3. **Suba o bot** de novo e faça o login — o gate lê a amizade via
-   `GetFriendList` e ativa direto.
+1. **Stop the bot** (`Ctrl+C`).
+2. On the **bot's** account (Steam client or mobile), **manually accept** the
+   tester's pending request.
+3. **Start the bot** again and log in — the gate reads the friendship via
+   `GetFriendList` and activates directly.
 
-**Ruído esperado (não é bug):** se o bot bater o teto/diário, os logs
-mostram `friend-accept REFUSED` / `sweep paused` — nesse caso o pedido fica
-pendente para o próximo sweep/dia, não é perda. Com `.env` default
-(240/50) isso só acontece sob burst — em QA normal, nunca.
+**Expected noise (not a bug):** if the bot hits the cap/daily budget, logs
+show `friend-accept REFUSED` / `sweep paused` — in that case the request stays
+pending for the next sweep/day, not lost. With default `.env`
+(240/50) this only happens under burst — never in normal QA.
 
-### 0.2. As 4 superfícies de observação (use as 4 em todo caso)
+### 0.2. The 4 observation surfaces (use all 4 in every case)
 
-1. **Chat Steam do testador** — o que o bot realmente mandou (texto exato
-   importa).
-2. **Browser** — dropdown do avatar (`none`/`pending`/`active`), toasts,
-   sino/badge, inbox. DevTools → Application → Cookies →
-   `steamreveal_watch_session` (presente = logado; ausente = deslogado).
-3. **Banco** (dashboard Turso ou `turso db shell`):
+1. **Tester's Steam chat** — what the bot actually sent (exact text
+   matters).
+2. **Browser** — avatar dropdown (`none`/`pending`/`active`), toasts,
+   bell/badge, inbox. DevTools → Application → Cookies →
+   `steamreveal_watch_session` (present = logged in; absent = logged out).
+3. **Database** (Turso dashboard or `turso db shell`):
    ```sql
    SELECT steam_id, confirmed_at, confirm_expires_at, locale FROM accounts WHERE steam_id='<ID64>';
    SELECT steam_id, status, locale FROM watched_profiles WHERE steam_id='<ID64>';
    SELECT id, kind, status, created_at, sent_at FROM watch_events WHERE steam_id='<ID64>' ORDER BY id DESC LIMIT 20;
    ```
-4. **Logs do bot** — `reconcile done (... linksSent=)`, `welcome poll done`,
+4. **Bot logs** — `reconcile done (... linksSent=)`, `welcome poll done`,
    `friend-remove`. Liveness: `pnpm run healthcheck:bot`.
 
-### 0.3. Reset entre ciclos (faça sempre)
+### 0.3. Reset between cycles (always do it)
 
-1. Na Steam do testador: **desfazer amizade com o bot** (remove
-   `watched_profiles` + `accounts` atomicamente).
-2. No site: avatar → **Sign out** (mata o cookie).
-3. Confira no banco: os dois `SELECT`s acima voltam vazios.
+1. On the tester's Steam: **unfriend the bot** (removes
+   `watched_profiles` + `accounts` atomically).
+2. On the site: avatar → **Sign out** (kills the cookie).
+3. Check the database: both `SELECT`s above come back empty.
 
 ---
 
-## 1. QA-C01 — Login → espera → amizade → active sozinho (lane nova, sem Start)
+## 1. QA-C01 — Login → wait → friendship → active by itself (new lane, no Start)
 
-1. Navegador limpo: `http://localhost:3000/en` → mostra SÓ **Sign in**
-   (sem chip separado), sem sino/avatar.
-2. **Sign in with Steam** (conta testadora) SEM ter adicionado o bot →
-   volta em `/en/?login=waiting` com a sala **"Conclua seu login"** (sem
-   erro, sem sessão ainda: sem avatar, sem cookie
-   `steamreveal_watch_session`). Prova que o login segura em vez de negar.
-3. **Adicione o bot** na Steam do testador (botão da sala, perfil em nova
-   aba, §0.1) e aguarde o `accepted inbound friend request` no log.
-4. Sem clicar em mais nada: em ~10s a sala conclui sozinha → landing
-   `?watch=new` + toast `Watch active! ...` (some sozinho; reload não
-   repete) e o avatar aparece.
-5. Abra o avatar → heading `Watching` (nunca `Invite sent` — não houve
-   Start). Banco: `watched_profiles.status='active'` + `activated_at`;
-   `accounts.last_login_at` preenchido.
-6. Cookie `steamreveal_watch_session` presente.
-7. **Reload no meio da espera:** recarregue `/en/?login=waiting` antes de
-   adicionar o bot → a sala volta e continua esperando (o pendente
-   sobrevive a reload); o poll segue sem duplicar nada.
+1. Clean browser: `http://localhost:3000/en` → shows ONLY **Sign in**
+   (no separate chip), no bell/avatar.
+2. **Sign in with Steam** (tester account) WITHOUT having added the bot →
+   back at `/en/?login=waiting` with the **"Finish signing in"** room (no
+   error, no session yet: no avatar, no `steamreveal_watch_session`
+   cookie). Proves the login holds instead of denying.
+3. **Add the bot** on the tester's Steam (room button, profile in a new
+   tab, §0.1) and await the `accepted inbound friend request` in the log.
+4. Without clicking anything else: in ~10s the room completes by itself →
+   `?watch=new` landing + `Watch active! ...` toast (dismisses itself;
+   reload doesn't repeat) and the avatar appears.
+5. Open the avatar → `Watching` heading (never `Invite sent` — there was
+   no Start). Database: `watched_profiles.status='active'` + `activated_at`;
+   `accounts.last_login_at` filled.
+6. `steamreveal_watch_session` cookie present.
+7. **Reload mid-wait:** reload `/en/?login=waiting` before adding
+   the bot → the room comes back and keeps waiting (the pending
+   survives reload); the poll continues without duplicating anything.
 
-## 2. QA-C02 — Página de confirmação, lane legada (só o clique confirma)
+## 2. QA-C02 — Confirmation page, legacy lane (only the click confirms)
 
-> Lane legada / re-watch: depois do QA-C06 (opt-out) MANTENHA o cookie
-> (não faça Sign out) — a sessão sobrevivente mostra `Watch a Steam
-> profile` + Start, e é nela que esta lane vive. Em conta nova deslogada
-> esta lane é inalcançável (o login já ativa direto).
+> Legacy lane / re-watch: after QA-C06 (opt-out) KEEP the cookie
+> (don't Sign out) — the surviving session shows `Watch a Steam
+> profile` + Start, and this lane lives there. On a fresh logged-out
+> account this lane is unreachable (login already activates directly).
 
-1. No dropdown, clique `Watch your profile` → heading `Invite sent`
-   (banco: `pending`).
-2. Na Steam, aceite o convite do bot → chega o link no chat (template de
-   confirmação no seu idioma). Banco: `confirm_token_hash` com 64 hex
-   (**nunca o token plano**), `confirm_expires_at` ≈ agora+24h.
-3. Abra o link → página `Confirm your Watch request` com o botão
-   `Confirm and activate`. **Nada acontece sozinho**: abra, recarregue,
-   troque de aba e volte — sem clique, sem POST, token intacto.
-4. Desligue o JS e repita num ciclo fresco: a mesma página/botão
-   funcionam (nenhum elemento `<script>` — só o guard inline `onsubmit`
-   anti-duplo-clique, inerte sem JS) e recarregar (F5) 2x não gasta nada.
-5. Banco (antes de qualquer POST): `confirmed_at` NULL, `status` pending,
-   hash inalterado.
+1. In the dropdown, click `Watch your profile` → `Invite sent` heading
+   (database: `pending`).
+2. On Steam, accept the bot's invite → the link arrives in chat
+   (confirmation template in your language). Database:
+   `confirm_token_hash` with 64 hex (**never the plain token**),
+   `confirm_expires_at` ≈ now+24h.
+3. Open the link → `Confirm your Watch request` page with the
+   `Confirm and activate` button. **Nothing happens by itself**: open,
+   reload, switch tabs and back — no click, no POST, token intact.
+4. Turn JS off and repeat on a fresh cycle: the same page/button
+   work (no `<script>` element — only the inline `onsubmit`
+   anti-double-click guard, inert without JS) and reloading (F5) 2x spends
+   nothing.
+5. Database (before any POST): `confirmed_at` NULL, `status` pending,
+   hash unchanged.
 
-## 3. QA-C03 — O clique ativa tudo (lane legada)
+## 3. QA-C03 — The click activates everything (legacy lane)
 
-1. Na página do QA-C02, clique `Confirm and activate`.
-2. **Esperado:** redirect `/en/?confirmed=ok` + toast
+1. On the QA-C02 page, click `Confirm and activate`.
+2. **Expected:** redirect `/en/?confirmed=ok` + toast
    `Watch confirmed! You will be notified here whenever your profile is searched.`
-   (some sozinho; reload não repete).
-3. Banco: `confirmed_at` preenchido + token zerado; `status='active'` +
-   `activated_at`; evento `kind='welcome'` → `sent`.
-4. Em ~20s: toast
+   (dismisses itself; reload doesn't repeat).
+3. Database: `confirmed_at` filled + token zeroed; `status='active'` +
+   `activated_at`; `kind='welcome'` event → `sent`.
+4. In ~5s: toast
    `Watch active! The bot will message you on Steam when this profile is searched.` +
-   dropdown vira `Watching`.
-5. No chat: `SteamReveal Watch is now active for your profile...`.
-6. Cookie `steamreveal_watch_session` presente.
+   dropdown becomes `Watching` (same 5s status poll as QA-03 — the ~20s figure
+   belongs to the chat welcome delivery via the 20s welcome poller, step 5).
+5. In chat: `SteamReveal Watch is now active for your profile...`.
+6. `steamreveal_watch_session` cookie present.
 
-## 4. QA-C04 — Busca gera notify → sino → inbox
+## 4. QA-C04 — Search generates notify → bell → inbox
 
-1. Com watch `active`, busque o perfil **digitando a URL direto** (não pelo
-   link do bot — pelo link a busca é suprimida pelo token anti-loop).
-2. Em ~1 min (poll de 60s): mensagem no chat + sino com badge `1 unread`.
-3. Abra o sino: item listado, badge zera, reload mantém zerado.
-4. Banco: `kind='notify'` → `sent`; `last_notified_at` preenchido.
-5. **Opcional (custa 1 busca a mais):** repita a busca e **abra o relatório
-   de cheater** nela → o item novo no sino mostra a linha da sessão com
-   data da busca + `Cheater report opened` (ou equivalente no idioma).
-6. **Cooldown (só leitura):** busque de novo → **nada por 24h** (teto de
-   1 aviso/dia; o sino, sem throttle, lista normalmente). Para retestar
-   sem esperar:
+1. With watch `active`, search the profile by **typing the URL directly**
+   (not via the bot's link — link searches are suppressed by the anti-loop
+   token).
+2. In ~1 min (60s poll): chat message + bell with `1 unread` badge.
+3. Open the bell: item listed, badge zeroes, reload stays zeroed.
+4. Database: `kind='notify'` → `sent`; `last_notified_at` filled.
+5. **Optional (costs 1 extra search):** repeat the search and **open the
+   cheater report** in it → the new bell item shows the session line with
+   the search date + `Cheater report opened` (or the language equivalent).
+6. **Cooldown (read-only):** search again → **nothing for 24h** (1
+   notice/day cap; the throttle-free bell lists normally). To retest
+   without waiting:
    `UPDATE watched_profiles SET last_notified_at='2000-01-01T00:00:00.000Z' WHERE steam_id='<ID64>'`.
 
-## 5. QA-C05 — Logout rápido
+## 5. QA-C05 — Quick logout
 
-Para `none`, `pending` e `active`: avatar → **Sign out** → volta `Sign in`,
-sino some, cookie some.
+For `none`, `pending` and `active`: avatar → **Sign out** → back to `Sign
+in`, bell gone, cookie gone.
 
-## 6. QA-C06 — Opt-out + re-signup fresco
+## 6. QA-C06 — Opt-out + fresh re-signup
 
-1. Com tudo ativo: na Steam do testador, **desfaça a amizade com o bot**.
-2. Banco: **as duas linhas sumiram**. Dropdown volta a
-   `Watch a Steam profile`. Novas buscas não notificam.
-3. Sem fazer Sign out (sessão sobrevivente): clique `Watch your profile`
-   → ciclo legada recomeça **não-confirmado** (QA-C02/C03: novo convite,
-   aceite na Steam, novo link, clique). Alternativa: Sign out → adicione
-   o bot de novo (§0.1) → Sign in → lane nova ativa direto (QA-C01).
+1. With everything active: on the tester's Steam, **unfriend the bot**.
+2. Database: **both rows are gone**. Dropdown back to
+   `Watch a Steam profile`. New searches don't notify.
+3. Without signing out (surviving session): click `Watch your profile`
+   → legacy cycle restarts **unconfirmed** (QA-C02/C03: new invite,
+   Steam accept, new link, click). Alternative: Sign out → add
+   the bot again (§0.1) → Sign in → new lane activates directly (QA-C01).
 
 ---
 
-## Checklist final de aceite (core)
+## Final acceptance checklist (core)
 
-- [ ] QA-C01 verde (sem amizade → sala `?login=waiting` sem erro; adiciona o bot → conclui sozinha + toast `watch=new`, sem Start, sem segundo login)
-- [ ] QA-C02 verde (lane legada: só o clique confirma; sem JS o form sobrevive a reloads)
-- [ ] QA-C03 verde (`confirmed_at` + `active` + welcome no chat + toast)
-- [ ] QA-C04 verde (notify no chat + item no sino + badge zera; cooldown só no bot)
-- [ ] QA-C05 verde (logout nos 3 estados)
-- [ ] QA-C06 verde (opt-out apaga as linhas; re-watch via Start com sessão sobrevivente OU via lane nova com re-login)
-- [ ] Banco confere em cada transição (§0.2, SQLs)
+- [ ] QA-C01 green (no friendship → `?login=waiting` room without error; add the bot → completes by itself + `watch=new` toast, no Start, no second login)
+- [ ] QA-C02 green (legacy lane: only the click confirms; without JS the form survives reloads)
+- [ ] QA-C03 green (`confirmed_at` + `active` + chat welcome + toast)
+- [ ] QA-C04 green (chat notify + bell item + zeroed badge; cooldown on the bot only)
+- [ ] QA-C05 green (logout in all 3 states)
+- [ ] QA-C06 green (opt-out wipes the rows; re-watch via Start with surviving session OR via new lane with re-login)
+- [ ] Database matches at every transition (§0.2, SQLs)
 
-## Fora de escopo (no doc completo `WATCH_MANUAL_QA.md`)
+## Out of scope (in the full `WATCH_MANUAL_QA.md` doc)
 
-- Expiração/aviso/resend/throttle (QA-10→QA-14) — exige TTL acelerado (§0.1 de lá)
-- Matriz de erros e bordas (QA-15→QA-25), sessões/logout avançado (QA-26→QA-28)
-- Bot desligado, re-friending, double-start, 7 dias (QA-29→QA-37)
-- Matriz de idiomas §7 (mínimo en+pt quando for cobrir)
-- Segurança aceita §8 (link encaminhado, prefetch, POST sem Origin)
-- Skeleton/prefetch do dropdown §9 (QA-41→QA-42)
-- Mapa automatizado §10 (o que já é coberto por Jest/Playwright — não retestar na mão)
+- Expiry/notice/resend/throttle (QA-10→QA-14) — requires fast-forwarded TTL (§0.1 there)
+- Error and edge matrix (QA-15→QA-25), advanced sessions/logout (QA-26→QA-28)
+- Bot offline, re-friending, double-start, 7 days (QA-29→QA-37)
+- Language matrix §7 (minimum en+pt when covering)
+- Accepted security §8 (forwarded link, prefetch, POST without Origin)
+- Dropdown skeleton/prefetch §9 (QA-41→QA-42)
+- Automated map §10 (what Jest/Playwright already cover — don't retest by hand)

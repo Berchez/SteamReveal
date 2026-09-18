@@ -67,14 +67,14 @@ describe('gcNameCache', () => {
     it('stores and retrieves a name, persisting to disk', async () => {
       const { getCachedGcName, setCachedGcName } = freshModule();
 
-      setCachedGcName('76561198000000000', 'João Teste');
+      setCachedGcName('76561198000000000', 'Jöhn Test');
       // persistToDisk() is fire-and-forget; flush microtasks so the
       // (mocked) write actually resolves before we assert on it.
       await Promise.resolve();
       await Promise.resolve();
 
       const entry = getCachedGcName('76561198000000000');
-      expect(entry?.name).toBe('João Teste');
+      expect(entry?.name).toBe('Jöhn Test');
       expect(mockWriteFile).toHaveBeenCalled();
 
       const [, writtenContent] = mockWriteFile.mock.calls[0] as [
@@ -83,7 +83,7 @@ describe('gcNameCache', () => {
       ];
       expect(JSON.parse(writtenContent)).toHaveProperty(
         '76561198000000000.name',
-        'João Teste',
+        'Jöhn Test',
       );
     });
 

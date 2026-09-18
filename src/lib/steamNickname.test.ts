@@ -7,7 +7,7 @@ describe('sanitizeSteamNickname', () => {
   it('passes ordinary names through untouched', () => {
     expect(sanitizeSteamNickname('FalleN')).toBe('FalleN');
     expect(sanitizeSteamNickname('  spaced out  ')).toBe('spaced out');
-    expect(sanitizeSteamNickname('Joãozinho_123')).toBe('Joãozinho_123');
+    expect(sanitizeSteamNickname('Jöhnny_123')).toBe('Jöhnny_123');
   });
 
   it('strips controls, bidi overrides and BBCode brackets', () => {

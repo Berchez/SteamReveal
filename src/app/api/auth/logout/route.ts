@@ -6,6 +6,7 @@ import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { destroyWatchSession } from '@/lib/watch/session';
+import { clearPendingLogin } from '@/lib/watch/pendingLogin';
 import checkSameOrigin from '@/lib/watch/csrf';
 
 export const runtime = 'nodejs';
@@ -46,6 +47,11 @@ export async function POST(req: Request) {
 
   try {
     await destroyWatchSession(cookies());
+    // A logout mid-waiting-room must not leave the 30-min pending cookie
+    // behind: it carries no privilege (every use re-proves friendship),
+    // but a stale pending login outliving the session is incoherent —
+    // the next sign-in starts clean either way. Never throws.
+    await clearPendingLogin(cookies());
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
     logRouteError('authLogout', sanitizeError(error));

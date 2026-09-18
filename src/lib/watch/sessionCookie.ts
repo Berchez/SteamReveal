@@ -16,8 +16,16 @@ export const WATCH_SESSION_COOKIE = 'steamreveal_watch_session';
  */
 export const WATCH_OAUTH_STATE_COOKIE = 'steamreveal_oauth_state';
 
-/** Sealed payload: the verified SteamID64 plus an absolute expiry. */
+/**
+ * Sealed payload: the verified SteamID64 plus an absolute expiry, tagged
+ * with the cookie's kind (symmetric with PendingLoginData's tag — the two
+ * cookies share SESSION_SECRET, so each validator refuses the other's
+ * tag). Optional (not required) on purpose: sessions sealed before any
+ * tag existed must keep validating, or every deploy would mass-logout
+ * the 30-day base. The validator denylists known-foreign tags instead.
+ */
 export interface WatchSessionData {
+  kind?: 'watch-session';
   steamId: string;
   expiresAt: number;
 }

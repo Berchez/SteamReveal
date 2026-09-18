@@ -17,7 +17,7 @@ describe('timingSafeEqualStrings', () => {
   });
 
   it('compares multi-byte (unicode) strings correctly', () => {
-    expect(timingSafeEqualStrings('sénhá-🔒', 'sénhá-🔒')).toBe(true);
-    expect(timingSafeEqualStrings('sénhá-🔒', 'sénhá-🔓')).toBe(false);
+    expect(timingSafeEqualStrings('päss-🔒', 'päss-🔒')).toBe(true);
+    expect(timingSafeEqualStrings('päss-🔒', 'päss-🔓')).toBe(false);
   });
 });

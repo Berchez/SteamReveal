@@ -3,6 +3,7 @@
  */
 
 import { GET, POST } from './route';
+import { generateHexToken } from '@/lib/watch/tokens';
 
 jest.mock('@/lib/analytics/db', () => ({
   activateWatch: jest.fn(),
@@ -11,6 +12,7 @@ jest.mock('@/lib/analytics/db', () => ({
   getAccount: jest.fn(),
   getAccountByConfirmTokenHash: jest.fn(),
   hashConfirmToken: jest.fn((token: string) => `hash:${token}`),
+  recordLogin: jest.fn(),
 }));
 
 jest.mock('@/lib/rateLimit', () => {
@@ -37,6 +39,7 @@ const mockedDb = jest.requireMock('@/lib/analytics/db') as {
   getAccount: jest.Mock;
   getAccountByConfirmTokenHash: jest.Mock;
   hashConfirmToken: jest.Mock;
+  recordLogin: jest.Mock;
 };
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
@@ -118,6 +121,24 @@ describe('GET /api/watch/confirm (intermediate page, never mutates)', () => {
       `<form method="post" action="/api/watch/confirm?token=${TOKEN}" onsubmit="this.querySelector('button').disabled=true"`,
     );
     expect(mockedDb.consumeConfirmToken).not.toHaveBeenCalled();
+  });
+
+  it('accepts a freshly minted issuer token (shape-gate tracks the byte length)', async () => {
+    // Ties the two ends together: the gate derives from
+    // WATCH_TOKEN_HEX_LENGTH, so if the issuer's byte length ever
+    // changes, this fails instead of the route silently rejecting every
+    // outstanding link.
+    const minted = generateHexToken();
+
+    const res = await GET(new Request(`${BASE}?token=${minted}`));
+
+    expect(res.status).toBe(200);
+    expect(mockedDb.getAccountByConfirmTokenHash).toHaveBeenCalledWith(
+      `hash:${minted}`,
+    );
+    expect(await res.text()).toContain(
+      `<form method="post" action="/api/watch/confirm?token=${minted}" onsubmit="this.querySelector('button').disabled=true"`,
+    );
   });
 
   it('renders the expired variant (no form) for spent-window tokens', async () => {
@@ -229,6 +250,20 @@ describe('POST /api/watch/confirm (the click: consume + activate)', () => {
     // Bot welcome goes through the outbox (the site cannot reach chat).
     expect(mockedDb.enqueueEvent).toHaveBeenCalledWith(STEAM_ID, 'welcome');
     expect(saveWatchSession).toHaveBeenCalledTimes(1);
+    // Login-audit parity with the OpenID lane: the click sealed a session.
+    expect(mockedDb.recordLogin).toHaveBeenCalledWith(STEAM_ID, 'pt');
+  });
+
+  it('still lands ok when the login audit fails (audit, not gate)', async () => {
+    mockedDb.getAccount.mockResolvedValue({ locale: 'pt' });
+    mockedDb.recordLogin.mockRejectedValueOnce(new Error('audit down'));
+
+    const res = await POST(postRequest(TOKEN));
+
+    expect(res.headers.get('location')).toBe(
+      'http://localhost:3000/pt/?confirmed=ok',
+    );
+    expect(saveWatchSession).toHaveBeenCalledTimes(1);
   });
 
   it('consumes a linkifier-mangled token (trailing punctuation stripped)', async () => {
@@ -339,6 +374,9 @@ describe('POST /api/watch/confirm (the click: consume + activate)', () => {
     );
     expect(mockedDb.enqueueEvent).not.toHaveBeenCalled();
     expect(saveWatchSession).toHaveBeenCalledTimes(1);
+    // The backstop branch seals a session too — audit parity holds here
+    // as well (legacy-lane clicks never touch OpenID).
+    expect(mockedDb.recordLogin).toHaveBeenCalledWith(STEAM_ID, 'pt');
   });
 
   it('still lands ok when activation throws (reconcile backstop heals it)', async () => {
@@ -397,6 +435,22 @@ describe('POST /api/watch/confirm (the click: consume + activate)', () => {
     expect(res.headers.get('location')).toBe(
       'http://localhost:3000/pt/?confirmed=ok',
     );
+    // No seal, no audit: recording last_login_at without a session would
+    // overcount logins.
+    expect(mockedDb.recordLogin).not.toHaveBeenCalled();
+  });
+
+  it('skips the login audit when the backstop-branch seal fails too', async () => {
+    mockedDb.activateWatch.mockResolvedValue(false);
+    mockedDb.getAccount.mockResolvedValue({ locale: 'pt' });
+    saveWatchSession.mockRejectedValueOnce(new Error('cookie store down'));
+
+    const res = await POST(postRequest(TOKEN));
+
+    expect(res.headers.get('location')).toBe(
+      'http://localhost:3000/pt/?confirmed=ok',
+    );
+    expect(mockedDb.recordLogin).not.toHaveBeenCalled();
   });
 
   it('still lands ok (bare home) when the locale read fails after consumption', async () => {

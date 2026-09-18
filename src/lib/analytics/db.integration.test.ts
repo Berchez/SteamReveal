@@ -122,6 +122,8 @@ type DbApi = {
   markExpireNoticed: typeof import('./db').markExpireNoticed;
   recordBotHeartbeat: typeof import('./db').recordBotHeartbeat;
   getBotHeartbeat: typeof import('./db').getBotHeartbeat;
+  clearConfirmToken: typeof import('./db').clearConfirmToken;
+  issueConfirmTokenIfAbsent: typeof import('./db').issueConfirmTokenIfAbsent;
 };
 
 /**
@@ -1347,6 +1349,72 @@ describe('analytics db integration against real libSQL', () => {
         );
       });
 
+      it('activation gate equivalence: ensureActiveWatch and activateWatch agree on every account state', async () => {
+        // The click-to-activate predicate lives in TWO hand-written
+        // shapes (activateWatch's atomic UPDATE subqueries vs
+        // ensureActiveWatch's read-then-flip) held apart on purpose —
+        // extraction would cost activateWatch its single-statement
+        // atomicity. This test is the shared tripwire instead: one matrix,
+        // both gates, so a drift in either fails HERE (login re-opening
+        // the confirmation bypass must never reach production).
+        const setup = {
+          legacy: (id: string) => db.createWatchRequest(id, 'pt'),
+          unconfirmed: async (id: string) => {
+            await db.createAccount(id, 'pt');
+            await db.createWatchRequest(id, 'pt');
+          },
+          confirmed: (id: string) => confirmProfileForTests(db, id),
+        };
+
+        // Disjoint ids per (case, gate) — identical setup on both sides.
+        const ids: Record<
+          'legacy' | 'unconfirmed' | 'confirmed',
+          { activateWatch: string; ensureActiveWatch: string }
+        > = {
+          legacy: {
+            activateWatch: '76561198000000021',
+            ensureActiveWatch: '76561198000000022',
+          },
+          unconfirmed: {
+            activateWatch: '76561198000000023',
+            ensureActiveWatch: '76561198000000024',
+          },
+          confirmed: {
+            activateWatch: '76561198000000025',
+            ensureActiveWatch: '76561198000000026',
+          },
+        };
+
+        const checkBothGates = async (
+          state: 'legacy' | 'unconfirmed' | 'confirmed',
+          expected: boolean,
+        ): Promise<void> => {
+          const pair = ids[state];
+          await setup[state](pair.activateWatch);
+          await setup[state](pair.ensureActiveWatch);
+
+          const byUpdate = await db.activateWatch(pair.activateWatch);
+          const byLogin = await db.ensureActiveWatch(
+            pair.ensureActiveWatch,
+            'pt',
+          );
+
+          expect(byUpdate).toBe(expected);
+          expect(byLogin.activated).toBe(expected);
+          // Both gates converge on the SAME watch status, always.
+          expect(await db.getWatchStatus(pair.activateWatch)).toBe(
+            expected ? 'active' : 'pending',
+          );
+          expect(await db.getWatchStatus(pair.ensureActiveWatch)).toBe(
+            expected ? 'active' : 'pending',
+          );
+        };
+
+        await checkBothGates('legacy', true);
+        await checkBothGates('unconfirmed', false);
+        await checkBothGates('confirmed', true);
+      });
+
       it('expiry scan lists only expired-unnoticed pending confirms', async () => {
         // A: expired, unconfirmed, pending -> listed.
         await db.createAccount(STEAM, 'pt');
@@ -1437,6 +1505,116 @@ describe('analytics db integration against real libSQL', () => {
           expiresAt: '2001-01-01T00:00:00.000Z',
         });
       });
+    });
+  });
+
+  describe('clearConfirmToken (undelivered-token rollback, real SQL)', () => {
+    const STEAM = '76561198000000001';
+    const hashFor = (token: string) => db.hashConfirmToken(token);
+    const future = '2999-01-01T00:00:00.000Z';
+
+    it('clears exactly the issued hash and returns the account to never-issued', async () => {
+      await db.createAccount(STEAM, 'pt');
+      await db.issueConfirmToken(STEAM, hashFor('rb-1'), future);
+      expect((await db.getAccount(STEAM))?.confirmTokenHash).toBe(
+        hashFor('rb-1'),
+      );
+
+      // Wrong hash (a newer generation replaced the token mid-flight):
+      // compare-and-delete refuses — state stands.
+      expect(await db.clearConfirmToken(STEAM, hashFor('rb-other'))).toBe(
+        false,
+      );
+      expect((await db.getAccount(STEAM))?.confirmTokenHash).toBe(
+        hashFor('rb-1'),
+      );
+
+      // Exact hash: hash + expiry both go, confirmation untouched.
+      expect(await db.clearConfirmToken(STEAM, hashFor('rb-1'))).toBe(true);
+      const after = await db.getAccount(STEAM);
+      expect(after?.confirmTokenHash).toBeNull();
+      expect(after?.confirmExpiresAt).toBeNull();
+      expect(after?.confirmedAt).toBeNull();
+
+      // Back to never-issued: a fresh generation arms again (this is
+      // what lets the next reconcile pass retry the delivery).
+      expect(await db.issueConfirmToken(STEAM, hashFor('rb-2'), future)).toBe(
+        true,
+      );
+    });
+
+    it('never rolls back a consumed token (a concurrent click wins)', async () => {
+      await db.createAccount(STEAM);
+      await db.issueConfirmToken(STEAM, hashFor('rb-click'), future);
+      expect(await db.consumeConfirmToken(hashFor('rb-click'))).toBe(STEAM);
+
+      // The click cleared the hash and set confirmed_at — a late rollback
+      // must be a no-op, never a confirmation eraser.
+      expect(await db.clearConfirmToken(STEAM, hashFor('rb-click'))).toBe(
+        false,
+      );
+      const account = await db.getAccount(STEAM);
+      expect(account?.confirmedAt).not.toBeNull();
+      expect(account?.confirmTokenHash).toBeNull();
+    });
+
+    it('returns false for an account that never issued (idempotent no-op)', async () => {
+      await db.createAccount(STEAM);
+      expect(await db.clearConfirmToken(STEAM, hashFor('rb-none'))).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('issueConfirmTokenIfAbsent (first-contact guard, real SQL)', () => {
+    const STEAM = '76561198000000001';
+    const hashFor = (token: string) => db.hashConfirmToken(token);
+    const future = '2999-01-01T00:00:00.000Z';
+
+    it('arms when no generation is outstanding, refuses when one is (no overwrite)', async () => {
+      await db.createAccount(STEAM, 'pt');
+
+      expect(await db.issueConfirmTokenIfAbsent(STEAM, hashFor('g-1'), future)).toBe(
+        true,
+      );
+      expect((await db.getAccount(STEAM))?.confirmTokenHash).toBe(
+        hashFor('g-1'),
+      );
+
+      // A live generation outstanding: the guarded issue loses instead of
+      // overwriting (this is what lets a concurrent resend-lane issue win
+      // deterministically instead of double-delivering).
+      expect(await db.issueConfirmTokenIfAbsent(STEAM, hashFor('g-2'), future)).toBe(
+        false,
+      );
+      expect((await db.getAccount(STEAM))?.confirmTokenHash).toBe(
+        hashFor('g-1'),
+      );
+    });
+
+    it('refuses on confirmed accounts and re-arms after a rollback', async () => {
+      await db.createAccount(STEAM);
+      await db.issueConfirmToken(STEAM, hashFor('g-c'), future);
+      expect(await db.consumeConfirmToken(hashFor('g-c'))).toBe(STEAM);
+
+      expect(await db.issueConfirmTokenIfAbsent(STEAM, hashFor('g-d'), future)).toBe(
+        false,
+      );
+
+      // Post-rollback state (hash cleared): the next reconcile pass
+      // re-arms normally — the recovery loop the rollback exists for.
+      await db.createAccount('76561198000000002');
+      await db.issueConfirmToken('76561198000000002', hashFor('g-e'), future);
+      expect(await db.clearConfirmToken('76561198000000002', hashFor('g-e'))).toBe(
+        true,
+      );
+      expect(
+        await db.issueConfirmTokenIfAbsent(
+          '76561198000000002',
+          hashFor('g-f'),
+          future,
+        ),
+      ).toBe(true);
     });
   });
 

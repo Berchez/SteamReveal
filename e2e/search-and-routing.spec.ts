@@ -116,7 +116,7 @@ test.describe('Search & Routing', () => {
     await page.route('**/api/getSteamId', async (route) => {
       const url = new URL(route.request().url());
       const target = url.searchParams.get('target');
-      if (!target || target === 'estainvalido' || target === 'invalid') {
+      if (!target || target === 'no-such-target' || target === 'invalid') {
         return route.fulfill({
           status: 400,
           contentType: 'application/json',
@@ -132,21 +132,21 @@ test.describe('Search & Routing', () => {
     });
 
     await page.goto('/en');
-    await page.getByRole('textbox').fill('estainvalido');
+    await page.getByRole('textbox').fill('no-such-target');
     await page.getByRole('button', { name: /search/i }).click();
 
     await expect(page.getByText(/This is not a valid/)).toBeVisible({
       timeout: 15000,
     });
     await expect(page).toHaveURL(/\/en$/);
-    await expect(page.locator('text=User-estainvalido')).toHaveCount(0);
+    await expect(page.locator('text=User-no-such-target')).toHaveCount(0);
   });
 
   test('Invalid player does not leave skeletons visible', async ({ page }) => {
-    await page.goto('/en/player/estainvalido');
+    await page.goto('/en/player/no-such-target');
     await page.waitForTimeout(1000);
 
-    await expect(page.locator('text=User-estainvalido')).toHaveCount(0);
+    await expect(page.locator('text=User-no-such-target')).toHaveCount(0);
     await expectNoLocationSkeletons(page);
   });
 

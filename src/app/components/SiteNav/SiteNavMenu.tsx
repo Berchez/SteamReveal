@@ -33,7 +33,11 @@ function AvatarBadge({
   size: 'button' | 'header';
 }) {
   const dimension = size === 'button' ? 'h-11 w-11' : 'h-8 w-8';
-  if (avatarUrl !== null) {
+  // A CDN hiccup (or a future Steam avatar-host migration the allowlist
+  // — pinned by next.config.test.ts — doesn't cover yet) must degrade to
+  // the letter initial, never to a broken image in the navbar.
+  const [imgFailed, setImgFailed] = useState(false);
+  if (avatarUrl !== null && !imgFailed) {
     return (
       <Image
         src={avatarUrl}
@@ -41,6 +45,7 @@ function AvatarBadge({
         width={size === 'button' ? 44 : 32}
         height={size === 'button' ? 44 : 32}
         className={`${dimension} rounded-full object-cover`}
+        onError={() => setImgFailed(true)}
       />
     );
   }

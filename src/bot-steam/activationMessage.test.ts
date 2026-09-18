@@ -4,6 +4,9 @@ jest.mock('../lib/analytics/db', () => ({
   getAccount: jest.fn(),
   hashConfirmToken: jest.fn(() => 'ab'.repeat(32)),
   issueConfirmToken: jest.fn(),
+  issueConfirmTokenIfAbsent: jest.fn(),
+  clearConfirmToken: jest.fn(),
+  enqueueEvent: jest.fn(),
 }));
 
 jest.mock('./notifyMessage', () => ({
@@ -18,6 +21,9 @@ const mockedDb = jest.requireMock('../lib/analytics/db') as {
   getAccount: jest.Mock;
   hashConfirmToken: jest.Mock;
   issueConfirmToken: jest.Mock;
+  issueConfirmTokenIfAbsent: jest.Mock;
+  clearConfirmToken: jest.Mock;
+  enqueueEvent: jest.Mock;
 };
 
 const { sendConfirmMessage } = jest.requireMock('./notifyMessage') as {
@@ -122,20 +128,75 @@ describe('handleActivation', () => {
     expect(sendConfirmMessage).not.toHaveBeenCalled();
   });
 
-  it('lets DAL/send failures propagate to reconcile per-row isolation', async () => {
+  it('lets DAL read failures propagate to reconcile per-row isolation', async () => {
     mockedDb.getAccount.mockRejectedValue(new Error('turso down'));
     await expect(handleActivation(CHAT, STEAM, 'en', CONFIG)).rejects.toThrow(
       'turso down',
     );
+  });
 
+  it('rolls the issued token back when its own link send fails (no silent lockout)', async () => {
+    // Same failure class as sendConfirmLink's rollback test, on the
+    // activation lane: the hash must not outlive an undelivered link.
     mockedDb.getAccount.mockResolvedValue({
       steamId: STEAM,
       confirmedAt: null,
     });
     mockedDb.issueConfirmToken.mockResolvedValue(true);
     sendConfirmMessage.mockRejectedValueOnce(new Error('chat down'));
+
     await expect(handleActivation(CHAT, STEAM, 'en', CONFIG)).rejects.toThrow(
       'chat down',
+    );
+    expect(mockedDb.clearConfirmToken).toHaveBeenCalledWith(
+      STEAM,
+      'ab'.repeat(32),
+    );
+  });
+
+  it('queues the welcome through the outbox when the direct send fails (activated rows never re-fire)', async () => {
+    // handleActivation runs AFTER activateWatch committed — the row is
+    // active, so nothing will ever re-fire this hook. Before the fallback
+    // a chat hiccup here lost the welcome forever, silently.
+    mockedDb.getAccount.mockResolvedValue({
+      steamId: STEAM,
+      confirmedAt: '2026-09-02T00:00:00.000Z',
+    });
+    sendWelcomeMessage.mockRejectedValueOnce(new Error('chat down'));
+
+    await expect(
+      handleActivation(CHAT, STEAM, 'en', CONFIG),
+    ).resolves.toBeUndefined();
+
+    expect(mockedDb.enqueueEvent).toHaveBeenCalledTimes(1);
+    expect(mockedDb.enqueueEvent).toHaveBeenCalledWith(STEAM, 'welcome');
+  });
+
+  it('also queues the race-fallback welcome when its direct send fails', async () => {
+    mockedDb.getAccount.mockResolvedValue({
+      steamId: STEAM,
+      confirmedAt: null,
+    });
+    mockedDb.issueConfirmToken.mockResolvedValue(false);
+    sendWelcomeMessage.mockRejectedValueOnce(new Error('chat down'));
+
+    await expect(
+      handleActivation(CHAT, STEAM, 'en', CONFIG),
+    ).resolves.toBeUndefined();
+
+    expect(mockedDb.enqueueEvent).toHaveBeenCalledWith(STEAM, 'welcome');
+  });
+
+  it('propagates when the welcome outbox fallback itself fails (loud, never a silent loss)', async () => {
+    mockedDb.getAccount.mockResolvedValue({
+      steamId: STEAM,
+      confirmedAt: '2026-09-02T00:00:00.000Z',
+    });
+    sendWelcomeMessage.mockRejectedValueOnce(new Error('chat down'));
+    mockedDb.enqueueEvent.mockRejectedValueOnce(new Error('turso down'));
+
+    await expect(handleActivation(CHAT, STEAM, 'en', CONFIG)).rejects.toThrow(
+      'turso down',
     );
   });
 });
@@ -143,6 +204,8 @@ describe('handleActivation', () => {
 describe('sendConfirmLink', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: the guarded issue succeeds (no concurrent resend in flight).
+    mockedDb.issueConfirmTokenIfAbsent.mockResolvedValue(true);
   });
 
   it('sends a fresh link for unconfirmed accounts without a live token', async () => {
@@ -153,13 +216,15 @@ describe('sendConfirmLink', () => {
       confirmExpiresAt: null,
       locale: 'pt',
     });
-    mockedDb.issueConfirmToken.mockResolvedValue(true);
 
     await expect(sendConfirmLink(CHAT, STEAM, null, CONFIG)).resolves.toBe(
       true,
     );
 
-    expect(mockedDb.issueConfirmToken).toHaveBeenCalledTimes(1);
+    // Guarded (if-absent) issue — the resend lane's unconditional issue is
+    // a different DAL call, never made here.
+    expect(mockedDb.issueConfirmTokenIfAbsent).toHaveBeenCalledTimes(1);
+    expect(mockedDb.issueConfirmToken).not.toHaveBeenCalled();
     expect(sendConfirmMessage).toHaveBeenCalledTimes(1);
     // Watch locale first, account locale fallback (mirrors handleActivation).
     expect(sendConfirmMessage.mock.calls[0][2]).toBe('pt');
@@ -180,7 +245,7 @@ describe('sendConfirmLink', () => {
 
     // Resending every pass would spam chat on every reconnect: one
     // outstanding link max, enforced here.
-    expect(mockedDb.issueConfirmToken).not.toHaveBeenCalled();
+    expect(mockedDb.issueConfirmTokenIfAbsent).not.toHaveBeenCalled();
     expect(sendConfirmMessage).not.toHaveBeenCalled();
     expect(sendWelcomeMessage).not.toHaveBeenCalled();
   });
@@ -202,7 +267,7 @@ describe('sendConfirmLink', () => {
       false,
     );
 
-    expect(mockedDb.issueConfirmToken).not.toHaveBeenCalled();
+    expect(mockedDb.issueConfirmTokenIfAbsent).not.toHaveBeenCalled();
     expect(sendConfirmMessage).not.toHaveBeenCalled();
     expect(sendWelcomeMessage).not.toHaveBeenCalled();
   });
@@ -221,23 +286,26 @@ describe('sendConfirmLink', () => {
       false,
     );
 
-    expect(mockedDb.issueConfirmToken).not.toHaveBeenCalled();
+    expect(mockedDb.issueConfirmTokenIfAbsent).not.toHaveBeenCalled();
     expect(sendConfirmMessage).not.toHaveBeenCalled();
     expect(sendWelcomeMessage).not.toHaveBeenCalled();
   });
 
-  it('skips (never welcomes) when the issue loses a confirm race', async () => {
-    // Read unconfirmed, but the user clicked between the read and the
-    // issue. Unlike handleActivation's welcome fallback, welcoming here
-    // would lie — the watch is not active, and the confirm route owns
-    // activation + welcome from this point on.
+  it('skips (never welcomes) when the guarded issue loses a race', async () => {
+    // Two losers, same quiet skip: a concurrent click (confirmed between
+    // the read and the issue) or a concurrent resend-lane issue (the P1-2
+    // race — an explicit user request wins and its delivery supersedes
+    // this one). Unlike handleActivation's welcome fallback, welcoming
+    // here would lie — the watch is not active, and the confirm route
+    // owns activation + welcome from this point on. And since WE issued
+    // nothing, there is nothing to roll back.
     mockedDb.getAccount.mockResolvedValue({
       steamId: STEAM,
       confirmedAt: null,
       confirmTokenHash: null,
       confirmExpiresAt: null,
     });
-    mockedDb.issueConfirmToken.mockResolvedValue(false);
+    mockedDb.issueConfirmTokenIfAbsent.mockResolvedValueOnce(false);
 
     await expect(sendConfirmLink(CHAT, STEAM, 'en', CONFIG)).resolves.toBe(
       false,
@@ -245,24 +313,94 @@ describe('sendConfirmLink', () => {
 
     expect(sendConfirmMessage).not.toHaveBeenCalled();
     expect(sendWelcomeMessage).not.toHaveBeenCalled();
+    expect(mockedDb.clearConfirmToken).not.toHaveBeenCalled();
   });
 
-  it('lets DAL/send failures propagate to reconcile per-row isolation', async () => {
+  it('lets DAL read failures propagate to reconcile per-row isolation', async () => {
     mockedDb.getAccount.mockRejectedValue(new Error('turso down'));
     await expect(sendConfirmLink(CHAT, STEAM, 'en', CONFIG)).rejects.toThrow(
       'turso down',
     );
+    expect(mockedDb.clearConfirmToken).not.toHaveBeenCalled();
+  });
 
+  it('rolls the issued token back when the chat send fails (no silent 24h lockout)', async () => {
+    // The P1 scenario, pinned: issueConfirmToken commits, then
+    // sendConfirmMessage throws. Before the rollback the hash stayed —
+    // the UI showed "check your Steam chat" (confirmLinkSent derives
+    // from hash presence), every later pass skipped on first-issue-only,
+    // and the resend button only appeared after the 24h expiry.
     mockedDb.getAccount.mockResolvedValue({
       steamId: STEAM,
       confirmedAt: null,
       confirmTokenHash: null,
       confirmExpiresAt: null,
     });
-    mockedDb.issueConfirmToken.mockResolvedValue(true);
+    mockedDb.issueConfirmTokenIfAbsent.mockResolvedValue(true);
     sendConfirmMessage.mockRejectedValueOnce(new Error('chat down'));
+
     await expect(sendConfirmLink(CHAT, STEAM, 'en', CONFIG)).rejects.toThrow(
       'chat down',
     );
+
+    // Compare-and-delete with the exact hash that was issued, so a
+    // concurrent click (consumed) or resend (replaced) is never clobbered.
+    expect(mockedDb.clearConfirmToken).toHaveBeenCalledTimes(1);
+    expect(mockedDb.clearConfirmToken).toHaveBeenCalledWith(
+      STEAM,
+      'ab'.repeat(32),
+    );
+  });
+
+  it('rethrows the original send error when the rollback loses the race (newer generation won)', async () => {
+    mockedDb.getAccount.mockResolvedValue({
+      steamId: STEAM,
+      confirmedAt: null,
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+    });
+    mockedDb.issueConfirmTokenIfAbsent.mockResolvedValue(true);
+    // clearConfirmToken false = the hash no longer matched: a click or a
+    // resend replaced the state mid-flight. That newer state stands.
+    mockedDb.clearConfirmToken.mockResolvedValueOnce(false);
+    sendConfirmMessage.mockRejectedValueOnce(new Error('chat down'));
+
+    await expect(sendConfirmLink(CHAT, STEAM, 'en', CONFIG)).rejects.toThrow(
+      'chat down',
+    );
+    expect(mockedDb.clearConfirmToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports loudly when BOTH the send and the rollback fail (stuck hash needs hand attention)', async () => {
+    mockedDb.getAccount.mockResolvedValue({
+      steamId: STEAM,
+      confirmedAt: null,
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+    });
+    mockedDb.issueConfirmTokenIfAbsent.mockResolvedValue(true);
+    mockedDb.clearConfirmToken.mockRejectedValueOnce(new Error('turso down'));
+    sendConfirmMessage.mockRejectedValueOnce(new Error('chat down'));
+
+    await expect(sendConfirmLink(CHAT, STEAM, 'en', CONFIG)).rejects.toThrow(
+      /chat down.*rollback failed.*turso down/,
+    );
+  });
+
+  it('never rolls anything back on the happy path (a delivered link keeps its hash)', async () => {
+    mockedDb.getAccount.mockResolvedValue({
+      steamId: STEAM,
+      confirmedAt: null,
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+    });
+    mockedDb.issueConfirmTokenIfAbsent.mockResolvedValue(true);
+
+    await expect(sendConfirmLink(CHAT, STEAM, 'en', CONFIG)).resolves.toBe(
+      true,
+    );
+
+    expect(mockedDb.clearConfirmToken).not.toHaveBeenCalled();
+    expect(mockedDb.enqueueEvent).not.toHaveBeenCalled();
   });
 });

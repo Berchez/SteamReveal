@@ -12,7 +12,9 @@
  * - sendConfirmLink (confirm-link hook): runs for pending+friend watches
  *   whose account is still unconfirmed, WITHOUT activating — activation
  *   happens exactly once, later, in the confirm route's POST after the
- *   click. Issues ONLY when no token was ever issued (first contact);
+ *   click. Issues ONLY when no token was ever issued (first contact,
+ *   guarded atomically in the UPDATE — a concurrent resend-lane issue
+ *   wins instead of double-delivering);
  *   skips quietly otherwise — no row, already confirmed, or any previous
  *   generation dead or alive. In particular it NEVER re-issues over an
  *   expired token: expired generations belong to the expiry-notice +
@@ -20,13 +22,20 @@
  *   every reconcile pass, defeating both the single notice and the
  *   resend throttle.
  *
- * No retry/outbox here, CONSCIOUSLY (not an omission): the invite/notify
- * lanes need the outbox because a lost invite/notify is a lost user
- * action. A lost link line is recovered structurally — reconcile re-fires
- * the link hook every pass while unconfirmed (first issue only; later
- * passes are no-ops once a hash exists), the expiry poller notices dead
- * generations, and the resend flow delivers on demand. Failures stay loud
- * (reconcile records them per row in report.errors + logger).
+ * Delivery is NOT atomic with issuance, and the failure window is handled
+ * EXPLICITLY (rollback, not outbox — see rollbackUndeliveredToken): a
+ * chat send that fails AFTER issueConfirmToken commits would otherwise
+ * strand the account for the token's whole TTL — the site's
+ * confirmLinkSent derives from hash presence (UI: "check your Steam
+ * chat") while every future pass skips on first-issue-only. The rollback
+ * returns the account to "never issued", so recovery stays structural:
+ * the next reconcile pass (≤10 min or the next reconnect) re-issues and
+ * re-sends. The same "send failed → leave the row retryable" contract
+ * covers the welcome path via the watch_events outbox
+ * (sendWelcomeWithFallback), because an activated row never re-fires
+ * hooks — a failed direct welcome would otherwise be lost forever.
+ * Failures stay loud either way (reconcile records them per row in
+ * report.errors + logger).
  *
  * Race note: issueConfirmToken returning false after we just read an
  * unconfirmed account means the user confirmed concurrently (clicked the
@@ -38,9 +47,12 @@
 
 import { generateHexToken } from '../lib/watch/tokens';
 import {
+  clearConfirmToken,
+  enqueueEvent,
   getAccount,
   hashConfirmToken,
   issueConfirmToken,
+  issueConfirmTokenIfAbsent,
 } from '../lib/analytics/db';
 import type { BotConfig } from './config';
 import {
@@ -60,6 +72,73 @@ import {
  * and notify client shapes by design: one sender, three message kinds.
  */
 export type ActivationChatClient = WelcomeChatClient & NotifyChatClient;
+
+const describeError = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+/**
+ * Rolls back an issued-but-undelivered confirm token (compare-and-delete).
+ * Returns void on success — the CALLER rethrows the original send error
+ * (reconcile's per-row isolation and its tests key on the send failure
+ * itself; the rollback is remediation, not the story). Only a rollback
+ * that ITSELF fails throws here, chaining the original error as `cause`
+ * so neither stack is lost: the row may then hold an undelivered hash
+ * that nothing auto-retries (first-issue-only), which needs hand
+ * attention or a user resend request.
+ *
+ * Ambiguity trade-off, stated plainly (same as the resend lane): a
+ * timeout-style send failure may have delivered without answering, so
+ * this rollback can invalidate a link the user already received — the
+ * next pass then delivers a second, live one. Bounded at 2-3 messages
+ * by the attempt caps, strictly better than the 24h lockout; a "got two
+ * links" report traces back here. (This lane has no logger of its own —
+ * the rethrown send error still lands in reconcile's per-row error log.)
+ *
+ * clearConfirmToken is a compare-and-delete: a concurrent click that
+ * consumed the token, or a resend generation that replaced it, survives
+ * untouched (a false return means a newer state won — nothing to clear).
+ */
+const rollbackUndeliveredToken = async (
+  steamId: string,
+  tokenHash: string,
+  sendError: unknown,
+): Promise<void> => {
+  try {
+    await clearConfirmToken(steamId, tokenHash);
+  } catch (rollbackError) {
+    throw new Error(
+      `confirm-link send failed (${describeError(sendError)}) AND the token ` +
+        `rollback failed (${describeError(rollbackError)}) — the account may ` +
+        'hold an undelivered hash no pass will retry; clear it by hand or ' +
+        'via a resend request',
+      { cause: sendError },
+    );
+  }
+};
+
+/**
+ * Welcome sender with an outbox fallback. The callers run AFTER
+ * activateWatch committed (the row is active NOW), so NOTHING will ever
+ * re-fire this hook — a failed direct send would lose the welcome
+ * forever, silently. On a send failure the welcome is enqueued into
+ * watch_events for the welcome poller (the same retry/drop lane the
+ * click path uses, same message + watch locale) and the send error is
+ * swallowed: delivery is the queue's job now. An enqueue failure still
+ * propagates — reconcile isolates it per row, loudly. Double-delivery
+ * risk on ambiguous send failures (timeout that actually delivered)
+ * matches the accepted poller-lane semantics.
+ */
+const sendWelcomeWithFallback = async (
+  chat: ActivationChatClient,
+  steamId: string,
+  locale: string | null,
+): Promise<void> => {
+  try {
+    await sendWelcomeMessage(chat, steamId, locale);
+  } catch {
+    await enqueueEvent(steamId, 'welcome');
+  }
+};
 
 /**
  * Issues a fresh confirm token and delivers the confirm link WITHOUT
@@ -99,23 +178,43 @@ export const sendConfirmLink = async (
   const tokenHash = account.confirmTokenHash ?? null;
   if (tokenHash !== null) return false;
   const token = generateHexToken();
-  const issued = await issueConfirmToken(
+  const issuedHash = hashConfirmToken(token);
+  // Guarded (if-absent) issue, not the unconditional one: the resend lane
+  // runs concurrently in this same process and issues unconditionally on
+  // explicit user request — a blind issue here could double-deliver (two
+  // links, first dead). The guard makes the explicit request win
+  // deterministically; a 0-row loss means the resend owns delivery now.
+  const issued = await issueConfirmTokenIfAbsent(
     steamId,
-    hashConfirmToken(token),
+    issuedHash,
     new Date(Date.now() + config.confirmTokenTtlMs).toISOString(),
   );
   if (!issued) {
-    // Confirmed concurrently between the read and the issue (or the row
-    // vanished) — the fresh link would already be dead, and the watch is
-    // not active so a welcome would lie. The confirm route owns it now.
+    // Lost a race: confirmed concurrently (or the row vanished) — the
+    // fresh link would already be dead — or the resend lane issued first
+    // (its delivery supersedes this one). Either way the watch is not
+    // active so a welcome would lie. The confirm route owns it now.
     return false;
   }
-  await sendConfirmMessage(
-    chat,
-    steamId,
-    locale ?? account.locale ?? null,
-    `${config.siteUrl}/api/watch/confirm?token=${token}`,
-  );
+  try {
+    await sendConfirmMessage(
+      chat,
+      steamId,
+      locale ?? account.locale ?? null,
+      `${config.siteUrl}/api/watch/confirm?token=${token}`,
+    );
+  } catch (error) {
+    // Delivery failed AFTER the issuance committed: roll the token back
+    // (compare-and-delete) so the account returns to "never issued" and
+    // the next reconcile pass re-issues + re-sends, then rethrow the
+    // ORIGINAL error so the failure stays loud in the pass report.
+    // Without the rollback the user would stare at "check your Steam
+    // chat" (confirmLinkSent derives from hash presence) until the 24h
+    // expiry — with no auto-retry (first-issue-only skips every later
+    // pass) and no resend button before the expiry flips confirmExpired.
+    await rollbackUndeliveredToken(steamId, issuedHash, error);
+    throw error;
+  }
   return true;
 };
 
@@ -133,24 +232,35 @@ export const handleActivation = async (
   const effectiveLocale = locale ?? account?.locale ?? null;
   if (account !== null && account.confirmedAt === null) {
     const token = generateHexToken();
+    const tokenHash = hashConfirmToken(token);
     const issued = await issueConfirmToken(
       steamId,
-      hashConfirmToken(token),
+      tokenHash,
       new Date(Date.now() + config.confirmTokenTtlMs).toISOString(),
     );
     if (!issued) {
       // Confirmed concurrently between the read and the issue (see
       // above) — the fresh link would already be dead.
-      await sendWelcomeMessage(chat, steamId, effectiveLocale);
+      await sendWelcomeWithFallback(chat, steamId, effectiveLocale);
       return;
     }
-    await sendConfirmMessage(
-      chat,
-      steamId,
-      effectiveLocale,
-      `${config.siteUrl}/api/watch/confirm?token=${token}`,
-    );
+    try {
+      await sendConfirmMessage(
+        chat,
+        steamId,
+        effectiveLocale,
+        `${config.siteUrl}/api/watch/confirm?token=${token}`,
+      );
+    } catch (error) {
+      // Same rollback as sendConfirmLink: the hash must not outlive an
+      // undelivered link (this row is already active, so the resend flow
+      // would be the only recovery left — and its throttle counts from
+      // the issuance hour, not delivery). Rethrow the original after the
+      // rollback so the failure stays loud.
+      await rollbackUndeliveredToken(steamId, tokenHash, error);
+      throw error;
+    }
     return;
   }
-  await sendWelcomeMessage(chat, steamId, effectiveLocale);
+  await sendWelcomeWithFallback(chat, steamId, effectiveLocale);
 };

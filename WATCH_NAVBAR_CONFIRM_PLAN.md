@@ -1,175 +1,176 @@
-# Plano — Navbar global + confirmação via link do bot
+# Plan — Global navbar + bot-link confirmation
 
-## 0. Decisões trancadas
+## 0. Locked decisions
 
-- **OpenID mantido** (prova identidade) + **clique no link** (prova canal/ativação, com login imediato).
-- **`/watch` vira redirect para `/`**; fluxos vivem na navbar + painel compacto.
-- **Avatar via Steam API** a cada load, com fallback, só para logados.
-- **Nova tabela `accounts`** (sem tabela de token separada: colunas `confirm_token_hash`/`confirm_expires_at` nullable).
-- Sequência do link: **site mostra o passo** (aceite o convite → bot manda o link no chat → clique confirma).
+- **OpenID kept** (proves identity) + **link click** (proves channel/activation, with immediate login).
+- **`/watch` becomes a redirect to `/`**; flows live in the navbar + compact panel.
+- **Avatar via Steam API** on every load, with fallback, logged-in only.
+- **New `accounts` table** (no separate token table: nullable `confirm_token_hash`/`confirm_expires_at` columns).
+- Link sequence: **site shows the step** (accept the invite → bot sends the link in chat → click confirms).
 
-## 1. Estado atual (ponto de partida)
+## 1. Current state (starting point)
 
-- Auth OpenID + `iron-session` implementados; rotas watch self-scoped; `/watch` é página com `WatchManager` + `WatchInbox`; identidade via sessão (localStorage removido).
-- Amizade continua pré-requisito do chat (limitação da Steam, sem deadlock novo: o convite sai no signup, antes do link).
-- Sem navbar: `LanguageSwitcher` flutua em `fixed top-4 right-4` dentro do `Home.tsx` (cobre `/` e `/player`).
+- OpenID auth + `iron-session` implemented; self-scoped watch routes; `/watch` is a page with `WatchManager` + `WatchInbox`; identity via session (localStorage removed).
+- Friendship stays a chat prerequisite (Steam limitation, no new deadlock: the invite goes out at signup, before the link).
+- No navbar: `LanguageSwitcher` floats at `fixed top-4 right-4` inside `Home.tsx` (covers `/` and `/player`).
 
-## 2. Persistência — migration `005_accounts.sql`
+## 2. Persistence — migration `005_accounts.sql`
 
 ```sql
 CREATE TABLE IF NOT EXISTS accounts (
   steam_id TEXT PRIMARY KEY,
   created_at TEXT NOT NULL,
-  confirmed_at TEXT,              -- NULL = registrado, link ainda não clicado
-  confirm_token_hash TEXT,        -- SHA-256 hex do token, nunca plaintext
-  confirm_expires_at TEXT,        -- ~24h; NULL fora de vigência
+  confirmed_at TEXT,              -- NULL = registered, link not yet clicked
+  confirm_token_hash TEXT,        -- SHA-256 hex of the token, never plaintext
+  confirm_expires_at TEXT,        -- ~24h; NULL when none outstanding
   locale TEXT
 );
 ```
 
-- Token: `crypto.randomBytes(32).hex()`; guarda-se `sha256(token)`; expiração ~24h; re-emissível.
-- DAL (`src/lib/analytics/db.ts`, padrão existente): `createAccount` (INSERT OR IGNORE — idempotente), `getAccount`, `issueConfirmToken`, `consumeConfirmToken` (1 UPDATE atômico com predicado + checagem de `rowsAffected`; comparação em hash).
-- Testes: mock (DAL) + integração real (consumo duplo concorrente → só 1 vence; expirado rejeita; reuso pós-consumo rejeita).
+- Token: `crypto.randomBytes(32).hex()`; store `sha256(token)`; ~24h expiry; re-issuable.
+- DAL (`src/lib/analytics/db.ts`, existing pattern): `createAccount` (INSERT OR IGNORE — idempotent), `getAccount`, `issueConfirmToken`, `consumeConfirmToken` (1 atomic UPDATE with predicate + `rowsAffected` check; hash comparison).
+- Tests: mock (DAL) + real integration (concurrent double-consume → only 1 wins; expired rejects; post-consume reuse rejects).
 
-## 3. Signup — `POST /api/auth/signup` (exige sessão OpenID)
+## 3. Signup — `POST /api/auth/signup` (requires OpenID session)
 
-- Lê `steamId` da sessão (401 sem); `locale` do body.
-- Cria `accounts` (não confirmado) + `watched_profiles` pending + invite (reusa DAL existente); emite o token.
-- Rate limit + CSRF Origin + 400/401/500 no padrão das rotas watch. Testes unitários espelhando `watch/request`.
+- Reads `steamId` from the session (401 without); `locale` from the body.
+- Creates `accounts` (unconfirmed) + `watched_profiles` pending + invite (reuses existing DAL); issues the token.
+- Rate limit + Origin CSRF + 400/401/500 following the watch-route pattern. Unit tests mirroring `watch/request`.
 
-## 4. Bot entrega o link (1 ponto de toque)
+## 4. Bot delivers the link (1 touchpoint)
 
-- Novo env `WATCH_SITE_URL` (base absoluta; dev e prod distintos).
-- Em `index.ts`, no `onActivated`: `getAccount` → se `confirmed_at` nulo, envia mensagem de confirmação (`SITE_URL/api/watch/confirm?token=<hex>`) em vez do welcome; se confirmada, welcome atual.
-- Template novo em `notificationText.ts` (`confirmText(locale, url)`) nas 5 línguas + testes.
-- Sem fila nova, sem lane nova, sem mudar cooldown/cap/TTL/opt-out.
+- New env `WATCH_SITE_URL` (absolute base; dev and prod differ).
+- In `index.ts`, on `onActivated`: `getAccount` → if `confirmed_at` is null, sends the confirmation message (`SITE_URL/api/watch/confirm?token=<hex>`) instead of the welcome; if confirmed, current welcome.
+- New template in `notificationText.ts` (`confirmText(locale, url)`) in all 5 languages + tests.
+- No new queue, no new lane, no cooldown/cap/TTL/opt-out changes.
 
-## 5. Confirmação — `GET /api/watch/confirm?token=`
+## 5. Confirmation — `GET /api/watch/confirm?token=`
 
-- Funciona **deslogado**: valida hash + expiração + consome em 1 UPDATE atômico → seta `confirmed_at` → **sela a sessão** (login imediato) → redirect `/` com toast de sucesso.
-- Token inválido/expirado/já-usado → redirect `/` com erro amigável.
-- Rate limit. Testes: sucesso, reuso, expirado, inválido, sem sessão prévia com sessão criada.
+- Works **logged out**: validates hash + expiry + consumes in 1 atomic UPDATE → sets `confirmed_at` → **seals the session** (immediate login) → redirect `/` with success toast.
+- Invalid/expired/used token → redirect `/` with friendly error.
+- Rate limit. Tests: success, reuse, expired, invalid, no prior session with session created.
 
-## 6. Navbar global — `SiteNav`
+## 6. Global navbar — `SiteNav`
 
-- Novo Server Component async em `[locale]/layout.tsx`: cluster fixo top-right com `LanguageSwitcher` (movido do `Home.tsx`), sino (`WatchInbox` com steamId da sessão) e avatar/sign-in.
-- Logado: avatar 40px redondo (`getSteamAvatarUrl(steamId)` server-side via `steamapi`; fallback letra/SVG; falha da API nunca quebra a página) + dropdown (status do watch, link do painel, sign out).
-- Deslogado: botão Steam (link para login com `next` = página atual).
-- Sem polling novo, sem estado global novo; SSR lê a sessão direto (sem flash).
+- New async Server Component in `[locale]/layout.tsx`: fixed top-right cluster with `LanguageSwitcher` (moved from `Home.tsx`), bell (`WatchInbox` with session steamId) and avatar/sign-in.
+- Logged in: round 40px avatar (`getSteamAvatarUrl(steamId)` server-side via `steamapi`; letter/SVG fallback; API failure never breaks the page) + dropdown (watch status, panel link, sign out).
+- Logged out: Steam button (login link with `next` = current page).
+- No new polling, no new global state; SSR reads the session directly (no flash).
 
-## 7. Dissolução do `/watch`
+## 7. Dissolving `/watch`
 
-- Rota vira `redirect('/')` permanente (preserva bookmarks).
-- `WatchManager` vira conteúdo do painel compacto (mesmos estados pending/active/none + Start explícito — sem auto-POST, sem re-inscrição pós-opt-out).
-- Deletar o obsoleto da página; atualizar testes e2e que navegam para `/watch`.
+- Route becomes a permanent `redirect('/')` (preserves bookmarks).
+- `WatchManager` becomes the compact panel content (same pending/active/none states + explicit Start — no auto-POST, no post-opt-out re-subscribe).
+- Delete the page's obsolete parts; update e2e tests that navigate to `/watch`.
 
-## 8. i18n (5 locales, paridade testada)
+## 8. i18n (5 locales, tested parity)
 
-- Novas: botão signup/login, passos ("aceite o convite", "clique no link do chat"), sucesso da confirmação, erro de link expirado, alt do avatar, status do dropdown.
-- Textos do bot-link traduzidos; nada hardcoded.
+- New: signup/login button, steps ("accept the invite", "click the chat link"), confirmation success, expired-link error, avatar alt, dropdown status.
+- Bot-link texts translated; nothing hardcoded.
 
-## 9. Testes (DoD)
+## 9. Tests (DoD)
 
-- Unit + integração (DAL, rotas, libs, componentes).
-- E2E da jornada completa: signup → invite → amizade mockada → link entregue (seam de teste lê o token pendente em `DEV_TEST_MODE`, mesmo gate do `test-login`) → clique → conta confirmada + sessão ativa + sino.
-- Gates: lint, `tsc --noEmit`, Jest total, Playwright total.
+- Unit + integration (DAL, routes, libs, components).
+- Full-journey E2E: signup → invite → mocked friendship → delivered link (test seam reads the pending token in `DEV_TEST_MODE`, same gate as `test-login`) → click → confirmed account + active session + bell.
+- Gates: lint, `tsc --noEmit`, full Jest, full Playwright.
 
-## 10. Docs e validação final
+## 10. Docs and final validation
 
-- `WATCH_BOT_RUNBOOK.md` (bot envia link, `WATCH_SITE_URL`, warm-up), `AGENTS.md` (rotas/tabelas novas), `WATCH_PROD_READINESS.md` (atualizar sign-offs).
-- Checklist pré-merge: sem segredo/token plaintext em log ou resposta; token single-use real; expiração aplicada; `/watch` antigo redirecionando; suite verde ponta a ponta.
+- `WATCH_BOT_RUNBOOK.md` (bot sends link, `WATCH_SITE_URL`, warm-up), `AGENTS.md` (new routes/tables), `WATCH_PROD_READINESS.md` (update sign-offs).
+- Pre-merge checklist: no secret/plaintext token in log or response; real single-use token; expiry applied; old `/watch` redirecting; suite green end to end.
 
-## 11. Ordem de execução
+## 11. Execution order
 
-1. Migration + DAL + testes → 2. signup + confirm + testes → 3. bot (template + branch + env) → 4. `SiteNav` + avatar + mover switcher → 5. dissolver `/watch` + limpar obsoleto → 6. i18n ×5 + paridade → 7. e2e + validação total + docs.
+1. Migration + DAL + tests → 2. signup + confirm + tests → 3. bot (template + branch + env) → 4. `SiteNav` + avatar + move switcher → 5. dissolve `/watch` + clean obsolete → 6. i18n ×5 + parity → 7. e2e + full validation + docs.
 
-## 12. Emenda — click-to-activate (pós-bug reportado)
+## 12. Amendment — click-to-activate (post-reported-bug)
 
- Correção de comportamento: amizade com o bot NÃO ativa mais o watch.
- Antes, `activateWatch` disparava no aceite (reconcile) e o link servia só
- de login-bônus — o watch notificava e o site tostava sem clique. Agora a
- ativação exige o clique, e o plano acima lê-se com estes ajustes:
+ Behavior fix: befriending the bot NO LONGER activates the watch.
+ Before, `activateWatch` fired on accept (reconcile) and the link was only
+ a login bonus — the watch notified and the site toasted without a click. Now
+ activation requires the click, and the plan above reads with these tweaks:
 
-- **Gate no DAL**: `activateWatch` exige `confirmed_at` (carve-out: linhas
-  legado sem `accounts` ativam como antes — consentiram no contrato antigo).
-- **Aceite da amizade**: reconcile manda SÓ o link (hook novo,
-  sem ativar); confirmadas ativam + welcome como antes. O hook emite
-  SOMENTE na primeira vez (sem hash armazenado): nunca reemite sobre
-  token expirado — expirados pertencem ao fluxo aviso+resend, nunca ao
-  reconcile (senão o aviso único morreria de inanição e o throttle de 1h
-  seria contornado).
-- **Clique**: `GET /api/watch/confirm` virou página intermediária (imune a
-  prefetch/linkifier/antivírus); `POST` consome + ativa + enfileira
-  `welcome` + sela sessão. CSRF de Origin como signup/logout. Decisão
-  pós-review (auto-submit removido): a página NÃO carrega elemento <script> —
-  só o clique explícito no botão confirma, então abrir/previewar a URL
-  nunca gasta o token em nenhum contexto (nem headless visível+focado).
-- **Welcome**: evento `welcome` entregue pelo bot (o site não alcança o
-  chat). POST só enfileira quando ele mesmo ativou (backstop ativa via
-  `onActivated` e dá seu próprio welcome — sem duplo).
-- **Expiração (24h mantido)**: sem resend automático. Poller do bot manda
-  UMA mensagem ("link expirou, gere outro no site") por geração de token,
-  com recheck pré-envio + write condicional (clique concorrente sempre
-  vence). Marker `confirm_expire_noticed_for` (migration 008).
-- **Gerar novo**: `POST /api/auth/confirm-resend` (sessão + CSRF +
-  rate-limit) enfileira `confirm_resend`; o bot emite (sole issuer) com
-  throttle de 1h por perfil; UI no pending expirado (`confirmExpired` no
-  status + 3 chaves i18n ×5 locales).
-- **Backstop**: reconcile periódica (10min) converge ativações cujo clique
-  caiu com o DB fora do ar; `GET /api/watch/status` carrega
-  `confirmExpired` (degrada para false com log, nunca 500a o poll).
-- **Sem migration destrutiva**: só 008 (coluna nullable). **Nunca renomear**
-  migration aplicada (incidente 007: aplicada como 006, renomeada, replay
-  quebrou o migrate — ver contrato em `scripts/migrate-db.ts`).
-- Cobertura: gate + scan + marker no DAL (mock + real libSQL), ramos do
-  reconcile, split do activation, GET/POST da rota, 3 pollers, resend
-  route/UI, journey e2e reescrita (aceite→pending sem toast; POST→active;
-  expirado→resend). `useWatchStatus` inalterado (o toast passa a significar
-  "confirmado" de verdade).
+- **DAL gate**: `activateWatch` requires `confirmed_at` (carve-out: legacy
+  rows without `accounts` activate as before — they consented under the old
+  contract).
+- **Friendship accept**: reconcile sends ONLY the link (new hook,
+  without activating); confirmed ones activate + welcome as before. The hook
+  emits ONLY the first time (no stored hash): never re-emits over an
+  expired token — expired ones belong to the notice+resend flow, never to
+  reconcile (otherwise the single notice would starve and the 1h throttle
+  would be bypassed).
+- **Click**: `GET /api/watch/confirm` became an intermediate page (immune to
+  prefetch/linkifier/antivirus); `POST` consumes + activates + enqueues
+  `welcome` + seals session. Origin CSRF like signup/logout. Post-review
+  decision (auto-submit removed): the page loads NO <script> element —
+  only the explicit button click confirms, so opening/previewing the URL
+  never spends the token in any context (not even visible+focused headless).
+- **Welcome**: `welcome` event delivered by the bot (the site can't reach
+  chat). POST only enqueues when it activated itself (backstop activates via
+  `onActivated` and gives its own welcome — no double).
+- **Expiry (24h kept)**: no automatic resend. The bot poller sends
+  ONE message ("link expired, generate another on the site") per token
+  generation, with pre-send recheck + conditional write (concurrent click
+  always wins). Marker `confirm_expire_noticed_for` (migration 008).
+- **Generate new**: `POST /api/auth/confirm-resend` (session + CSRF +
+  rate-limit) enqueues `confirm_resend`; the bot issues (sole issuer) with
+  a 1h per-profile throttle; UI on expired pending (`confirmExpired` in the
+  status + 3 i18n keys ×5 locales).
+- **Backstop**: periodic reconcile (10min) converges activations whose click
+  landed while the DB was down; `GET /api/watch/status` carries
+  `confirmExpired` (degrades to false with logging, never 500s the poll).
+- **No destructive migration**: only 008 (nullable column). **Never rename**
+  an applied migration (007 incident: applied as 006, renamed, replay
+  broke the migrate — see contract in `scripts/migrate-db.ts`).
+- Coverage: gate + scan + marker in the DAL (mock + real libSQL), reconcile
+  branches, activation split, route GET/POST, 3 pollers, resend
+  route/UI, rewritten journey e2e (accept→pending without toast; POST→active;
+  expired→resend). `useWatchStatus` unchanged (the toast now truly means
+  "confirmed").
 
-## 13. Emenda — modelo single-state (login gated por amizade)
+## 13. Amendment — single-state model (friendship-gated login)
 
- Troca o funil para usuários novos deslogados: **Sign in with Steam →
- sala de espera → adiciona o bot → login conclui sozinho → watch `active`
- direto** (sem Start, sem pending, sem link; quem adiciona o bot ANTES
- pula a sala). Não existe mais ordem obrigatória. O que muda e o que
- NÃO muda:
+ Switches the funnel for fresh logged-out users: **Sign in with Steam →
+ waiting room → add the bot → login completes by itself → watch `active`
+ directly** (no Start, no pending, no link; whoever adds the bot BEFORE
+ skips the room). No more mandatory order. What changes and what does
+ NOT change:
 
-- **Callback OpenID** (`callback/route.ts`): 3º gate — `isBotFriend` via
-  `GetFriendList` da conta `STEAM_BOT_STEAMID` (lista do bot tem que ficar
-  PÚBLICA), 8s timeout. Já-amigo completa na hora; `false` SEGURA o login
-  verificado num pendente selado de 30min e cai na sala de espera
-  (`?login=waiting`, poll de 10s em `GET /api/auth/steam/pending` que
-  re-prova tudo server-side e conclui sozinho — sem segundo OpenID);
-  `null`/env ruim → `?auth=error` fail-closed, sem sessão.
-  Ordem load-bearing em `completeLogin.ts` (única implementação, usada pelo
-  callback E pela conclusão): `ensureActiveWatch` (fatal) → `recordLogin`
-  (audit, non-fatal, migration 010) → `saveWatchSession` → welcome UMA vez
-  se ativou (3 tentativas, non-fatal) → (+ limpa o pendente na rota pending).
-  Seal-antes-welcome de propósito: falha no seal nunca deixa um welcome
-  órfão. `?watch=new` é o único sinal de "watch live" (não existe mais
-  pending para estrear).
-- **Bot aceita inbound** (`bot.ts`): `RequestRecipient` → `addFriend`
-  (live + sweep de chegadas offline, sequencial). LIMITADO no sink:
-  `BOT_AUTO_ACCEPT_DAILY_LIMIT` (50/dia UTC, só sucesso consome) +
-  `BOT_AUTO_ACCEPT_FRIEND_CAP` (240 amigos, headroom sob o teto Steam de
-  250) — recusa loga `REFUSED`/`sweep paused` (alerta de disponibilidade,
-  runbook §5); exaustão (ataque ou crescimento) adia onboarding novo até
-  intervenção — shard `ACQ_BOT_*` é a resposta de escala (backlog).
-- **NÃO morreu**: `POST /api/auth/signup` + botão Start + `invitePoller` +
-  `GET/POST /api/watch/confirm` seguem vivos para o **re-watch pós-opt-out**
-  (o cookie sobrevive ao unfriend: stale `none` → Start → pending →
-  convite do bot → link → clique) e para tokens legados. Usuário novo
-  deslogado nunca encosta nisso. `activateWatch` mantém o gate
-  `confirmed_at` para a lane do link, e `ensureActiveWatch` espelha o
-  MESMO predicado no login (vira `active` só sem linha em `accounts`
-  — carve-out legado — ou com conta já confirmada; pending + conta
-  não-confirmada continua pending até o clique). Re-login nunca pula o
-  clique: §12 segue valendo em todas as lanes (sign-off 8b).
-- **Retry de accepts diferidos**: o sweep de inbound (`acceptPendingRequests`)
-  roda no `friendsList` E no timer de reconcile (10min) — teto/diário
-  adiados convergem sem reconnect (virada do dia UTC, slots liberados).
-- **Latência/quota do login** (aceito, monitorar): +1 `GetFriendList` (8s
-  cap) + 1-3 queries + audit por login; quota `STEAM_API_KEY`/`_2`
-  compartilhada com busca (mitigação atual: sorteio entre as duas chaves).
-  Medir p95/p99 pós-deploy; sem chave dedicada por ora.
+- **OpenID callback** (`callback/route.ts`): 3rd gate — `isBotFriend` via
+  `GetFriendList` of the `STEAM_BOT_STEAMID` account (the bot's list must
+  stay PUBLIC), 8s timeout. Already-friend completes immediately; `false`
+  HOLDS the verified login in a sealed 30min pending and lands in the
+  waiting room (`?login=waiting`, 10s poll on `GET /api/auth/steam/pending`
+  that re-proves everything server-side and completes by itself — no second
+  OpenID); `null`/bad env → `?auth=error` fail-closed, no session.
+  Load-bearing order in `completeLogin.ts` (single implementation, used by
+  both the callback AND the completion): `ensureActiveWatch` (fatal) →
+  `recordLogin` (audit, non-fatal, migration 010) → `saveWatchSession` →
+  welcome ONCE if activated (3 attempts, non-fatal) → (+ clears the pending
+  in the pending route). Seal-before-welcome on purpose: a seal failure
+  never leaves an orphaned welcome. `?watch=new` is the only "watch live"
+  signal (no more pending for debuts).
+- **Bot accepts inbound** (`bot.ts`): `RequestRecipient` → `addFriend`
+  (live + offline-arrival sweep, sequential). LIMITED at the sink:
+  `BOT_AUTO_ACCEPT_DAILY_LIMIT` (50/day UTC, only successes consume) +
+  `BOT_AUTO_ACCEPT_FRIEND_CAP` (240 friends, headroom under Steam's 250
+  cap) — refusal logs `REFUSED`/`sweep paused` (availability alert,
+  runbook §5); exhaustion (attack or growth) defers new onboarding until
+  intervention — the `ACQ_BOT_*` shard is the scale answer (backlog).
+- **NOT dead**: `POST /api/auth/signup` + Start button + `invitePoller` +
+  `GET/POST /api/watch/confirm` stay alive for **post-opt-out re-watch**
+  (the cookie survives the unfriend: stale `none` → Start → pending →
+  bot invite → link → click) and for legacy tokens. Fresh logged-out
+  users never touch any of it. `activateWatch` keeps the `confirmed_at`
+  gate for the link lane, and `ensureActiveWatch` mirrors the SAME
+  predicate at login (turns `active` only with no `accounts` row
+  — legacy carve-out — or with an already-confirmed account; pending +
+  unconfirmed account stays pending until the click). Re-login never skips
+  the click: §12 still holds on every lane (sign-off 8b).
+- **Deferred-accept retry**: the inbound sweep (`acceptPendingRequests`)
+  runs on `friendsList` AND on the reconcile timer (10min) — deferred
+  cap/daily converge without reconnect (UTC day rollover, freed slots).
+- **Login latency/quota** (accepted, monitor): +1 `GetFriendList` (8s
+  cap) + 1-3 queries + audit per login; `STEAM_API_KEY`/`_2` quota
+  shared with search (current mitigation: draw between the two keys).
+  Measure p95/p99 post-deploy; no dedicated key for now.

@@ -60,26 +60,26 @@ describe('parseRecordBody', () => {
     const input = parseRecordBody({
       profile: { steamId: '76561198000000000' },
       friends: [
-        { steamId: '76561198000000001', nickname: 'Bom' },
+        { steamId: '76561198000000001', nickname: 'Good' },
         { steamId: '' },
-        { nickname: 'sem-id' },
-        'lixo',
+        { nickname: 'no-id' },
+        'junk',
       ],
       gamesSnapshot: [
         { name: 'CS2', playtimeHours: 100 },
         { name: '' },
-        { name: 'sem-playtime' },
+        { name: 'no-playtime' },
         { playtimeHours: 50 },
       ],
       locationGuess: [
         { location: { cityName: 'SP' }, probability: 0.9 },
         { probability: 0.5 },
-        'lixo',
+        'junk',
       ],
     });
 
     expect(input?.friends).toEqual([
-      { steamId: '76561198000000001', nickname: 'Bom' },
+      { steamId: '76561198000000001', nickname: 'Good' },
     ]);
     expect(input?.gamesSnapshot).toEqual([{ name: 'CS2', playtimeHours: 100 }]);
     expect(input?.locationGuess).toEqual([
@@ -254,11 +254,11 @@ describe('parseFriendGcNamesBody', () => {
     expect(
       parseFriendGcNamesBody({
         searchId: '1788564056404-tzx2nt',
-        gcNames: [{ steamId, gcName: 'João CS' }],
+        gcNames: [{ steamId, gcName: 'John CS' }],
       }),
     ).toEqual({
       searchId: '1788564056404-tzx2nt',
-      gcNames: [{ steamId, gcName: 'João CS' }],
+      gcNames: [{ steamId, gcName: 'John CS' }],
     });
   });
 

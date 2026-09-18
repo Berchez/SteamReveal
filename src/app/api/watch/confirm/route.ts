@@ -7,6 +7,7 @@ import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { saveWatchSession } from '@/lib/watch/session';
 import checkSameOrigin from '@/lib/watch/csrf';
+import { isWatchTokenShape } from '@/lib/watch/tokens';
 import { resolveLocaleHome } from '@/lib/watch/loginNext';
 import { resolveWatchLocale } from '@/lib/watch/notificationText';
 import {
@@ -16,6 +17,7 @@ import {
   getAccount,
   getAccountByConfirmTokenHash,
   hashConfirmToken,
+  recordLogin,
 } from '@/lib/analytics/db';
 import { CONFIRM_PAGE_TEXT, type ConfirmPageText } from './confirmText';
 
@@ -157,20 +159,21 @@ const confirmPageResponse = (html: string): Response =>
 /**
  * Shared token parsing for both legs: chat linkifiers (Steam's included)
  * glue trailing punctuation into the clickable link — a token arriving as
- * "<64hex>." must still work. Safe to strip: a valid token is exactly 64
- * hex chars, so trailing punctuation can never belong to one; only an
- * exact valid prefix survives this, which is precisely the mangled-link
- * case. Returns null for missing/malformed tokens (answered identically
- * on both legs).
+ * "<hex>." must still work. Safe to strip: a valid token is exactly
+ * WATCH_TOKEN_HEX_LENGTH hex chars, so trailing punctuation can never
+ * belong to one; only an exact valid prefix survives this, which is
+ * precisely the mangled-link case. Returns null for missing/malformed
+ * tokens (answered identically on both legs).
  */
 const parseConfirmToken = (req: Request): string | null => {
   const url = new URL(req.url);
   const rawToken = url.searchParams.get('token');
-  // Shape-gate before hashing anything: 64 hex chars, the only form our
-  // issuer ever produces. Anything else is a probe, answered identically.
+  // Shape-gate before hashing anything (derived from the issuer's byte
+  // length, never a literal — a drift here would silently reject every
+  // outstanding link). Anything else is a probe, answered identically.
   const token =
     rawToken === null ? null : rawToken.replace(/[.,;:!?)\]}'"]+$/, '');
-  if (token === null || token === '' || !/^[0-9a-f]{64}$/.test(token)) {
+  if (!isWatchTokenShape(token)) {
     return null;
   }
   return token;
@@ -191,6 +194,28 @@ const homeRedirect = (
     `${new URL(req.url).origin}${home}?confirmed=${param}`,
     302,
   );
+};
+
+/**
+ * Login-audit parity with the OpenID lane (completeProvenLogin): a link
+ * click also seals the session, so it counts as a login for
+ * last_login_at. Best-effort like everything else on this leg — an audit
+ * failure must never turn a consumed token into an error landing.
+ * recordLogin is an idempotent upsert (refreshes the timestamp, never
+ * touches confirmation state), so calling it on both seal branches is
+ * safe even when the backstop owned the flip.
+ */
+const auditConfirmLogin = async (
+  steamId: string,
+  locale: string | null,
+): Promise<void> => {
+  try {
+    await recordLogin(steamId, locale);
+  } catch (loginError) {
+    logRouteError('watchConfirm:login', sanitizeError(loginError), {
+      steamId,
+    });
+  }
 };
 
 export async function GET(req: Request) {
@@ -313,6 +338,9 @@ export async function POST(req: Request) {
       // (nothing to welcome; backstop-owned flips welcome via onActivated instead).
       try {
         await saveWatchSession(cookies(), steamId);
+        // Audit only a session that actually exists: recording last_login_at
+        // for a seal that failed would overcount logins.
+        await auditConfirmLogin(steamId, locale);
       } catch {
         // Session failure is non-fatal; landing page still works.
       }
@@ -347,8 +375,10 @@ export async function POST(req: Request) {
     // already consumed (account confirmed) — we still redirect to 'ok' so
     // the user isn't stuck with a dead link, but log the session failure
     // explicitly for debugging.
+    let sessionSealed = false;
     try {
       await saveWatchSession(cookies(), steamId);
+      sessionSealed = true;
     } catch (sessionError) {
       logRouteError('watchConfirm:session', sanitizeError(sessionError), {
         steamId,
@@ -371,6 +401,11 @@ export async function POST(req: Request) {
       logRouteError('watchConfirm:locale', sanitizeError(accountError), {
         steamId,
       });
+    }
+    // Same no-seal-no-audit rule as the backstop branch above: only a
+    // sealed session counts as a login for last_login_at.
+    if (sessionSealed) {
+      await auditConfirmLogin(steamId, locale);
     }
     return homeRedirect(req, locale, 'ok');
   } catch (error) {

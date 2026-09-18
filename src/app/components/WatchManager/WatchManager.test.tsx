@@ -331,8 +331,12 @@ describe('WatchManager', () => {
     expect(screen.queryByText('watchResendSent')).not.toBeInTheDocument();
   });
 
-  it('shows watchResendSent after user clicks resend and new token is live', async () => {
-    // Simulate: token expired -> user clicks resend -> new token issued
+  it('shows watchLinkSentHint (not watchResendSent) after the requested link arrives', async () => {
+    // Simulate: token expired -> user clicks resend -> new token issued.
+    // The expired→live flip IS the delivery signal: the local "sent"
+    // state must yield to "check your chat". (A confirmLinkSent edge
+    // cannot mark this — the dead token already reports linkSent=true
+    // while the user waits.)
     let expired = true;
     fetchByUrl((url) => {
       if (url.includes('/api/auth/confirm-resend')) {
@@ -341,7 +345,7 @@ describe('WatchManager', () => {
           json: async () => ({ ok: true, queued: true }),
         } as Response;
       }
-      return statusResponse('pending', { confirmExpired: expired, confirmLinkSent: !expired });
+      return statusResponse('pending', { confirmExpired: expired, confirmLinkSent: true });
     });
 
     render(<WatchManager steamId={STEAM_ID} />);
@@ -352,16 +356,14 @@ describe('WatchManager', () => {
     // User clicks resend
     fireEvent.click(screen.getByText('watchResendSubmit'));
     await settle();
+    expect(screen.getByText('watchResendSent')).toBeInTheDocument();
 
-    // New token issued (expired=false, confirmLinkSent=true)
+    // New token issued (expired=false, confirmLinkSent stays true)
     expired = false;
     await flushPolls(1);
 
-    // After resend: resendSent local state is true, but new token is live
-    // Current behavior: watchResendSent shows because resendSent takes precedence in ternary
-    // (pre-existing bug: resendSent doesn't reset when confirmLinkSent becomes true)
-    expect(screen.getByText('watchResendSent')).toBeInTheDocument();
-    expect(screen.queryByText('watchLinkSentHint')).not.toBeInTheDocument();
+    expect(screen.getByText('watchLinkSentHint')).toBeInTheDocument();
+    expect(screen.queryByText('watchResendSent')).not.toBeInTheDocument();
     expect(screen.queryByText('watchResendSubmit')).not.toBeInTheDocument();
   });
 
@@ -447,6 +449,8 @@ describe('WatchManager', () => {
   it('offers the button again on a second expiry cycle (resendSent resets on flip)', async () => {
     // Regression net: without the flip-reset, a second dead generation in
     // the same long-lived mount would never offer the button again.
+    // confirmLinkSent tracks the expiry (a live token exists exactly when
+    // the state is not expired) so the post-delivery hint is faithful.
     let expired = true;
     fetchByUrl((url) => {
       if (url.includes('/api/auth/confirm-resend')) {
@@ -455,7 +459,10 @@ describe('WatchManager', () => {
           json: async () => ({ ok: true, queued: true }),
         } as Response;
       }
-      return statusResponse('pending', { confirmExpired: expired });
+      return statusResponse('pending', {
+        confirmExpired: expired,
+        confirmLinkSent: !expired,
+      });
     });
 
     render(<WatchManager steamId={STEAM_ID} />);
@@ -464,11 +471,14 @@ describe('WatchManager', () => {
     await settle();
     expect(screen.getByText('watchResendSent')).toBeInTheDocument();
 
-    // Fresh token issued: polls report it live. The sent confirmation must
-    // survive the true→false flip (no premature reset).
+    // Fresh token issued: polls report it live. The expired→live flip is
+    // the delivery signal, so the stale "on its way" yields to the live
+    // "check your chat" hint (no premature reset before that: the
+    // confirmation above survived every poll while expired stayed true).
     expired = false;
     await flushPolls(1);
-    expect(screen.getByText('watchResendSent')).toBeInTheDocument();
+    expect(screen.getByText('watchLinkSentHint')).toBeInTheDocument();
+    expect(screen.queryByText('watchResendSent')).not.toBeInTheDocument();
     expect(screen.queryByText('watchResendSubmit')).not.toBeInTheDocument();
 
     // That generation dies unclicked too: the button must come back.

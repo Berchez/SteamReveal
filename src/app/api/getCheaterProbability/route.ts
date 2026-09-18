@@ -159,7 +159,7 @@ export async function POST(req: Request) {
 //       · MONITOR: proxy reachability + session-cookie freshness (indirect, not
 //         usually a literal 429, but kills the signal silently).
 //
-//  MÉDIO (official Steam Web API, tolerates more, still not a blank check):
+//  MEDIUM (official Steam Web API, tolerates more, still not a blank check):
 //   · bannedFriendsMethod → steam.getUserBans(steamIDs) — ONE batched call per
 //     request but with up to MAX_CLOSE_FRIENDS (100) steamIDs in the payload.
 //   · gameLibraryStatsMethod → steam.getUserOwnedGames (full library fetch).

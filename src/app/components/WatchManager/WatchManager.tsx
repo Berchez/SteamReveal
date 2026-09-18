@@ -57,15 +57,25 @@ function WatchManager({
   const linkSentHint = confirmLinkSent ? translator('watchLinkSentHint') : translator('watchPendingHint');
 
   // Resend-button lifecycle: the button shows while the link is expired
-  // and no fresh one was requested yet. Reset ONLY on the false→true flip
-  // (a new generation died unclicked): resetting on every poll, or when
-  // the flag clears after a successful resend, would wipe the "sent"
-  // confirmation right after showing it. A remount (dropdown close/reopen)
-  // also resets, since the state is per-mount.
+  // and no fresh one was requested yet. Reset whenever `confirmExpired`
+  // changes, in either direction: a fresh delivery arrived (expired→live —
+  // show "check your chat", not "on its way" forever) or a new expiry
+  // cycle started (live→expired — the button shows again). No ref needed
+  // to detect the edge: this effect only runs on mount (resendSent starts
+  // false, so the reset is a no-op) and on expired flips (where a reset
+  // is always correct). A confirmLinkSent level check can NOT mark the
+  // delivery instead: the dead token already reports linkSent=true while
+  // the user waits. A remount (dropdown close/reopen) also resets, since
+  // the state is per-mount.
+  // Known residual (accepted, transient): a DB blip that degrades one
+  // status poll to expired=false flips this early (wrong hint for one
+  // poll, ~5s) until the next good poll restores the button. Harmless —
+  // the server throttle bounds duplicate resends either way, and tracking
+  // generations (confirmExpiresAt in the status payload) would cost a
+  // shared-shape change across route/hook/prefetch/seed for a cosmetic
+  // transient.
   useEffect(() => {
-    if (confirmExpired) {
-      setResendSent(false);
-    }
+    setResendSent(false);
   }, [confirmExpired]);
 
   const handleStart = useCallback(async () => {

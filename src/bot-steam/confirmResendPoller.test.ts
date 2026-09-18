@@ -43,6 +43,7 @@ const makeDal = () => ({
   ),
   getAccount: jest.fn(async (): Promise<WatchAccount | null> => null),
   issueConfirmToken: jest.fn(async (): Promise<boolean> => true),
+  clearConfirmToken: jest.fn(async (): Promise<boolean> => true),
 });
 
 const makeChat = () => ({
@@ -261,6 +262,92 @@ describe('pollConfirmResendQueueOnce', () => {
     dal.recordEventAttempt.mockResolvedValueOnce('dropped');
     const dropped = await pollConfirmResendQueueOnce({ chat, ...rest });
     expect(dropped).toMatchObject({ retried: 0, dropped: 1 });
+  });
+
+  it('rolls back the issued token when the chat send fails (no dead-token lockout)', async () => {
+    // The P1 scenario, pinned: issueConfirmToken commits, then
+    // sendFriendMessage throws. Before the rollback the hash stayed —
+    // the UI showed "check your Steam chat" (confirmLinkSent derives
+    // from hash presence) while every retry died in the throttle, which
+    // derives issue time from the dead token's expiry.
+    const dal = makeDal();
+    const { chat, ...rest } = baseOptions(dal);
+    dal.claimNextQueuedEvents.mockResolvedValue([{ id: 1, steamId: STEAM_A }]);
+    dal.getWatchedProfile.mockResolvedValue(pendingProfile());
+    dal.getAccount.mockResolvedValue(unconfirmedAccount());
+    chat.sendFriendMessage.mockRejectedValueOnce(new Error('chat down'));
+
+    const report = await pollConfirmResendQueueOnce({ chat, ...rest });
+
+    expect(report).toMatchObject({ claimed: 1, sent: 0, retried: 1 });
+    // Compare-and-delete with the exact hash this pass issued.
+    const issuedHash = (dal.issueConfirmToken as jest.Mock).mock.calls[0][1];
+    expect(dal.clearConfirmToken).toHaveBeenCalledTimes(1);
+    expect(dal.clearConfirmToken).toHaveBeenCalledWith(STEAM_A, issuedHash);
+    // Requeued (not throttled-dropped): the retry path stays alive.
+    expect(dal.recordEventAttempt).toHaveBeenCalledWith(1, 3);
+    expect(dal.markEventDropped).not.toHaveBeenCalled();
+  });
+
+  it('recovers on the next pass after a failed send (rollback defeats the throttle)', async () => {
+    const dal = makeDal();
+    const { chat, ...rest } = baseOptions(dal);
+    dal.claimNextQueuedEvents.mockResolvedValue([{ id: 1, steamId: STEAM_A }]);
+    dal.getWatchedProfile.mockResolvedValue(pendingProfile());
+    dal.getAccount.mockResolvedValue(unconfirmedAccount());
+    chat.sendFriendMessage.mockRejectedValueOnce(new Error('chat down'));
+
+    const first = await pollConfirmResendQueueOnce({ chat, ...rest });
+    expect(first).toMatchObject({ claimed: 1, sent: 0, retried: 1 });
+    expect(dal.clearConfirmToken).toHaveBeenCalledTimes(1);
+
+    // Next pass, post-rollback state (hash gone): the throttle block is
+    // skipped and a fresh token goes out — no 'throttled' drop.
+    dal.getAccount.mockResolvedValue(unconfirmedAccount());
+    const second = await pollConfirmResendQueueOnce({ chat, ...rest });
+    expect(second).toMatchObject({ claimed: 1, sent: 1 });
+    expect(dal.markEventDropped).not.toHaveBeenCalled();
+    expect(dal.issueConfirmToken).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps a failed rollback loud (chained message survives to the drop log)', async () => {
+    const dal = makeDal();
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const { chat } = baseOptions(dal);
+    dal.claimNextQueuedEvents.mockResolvedValue([{ id: 1, steamId: STEAM_A }]);
+    dal.getWatchedProfile.mockResolvedValue(pendingProfile());
+    dal.getAccount.mockResolvedValue(unconfirmedAccount());
+    chat.sendFriendMessage.mockRejectedValueOnce(new Error('chat down'));
+    dal.clearConfirmToken.mockRejectedValueOnce(new Error('turso down'));
+    dal.recordEventAttempt.mockResolvedValueOnce('dropped');
+
+    const report = await pollConfirmResendQueueOnce({
+      chat,
+      dal,
+      logger,
+      siteUrl: SITE,
+      confirmTokenTtlMs: TTL_MS,
+      isFriend: () => true,
+    });
+
+    expect(report).toMatchObject({ claimed: 1, sent: 0, dropped: 1 });
+    const logged = logger.error.mock.calls.map((call) => String(call[0]));
+    expect(logged.some((line) => line.includes('chat down'))).toBe(true);
+    expect(logged.some((line) => line.includes('rollback failed'))).toBe(true);
+    expect(logged.some((line) => line.includes('turso down'))).toBe(true);
+  });
+
+  it('never rolls anything back on the happy path (a delivered link keeps its hash)', async () => {
+    const dal = makeDal();
+    const { chat, ...rest } = baseOptions(dal);
+    dal.claimNextQueuedEvents.mockResolvedValue([{ id: 1, steamId: STEAM_A }]);
+    dal.getWatchedProfile.mockResolvedValue(pendingProfile());
+    dal.getAccount.mockResolvedValue(unconfirmedAccount());
+
+    const report = await pollConfirmResendQueueOnce({ chat, ...rest });
+
+    expect(report).toMatchObject({ claimed: 1, sent: 1 });
+    expect(dal.clearConfirmToken).not.toHaveBeenCalled();
   });
 
   it('skips the whole pass when disconnected (no DAL/chat touched)', async () => {

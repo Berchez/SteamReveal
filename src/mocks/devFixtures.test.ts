@@ -57,7 +57,7 @@ describe('dev fixtures guard', () => {
   });
 
   it('keeps invalid targets rejected even in mock mode', () => {
-    expect(isMockInvalidTarget('estainvalido')).toBe(true);
-    expect(makeMockProfile('estainvalido')).toBeUndefined();
+    expect(isMockInvalidTarget('no-such-target')).toBe(true);
+    expect(makeMockProfile('no-such-target')).toBeUndefined();
   });
 });

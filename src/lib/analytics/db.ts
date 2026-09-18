@@ -38,6 +38,7 @@ import {
   WATCH_INBOX_MAX_LIMIT,
 } from '../watch/limits';
 import { requireRemoteTursoToken } from '../env';
+import { isSteamId64 } from '../steamId';
 import {
   filterValidFriends,
   filterValidGames,
@@ -130,8 +131,13 @@ const withSchemaHint = async <T>(operation: Promise<T>): Promise<T> => {
       error instanceof Error &&
       SCHEMA_MISSING_PATTERN.test(error.message)
     ) {
+      // Keep the original message appended: the hint covers the real
+      // pending-migration case (missing table/column), but a genuine
+      // query bug (typo'd column) matches the same pattern — swallowing
+      // the original text would send that debug session hunting a
+      // migration that already ran.
       throw new Error(
-        'Analytics database schema is missing — run `pnpm run db:migrate` first.',
+        `Analytics database schema is missing — run \`pnpm run db:migrate\` first. (Original DB error: ${error.message})`,
       );
     }
     // If a transport failure is caught here, the memoized client is stale —
@@ -382,7 +388,7 @@ export const attachFriendGcNames = async (
   const valid = entries.filter(
     (entry) =>
       entry != null &&
-      /^\d{17}$/.test(entry.steamId) &&
+      isSteamId64(entry.steamId) &&
       typeof entry.gcName === 'string' &&
       entry.gcName.trim().length > 0 &&
       entry.gcName.length <= 2000,
@@ -429,10 +435,11 @@ export const attachFriendGcNames = async (
 //    context; this layer stays a dumb, single-purpose outbox.
 // ---------------------------------------------------------------------------
 
-const STEAM_ID64_RE = /^\d{17}$/;
-
+// Single source of truth lives in src/lib/steamId.ts (never fork the
+// regex per call site): this assert keeps the DAL's throw contract
+// (message pinned by tests) on top of the shared shape check.
 const assertSteamId64 = (steamId: string): void => {
-  if (typeof steamId !== 'string' || !STEAM_ID64_RE.test(steamId)) {
+  if (!isSteamId64(steamId)) {
     throw new Error('Invalid SteamID64 for watch DAL: expected 17 digits');
   }
 };
@@ -622,13 +629,35 @@ export interface EnsureActiveWatchResult {
  * tells them no welcome is owed.
  *
  * Race-safe by construction: the insert is ON CONFLICT DO NOTHING (one
- * winner), and the flip is a predicated UPDATE (loser sees 0 rows and
- * re-reads the now-active row). Exactly one concurrent caller observes
- * activated=true, so welcome emission never duplicates. A click landing
- * between the account read and the flip converges harmlessly: the click's
- * own activate owns the flip + welcome, this call re-reads active with
- * activated=false.
+ * winner), and the flip carries the confirmation gate in its own WHERE
+ * (same predicate as activateWatch — a concurrent signup arming an
+ * unconfirmed account between the fast-path read and the write cannot
+ * flip). A 0-row flip re-reads the true current row (concurrent
+ * activation OR gate-blocked pending). Exactly one concurrent caller
+ * observes activated=true, so welcome emission never duplicates. A
+ * click landing between the account read and the flip converges
+ * harmlessly: the click's own activate owns the flip + welcome, this
+ * call re-reads active with activated=false.
  */
+
+/**
+ * Shared click-to-activate gate predicate (SQL fragment, not a helper):
+ * a pending watch flips only with no `accounts` row at all (grandfathered
+ * pre-confirmation consent) or an already-confirmed account. Both
+ * `activateWatch` and `ensureActiveWatch` inline it so each stays a single
+ * atomic UPDATE while the predicate text exists exactly once — edit here
+ * and both gates move together (the equivalence test below pins that).
+ * Takes the steam_id TWICE (? , ?): each call site appends its own two
+ * steamId args right after its other placeholders, in this order.
+ */
+const ACTIVATION_GATE_SQL = `AND (
+  NOT EXISTS (SELECT 1 FROM accounts WHERE steam_id = ?)
+  OR EXISTS (
+    SELECT 1 FROM accounts
+    WHERE steam_id = ? AND confirmed_at IS NOT NULL
+  )
+)`;
+
 export const ensureActiveWatch = async (
   steamId: string,
   locale?: string | null,
@@ -718,18 +747,26 @@ export const ensureActiveWatch = async (
     return { profile: current, activated: false };
   }
 
+  // Atomic gate (same predicate as activateWatch — the SELECT above is
+  // only a fast-path short-circuit): the confirmation check lives in
+  // the WHERE, so a concurrent signup arming an unconfirmed account
+  // between our read and this write can never flip a row that owes a
+  // link click. TOCTOU closed by construction, not by timing.
   const flipped = await withSchemaHint(
     db.execute({
       sql: `UPDATE watched_profiles
             SET status = 'active', activated_at = ?,
                 locale = COALESCE(?, locale)
-            WHERE steam_id = ? AND status = 'pending'`,
-      args: [now, normalizeLocale(locale), steamId],
+            WHERE steam_id = ? AND status = 'pending'
+              ${ACTIVATION_GATE_SQL}`,
+      args: [now, normalizeLocale(locale), steamId, steamId, steamId],
     }),
   );
   if (Number(flipped.rowsAffected) === 0) {
-    // Lost the flip race: someone else activated concurrently. Re-read
-    // so the caller still returns the true current row.
+    // No flip: either someone else activated concurrently, or the gate
+    // above blocked (a concurrent signup armed an unconfirmed account
+    // after our fast-path read). Re-read so the caller returns the true
+    // current row either way.
     const reread = await withSchemaHint(
       db.execute({
         sql: `SELECT steam_id, status, locale, requested_at, activated_at, last_notified_at
@@ -1050,13 +1087,7 @@ export const activateWatch = async (steamId: string): Promise<boolean> => {
       sql: `UPDATE watched_profiles
             SET status = 'active', activated_at = ?
             WHERE steam_id = ? AND status = 'pending'
-              AND (
-                NOT EXISTS (SELECT 1 FROM accounts WHERE steam_id = ?)
-                OR EXISTS (
-                  SELECT 1 FROM accounts
-                  WHERE steam_id = ? AND confirmed_at IS NOT NULL
-                )
-              )`,
+              ${ACTIVATION_GATE_SQL}`,
       args: [new Date().toISOString(), steamId, steamId, steamId],
     }),
   );
@@ -1735,6 +1766,84 @@ export const issueConfirmToken = async (
     }),
   );
   return Number(updated.rowsAffected) > 0;
+};
+
+/**
+ * First-contact-only variant of issueConfirmToken: arms the token ONLY
+ * when no generation is outstanding (`confirm_token_hash IS NULL`, same
+ * statement — no read-then-write window). Used by the reconcile link
+ * lane (sendConfirmLink), which races the resend lane: both run in the
+ * same bot process (onConnected fires the resend poller while reconcile
+ * snapshot passes converge), and the resend lane issues unconditionally
+ * (explicit user request, overwrite semantics). Without the guard, two
+ * overlapping passes could each issue and each deliver — two chat
+ * messages, first link dead on arrival. With it, the explicit request
+ * deterministically wins: a resend issue landing first makes this a
+ * 0-row no-op (caller skips quietly, the resend owns delivery); this
+ * lane winning still lets the resend overwrite after (one stale extra
+ * message at worst — newest link always live, never a lockout).
+ * Returns false when a generation already exists or the account
+ * confirmed concurrently.
+ */
+export const issueConfirmTokenIfAbsent = async (
+  steamId: string,
+  tokenHash: string,
+  expiresAt: string,
+): Promise<boolean> => {
+  assertSteamId64(steamId);
+  assertConfirmTokenHash(tokenHash);
+  const db = await getClient();
+
+  const updated = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE accounts
+            SET confirm_token_hash = ?, confirm_expires_at = ?
+            WHERE steam_id = ?
+              AND confirmed_at IS NULL
+              AND confirm_token_hash IS NULL`,
+      args: [tokenHash, expiresAt, steamId],
+    }),
+  );
+  return Number(updated.rowsAffected) > 0;
+};
+
+/**
+ * Rolls back an issued-but-UNDELIVERED confirm token (compare-and-delete):
+ * clears hash + expiry ONLY while the row still carries exactly this
+ * token hash on a still-unconfirmed account — a concurrent click that
+ * consumed the token, or a resend generation that replaced it, can never
+ * be clobbered. Returns true when the rollback actually cleared; false
+ * when the hash no longer matches (a newer state won the race — not an
+ * error, the caller rethrows its original send failure either way).
+ *
+ * Exists for the bot's confirm-link send path (activationMessage.ts):
+ * issueConfirmToken commits BEFORE the chat send, so a Steam failure
+ * after a successful issue would otherwise strand the account — the
+ * site's confirmLinkSent derives from hash presence (UI: "check your
+ * Steam chat"), and every later reconcile pass skips on first-issue-only,
+ * so nothing but the 24h expiry would ever recover the user. Rolling the
+ * issuance back returns the account to "never issued", which the next
+ * reconcile pass (≤10 min) re-issues and re-delivers.
+ */
+export const clearConfirmToken = async (
+  steamId: string,
+  tokenHash: string,
+): Promise<boolean> => {
+  assertSteamId64(steamId);
+  assertConfirmTokenHash(tokenHash);
+  const db = await getClient();
+
+  const cleared = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE accounts
+            SET confirm_token_hash = NULL, confirm_expires_at = NULL
+            WHERE steam_id = ?
+              AND confirm_token_hash = ?
+              AND confirmed_at IS NULL`,
+      args: [steamId, tokenHash],
+    }),
+  );
+  return Number(cleared.rowsAffected) > 0;
 };
 
 /**

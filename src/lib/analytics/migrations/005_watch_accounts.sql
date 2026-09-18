@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Turso (SQLite) schema — Watch accounts + signup confirmation (navbar
--- global + confirmação via link do bot).
+-- global + bot-link confirmation).
 -- Migration: 005_watch_accounts
 --
 -- Idempotent: every statement uses IF NOT EXISTS, so re-running this

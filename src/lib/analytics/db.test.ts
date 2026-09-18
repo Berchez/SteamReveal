@@ -1022,6 +1022,68 @@ describe('watch/outbox DAL (Epic 1)', () => {
     );
   });
 
+  it('clearConfirmToken rolls back by compare-and-delete (hash match + unconfirmed only)', async () => {
+    const { clearConfirmToken } = require('./db');
+    const hash = 'ab'.repeat(32);
+
+    await expect(clearConfirmToken(STEAM, 'not-a-hash')).rejects.toThrow(
+      /64 lowercase hex/,
+    );
+    await expect(clearConfirmToken('short', hash)).rejects.toThrow(
+      /17 digits/,
+    );
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(clearConfirmToken(STEAM, hash)).resolves.toBe(true);
+    const update = mockExecute.mock.calls.at(-1);
+    const sql = String(update[0]?.sql ?? update[0]);
+    // Compare-and-delete: the exact hash must appear in the predicate so a
+    // concurrent click (consumed) or resend generation (replaced) is never
+    // clobbered by a late rollback — and a confirmed account never loses
+    // its confirmation trace.
+    expect(sql).toContain('confirm_token_hash = ?');
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_token_hash = NULL');
+    expect(sql).toContain('confirm_expires_at = NULL');
+    expect((update[0] as { args: unknown[] }).args).toEqual([STEAM, hash]);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(clearConfirmToken(STEAM, hash)).resolves.toBe(false);
+  });
+
+  it('issueConfirmTokenIfAbsent arms only when no generation is outstanding (atomic guard)', async () => {
+    const { issueConfirmTokenIfAbsent } = require('./db');
+    const hash = 'ab'.repeat(32);
+
+    await expect(
+      issueConfirmTokenIfAbsent(STEAM, 'not-a-hash', '2026-09-09T00:00:00.000Z'),
+    ).rejects.toThrow(/64 lowercase hex/);
+    await expect(
+      issueConfirmTokenIfAbsent('short', hash, '2026-09-09T00:00:00.000Z'),
+    ).rejects.toThrow(/17 digits/);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(
+      issueConfirmTokenIfAbsent(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(true);
+    const update = mockExecute.mock.calls.at(-1);
+    const sql = String(update[0]?.sql ?? update[0]);
+    // Same arming as the unconditional issue, plus the absent-guard: one
+    // statement, no read-then-write window for the reconcile/resend race.
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_token_hash IS NULL');
+    expect((update[0] as { args: unknown[] }).args).toEqual([
+      hash,
+      '2026-09-09T00:00:00.000Z',
+      STEAM,
+    ]);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(
+      issueConfirmTokenIfAbsent(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(false);
+  });
+
   it('consumeConfirmToken resolves the winner row or null in one statement', async () => {
     const { consumeConfirmToken } = require('./db');
     const hash = 'ab'.repeat(32);

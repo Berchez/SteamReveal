@@ -153,7 +153,7 @@ console.log('[lhci-hook] Running Lighthouse CI regression gate (lhci autorun)...
 
 // Hard ceiling: `lhci autorun` boots a dev server and runs 3x2 audits —
 // normally minutes, but a wedged server/Chrome made `git push` hang FOREVER
-// with zero output (the exact "pre-push roda para sempre" report). On expiry
+// with zero output (the exact "pre-push hangs forever" report). On expiry
 // the child is killed and the push FAILS LOUDLY (exit 1) instead of hanging.
 // Override for very slow machines: LHCI_HOOK_TIMEOUT_MS=<ms>.
 const LHCI_TIMEOUT_MS = (() => {

@@ -2,11 +2,11 @@
  * Watch session via iron-session (Steam OpenID login) — server-side only.
  *
  * Sealed (encrypted, not merely signed) httpOnly + SameSite=Lax cookie
- * carrying ONLY `{ steamId, expiresAt }`: no user table, no session store,
- * no new infrastructure (the repo's no-recurring-cost constraint). The
- * SteamID64 inside was verified by the OpenID callback, so every consumer
- * treats it as the authenticated user — never accept a steamId from the
- * client alongside it.
+ * carrying `{ kind, steamId, expiresAt }`: no user table, no session
+ * store, no new infrastructure (the repo's no-recurring-cost constraint).
+ * The SteamID64 inside was verified by the OpenID callback, so every
+ * consumer treats it as the authenticated user — never accept a steamId
+ * from the client alongside it.
  *
  * Why iron-session and not hand-rolled JWT/HMAC: sealed cookies need no
  * key-rotation protocol, no server store, and no crypto review of our own.
@@ -44,13 +44,29 @@ export const createSessionData = (steamId: string): WatchSessionData => {
   if (!isSteamId64(steamId)) {
     throw new Error('Invalid SteamID64 for session: expected 17 digits');
   }
-  return { steamId, expiresAt: Date.now() + WATCH_SESSION_TTL_MS };
+  return {
+    kind: 'watch-session',
+    steamId,
+    expiresAt: Date.now() + WATCH_SESSION_TTL_MS,
+  };
 };
 
 /** Shape + absolute-expiry check (belt over iron-session's own ttl). */
 export const isSessionDataValid = (data: unknown): data is WatchSessionData => {
   if (typeof data !== 'object' || data === null) return false;
-  const { steamId, expiresAt } = data as Record<string, unknown>;
+  const { kind, steamId, expiresAt } = data as Record<string, unknown>;
+  // Cross-cookie replay guard (symmetric with pendingLogin's kind tag):
+  // both cookies share SESSION_SECRET with near-identical shapes, and
+  // iron-session never binds ciphertext to the cookie name — so a
+  // pending-login blob presented as the session cookie must fail here.
+  // A denylist, not an allowlist, on purpose: requiring the tag would
+  // mass-logout every sealed 30-day session on deploy, while the only
+  // foreign tag in existence is refused outright (a future third cookie
+  // type extends this list, not the shape).
+  // TODO(remove after 2026-10-18): once every live session postdates this
+  // tag, flip to an allowlist (kind MUST equal 'watch-session') and drop
+  // the legacy-undefined path.
+  if (kind !== undefined && kind !== 'watch-session') return false;
   if (!isSteamId64(steamId)) return false;
   if (typeof expiresAt !== 'number' || !Number.isFinite(expiresAt)) {
     return false;

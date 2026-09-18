@@ -80,6 +80,43 @@ describe('createSessionData / isSessionDataValid', () => {
       isSessionDataValid({ steamId: STEAM, expiresAt: Date.now() - 1000 }),
     ).toBe(false);
   });
+
+  it('tags new seals with kind and accepts legacy untagged ones (no mass logout)', async () => {
+    expect(createSessionData(STEAM).kind).toBe('watch-session');
+    // Pre-tag sessions (sealed before any tag existed) keep validating.
+    expect(
+      isSessionDataValid({ steamId: STEAM, expiresAt: Date.now() + 1000 }),
+    ).toBe(true);
+    expect(
+      isSessionDataValid({
+        kind: 'watch-session',
+        steamId: STEAM,
+        expiresAt: Date.now() + 1000,
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects a pending-login blob presented as a session (cross-cookie replay)', async () => {
+    // Both cookies share SESSION_SECRET with near-identical shapes and
+    // iron-session never binds ciphertext to the cookie name — without
+    // the kind denylist, this structurally valid pending value would
+    // authenticate as a full session.
+    expect(
+      isSessionDataValid({
+        kind: 'pending-login',
+        steamId: STEAM,
+        next: '/en/',
+        expiresAt: Date.now() + 1000,
+      }),
+    ).toBe(false);
+    expect(
+      isSessionDataValid({
+        kind: 'something-else',
+        steamId: STEAM,
+        expiresAt: Date.now() + 1000,
+      }),
+    ).toBe(false);
+  });
 });
 
 describe('getSessionSteamId', () => {

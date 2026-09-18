@@ -557,18 +557,28 @@ describe('WatchBot', () => {
     bot.stop();
   });
 
-  it('logs LOUDLY on logon when the session id differs from expectedBotSteamId', () => {
+  it('a session-id mismatch is FATAL: stops the bot, fires onFatal, never carries on', () => {
     const logger = { info: jest.fn(), error: jest.fn() };
+    const onFatal = jest.fn();
     const { bot, client } = makeBot({
       logger,
       expectedBotSteamId: '76561199000000001',
+      onFatal,
     });
     bot.start();
 
     client.steamID = { getSteamID64: () => '76561199000000999' };
     client.emit('loggedOn', {}, {});
 
-    expect(bot.isConnected()).toBe(true);
+    // Fail-fast, not log-and-carry-on: a wrong-account bot's next
+    // friendsList snapshot would make reconcile read every active watch
+    // as an opt-out and delete the base.
+    expect(bot.isConnected()).toBe(false);
+    expect(client.logOff).toHaveBeenCalledTimes(1);
+    expect(onFatal).toHaveBeenCalledTimes(1);
+    const reason = String(onFatal.mock.calls[0][0]);
+    expect(reason).toContain('76561199000000999');
+    expect(reason).toContain('76561199000000001');
     const errors = logger.error.mock.calls.map((call) => String(call[0]));
     expect(errors).toEqual(
       expect.arrayContaining([
@@ -577,7 +587,88 @@ describe('WatchBot', () => {
     );
     expect(errors.join('\n')).toContain('76561199000000999');
     expect(errors.join('\n')).toContain('76561199000000001');
-    bot.stop();
+  });
+
+  it('no reconnect is scheduled after a fatal mismatch (stopped, not backing off)', () => {
+    const { bot, client } = makeBot({
+      expectedBotSteamId: '76561199000000001',
+      onFatal: jest.fn(),
+    });
+    bot.start();
+    client.steamID = { getSteamID64: () => '76561199000000999' };
+    client.emit('loggedOn', {}, {});
+
+    // Any disconnect noise after the fatal stop must not resurrect the
+    // session against the wrong account.
+    client.emit('disconnected', 2, 'bye');
+    jest.advanceTimersByTime(10_000);
+
+    expect(client.logOn).toHaveBeenCalledTimes(1); // start() only
+  });
+
+  it('a stopped bot ignores friendsList snapshots (no reconcile fuel after a fatal mismatch)', () => {
+    // The exact evidence for the fail-fast gap: the server's initial
+    // friendsList sync typically lands inside the ~500ms window between
+    // stop() and the host's process.exit — without the stopped guard it
+    // would reconcile (and mass-deactivate) against the wrong account.
+    const onFriendsSnapshot = jest.fn();
+    const { bot, client } = makeBot({
+      expectedBotSteamId: '76561199000000001',
+      onFatal: jest.fn(),
+      onFriendsSnapshot,
+    });
+    bot.start();
+    client.steamID = { getSteamID64: () => '76561199000000999' };
+    client.emit('loggedOn', {}, {});
+
+    client.myFriends = { '76561198000000001': 3 };
+    client.emit('friendsList');
+
+    expect(onFriendsSnapshot).not.toHaveBeenCalled();
+    // The offline-arrival sweep rides the same handler: no accept burst
+    // against the wrong account either.
+    expect(client.addFriend).not.toHaveBeenCalled();
+  });
+
+  it('a stopped bot ignores friendRelationship events (no removals/accepts post-fatal)', () => {
+    const onFriendRemoved = jest.fn();
+    const { bot, client } = makeBot({
+      expectedBotSteamId: '76561199000000001',
+      onFatal: jest.fn(),
+      onFriendRemoved,
+    });
+    bot.start();
+    client.steamID = { getSteamID64: () => '76561199000000999' };
+    client.emit('loggedOn', {}, {});
+
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000001' },
+      0, // None
+    );
+    client.emit(
+      'friendRelationship',
+      { getSteamID64: () => '76561198000000002' },
+      2, // RequestRecipient
+    );
+
+    expect(onFriendRemoved).not.toHaveBeenCalled();
+    expect(client.addFriend).not.toHaveBeenCalled();
+  });
+
+  it('a throwing onFatal is contained (the stop itself already ran)', () => {
+    const { bot, client } = makeBot({
+      expectedBotSteamId: '76561199000000001',
+      onFatal: () => {
+        throw new Error('exit hook broken');
+      },
+    });
+    bot.start();
+    client.steamID = { getSteamID64: () => '76561199000000999' };
+
+    expect(() => client.emit('loggedOn', {}, {})).not.toThrow();
+    expect(bot.isConnected()).toBe(false);
+    expect(client.logOff).toHaveBeenCalledTimes(1);
   });
 
   it('stays silent when the session id matches expectedBotSteamId (or is unreadable)', () => {
@@ -586,6 +677,9 @@ describe('WatchBot', () => {
       logger,
       expectedBotSteamId: '76561199000000001',
     });
+    // Drop the construction-time unwired-exit warning (covered by its own
+    // tests): this test pins logon-time silence, not boot diagnostics.
+    logger.error.mockClear();
     bot.start();
 
     client.steamID = { getSteamID64: () => '76561199000000001' };
@@ -602,6 +696,48 @@ describe('WatchBot', () => {
       logger.error.mock.calls.map((call) => String(call[0]).includes('mismatch')),
     ).not.toContain(true);
     bot.stop();
+  });
+
+  it('errors once at construction when the identity check is armed without onFatal', () => {
+    // Safety net against incomplete wiring: without onFatal a mismatch
+    // still stops the bot, but nothing exits the process (no supervisor
+    // crash-loop alert). Error level (not info): a miswired identity
+    // check deserves attention, and the message fires at most once per
+    // boot, only when actually miswired.
+    const logger = { info: jest.fn(), error: jest.fn() };
+    makeBot({
+      logger,
+      expectedBotSteamId: '76561199000000001',
+    });
+
+    const errors = logger.error.mock.calls.map((call) => String(call[0]));
+    expect(
+      errors.some((line) => line.includes('without onFatal')),
+    ).toBe(true);
+  });
+
+  it('stays quiet at construction when onFatal is wired or the check is off', () => {
+    const wiredLogger = { info: jest.fn(), error: jest.fn() };
+    makeBot({
+      logger: wiredLogger,
+      expectedBotSteamId: '76561199000000001',
+      onFatal: jest.fn(),
+    });
+    const wiredErrors = wiredLogger.error.mock.calls.map((call) =>
+      String(call[0]),
+    );
+    expect(
+      wiredErrors.some((line) => line.includes('without onFatal')),
+    ).toBe(false);
+
+    const offLogger = { info: jest.fn(), error: jest.fn() };
+    makeBot({ logger: offLogger });
+    const offErrors = offLogger.error.mock.calls.map((call) =>
+      String(call[0]),
+    );
+    expect(offErrors.some((line) => line.includes('without onFatal'))).toBe(
+      false,
+    );
   });
 
   it('dedupes the same steamId across a racing live event and sweep (one budget unit)', async () => {

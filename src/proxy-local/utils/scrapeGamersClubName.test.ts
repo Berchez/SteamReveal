@@ -189,14 +189,14 @@ describe('scrapeGamersClubName', () => {
         data: `
           <div class="gc-list-item">
             <h6 class="gc-list-title">Nome</h6>
-            <p class="gc-list-text">João Teste</p>
+            <p class="gc-list-text">Jöhn Test</p>
           </div>
         `,
       });
 
     const name = await scrapeGamersClubName(STEAM_ID);
 
-    expect(name).toBe('João Teste');
+    expect(name).toBe('Jöhn Test');
     expect(mockedAxios.get).toHaveBeenCalledTimes(2);
     for (const callIndex of [1, 2] as const) {
       expect(mockedAxios.get).toHaveBeenNthCalledWith(
@@ -276,21 +276,21 @@ describe('scrapeGamersClubName', () => {
         data: `
           <div class="gc-list-item">
             <h6 class="gc-list-title">Nome</h6>
-            <p class="gc-list-text">João Teste</p>
+            <p class="gc-list-text">Jöhn Test</p>
           </div>
         `,
       });
 
     const name = await scrapeGamersClubName(STEAM_ID);
 
-    expect(name).toBe('João Teste');
+    expect(name).toBe('Jöhn Test');
     expect(mockedAxios.get).toHaveBeenCalledTimes(2);
     expect(mockedAxios.get).toHaveBeenNthCalledWith(
       2,
       'https://gamersclub.com.br/player/123',
       expect.anything(),
     );
-    expect(mockedSetCachedGcName).toHaveBeenCalledWith(STEAM_ID, 'João Teste');
+    expect(mockedSetCachedGcName).toHaveBeenCalledWith(STEAM_ID, 'Jöhn Test');
   });
 
   it('does NOT treat the 307 redirect as a retry-worthy error (regression check for the old try/catch flow)', async () => {
@@ -324,14 +324,14 @@ describe('scrapeGamersClubName', () => {
         data: `
           <div class="gc-list-item">
             <h6 class="gc-list-title">Nome</h6>
-            <p class="gc-list-text">Maria Teste</p>
+            <p class="gc-list-text">Mary Test</p>
           </div>
         `,
       });
 
     const name = await scrapeGamersClubName(STEAM_ID);
 
-    expect(name).toBe('Maria Teste');
+    expect(name).toBe('Mary Test');
     expect(mockedAxios.get).toHaveBeenCalledTimes(3);
   });
 

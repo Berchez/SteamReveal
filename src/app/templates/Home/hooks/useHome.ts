@@ -107,7 +107,7 @@ const useHome = () => {
   // CLS/LCP/FCP regression: the fetch runs in the background, but no DOM is
   // produced at that spot until the user actually clicks. Opening the report
   // also fires the monetization + analytics side effects, since those are
-  // deliberately gated behind the user action ("só no clique").
+  // deliberately gated behind the user action ("only on click").
   const [isReportOpen, setIsReportOpen] = useState(false);
 
   // Kept in a ref (assigned synchronously during render) so openCheaterReport
