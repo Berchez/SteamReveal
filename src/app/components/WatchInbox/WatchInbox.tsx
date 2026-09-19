@@ -494,21 +494,24 @@ function WatchInbox({ steamId }: { steamId: string }) {
         onClick={handleToggle}
         aria-expanded={open}
         aria-label={translator('watchInboxBellLabel', { count: unreadCount })}
-        className="relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-500 text-gray-200 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+        className={`relative flex h-11 w-11 items-center justify-center rounded-full border-2 border-purple-500/50 bg-slate-900/20 text-white hover:border-purple-400/60 hover:bg-purple-600/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400${
+          unreadCount > 0 ? ' shadow-[0_0_12px_rgba(168,85,247,0.35)]' : ''
+        }`}
       >
+        {/* Brand treatment (matches the avatar button + monthly badge):
+            purple-bordered icon button on a dark slate tint with a filled
+            bell — the old gray outline was the only neutral element in
+            the navbar cluster. The red count badge keeps its universal
+            unread meaning; the glow below only reinforces it while there
+            is anything unseen. */}
         <svg
           aria-hidden="true"
-          width="20"
-          height="20"
+          width="21"
+          height="21"
           viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          fill="currentColor"
         >
-          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+          <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
         </svg>
         {unreadCount > 0 && (
           <span

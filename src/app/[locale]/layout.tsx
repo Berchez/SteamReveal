@@ -8,7 +8,9 @@ import { headers } from 'next/headers';
 import Script from 'next/script';
 import HomeProvider from '@/app/templates/Home/HomeProvider';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
-import SiteNav from '@/app/components/SiteNav/SiteNav';
+import SiteNav, {
+  siteNavContainerClassName,
+} from '@/app/components/SiteNav/SiteNav';
 import { LOCALE_PATHS } from '../../locales';
 
 const shouldLoadVercelTelemetry = process.env.VERCEL_ENV === 'production';
@@ -169,24 +171,35 @@ export default function RootLayout({
                 both h-11 circles): without them the bell/avatar pop in a
                 beat later — a perceptible flash. Same slots and sizes
                 means the swap reads as content loading in, not controls
-                appearing. Logged-out resolves fast (no Steam/DB reads),
-                so this rarely paints there at all. Pure markup,
+                appearing. The mobile bar shape (logo placeholder left,
+                cluster right) mirrors SiteNav's responsive container for
+                the same reason. Logged-out resolves fast (no Steam/DB
+                reads), so this rarely paints there at all. Pure markup,
                 aria-hidden; the page paints instantly and nothing
                 in-flow shifts when the real cluster lands (fixed
                 elements never move page content — CLS-safe).
               */}
                 <Suspense
                   fallback={
-                    <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-                      <LanguageSwitcher />
+                    <div className={siteNavContainerClassName}>
+                      {/* Logo placeholder matches the real logo's box
+                          (Link p-1 + 32px image = 40px square) so the
+                          swap never shifts the bar's layout. */}
                       <div
                         aria-hidden="true"
-                        className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
+                        className="h-10 w-10 animate-pulse rounded bg-gray-700/60 sm:hidden"
                       />
-                      <div
-                        aria-hidden="true"
-                        className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
-                      />
+                      <div className="flex items-center gap-2">
+                        <LanguageSwitcher />
+                        <div
+                          aria-hidden="true"
+                          className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
+                        />
+                      </div>
                     </div>
                   }
                 >

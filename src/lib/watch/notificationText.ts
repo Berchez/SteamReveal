@@ -194,7 +194,7 @@ const CONFIRM_TEXT: Record<WatchMessageLocale, (url: string) => string> = {
   // No opt-out line here by design — leaving lives in the welcome/first
   // message only; repeating it on every link nagged (see NOTIFY_TEXT).
   en: (url: string) =>
-    `Your SteamReveal Watch request is one step away: open this link to confirm it is really you:\n${url}\nOnce confirmed, you will get a Steam message here every time your watched profile is searched.`,
+    `One last step to activate your SteamReveal Watch: open this link to confirm it's really you:\n${url}\nOnce confirmed, you'll get a Steam message here every time your watched profile is searched.`,
   pt: (url: string) =>
     `Falta um passo para ativar seu monitoramento SteamReveal: abra este link para confirmar que é você:\n${url}\nConfirmado, você recebe uma mensagem aqui na Steam sempre que seu perfil monitorado for buscado.`,
   es: (url: string) =>

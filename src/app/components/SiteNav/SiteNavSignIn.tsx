@@ -37,7 +37,7 @@ function SiteNavSignIn({ botOnline }: { botOnline: boolean }) {
     <div className="flex items-center gap-2">
       <a
         href={`/api/auth/steam/login?next=${encodeURIComponent(next)}`}
-        className="inline-block h-11 px-4 rounded-full bg-purple-600 hover:bg-purple-700/90 text-white font-semibold text-sm leading-[2.75rem]"
+        className="inline-block h-11 px-4 rounded-full bg-purple-700 hover:bg-purple-600/90 text-white font-semibold text-sm leading-[2.75rem]"
       >
         {t('watchNavSignIn')}
       </a>

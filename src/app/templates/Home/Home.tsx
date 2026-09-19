@@ -138,17 +138,37 @@ export default function Home({
           dontAskAgain={() => onCloseSupportMe(-50)}
         />
       )}
-      {hasNoDataYet && <WelcomeText />}
+      {/* Mobile: the hero greeting renders NOTHING (space is tight under
+          the fixed navbar bar) — but via sr-only, not display:none: this
+          block carries the page's only <h1>, so SEO and screen readers
+          keep the heading on mobile while nothing paints. sm:not-sr-only
+          restores the visible hero on sm+ untouched. */}
+      {hasNoDataYet && (
+        <div className="sr-only sm:not-sr-only">
+          <WelcomeText />
+        </div>
+      )}
+      {/* Mobile top clearance for the fixed navbar bar (py-2 + h-11 =
+          60px band): the player branch starts its content at pt-20 so the
+          bar never covers it; the fresh-home branch keeps pt-8 because
+          MyUserSection's mt-[15vh] clears the bar (see the load-bearing
+          comment there). sm+ restores desktop spacing untouched. */}
       <div
-        className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 pt-8 md:px-12 md:pt-12 text-white z-20 ${wrapperClassName}`}
+        className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 md:px-12 ${hasNoDataYet ? 'pt-8 md:pt-12' : 'pt-20 sm:pt-8 md:pt-12'} text-white z-20 ${wrapperClassName}`}
       >
         <div className={hasNoDataYet ? 'min-h-[70dvh]' : undefined}>
+          {/* mt-[15vh] is LOAD-BEARING on mobile beyond visual rhythm: it is
+              also what clears the fixed navbar bar (~60px incl. padding —
+              15vh beats that on any real phone viewport), since the fresh
+              branch keeps the wrapper at pt-8 with no other clearance. If
+              this value is ever reduced below ~60px of clearance, add
+              explicit padding to the wrapper instead. */}
           <MyUserSection
             targetInfoJson={myUserSectionTargetInfoJson}
             isLoading={isLoading.myCard}
             onChangeTarget={onChangeTarget}
             targetValue={targetValue}
-            className={hasNoDataYet ? 'mt-[25vh]' : ''}
+            className={hasNoDataYet ? 'mt-[15vh] sm:mt-[25vh]' : ''}
           />
           {hasNoDataYet && <SupportedFormatsSection />}
         </div>

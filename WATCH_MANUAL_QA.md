@@ -114,7 +114,7 @@ To go back to normal, delete the lines and restart the bot.
 
 1. On the QA-02 page, click `Confirm and activate`.
 2. **Expected:** redirect `/en/?confirmed=ok` + toast
-   `Watch confirmed! You will be notified here whenever your profile is searched.`
+   `Watch confirmed! The bot will message you on Steam whenever your profile is searched.`
    (dismisses itself; reload doesn't repeat).
 3. Database: `confirmed_at` filled + token zeroed; `status='active'` +
    `activated_at`; `kind='welcome'` event → `sent`.

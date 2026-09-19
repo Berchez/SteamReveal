@@ -289,7 +289,7 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     // shape before the toast strips the param — match both.
     await expect(page).toHaveURL(/\/en\/?\?confirmed=ok/, { timeout: 15000 });
     await expect(
-      page.getByText('Watch confirmed! You will be notified here'),
+      page.getByText('Watch confirmed! The bot will message you'),
     ).toBeVisible();
     await page.goto('/en');
     await avatarButton(page).click();
@@ -471,7 +471,7 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     // (/?confirmed=ok -> /en/?confirmed=ok): QueryToast strips the param
     // on mount, so no URL assertion — the toast IS the assertion.
     await expect(
-      page.getByText('Watch confirmed! You will be notified here'),
+      page.getByText('Watch confirmed! The bot will message you'),
     ).toBeVisible();
   });
 
@@ -488,13 +488,13 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
 
     await page.goto('/en/?confirmed=ok');
     await expect(
-      page.getByText('Watch confirmed! You will be notified here'),
+      page.getByText('Watch confirmed! The bot will message you'),
     ).toBeVisible();
 
     await expect(page).not.toHaveURL(/[?&]confirmed=/);
     await page.reload();
     await expect(
-      page.getByText('Watch confirmed! You will be notified here'),
+      page.getByText('Watch confirmed! The bot will message you'),
     ).toHaveCount(0);
   });
 

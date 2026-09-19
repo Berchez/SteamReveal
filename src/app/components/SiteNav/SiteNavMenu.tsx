@@ -147,7 +147,7 @@ function SiteNavMenu({
         onFocus={handlePrefetchIntent}
         aria-expanded={open}
         aria-label={avatarAlt}
-        className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-gray-500 text-gray-200 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+        className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 border-purple-500/50 text-gray-200 hover:border-purple-400/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
       >
         <AvatarBadge avatarUrl={avatarUrl} initial={initial} size="button" />
       </button>
@@ -159,7 +159,11 @@ function SiteNavMenu({
           className="absolute right-0 z-50 mt-2 max-h-[80vh] w-80 max-w-[90vw] overflow-y-auto rounded-2xl border border-gray-600 bg-gray-900 p-4 shadow-xl"
         >
           <div className="mb-3 flex items-center gap-3 border-b border-gray-700 pb-3">
-            <AvatarBadge avatarUrl={avatarUrl} initial={initial} size="header" />
+            <AvatarBadge
+              avatarUrl={avatarUrl}
+              initial={initial}
+              size="header"
+            />
             <p
               ref={titleRef}
               tabIndex={-1}
