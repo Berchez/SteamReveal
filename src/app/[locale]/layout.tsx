@@ -205,6 +205,17 @@ export default function RootLayout({
                 >
                   <SiteNav locale={locale} />
                 </Suspense>
+                {/*
+                  Fixed-mobile-bar clearance contract: on <sm the navbar is
+                  a full-width fixed band (~60px) and the layout reserves
+                  NOTHING for it — every content page under [locale]/
+                  funnels through Home.tsx, whose branches own the mobile
+                  clearance (player pt-20, fresh-home pt-8 + MyUserSection
+                  margin). A future content page that does NOT render Home
+                  must clear ~60px on mobile itself, or the bar covers its
+                  top. Do not "fix" this by adding padding here without
+                  removing Home's, or both pages double-space.
+                */}
                 {children}
               </HomeProvider>
             </Suspense>

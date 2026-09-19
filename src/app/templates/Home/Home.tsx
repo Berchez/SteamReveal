@@ -115,7 +115,7 @@ export default function Home({
     : 'flex flex-col relative';
 
   return (
-    <main className="max-h-dvh">
+    <main data-testid="home" className="max-h-dvh">
       <VideoBackground />
       {/* One-shot landing toasts: /api/watch/confirm (?confirmed=ok|error)
           and the failed Steam callback leg (?auth=error). The toast strips
@@ -157,18 +157,21 @@ export default function Home({
         className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 md:px-12 ${hasNoDataYet ? 'pt-8 md:pt-12' : 'pt-20 sm:pt-8 md:pt-12'} text-white z-20 ${wrapperClassName}`}
       >
         <div className={hasNoDataYet ? 'min-h-[70dvh]' : undefined}>
-          {/* mt-[15vh] is LOAD-BEARING on mobile beyond visual rhythm: it is
-              also what clears the fixed navbar bar (~60px incl. padding —
-              15vh beats that on any real phone viewport), since the fresh
-              branch keeps the wrapper at pt-8 with no other clearance. If
-              this value is ever reduced below ~60px of clearance, add
-              explicit padding to the wrapper instead. */}
+          {/* mt-[max(15vh,80px)] is LOAD-BEARING on mobile beyond visual
+              rhythm: it is also what clears the fixed navbar bar (~60px
+              incl. padding), since the fresh branch keeps the wrapper at
+              pt-8 with no other clearance. The 80px floor only binds on
+              short/landscape viewports (15vh of a 844px portrait screen is
+              ~126px, so portrait is untouched); without it, landscape
+              (~56-64px from 15vh alone) would slide under the bar. If this
+              value is ever reduced below ~60px of clearance, add explicit
+              padding to the wrapper instead. */}
           <MyUserSection
             targetInfoJson={myUserSectionTargetInfoJson}
             isLoading={isLoading.myCard}
             onChangeTarget={onChangeTarget}
             targetValue={targetValue}
-            className={hasNoDataYet ? 'mt-[15vh] sm:mt-[25vh]' : ''}
+            className={hasNoDataYet ? 'mt-[max(15vh,80px)] sm:mt-[25vh]' : ''}
           />
           {hasNoDataYet && <SupportedFormatsSection />}
         </div>

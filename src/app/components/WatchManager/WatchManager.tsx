@@ -143,7 +143,7 @@ function WatchManager({
 
   if (statusError === 'session-expired') {
     return (
-      <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
+      <div data-testid="watch-manager" className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
         <p role="alert" className="text-red-400 text-sm">
           {translator('watchLoginError')}
         </p>
@@ -164,7 +164,7 @@ function WatchManager({
     // any future hook error) means a bug, not user input — say so plainly
     // instead of rendering a blank screen.
     return (
-      <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
+      <div data-testid="watch-manager" className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
         <p role="alert" className="text-red-400 text-sm">
           {translator('watchErrorFailed')}
         </p>
@@ -202,7 +202,7 @@ function WatchManager({
 
   if (status === 'active') {
     return (
-      <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
+      <div data-testid="watch-manager" className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
         <h1 className="text-2xl font-bold text-gray-100">
           {translator('watchActiveTitle')}
         </h1>
@@ -214,7 +214,7 @@ function WatchManager({
 
   if (status === 'pending') {
     return (
-      <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
+      <div data-testid="watch-manager" className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
         <h1 className="text-2xl font-bold text-gray-100">
           {translator('watchPendingTitle')}
         </h1>
@@ -254,7 +254,7 @@ function WatchManager({
   // would trade a harmless no-op for a visibly dead CTA on every open.
   if (status === 'none') {
     return (
-      <div className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
+      <div data-testid="watch-manager" className="w-full max-w-xl mx-auto flex flex-col gap-y-6 text-center">
         <h1 className="text-2xl font-bold text-gray-100">
           {translator('watchTitle')}
         </h1>

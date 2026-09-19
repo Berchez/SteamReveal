@@ -23,6 +23,7 @@ import {
   latestSearchedAt,
   setLastSeenSearchedAt,
 } from '@/app/templates/Home/hooks/watch/watchReadState';
+import DropdownPanel from '@/app/components/DropdownPanel/DropdownPanel';
 
 interface InboxNotification {
   /** Producing search id (searches.id — the React key, stable forever). */
@@ -487,7 +488,11 @@ function WatchInbox({ steamId }: { steamId: string }) {
   };
 
   return (
-    <div ref={containerRef} className="relative inline-block">
+    <div
+      data-testid="watch-inbox"
+      ref={containerRef}
+      className="relative inline-block"
+    >
       <button
         ref={buttonRef}
         type="button"
@@ -524,38 +529,46 @@ function WatchInbox({ steamId }: { steamId: string }) {
       </button>
 
       {open && (
-        <div
-          role="dialog"
-          aria-label={translator('watchInboxTitle')}
-          className="absolute right-0 z-50 mt-2 max-h-96 w-80 max-w-[90vw] overflow-y-auto rounded-2xl border border-gray-600 bg-gray-900 p-4 shadow-xl"
-        >
-          {/* Header row, never overlapping: the badge is a static flex
-              sibling (not absolute), so long locale strings (de) push the
-              title to wrap instead of running under the badge. */}
-          <div className="flex items-start justify-between gap-2">
-            <h2
-              ref={headingRef}
-              tabIndex={-1}
-              className="text-base font-semibold text-gray-100 focus:outline-none"
-            >
-              {translator('watchInboxTitle')}
-            </h2>
-            {monthlyCount !== null && (
-              <span
-                aria-label={translator('watchInboxMonthlyBadge', {
-                  count: monthlyCount,
-                })}
-                title={translator('watchInboxMonthlyBadge', {
-                  count: monthlyCount,
-                })}
-                className="shrink-0 rounded-full border border-purple-500/50 bg-purple-600/20 px-2 py-0.5 text-[11px] font-semibold text-purple-200"
+        <DropdownPanel
+          ariaLabel={translator('watchInboxTitle')}
+          // Brand scrollbar (the native gray one clashes with the dark +
+          // purple panel): thin purple thumb on a transparent track.
+          // WebKit needs the pseudo-element variants; Firefox uses the
+          // two standard properties (same colors, no hover state there).
+          scrollClassName="[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-purple-500/60 hover:[&::-webkit-scrollbar-thumb]:bg-purple-400 [scrollbar-width:thin] [scrollbar-color:#caafe4_transparent]"
+          header={
+            // Header row, never overlapping: the badge is a static flex
+            // sibling (not absolute), so long locale strings (de) push the
+            // title to wrap instead of running under the badge.
+            <div className="flex items-start justify-between gap-2">
+              <h2
+                ref={headingRef}
+                tabIndex={-1}
+                className="text-base font-semibold text-gray-100 focus:outline-none"
               >
-                {translator('watchInboxMonthlyBadge', { count: monthlyCount })}
-              </span>
-            )}
-          </div>
-          <div className="mt-3 min-h-24">{renderPanelBody()}</div>
-        </div>
+                {translator('watchInboxTitle')}
+              </h2>
+              {monthlyCount !== null && (
+                <span
+                  aria-label={translator('watchInboxMonthlyBadge', {
+                    count: monthlyCount,
+                  })}
+                  title={translator('watchInboxMonthlyBadge', {
+                    count: monthlyCount,
+                  })}
+                  className="shrink-0 rounded-full border border-purple-500/50 bg-purple-600/20 px-2 py-0.5 text-[11px] font-semibold text-purple-200"
+                >
+                  {translator('watchInboxMonthlyBadge', { count: monthlyCount })}
+                </span>
+              )}
+            </div>
+          }
+        >
+          {/* Traveling margins (not scroller padding): the mt-3/mb-4 move
+              WITH the items, so scrolling never paints rows over a fixed
+              padding zone. Rest-state look matches the old p-4 exactly. */}
+          <div className="mb-4 mt-3 min-h-24">{renderPanelBody()}</div>
+        </DropdownPanel>
       )}
     </div>
   );

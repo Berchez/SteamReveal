@@ -70,7 +70,7 @@ function MyUserSection({
   };
 
   return (
-    <div className={`flex flex-col w-full mx-auto gap-y-8 ${className}`}>
+    <div data-testid="my-user-section" className={`flex flex-col w-full mx-auto gap-y-8 ${className}`}>
       <h1 className="text-3xl font-bold text-center">
         {translator('searchTitle')}
       </h1>

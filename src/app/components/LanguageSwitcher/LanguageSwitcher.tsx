@@ -80,6 +80,7 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={containerRef}>
       <button
         type="button"
+        data-testid="language-switcher"
         onClick={toggleDropdown}
         className="flex items-center gap-1 px-2 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white transition-colors duration-200 focus:outline-none ring-2 ring-purple-900 focus:ring-purple-500"
         aria-label={`${LANGUAGE_NAMES[currentLocale]} - ${t('toggleMenu')}`}

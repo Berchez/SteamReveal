@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
+import DropdownPanel from '@/app/components/DropdownPanel/DropdownPanel';
 import WatchManager from '@/app/components/WatchManager';
 import {
   prefetchWatchStatus,
@@ -153,27 +154,32 @@ function SiteNavMenu({
       </button>
 
       {open && (
-        <div
-          role="dialog"
-          aria-label={avatarAlt}
-          className="absolute right-0 z-50 mt-2 max-h-[80vh] w-80 max-w-[90vw] overflow-y-auto rounded-2xl border border-gray-600 bg-gray-900 p-4 shadow-xl"
+        <DropdownPanel
+          ariaLabel={avatarAlt}
+          maxHeightClass="max-h-[80vh]"
+          header={
+            <div className="mb-3 flex items-center gap-3 border-b border-gray-700 pb-3">
+              <AvatarBadge
+                avatarUrl={avatarUrl}
+                initial={initial}
+                size="header"
+              />
+              <p
+                ref={titleRef}
+                tabIndex={-1}
+                className="truncate text-sm font-semibold text-gray-100 focus:outline-none"
+              >
+                {nickname}
+              </p>
+            </div>
+          }
         >
-          <div className="mb-3 flex items-center gap-3 border-b border-gray-700 pb-3">
-            <AvatarBadge
-              avatarUrl={avatarUrl}
-              initial={initial}
-              size="header"
-            />
-            <p
-              ref={titleRef}
-              tabIndex={-1}
-              className="truncate text-sm font-semibold text-gray-100 focus:outline-none"
-            >
-              {nickname}
-            </p>
+          {/* Traveling bottom margin (not scroller padding): moves WITH the
+              content, so scrolling never paints it over a fixed zone. */}
+          <div className="mb-4">
+            <WatchManager steamId={steamId} initialWatch={initialWatch} />
           </div>
-          <WatchManager steamId={steamId} initialWatch={initialWatch} />
-        </div>
+        </DropdownPanel>
       )}
     </div>
   );

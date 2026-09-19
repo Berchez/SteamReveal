@@ -8,28 +8,19 @@ import { expect, test } from '@playwright/test';
 // Parametrized with de (the repo's canonical long-string locale — the
 // skeleton-height incident was a de/ru layout break) so the overlap
 // assertion actually exercises what its comment worries about: locale
-// copy widths against the justify-between bar.
-const MOBILE_LOCALES: Array<{
-  locale: string;
-  switcher: RegExp;
-  signIn: string;
-}> = [
-  {
-    locale: 'en',
-    switcher: /English - Toggle language menu/i,
-    signIn: 'Sign in',
-  },
-  {
-    locale: 'de',
-    switcher: /Deutsch - Sprachenmenü umschalten/i,
-    signIn: 'Anmelden',
-  },
+// copy widths against the justify-between bar. The switcher is located
+// by testid (not localized copy) so the spec never couples to wording;
+// the sign-in strings stay — they double as proof the translation
+// rendered.
+const MOBILE_LOCALES: Array<{ locale: string; signIn: string }> = [
+  { locale: 'en', signIn: 'Sign in' },
+  { locale: 'de', signIn: 'Anmelden' },
 ];
 
 // Logged-out is enough: the bar's layout is identity-independent (the
 // cluster just swaps sign-in for bell+avatar, same slots), and the
 // logged-in cluster is already covered by watch.spec.ts at desktop width.
-for (const { locale, switcher, signIn } of MOBILE_LOCALES) {
+for (const { locale, signIn } of MOBILE_LOCALES) {
   test(`mobile navbar: logo left, cluster right, no overlap at 390px (${locale})`, async ({
     page,
   }) => {
@@ -38,9 +29,11 @@ for (const { locale, switcher, signIn } of MOBILE_LOCALES) {
 
     const logo = page.getByRole('link', { name: 'SteamReveal' });
     await expect(logo).toBeVisible();
-    await expect(logo).toHaveAttribute('href', '/');
+    // Locale-aware logo link: stays inside the visited locale, never a
+    // bare "/" that would bounce through middleware detection.
+    await expect(logo).toHaveAttribute('href', `/${locale}`);
 
-    const switcherButton = page.getByRole('button', { name: switcher });
+    const switcherButton = page.getByTestId('language-switcher');
     await expect(switcherButton).toBeVisible();
     await expect(
       page.getByRole('link', { name: signIn, exact: true }),

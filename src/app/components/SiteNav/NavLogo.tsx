@@ -1,8 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import React, { useState } from 'react';
+
+import { Link } from '@/navigation';
 
 /**
  * Mobile navbar logo (the only nav asset that needs a round-trip): gets
@@ -19,6 +20,11 @@ function NavLogo() {
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
+  // Locale-aware Link (not next/link): href="/" resolves to the CURRENT
+  // locale prefix (/de stays /de). A plain next/link to "/" would bounce
+  // through the middleware's locale detection and could silently switch
+  // the page language for visitors without a locale cookie (e.g. direct
+  // link arrivals who never touched the switcher).
   return (
     <Link href="/" aria-label="SteamReveal" className="group sm:hidden p-1">
       {failed ? (

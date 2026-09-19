@@ -7,7 +7,7 @@ function WelcomeText() {
     // Renders on sm+ only: Home hides this hero on mobile (viewport is
     // tight under the fixed navbar bar), so the fixed-navbar clearance
     // is NOT needed here — it lives in Home.tsx (see the comments there).
-    <div className="flex flex-col justify-center items-center text-center mt-8 p-0 relative z-90 stroke-black">
+    <div data-testid="welcome-text" className="flex flex-col justify-center items-center text-center mt-8 p-0 relative z-90 stroke-black">
       <div className="flex items-baseline space-x-4">
         <div className="border-t-2 border-white md:w-28 w-20" />
         <h2 className="md:text-lg text-base ml-0 font-sans text-white">

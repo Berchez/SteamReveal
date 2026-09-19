@@ -1,14 +1,28 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { NextIntlClientProvider } from 'next-intl';
 
 import NavLogo from './NavLogo';
 
+// The logo uses the locale-aware Link (@/navigation), which reads the
+// current locale from intl context — so the tests mount inside a minimal
+// provider (locale only; no translations are rendered here).
+const renderLogo = () =>
+  render(
+    <NextIntlClientProvider locale="en">
+      <NavLogo />
+    </NextIntlClientProvider>,
+  );
+
 describe('NavLogo', () => {
   it('renders the home link with the skeleton covering the logo until it loads', async () => {
-    render(<NavLogo />);
+    renderLogo();
 
     const link = screen.getByRole('link', { name: 'SteamReveal' });
-    expect(link).toHaveAttribute('href', '/');
+    // Locale-aware: stays inside the current locale (/en, never a bare
+    // "/" that would bounce through middleware detection and risk a
+    // silent language switch).
+    expect(link).toHaveAttribute('href', '/en');
     // Image mounts immediately (it owns the load, decorative alt — the
     // link's aria-label is the accessible name); the skeleton overlays it
     // until the load completes — the same never-empty-gap contract as
@@ -34,7 +48,7 @@ describe('NavLogo', () => {
     // onError is called inline), so the state update lands inside
     // fireEvent's act scope deterministically. The load path is the
     // intercepted one (blur-placeholder decode happens first).
-    render(<NavLogo />);
+    renderLogo();
 
     fireEvent.error(screen.getByAltText(''));
 

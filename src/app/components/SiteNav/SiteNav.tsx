@@ -47,7 +47,7 @@ export default async function SiteNav({ locale }: { locale: string }) {
   // pending route on first poll), so no bot env is needed up here and
   // global chrome never depends on it.
   return (
-    <div className={siteNavContainerClassName}>
+    <div data-testid="site-nav" className={siteNavContainerClassName}>
       <NavLogo />
       <div className="flex items-center gap-2">
         <LanguageSwitcher />

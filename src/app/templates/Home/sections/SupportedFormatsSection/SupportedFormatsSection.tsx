@@ -33,7 +33,7 @@ function SupportedFormatsSection() {
   };
 
   return (
-    <div className="w-full flex flex-col items-center gap-4 text-center mt-32 mb-4">
+    <div data-testid="supported-formats-section" className="w-full flex flex-col items-center gap-4 text-center mt-32 mb-4">
       <h4 className="text-base text-gray-200 tracking-wide">
         {translator('supportedFormats')}
       </h4>

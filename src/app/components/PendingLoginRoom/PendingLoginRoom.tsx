@@ -161,7 +161,7 @@ function PendingLoginRoom() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+    <div data-testid="pending-login-room" className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div
         role={phase === 'expired' ? 'alert' : 'status'}
         className="w-full max-w-md rounded-2xl border border-gray-700 bg-gray-900 p-8 text-center shadow-2xl"
