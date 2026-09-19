@@ -9,6 +9,7 @@
     "start:proxy-local": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" src/proxy-local/server.ts",
     "start:bot": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" src/bot-steam/index.ts",
     "healthcheck:bot": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/healthcheck-bot.ts",
+    "logs:errors": "node scripts/tail-errors.cjs",
     "smoke:analytics": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/smoke-analytics.ts",
     "db:smoke": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/db-smoke.ts",
     "smoke:gc": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/gc-selector-smoke.ts",

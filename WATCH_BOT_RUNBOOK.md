@@ -70,6 +70,8 @@ lives in `.env.example` under "Watch Bot"):
 | `BOT_HEARTBEAT_PATH`                             | `<data dir>/heartbeat.json` | Liveness file                                    |
 | `BOT_HEARTBEAT_INTERVAL_MS`                      | `60000`                     | Heartbeat write cadence                          |
 | `BOT_HEARTBEAT_STALE_MS`                         | `180000`                    | Healthcheck staleness threshold                  |
+| `OPS_LOG_DIR`                                    | `.data/logs`                | Ops-log directory (gitignored; honored by the writer, the tail script, and the Jest suite) |
+| `OPS_LOG_RETENTION_DAYS`                         | `14`                        | Day-file retention window                        |
 | `BOT_RECONNECT_BASE_MS` / `BOT_RECONNECT_MAX_MS` | `1000` / `60000`            | Capped exponential backoff                       |
 | `BOT_INVITE_POLL_INTERVAL_MS`                    | `60000`                     | Invite drain cadence                             |
 | `BOT_INVITE_BATCH_LIMIT`                         | `5`                         | Max invites claimed per pass                     |
@@ -201,6 +203,61 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   `welcome poll done`, `resend poll done`, `expiry scan done`,
   `raced by a click` (harmless: the user confirmed between the expiry
   recheck and the mark), `friend-remove`.
+- Persistent ops logs (bug-capture net, `src/lib/opsLog.ts`): errors that
+  go through the funneled sinks are ALSO appended to disk, so a one-off
+  failure nobody watched live is still discoverable the next morning.
+  Covered: every `logRouteError` call (all Watch + analytics/auth lanes,
+  now carrying the sanitized truncated stack), the whole bot through the
+  shared `WatchBotLogger` adapter (reconcile, all pollers/sweeps, startup,
+  shutdown, crash traces), and the proxy's scrape errors. NOT covered
+  (pre-existing `console.*` outside the funnels, deliberately out of scope
+  for this pass): the older site routes' inline console logging (Steam /
+  FACEIT / cheater-method diagnostics), Steam client internals, and the
+  proxy's per-request info line. Layout (all under `OPS_LOG_DIR`, default
+  `.data/logs` — gitignored, never committed): `<service>-<YYYY-MM-DD>.log`
+  (full detail per producer per UTC day) plus one combined `errors.log`
+  (error lines from every producer: append-only across processes so
+  concurrent writers never lose lines, trimmed to a 128KB tail only once
+  past 256KB, via tmp+rename so readers never see a torn file). Day files
+  older than `OPS_LOG_RETENTION_DAYS` (default 14) are deleted on process
+  start and again whenever the UTC day rolls over mid-run (long-lived
+  bots); a day file past ~10MB rolls to incrementing `.1.log`, `.2.log`,
+  ... sidecars (onset preserved in `.1`) instead of growing forever; each
+  service writes a `==== process started pid=… ====` boundary on boot so
+  restarts are visible when tailing. Lines are plain bracketed text
+  (`[ts] [service] LEVEL: message | k=v`, hard-capped at 8000 chars),
+  sanitized at the write boundary (known credential shapes — tokens, keys,
+  passwords, sessions, cookies, clearance values, auth headers, in literal
+  and JSON-quoted forms — never reach disk even from call sites that log
+  raw errors to console; bare undelimited prose is out of reach, see
+  sanitizeError). Files are created `0600`, dirs `0700` (creation-time
+  only). Console behavior is unchanged everywhere — this is strictly
+  additive, and a failed write degrades to console-only.
+- Ops-log disk norms: always start the bot/proxy/dev from the repo root,
+  or set an absolute `OPS_LOG_DIR` (recommended for systemd/pm2 with a
+  different `WorkingDirectory` — the default resolves against the process
+  cwd, so another launch dir silently splits the logs and the tail script
+  looks in the wrong place). Worst-case math, bounded by construction:
+  ~10MB × (1 day file + up to 9 sidecars) × 14 days ≈ 1.4GB per service
+  in a sustained multi-week storm; tighten `MAX_ROLLOVERS`/retention if
+  the box is small. The combined `errors.log` is capped at ~256KB by the
+  trim above — the day files carry the unbounded (but rolled) detail.
+- Quick check: `pnpm run logs:errors` prints the last 50 lines of
+  `errors.log` (`--lines=N` overridable) — the one-command answer to "did
+  anything break?". Empty/missing file prints "no errors yet" (good news,
+  exit 0). For a deep dive, open the day file directly in any editor.
+- Vercel note: serverless functions have a read-only filesystem, so the
+  `site` file writes degrade to console-only there by design (Vercel keeps
+  its own request logs). The file layer is a local/self-hosted tool; the
+  bot and proxy (long-lived processes on your box) always write.
+- Crash traces: the bot and proxy install `uncaughtException` /
+  `unhandledRejection` handlers that print the trace to stderr (registering
+  the handler replaces Node's default dump — it is re-emitted explicitly so
+  crashes stay visible in the supervisor journal even if the disk write
+  fails) AND log the sanitized trace to disk, then exit non-zero
+  (supervisors restart as before). Non-Error throws (`throw 'x'`) are
+  stringified instead of logging "undefined". Not installed on the Next dev
+  server (hot-reload semantics — out of scope).
 
 ## 6. Behavior when the bot is offline
 

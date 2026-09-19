@@ -12,6 +12,7 @@
 import SteamUser from 'steam-user';
 
 import { loadEnv } from '../lib/env';
+import { installCrashHandlers, writeOpsLog } from '../lib/opsLog';
 import {
   activateWatch,
   claimNextQueuedEvents,
@@ -52,17 +53,22 @@ import { startStaleClaimSweeper, sweepStaleClaimsOnce } from './staleSweep';
 
 loadEnv();
 
+// Last-resort crash trace (bug-capture net — shared helper, same contract
+// as the proxy): stderr + durable file, then non-zero exit. Deliberately
+// NOT added to the Next.js dev server (hot-reload semantics).
+installCrashHandlers('bot');
+
 const main = (): void => {
   let config;
   try {
     config = loadBotConfig();
   } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
     // eslint-disable-next-line no-console
-    console.error(
-      `[WatchBot] invalid configuration: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
+    console.error(`[WatchBot] invalid configuration: ${detail}`);
+    // Runs before the logger adapter exists — write the file line directly
+    // (console line above is unchanged).
+    writeOpsLog('bot', 'error', `invalid configuration: ${detail}`);
     process.exit(1);
   }
 
@@ -77,9 +83,21 @@ const main = (): void => {
   // Single shared logger for the bot and all of its handlers (reconcile,
   // friend-remove, pollers): the opt-out audit trail must flow through the
   // same sink as everything else, so a future custom logger can be swapped
-  // in exactly one place. Console today, by explicit choice.
-  // eslint-disable-next-line no-console
-  const logger: WatchBotLogger = console;
+  // in exactly one place. Console behavior is unchanged; every line is
+  // ALSO appended to .data/logs/ (bug-capture net — writeOpsLog never
+  // throws, so a failed write degrades to the console line alone).
+  const logger: WatchBotLogger = {
+    info: (message: string): void => {
+      // eslint-disable-next-line no-console
+      console.log(message);
+      writeOpsLog('bot', 'info', message);
+    },
+    error: (message: string): void => {
+      // eslint-disable-next-line no-console
+      console.error(message);
+      writeOpsLog('bot', 'error', message);
+    },
+  };
 
   // Declared before the bot: onConnected (below) fires the first invite
   // pass, so it needs the handle — assigned further down during the same
@@ -134,8 +152,7 @@ const main = (): void => {
         return sendConfirmLink(chat, steamId, locale, config);
       },
     ).catch((error) => {
-      // eslint-disable-next-line no-console
-      console.error(
+      logger.error(
         `[WatchBot] reconcile failed: ${
           error instanceof Error ? error.message : String(error)
         }`,
@@ -200,8 +217,7 @@ const main = (): void => {
       const invites = invitePoller;
       if (invites !== undefined) {
         invites.pollOnce().catch((error: unknown) =>
-          // eslint-disable-next-line no-console
-          console.error(
+          logger.error(
             `[WatchBot] post-logon invite poll failed: ${
               error instanceof Error ? error.message : String(error)
             }`,
@@ -211,8 +227,7 @@ const main = (): void => {
       const welcomes = welcomePoller;
       if (welcomes !== undefined) {
         welcomes.pollOnce().catch((error: unknown) =>
-          // eslint-disable-next-line no-console
-          console.error(
+          logger.error(
             `[WatchBot] post-logon welcome poll failed: ${
               error instanceof Error ? error.message : String(error)
             }`,
@@ -222,8 +237,7 @@ const main = (): void => {
       const resends = resendPoller;
       if (resends !== undefined) {
         resends.pollOnce().catch((error: unknown) =>
-          // eslint-disable-next-line no-console
-          console.error(
+          logger.error(
             `[WatchBot] post-logon resend poll failed: ${
               error instanceof Error ? error.message : String(error)
             }`,
@@ -233,8 +247,7 @@ const main = (): void => {
       const expiries = expiryPoller;
       if (expiries !== undefined) {
         expiries.pollOnce().catch((error: unknown) =>
-          // eslint-disable-next-line no-console
-          console.error(
+          logger.error(
             `[WatchBot] post-logon expiry scan failed: ${
               error instanceof Error ? error.message : String(error)
             }`,
@@ -244,8 +257,7 @@ const main = (): void => {
       const notifies = notifyPoller;
       if (notifies !== undefined) {
         notifies.pollOnce().catch((error: unknown) =>
-          // eslint-disable-next-line no-console
-          console.error(
+          logger.error(
             `[WatchBot] post-logon notify poll failed: ${
               error instanceof Error ? error.message : String(error)
             }`,
@@ -292,7 +304,7 @@ const main = (): void => {
   try {
     heartbeat.beat();
   } catch (error) {
-    console.error(
+    logger.error(
       `[WatchBot] initial heartbeat write failed: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -318,7 +330,7 @@ const main = (): void => {
     recordBotHeartbeat(bot.isConnected(), bot.getSteamId())
       .catch(
         (error: unknown) =>
-          console.error(
+          logger.error(
             `[WatchBot] turso heartbeat write failed: ${
               error instanceof Error ? error.message : String(error)
             }`,
@@ -339,15 +351,16 @@ const main = (): void => {
   // every comment promising "~30min recovery" refers to this timer.
   const staleSweeper = startStaleClaimSweeper({
     dal: { resetStaleClaims },
+    logger,
     sweepIntervalMs: config.staleSweepIntervalMs,
     staleWindowMinutes: config.staleClaimWindowMinutes,
   });
   sweepStaleClaimsOnce({
     dal: { resetStaleClaims },
+    logger,
     staleWindowMinutes: config.staleClaimWindowMinutes,
   }).catch((error: unknown) =>
-    // eslint-disable-next-line no-console
-    console.error(
+    logger.error(
       `[WatchBot] initial stale sweep failed: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -366,6 +379,7 @@ const main = (): void => {
     pollIntervalMs: config.invitePollIntervalMs,
     batchLimit: config.inviteBatchLimit,
     dailyLimit: config.inviteDailyLimit,
+    logger,
     maxAttempts: config.inviteMaxAttempts,
     sendTimeoutMs: config.inviteSendTimeoutMs,
     isConnected: () => bot.isConnected(),
@@ -375,8 +389,7 @@ const main = (): void => {
   // startup ordering stays visible here). A failure rejects into the log,
   // never into an unhandled rejection.
   invitePoller.pollOnce().catch((error: unknown) =>
-    // eslint-disable-next-line no-console
-    console.error(
+    logger.error(
       `[WatchBot] initial invite poll failed: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -402,11 +415,11 @@ const main = (): void => {
     sendTimeoutMs: config.notifySendTimeoutMs,
     siteUrl: config.siteUrl,
     ttlDays: config.notifyTtlDays,
+    logger,
     isConnected: () => bot.isConnected(),
   });
   notifyPoller.pollOnce().catch((error: unknown) =>
-    // eslint-disable-next-line no-console
-    console.error(
+    logger.error(
       `[WatchBot] initial notify poll failed: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -428,13 +441,13 @@ const main = (): void => {
     },
     pollIntervalMs: config.welcomePollIntervalMs,
     batchLimit: config.welcomeBatchLimit,
+    logger,
     maxAttempts: config.welcomeMaxAttempts,
     sendTimeoutMs: config.welcomeSendTimeoutMs,
     isConnected: () => bot.isConnected(),
   });
   welcomePoller.pollOnce().catch((error: unknown) =>
-    // eslint-disable-next-line no-console
-    console.error(
+    logger.error(
       `[WatchBot] initial welcome poll failed: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -461,13 +474,13 @@ const main = (): void => {
     sendTimeoutMs: config.resendSendTimeoutMs,
     siteUrl: config.siteUrl,
     confirmTokenTtlMs: config.confirmTokenTtlMs,
+    logger,
     resendMinIntervalMs: config.resendMinIntervalMs,
     isConnected: () => bot.isConnected(),
     isFriend,
   });
   resendPoller.pollOnce().catch((error: unknown) =>
-    // eslint-disable-next-line no-console
-    console.error(
+    logger.error(
       `[WatchBot] initial resend poll failed: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -486,12 +499,12 @@ const main = (): void => {
       markExpireNoticed,
     },
     pollIntervalMs: config.expiryScanIntervalMs,
+    logger,
     isConnected: () => bot.isConnected(),
     isFriend,
   });
   expiryPoller.pollOnce().catch((error: unknown) =>
-    // eslint-disable-next-line no-console
-    console.error(
+    logger.error(
       `[WatchBot] initial expiry scan failed: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -522,8 +535,7 @@ const main = (): void => {
   const shutdown = (signal: 'SIGINT' | 'SIGTERM'): void => {
     if (shuttingDown) return;
     shuttingDown = true;
-    // eslint-disable-next-line no-console
-    console.log(`[WatchBot] received ${signal}, shutting down...`);
+    logger.info(`[WatchBot] received ${signal}, shutting down...`);
     heartbeat.stop();
     clearInterval(tursoHeartbeatTimer);
     staleSweeper.stop();
