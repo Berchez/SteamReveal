@@ -1,4 +1,18 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
 import { defineConfig, devices } from '@playwright/test';
+
+// Hermetic ops-log dir for the e2e dev server: fixed path, wiped at every
+// config load (no litter growth), so error-path tests that execute real
+// routes never touch the repo's .data/logs. Mirrors jest.setup.js. Fixed
+// (not mkdtemp-unique) by design: port 3100 already serializes runs on one
+// machine, so no two suites can collide on it — unlike Jest workers, which
+// need per-file dirs.
+const E2E_OPS_LOG_DIR = path.join(os.tmpdir(), 'opslog-e2e');
+fs.rmSync(E2E_OPS_LOG_DIR, { recursive: true, force: true });
+fs.mkdirSync(E2E_OPS_LOG_DIR, { recursive: true });
 
 export default defineConfig({
   testDir: 'e2e',
@@ -49,6 +63,9 @@ export default defineConfig({
       // Deliberately absent from .env.example — without it, the route 404s
       // even if the mock-mode env gate somehow passed on a real host.
       E2E_TEST_SECRET: 'e2e-only-test-login-secret',
+      // Ops-log isolation (see E2E_OPS_LOG_DIR above): the error paths
+      // exercised here run real route code.
+      OPS_LOG_DIR: E2E_OPS_LOG_DIR,
     },
   },
 });

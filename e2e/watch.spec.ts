@@ -41,6 +41,7 @@ const notificationsBody = (
   }>,
   unreadCount: number,
   monthlyCount?: number,
+  antiLoopToken?: string,
 ) => ({
   status: 200,
   contentType: 'application/json',
@@ -49,6 +50,7 @@ const notificationsBody = (
     notifications: rows,
     unreadCount,
     ...(monthlyCount === undefined ? {} : { monthlyCount }),
+    ...(antiLoopToken === undefined ? {} : { antiLoopToken }),
   }),
 });
 
@@ -793,6 +795,7 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
           ],
           1,
           4,
+          'ab'.repeat(32),
         ),
       );
     });
@@ -830,5 +833,15 @@ test.describe('Watch full flow (mocked bot, real session)', () => {
     // Per-session details ride along: cheater-check flag + monthly badge.
     await expect(page.getByText('Cheater report opened')).toBeVisible();
     await expect(page.getByText(/searches this month/)).toBeVisible();
+    // Self-click loop guard: the row link carries the server-minted
+    // anti-loop token, so opening your own profile records nothing.
+    await expect(
+      page.getByRole('link', { name: 'See what they saw' }),
+    ).toHaveAttribute(
+      'href',
+      new RegExp(
+        `/en/player/${STEAM_ID}\\?anti_loop_token=${'ab'.repeat(32)}$`,
+      ),
+    );
   });
 });

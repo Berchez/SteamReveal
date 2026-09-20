@@ -7,7 +7,13 @@
  * heartbeat file for scripts/healthcheck-bot.ts.
  *
  * Nothing in this file is imported by tests or by Next.js — it only runs
- * when executed directly.
+ * when executed directly. That convention is load-bearing, not stylistic:
+ * importing this module boots the bot (main() at the bottom) AND installs
+ * global crash handlers (installCrashHandlers below) — a future test (or
+ * refactor) importing it would log into Steam inside the test worker and
+ * accumulate process.on listeners across files (up to exit(1) killing an
+ * unrelated suite). Keep it that way; if this ever needs importing, guard
+ * the side effects behind require.main first.
  */
 import SteamUser from 'steam-user';
 
@@ -31,7 +37,7 @@ import {
   removeWatchAndAccount,
   resetStaleClaims,
 } from '../lib/analytics/db';
-import { loadBotConfig } from './config';
+import { isLocalLinkHostname, loadBotConfig } from './config';
 import type { WatchBotLogger } from './logger';
 import { WatchBot } from './bot';
 import { reconcileFriendsList } from './reconcile';
@@ -72,6 +78,21 @@ const main = (): void => {
     process.exit(1);
   }
 
+  // Localhost trap (real incident: a dev .env driving the production
+  // queue sent users localhost notify/confirm links — valid URL, so boot
+  // validation passes and nothing fails loudly). Non-fatal by design
+  // (local dev legitimately uses localhost); just impossible to miss.
+  if (isLocalLinkHostname(new URL(config.siteUrl).hostname)) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[WatchBot] WARNING: WATCH_SITE_URL points at this machine/network ' +
+        `(${config.siteUrl}). Every notify/confirm link the bot sends ` +
+        'will point here too — fine for local-only queues, BROKEN for ' +
+        'users if this bot serves the production queue (shared DB). ' +
+        'Set WATCH_SITE_URL to the public site URL and restart.',
+    );
+  }
+
   const client = new SteamUser({
     dataDirectory: config.dataDirectory,
     // The WatchBot class owns the single reconnect loop (capped exponential
@@ -98,6 +119,19 @@ const main = (): void => {
       writeOpsLog('bot', 'error', message);
     },
   };
+
+  // Single-shape poll failure logging: every pollOnce .catch below shares
+  // this form, so labels live in one place and cannot drift between lanes.
+  // Console text is byte-identical to the inlined version it replaces.
+  const logPollError =
+    (label: string) =>
+    (error: unknown): void => {
+      logger.error(
+        `[WatchBot] ${label}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    };
 
   // Declared before the bot: onConnected (below) fires the first invite
   // pass, so it needs the handle — assigned further down during the same
@@ -151,13 +185,7 @@ const main = (): void => {
         const chat = client.chat as unknown as ActivationChatClient;
         return sendConfirmLink(chat, steamId, locale, config);
       },
-    ).catch((error) => {
-      logger.error(
-        `[WatchBot] reconcile failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
-    });
+    ).catch(logPollError('reconcile failed'));
   };
 
   // sysexits EX_CONFIG: the process refuses to run with a wrong identity.
@@ -216,53 +244,23 @@ const main = (): void => {
     onConnected: () => {
       const invites = invitePoller;
       if (invites !== undefined) {
-        invites.pollOnce().catch((error: unknown) =>
-          logger.error(
-            `[WatchBot] post-logon invite poll failed: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          ),
-        );
+        invites.pollOnce().catch(logPollError('post-logon invite poll failed'));
       }
       const welcomes = welcomePoller;
       if (welcomes !== undefined) {
-        welcomes.pollOnce().catch((error: unknown) =>
-          logger.error(
-            `[WatchBot] post-logon welcome poll failed: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          ),
-        );
+        welcomes.pollOnce().catch(logPollError('post-logon welcome poll failed'));
       }
       const resends = resendPoller;
       if (resends !== undefined) {
-        resends.pollOnce().catch((error: unknown) =>
-          logger.error(
-            `[WatchBot] post-logon resend poll failed: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          ),
-        );
+        resends.pollOnce().catch(logPollError('post-logon resend poll failed'));
       }
       const expiries = expiryPoller;
       if (expiries !== undefined) {
-        expiries.pollOnce().catch((error: unknown) =>
-          logger.error(
-            `[WatchBot] post-logon expiry scan failed: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          ),
-        );
+        expiries.pollOnce().catch(logPollError('post-logon expiry scan failed'));
       }
       const notifies = notifyPoller;
       if (notifies !== undefined) {
-        notifies.pollOnce().catch((error: unknown) =>
-          logger.error(
-            `[WatchBot] post-logon notify poll failed: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          ),
-        );
+        notifies.pollOnce().catch(logPollError('post-logon notify poll failed'));
       }
     },
     // WB-8 official opt-out: unfriend/block observed on the live event.
@@ -304,11 +302,7 @@ const main = (): void => {
   try {
     heartbeat.beat();
   } catch (error) {
-    logger.error(
-      `[WatchBot] initial heartbeat write failed: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
+    logPollError('initial heartbeat write failed')(error);
   }
 
   // Turso heartbeat mirror (bot-liveness for the site): the file beat above
@@ -328,13 +322,8 @@ const main = (): void => {
     if (tursoBeatInFlight) return;
     tursoBeatInFlight = true;
     recordBotHeartbeat(bot.isConnected(), bot.getSteamId())
-      .catch(
-        (error: unknown) =>
-          logger.error(
-            `[WatchBot] turso heartbeat write failed: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          ),
+      .catch((error: unknown) =>
+        logPollError('turso heartbeat write failed')(error),
       )
       .finally(() => {
         tursoBeatInFlight = false;
@@ -359,13 +348,7 @@ const main = (): void => {
     dal: { resetStaleClaims },
     logger,
     staleWindowMinutes: config.staleClaimWindowMinutes,
-  }).catch((error: unknown) =>
-    logger.error(
-      `[WatchBot] initial stale sweep failed: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    ),
-  );
+  }).catch(logPollError('initial stale sweep failed'));
 
   invitePoller = startInvitePoller({
     client,
@@ -388,13 +371,7 @@ const main = (): void => {
   // Explicit first pass (the poller itself only schedules the interval, so
   // startup ordering stays visible here). A failure rejects into the log,
   // never into an unhandled rejection.
-  invitePoller.pollOnce().catch((error: unknown) =>
-    logger.error(
-      `[WatchBot] initial invite poll failed: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    ),
-  );
+  invitePoller.pollOnce().catch(logPollError('initial invite poll failed'));
 
   // WB-13 notify consumer: same lifecycle as the invite poller (single
   // registration at startup — reconnects only trigger pollOnce, never a
@@ -418,13 +395,7 @@ const main = (): void => {
     logger,
     isConnected: () => bot.isConnected(),
   });
-  notifyPoller.pollOnce().catch((error: unknown) =>
-    logger.error(
-      `[WatchBot] initial notify poll failed: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    ),
-  );
+  notifyPoller.pollOnce().catch(logPollError('initial notify poll failed'));
 
   // Post-click welcome consumer (click-to-activate flow): the confirm
   // route enqueues exactly when it activates, so this lane only ever
@@ -446,13 +417,7 @@ const main = (): void => {
     sendTimeoutMs: config.welcomeSendTimeoutMs,
     isConnected: () => bot.isConnected(),
   });
-  welcomePoller.pollOnce().catch((error: unknown) =>
-    logger.error(
-      `[WatchBot] initial welcome poll failed: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    ),
-  );
+  welcomePoller.pollOnce().catch(logPollError('initial welcome poll failed'));
 
   // Confirm-link resend consumer (user-awaited lane: someone pressed
   // "generate a new link", so drain fast like invite/notify, not hourly).
@@ -479,13 +444,7 @@ const main = (): void => {
     isConnected: () => bot.isConnected(),
     isFriend,
   });
-  resendPoller.pollOnce().catch((error: unknown) =>
-    logger.error(
-      `[WatchBot] initial resend poll failed: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    ),
-  );
+  resendPoller.pollOnce().catch(logPollError('initial resend poll failed'));
 
   // Confirm-link expiry scanner (hourly class): single "generate a new
   // one" notice per dead generation. Catches up after downtime on boot
@@ -503,13 +462,7 @@ const main = (): void => {
     isConnected: () => bot.isConnected(),
     isFriend,
   });
-  expiryPoller.pollOnce().catch((error: unknown) =>
-    logger.error(
-      `[WatchBot] initial expiry scan failed: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    ),
-  );
+  expiryPoller.pollOnce().catch(logPollError('initial expiry scan failed'));
 
   // Periodic full reconcile (backstop for missed snapshots AND for
   // click-activations that landed while the DB blipped: the confirm

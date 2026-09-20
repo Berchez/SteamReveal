@@ -28,7 +28,7 @@
  */
 
 const SECRET_NAME = String.raw`password|passwd|secret|token|key|auth|authorization|cookie|session|clearance`;
-const TOKEN_LITERAL_PATTERN = /\b(\w*token)[=:]\s*\S+/gi;
+
 // Bare form only fires on opaque-looking values (contains a digit or
 // underscore, or 12+ chars): plain-English `token rolled back` / `token
 // expired` (bot incident lines, diagnostics) must survive in the file log,
@@ -36,21 +36,75 @@ const TOKEN_LITERAL_PATTERN = /\b(\w*token)[=:]\s*\S+/gi;
 const TOKEN_BARE_OR_QUOTED_PATTERN =
   /\b(?:auth[_-]?)?token\s+["']?(?:[A-Za-z0-9._-]*[0-9_][A-Za-z0-9._-]*|[A-Za-z0-9._-]{12,})["']?/gi;
 const JWT_PATTERN = /\beyJ[A-Za-z0-9_-]{10,}(\.[A-Za-z0-9_-]+){1,2}\b/g;
-const API_KEY_PATTERN = /\b(\w*key)[=:]\s*\S+/gi;
 const AUTH_HEADER_PATTERN = /\b(authorization)[:=]\s*(?:Bearer\s+)?\S+/gi;
-// `name=value` for the remaining secret names (passwords, sessions,
-// cookies, clearance values — the token/key/auth shapes above already
-// cover theirs). The key name is preserved so the line stays diagnosable.
+// `name=value` for every secret name in one pattern (this subsumes the old
+// dedicated token/key literals: same match shape, same $1-preserving
+// replacement — one surface to maintain instead of three). The key name is
+// preserved so the line stays diagnosable.
 const SECRET_LITERAL_PATTERN = new RegExp(
   `\\b(\\w*(?:${SECRET_NAME}))\\s*[=:]\\s*\\S+`,
   'gi',
 );
 // `"name": "value"` — the JSON.stringify form nested context takes.
-// Value must be a quoted string (a null/number/bool carries no secret).
+// Suffix-only (the name must END at the closing quote): real secret keys
+// end with the kind (`apiKey`, `authToken`, `SESSION_SECRET`), while
+// `sessionType`/`authorName`/`cookieBanner` merely contain it mid-word and
+// stay readable. `"monkey"` still redacts (ends with `key`) — accepted
+// residual, documented in the tests. Value must be a quoted string (a
+// null/number/bool carries no secret).
 const JSON_SECRET_PATTERN = new RegExp(
-  `"((?:\\w*(?:${SECRET_NAME})\\w*))"\\s*:\\s*"[^"]*"`,
+  `"((?:\\w*(?:${SECRET_NAME})))"\\s*:\\s*"(?:\\\\.|[^"\\\\])*"`,
   'gi',
 );
+// Escaped-JSON twin of the pattern above, DERIVED (not hand-escaped):
+// every structural quote of the proven source gains one literal
+// backslash, so backslash-quote spans match. Same suffix rule, same
+// quoted-value requirement, same $1-preserving style. Derivation (not
+// duplication) keeps the two in lockstep by construction.
+const ESC_BS = String.fromCharCode(92);
+/**
+ * Prefixes every STRUCTURAL double-quote of a pattern source with a
+ * literal backslash, turning a plain-JSON matcher into its
+ * backslash-escaped twin (`"name":"v"` also matches `\"name\":\"v\"`).
+ * Escape pairs (`\\`, `\"`, ...) pass through untouched, and quotes
+ * inside `[...]` classes are left alone (prefixing them is harmless but
+ * pointless — and this explicit walk, not a blind split/join, is what
+ * keeps a future edit adding quotes inside a class from silently
+ * changing behavior). Input contract: pattern sources in this file's
+ * style (no `\"` outside escape pairs).
+ */
+export const escapeStructuralQuotes = (source: string): string => {
+  let out = '';
+  let depth = 0;
+  let i = 0;
+  while (i < source.length) {
+    const ch = source[i];
+    if (ch === ESC_BS) {
+      out += ch + (source[i + 1] ?? '');
+      i += 2;
+    } else {
+      if (ch === '[') {
+        depth += 1;
+      } else if (ch === ']') {
+        depth = Math.max(0, depth - 1);
+      }
+      if (ch === '"' && depth === 0) {
+        out += `${ESC_BS}${ESC_BS}"`;
+      } else {
+        out += ch;
+      }
+      i += 1;
+    }
+  }
+  return out;
+};
+
+const JSON_ESCAPED_SECRET_PATTERN = new RegExp(
+  escapeStructuralQuotes(JSON_SECRET_PATTERN.source),
+  'gi',
+);
+const JSON_ESCAPED_REPLACEMENT =
+  `${ESC_BS}"$1${ESC_BS}":${ESC_BS}"[REDACTED]${ESC_BS}"`;
 const LIB_SQL_URL_PATTERN = /libsql:\/\/\S+/g;
 const DATABASE_URL_PATTERN = /\b(?:libsql|https?):\/\/[^\s"']+/gi;
 
@@ -61,13 +115,12 @@ export const sanitizeError = (err: unknown): string => {
   // log lines stay diagnosable (`sessionKey=` → `sessionKey=[REDACTED]`,
   // not a bare `key=`): which field leaked matters as much as the fact.
   return raw
-    .replace(TOKEN_LITERAL_PATTERN, '$1=[REDACTED]')
     .replace(TOKEN_BARE_OR_QUOTED_PATTERN, 'token=[REDACTED]')
     .replace(JWT_PATTERN, '[JWT REDACTED]')
-    .replace(API_KEY_PATTERN, '$1=[REDACTED]')
     .replace(AUTH_HEADER_PATTERN, '$1=[REDACTED]')
     .replace(SECRET_LITERAL_PATTERN, '$1=[REDACTED]')
     .replace(JSON_SECRET_PATTERN, '"$1":"[REDACTED]"')
+    .replace(JSON_ESCAPED_SECRET_PATTERN, JSON_ESCAPED_REPLACEMENT)
     .replace(LIB_SQL_URL_PATTERN, 'libsql://[REDACTED]')
     .replace(DATABASE_URL_PATTERN, '[URL REDACTED]');
 };

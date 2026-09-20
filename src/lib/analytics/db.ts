@@ -2099,6 +2099,43 @@ export const consumeAntiLoopToken = async (
   return updated.rows.length > 0;
 };
 
+/**
+ * Atomic mint-if-absent variant of issueAntiLoopToken: arms the token ONLY
+ * when no LIVE one is outstanding (same predicate the consume path
+ * enforces — hash present and unexpired — in the SAME statement, so there
+ * is no read-then-write window for a concurrent issuer to slip through).
+ * Callers that must NOT invalidate someone else's outstanding link (the
+ * inbox vs the bot's Steam-chat link share this one slot) use this, never
+ * the blind overwrite: a lost race resolves to false (hands off, plain
+ * links) instead of silently killing the other link. Returns false also
+ * when no watch row exists.
+ */
+export const issueAntiLoopTokenIfAbsent = async (
+  steamId: string,
+  tokenHash: string,
+  expiresAt: string,
+): Promise<boolean> => {
+  assertSteamId64(steamId);
+  assertAntiLoopTokenHash(tokenHash);
+  const db = await getClient();
+  const now = new Date().toISOString();
+
+  const updated = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE watched_profiles
+            SET anti_loop_token_hash = ?, anti_loop_expires_at = ?
+            WHERE steam_id = ?
+              AND (
+                anti_loop_token_hash IS NULL
+                OR anti_loop_expires_at IS NULL
+                OR anti_loop_expires_at <= ?
+              )`,
+      args: [tokenHash, expiresAt, steamId, now],
+    }),
+  );
+  return Number(updated.rowsAffected) > 0;
+};
+
 export const countInvitesSentSince = async (
   sinceIso: string,
 ): Promise<number> => {

@@ -15,7 +15,10 @@ const STACK_CONTEXT_CHARS = 2000;
 export default function logRouteError(
   routeName: string,
   error: unknown,
-  context?: Record<string, unknown>,
+  // `stack` is reserved: the file log injects the error's own stack under
+  // that key, so a caller-supplied one would collide silently. The `never`
+  // makes it a compile-time error instead of a convention comment.
+  context?: Record<string, unknown> & { stack?: never },
 ): void {
   const message = getErrorMessage(error);
   const contextSuffix = context

@@ -4,13 +4,14 @@ import './globals.css';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { Roboto, Inknut_Antiqua } from 'next/font/google';
 import React, { Suspense } from 'react';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import Script from 'next/script';
 import HomeProvider from '@/app/templates/Home/HomeProvider';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 import SiteNav, {
   siteNavContainerClassName,
 } from '@/app/components/SiteNav/SiteNav';
+import { WATCH_SESSION_COOKIE } from '@/lib/watch/sessionCookie';
 import { LOCALE_PATHS } from '../../locales';
 
 const shouldLoadVercelTelemetry = process.env.VERCEL_ENV === 'production';
@@ -96,6 +97,16 @@ export default function RootLayout({
 }: Readonly<RootLayoutProps>) {
   const messages = useMessages();
   const country = headers().get('x-user-country') || 'UNKNOWN';
+  // Skeleton audience split (read by the Suspense fallback below): the
+  // session cookie's PRESENCE — never its value, nothing unsealed here —
+  // predicts which cluster will resolve. Absent means the logged-out pill
+  // is guaranteed (even the last-resort catch renders logged-out);
+  // present usually means the bell+avatar cluster (wrong only for
+  // stale/invalid cookies, rare). Before this split the fallback always
+  // drew bell+avatar, so every logged-out paint flashed two phantom
+  // controls before the sign-in pill landed. Sync read, zero extra I/O,
+  // no static-render change (this layout is already dynamic).
+  const likelyLoggedIn = cookies().has(WATCH_SESSION_COOKIE);
 
   return (
     <html lang={locale} className={`${roboto.variable} ${inknut.variable}`}>
@@ -166,18 +177,22 @@ export default function RootLayout({
                 slow Steam API). Without this boundary the whole route —
                 children included — waits for it before streaming a byte.
                 Fallback keeps the same fixed wrapper + the switcher (the
-                only control that needs no session) PLUS shape-matched
-                placeholders for the logged-in cluster (bell + avatar,
-                both h-11 circles): without them the bell/avatar pop in a
-                beat later — a perceptible flash. Same slots and sizes
-                means the swap reads as content loading in, not controls
+                only control that needs no session) PLUS a shape-matched
+                placeholder for whichever cluster the session cookie
+                predicts (see likelyLoggedIn above): bell + avatar h-11
+                circles when a session cookie exists, one h-11 pill when
+                it doesn't (the logged-out sign-in shape). Without the
+                match the swap pops controls in a beat later — a
+                perceptible flash (the old fallback always drew
+                bell+avatar, so logged-out paints flashed two phantom
+                controls; the liveness Turso read alone is slow enough to
+                paint it on most cold loads). Same slots and sizes means
+                the swap reads as content loading in, not controls
                 appearing. The mobile bar shape (logo placeholder left,
                 cluster right) mirrors SiteNav's responsive container for
-                the same reason. Logged-out resolves fast (no Steam/DB
-                reads), so this rarely paints there at all. Pure markup,
-                aria-hidden; the page paints instantly and nothing
-                in-flow shifts when the real cluster lands (fixed
-                elements never move page content — CLS-safe).
+                the same reason. Pure markup, aria-hidden; the page paints
+                instantly and nothing in-flow shifts when the real cluster
+                lands (fixed elements never move page content — CLS-safe).
               */}
                 <Suspense
                   fallback={
@@ -191,14 +206,27 @@ export default function RootLayout({
                       />
                       <div className="flex items-center gap-2">
                         <LanguageSwitcher />
-                        <div
-                          aria-hidden="true"
-                          className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
-                        />
-                        <div
-                          aria-hidden="true"
-                          className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
-                        />
+                        {likelyLoggedIn ? (
+                          <>
+                            <div
+                              aria-hidden="true"
+                              className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
+                            />
+                            <div
+                              aria-hidden="true"
+                              className="h-11 w-11 rounded-full bg-gray-700/60 animate-pulse"
+                            />
+                          </>
+                        ) : (
+                          // Logged-out pill placeholder: h-11 matches the
+                          // sign-in pill's height, w-28 approximates its
+                          // locale-dependent width (en ~82px … de ~102px)
+                          // so the swap barely moves.
+                          <div
+                            aria-hidden="true"
+                            className="h-11 w-28 animate-pulse rounded-full bg-gray-700/60"
+                          />
+                        )}
                       </div>
                     </div>
                   }

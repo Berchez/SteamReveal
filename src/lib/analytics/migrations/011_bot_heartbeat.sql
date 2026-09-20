@@ -5,7 +5,15 @@
 -- Replay-safe at the SQL level (CREATE TABLE IF NOT EXISTS); the
 -- _migrations row is the runner's bookkeeping on top of that (010's
 -- contract). NEVER RENAME this file after it has been applied anywhere.
--- Apply with `pnpm run db:migrate`.
+-- DDL below is frozen for the same reason (applied migrations are
+-- invisible to the runner — no checksums — so a DDL edit silently forks
+-- applied DBs from fresh ones). The one exception is THIS comment block:
+-- on 2026-09-17 this file was applied from uncommitted WIP lacking
+-- disconnected_since, recording 011 as done while the live table missed
+-- the column (never run db:migrate from a DIRTY tree). The repair was a
+-- one-off
+-- ALTER on that database (a new 012 would have broken fresh DBs with
+-- "duplicate column"). Apply with `pnpm run db:migrate`.
 --
 -- Design notes:
 -- - The bot writes a LOCAL heartbeat file (BOT_HEARTBEAT_PATH) for

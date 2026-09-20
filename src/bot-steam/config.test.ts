@@ -1,4 +1,8 @@
-import { loadBotConfig, BOT_CONFIG_DEFAULTS } from './config';
+import {
+  isLocalLinkHostname,
+  loadBotConfig,
+  BOT_CONFIG_DEFAULTS,
+} from './config';
 
 const FULL_ENV = {
   STEAM_BOT_USERNAME: 'botuser',
@@ -167,5 +171,31 @@ describe('loadBotConfig', () => {
     ['BOT_STALE_CLAIM_WINDOW_MINUTES', '1.5'],
   ])('throws on invalid %s (%s)', (name, value) => {
     expect(() => loadBotConfig({ ...FULL_ENV, [name]: value })).toThrow(name);
+  });
+});
+
+describe('isLocalLinkHostname', () => {
+  it.each([
+    'localhost',
+    'LOCALHOST',
+    '127.0.0.1',
+    '[::1]',
+    '0.0.0.0',
+    'mybox.local',
+    '192.168.1.5',
+    '10.0.0.2',
+    '172.20.0.1',
+  ])('flags %s as local-only for bot-delivered links', (host) => {
+    expect(isLocalLinkHostname(host)).toBe(true);
+  });
+
+  it.each([
+    'steam-reveal.vercel.app',
+    'example.com',
+    'abc.trycloudflare.com',
+    '172.32.0.1',
+    '192.169.1.5',
+  ])('leaves public %s alone (no false boot warning)', (host) => {
+    expect(isLocalLinkHostname(host)).toBe(false);
   });
 });

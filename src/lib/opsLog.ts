@@ -49,7 +49,9 @@
  * (size-gated) and bounded to that window — accepted.
  * Vercel note: serverless functions have a read-only filesystem (except
  * /tmp), so writes there fail and degrade to console-only — which is the
- * correct behavior there (Vercel keeps its own request logs).
+ * correct behavior there (Vercel keeps its own request logs). The first
+ * such failure latches writes off for the process lifetime (no doomed
+ * mkdir+append per error on warm lambdas); anything else keeps retrying.
  */
 import fs from 'fs';
 import path from 'path';
@@ -76,12 +78,17 @@ const DEFAULT_RETENTION_DAYS = 14;
 // ---------------------------------------------------------------------------
 
 /**
- * Collapse line breaks: one event is always exactly one file line. Covers
- * the Unicode separators too (\u2028/\u2029 break editors and JSONL
- * parsers exactly like \n does).
+ * Collapse line breaks AND strip control characters: one event is always
+ * exactly one inert file line. Beyond \r\n\v\f\u2028\u2029 this covers the
+ * C0/C1 controls — notably ESC (\x1b): log lines are tailed straight into
+ * terminals (`pnpm run logs:errors`, `tail -f`), and an escape sequence
+ * smuggled in via user-controlled input (e.g. a proxy steamId) would
+ * otherwise execute there. Single spaces keep word separation.
  */
+// The whole point here is matching controls.
 const singleLine = (value: string): string =>
-  value.replace(/\r\n|[\r\n\v\f\u2028\u2029]/g, ' ');
+  // eslint-disable-next-line no-control-regex
+  value.replace(/\r\n|[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, ' ');
 
 /** Hard cap for any logged string (giant HTML bodies, huge stacks). */
 export const truncateString = (value: string, maxChars: number): string =>
@@ -232,6 +239,28 @@ export const resolveRetentionDays = (): number => {
 const serviceSweepDays = new Map<string, string>();
 /** True boot markers (boundary lines): set once per service per process. */
 const initializedServices = new Set<string>();
+// Global-per-process by design, not per-service: bot, proxy and site run
+// in separate processes, so one flag is unambiguous. If those ever share
+// a process, scope this per service.
+let fsWritesDisabled = false;
+
+/**
+ * Full runtime-state reset for tests: sweep days, boot markers, and the
+ * fs-disabled latch. Production code never calls this (module state is
+ * per-process by design); tests use it instead of relying on unique
+ * service names alone when asserting init/sweep behavior across cases.
+ */
+export const resetOpsLogRuntimeState = (): void => {
+  serviceSweepDays.clear();
+  initializedServices.clear();
+  fsWritesDisabled = false;
+};
+
+const isReadonlyFsError = (error: unknown): boolean =>
+  typeof error === 'object' &&
+  error !== null &&
+  ((error as { code?: unknown }).code === 'EROFS' ||
+    (error as { code?: unknown }).code === 'EACCES');
 
 const ensureServiceInitialized = (
   service: string,
@@ -277,8 +306,11 @@ const ensureServiceInitialized = (
     // Mark swept ONLY on success: a failed init retries on the next write
     // instead of deferring the sweep to the next UTC day.
     serviceSweepDays.set(key, today);
-  } catch {
-    // Degrade to console-only (the caller's console log already happened).
+  } catch (error) {
+    // Read-only failures propagate so writeOpsLog can latch writes off
+    // (see above); anything else degrades to console-only (the caller's
+    // console log already happened).
+    if (isReadonlyFsError(error)) throw error;
   }
 };
 
@@ -287,6 +319,21 @@ const isEnoentError = (error: unknown): boolean =>
   typeof error === 'object' &&
   error !== null &&
   (error as { code?: unknown }).code === 'ENOENT';
+
+/**
+ * Latched off after the first read-only failure: on Vercel (read-only
+ * filesystem) every site error would otherwise repay a doomed mkdir +
+ * append per write for the whole warm-lambda lifetime. EROFS/EACCES are
+ * environmental, not transient — a process that cannot write its log dir
+ * stays that way until restart, so latching is safe. Test seam below
+ * resets it (module state, same as the sweep map). Declaration lives with
+ * the other module state above; assignment-only use here.
+ */
+
+/** Test seam (mirrors clearBotLivenessMemo): re-arms file writes. */
+export const clearOpsLogFsDisabled = (): void => {
+  fsWritesDisabled = false;
+};
 
 /**
  * Append that survives a mid-run `rm -rf` of the log dir (an operator
@@ -349,6 +396,7 @@ export const writeOpsLog = (
   message: string,
   context?: Record<string, unknown>,
 ): void => {
+  if (fsWritesDisabled) return;
   try {
     const logDir = resolveOpsLogDir();
     const nowMs = Date.now();
@@ -371,7 +419,8 @@ export const writeOpsLog = (
     const errorsPath = path.join(logDir, ERRORS_FILE_NAME);
     appendWithDirRetry(errorsPath, line);
     trimErrorsFileIfOversized(errorsPath);
-  } catch {
+  } catch (error) {
+    if (isReadonlyFsError(error)) fsWritesDisabled = true;
     // Console-only degradation (see module docblock).
   }
 };

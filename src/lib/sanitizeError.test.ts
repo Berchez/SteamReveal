@@ -1,4 +1,18 @@
-import { sanitizeError } from './sanitizeError';
+import { escapeStructuralQuotes, sanitizeError } from './sanitizeError';
+
+describe('escapeStructuralQuotes', () => {
+  const bs = String.fromCharCode(92);
+
+  it('prefixes structural quotes, preserves escape pairs and classes', () => {
+    // `"a":"b"` -> backslash-quote spans; escape pairs (`\\`) and the
+    // class interior (`[^"\\]`) travel untouched.
+    expect(escapeStructuralQuotes('"a":"b"')).toBe(
+      `${bs}${bs}"a${bs}${bs}":${bs}${bs}"b${bs}${bs}"`,
+    );
+    expect(escapeStructuralQuotes(`[^"${bs}${bs}]`)).toBe(`[^"${bs}${bs}]`);
+    expect(escapeStructuralQuotes(`${bs}${bs}n`)).toBe(`${bs}${bs}n`);
+  });
+});
 
 describe('sanitizeError', () => {
   it('redacts token= and token: literals', () => {
@@ -150,6 +164,32 @@ describe('sanitizeError', () => {
     );
     // Non-string JSON values carry no secret and stay untouched.
     expect(sanitizeError('opts={"retries":3}')).toBe('opts={"retries":3}');
+    // Backslash-escaped quotes (error bodies serialized inside a string):
+    // the value still redacts instead of stopping at the first \".
+    // (Backslashes built via fromCharCode so this test cannot silently
+    // decay into the plain-quote case through an escaping slip.)
+    const bs = String.fromCharCode(92);
+    expect(
+      sanitizeError(`body={${bs}"token${bs}":${bs}"a1b2c3${bs}"} end`),
+    ).toBe(`body={${bs}"token${bs}":${bs}"[REDACTED]${bs}"} end`);
+  });
+
+  it('redacts only secret-SUFFIXED json keys, not mid-word contains', () => {
+    // Suffix rule: real secret names end with the kind (apiKey, authToken,
+    // SESSION_SECRET). Mid-word contains stay readable for debuggability.
+    expect(sanitizeError('ui={"sessionType":"x","authorName":"y"}')).toBe(
+      'ui={"sessionType":"x","authorName":"y"}',
+    );
+    // Quoted value, so only the suffix rule saves it (a boolean would
+    // pass for the wrong reason — unquoted values never match).
+    expect(sanitizeError('ui={"cookieBanner":"seen"}')).toBe(
+      'ui={"cookieBanner":"seen"}',
+    );
+    // ...except a name that also ENDS with a kind (`monkey` ends with
+    // `key`): still redacts — accepted residual, fail-closed on purpose.
+    expect(sanitizeError('ui={"monkey":"banana"}')).toBe(
+      'ui={"monkey":"[REDACTED]"}',
+    );
   });
 
   it('redacts password/secret/cookie/session/clearance in literal form', () => {

@@ -15,6 +15,7 @@ import {
   watchPlayerPageUrl,
   watchProfileUrl,
 } from '@/lib/watch/notificationText';
+import { isWatchTokenShape } from '@/lib/watch/tokens';
 import { WATCH_INBOX_DEFAULT_LIMIT } from '@/lib/watch/limits';
 import resolveLoginNext from '@/lib/watch/loginNext';
 import { usePathname } from '@/navigation';
@@ -55,24 +56,29 @@ function NotifyItemText({
   steamId,
   cheaterChecked,
   searchedAt,
+  antiLoopToken,
 }: {
   locale: string;
   steamId: string;
   cheaterChecked: boolean;
   searchedAt?: string | null;
+  antiLoopToken?: string | null;
 }) {
   const translator = useTranslations('Watch');
   const resolved = resolveWatchLocale(locale);
   // Same link target as the bot's notify ("see what they saw"): origin is
-  // browser-known, no env needed. Deliberately NO anti-loop token: the raw
-  // token left with the bot's chat message (only its hash is stored), so
-  // the inbox cannot mint one — a self-click records a NORMAL search,
-  // mildly noisy, never a loop.
+  // browser-known, no env needed. The anti-loop token rides along when the
+  // server minted one for this inbox open (see applyInboxPayload): opening
+  // your own profile then records NOTHING instead of a fresh search, which
+  // used to notify again per click (inbox + a new bot message) — a
+  // self-click feedback loop. Null (live bot-chat token outstanding, mint
+  // failure, stale/double-clicked link) degrades to a plain link: the
+  // player page records normally, exactly like before.
   const siteUrl = typeof window !== 'undefined' ? window.location.origin : null;
   const link =
     siteUrl === null
       ? watchProfileUrl(steamId)
-      : watchPlayerPageUrl(siteUrl, resolved, steamId);
+      : watchPlayerPageUrl(siteUrl, resolved, steamId, antiLoopToken ?? null);
   // Locale-correct date/time (en MM/DD 12h, pt DD/MM 24h, ...). The row
   // parser only ever passes a finite ISO searchedAt; empty strings keep
   // the interpolation defined (never undefined) on the impossible path.
@@ -145,6 +151,11 @@ function WatchInbox({ steamId }: { steamId: string }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<InboxNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Server-minted loop guard for this open (null = slot busy or mint
+  // failed — links stay plain). Shared by every row: the token slot is
+  // single per profile and single-use, so the first self-click consumes
+  // it and later ones degrade to normal searches, never errors.
+  const [inboxToken, setInboxToken] = useState<string | null>(null);
   const [monthlyCount, setMonthlyCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -169,6 +180,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
         notifications?: unknown;
         unreadCount?: unknown;
         monthlyCount?: unknown;
+        antiLoopToken?: unknown;
       } | null,
       markVisibleAsSeen: boolean,
       seq: number,
@@ -207,6 +219,19 @@ function WatchInbox({ steamId }: { steamId: string }) {
       // the previous profile's rows land in the new profile's inbox.
       if (fetchSeqRef.current !== seq) return;
       setNotifications(parsed);
+      // Loop-guard token for this open: shape-checked (a malformed value
+      // is never glued into a link). A null answer (occupied slot, mint
+      // failure) must NOT evict a working token from a previous fetch:
+      // reopening without clicking would otherwise downgrade live links
+      // back to plain. Only a fresh valid token replaces. Resets
+      // (identity switch, 401) still clear outright — see those call
+      // sites, not here.
+      const minted =
+        typeof body?.antiLoopToken === 'string' &&
+        isWatchTokenShape(body.antiLoopToken)
+          ? body.antiLoopToken
+          : null;
+      setInboxToken((previous) => minted ?? previous);
       // Server count is exact past the row cap (30 delivered, 20 rows →
       // badge reads 30, not 20). The local filter is the fallback for a
       // malformed/absent server count only — same-version API always
@@ -264,13 +289,19 @@ function WatchInbox({ steamId }: { steamId: string }) {
         // Watermark was corrupted — clear it so we don't retry with bad data.
         setLastSeenSearchedAt(steamId, null);
       }
+      // The loop-guard token is only asked for when the fetched rows will
+      // actually RENDER as links (panel open / retry = markVisibleAsSeen).
+      // The mount fetch feeds just the bell badge — minting there would be
+      // a blind UPDATE per page load against the unique index, plus a
+      // wasted round trip delaying the badge, for links nobody sees.
+      const tokenQuery = markVisibleAsSeen ? '&withToken=1' : '';
       try {
         let res = await fetch(
           `/api/watch/notifications?limit=${NOTIFICATIONS_LIMIT}${
             watermark === null
               ? ''
               : `&sinceSearchedAt=${encodeURIComponent(watermark)}`
-          }`,
+          }${tokenQuery}`,
         );
         // A 400 here means a corrupt watermark slipped validation (or
         // raced it): clear it and retry once cursorless. The STATUS is
@@ -284,7 +315,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
           setLastSeenSearchedAt(steamId, null);
           if (fetchSeqRef.current !== seq) return;
           res = await fetch(
-            `/api/watch/notifications?limit=${NOTIFICATIONS_LIMIT}`,
+            `/api/watch/notifications?limit=${NOTIFICATIONS_LIMIT}${tokenQuery}`,
           );
           effectiveWatermark = null;
         }
@@ -297,6 +328,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
           setNotifications([]);
           setUnreadCount(0);
           setMonthlyCount(null);
+          setInboxToken(null);
           return;
         }
         if (!res.ok) throw new Error(`notifications fetch: ${res.status}`);
@@ -326,6 +358,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
     setNotifications([]);
     setUnreadCount(0);
     setMonthlyCount(null);
+    setInboxToken(null);
     setError(false);
     setSessionExpired(false);
     setOpen(false);
@@ -466,6 +499,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
               steamId={steamId}
               cheaterChecked={item.cheaterChecked}
               searchedAt={item.searchedAt}
+              antiLoopToken={inboxToken}
             />
             {item.cheaterChecked && (
               <p className="mt-1 text-sm text-lime-400">

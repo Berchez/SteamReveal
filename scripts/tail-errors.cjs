@@ -9,10 +9,12 @@
  *
  * Plain Node, no dependencies (unlike the ts-node scripts, this one runs
  * with bare `node`, so it imports nothing from src/): resolves the log
- * dir the same way the writer does (OPS_LOG_DIR with || fallback, default
- * <repo>/.data/logs), including a minimal `.env` lookup — the bot/proxy
- * load `.env` via loadEnv(), so an OPS_LOG_DIR that lives only in `.env`
- * must resolve here too or writer and reader look in different places.
+ * dir like the writer does (OPS_LOG_DIR with || fallback, default
+ * <repo>/.data/logs), including a minimal `.env.local`/`.env` lookup —
+ * the bot/proxy load those via loadEnv(), so an OPS_LOG_DIR that lives
+ * only there must resolve here too or writer and reader look in different
+ * places. Approximately, not identically: run the writer and this script
+ * from the repo root (per the runbook) and the two resolutions agree.
  *
  * Exit codes: 0 with output; 0 with a "no errors yet" / "directory not
  * found" notice when there is nothing to show (an empty error log is GOOD
@@ -30,15 +32,21 @@ const DEFAULT_LINES = 50;
 /**
  * Minimal .env lookup for OPS_LOG_DIR only: KEY=VALUE lines, first
  * occurrence wins, surrounding quotes stripped, relative paths resolved
- * against the repo root. Real environment always wins (never overridden).
+ * against the repo root. Mirrors Next.js precedence: `.env.local` beats
+ * `.env`; real environment always wins (never overridden). Only a subset
+ * of dotenv semantics (no multiline values) — enough for a directory path.
  */
 const readDotEnvOpsLogDir = () => {
   let envText;
-  try {
-    envText = fs.readFileSync(path.join(__dirname, '..', '.env'), 'utf8');
-  } catch {
-    return undefined;
+  for (const name of ['.env.local', '.env']) {
+    try {
+      envText = fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
+      break;
+    } catch {
+      envText = undefined;
+    }
   }
+  if (envText === undefined) return undefined;
   for (const rawLine of envText.split('\n')) {
     // Tolerate `export` prefixes and trailing inline comments (dotenv
     // semantics the writer enjoys via loadEnv); quoted values keep their

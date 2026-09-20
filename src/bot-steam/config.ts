@@ -207,6 +207,32 @@ const requireSiteUrl = (value: string | undefined): string => {
 };
 
 /**
+ * Whether a link hostname only resolves locally (loopback, link-local
+ * machine names, RFC 1918 LAN ranges): bot-delivered links built on one
+ * break for everyone off that machine/network. WHATWG keeps IPv6 brackets
+ * (`new URL('http://[::1]').hostname === '[::1]'`), hence the bracketed
+ * form below. Deliberately NOT flagging public tunnels
+ * (`*.trycloudflare.com` etc.) — those resolve globally and link fine.
+ * Pure predicate so the boot warning (index.ts) is unit-testable.
+ */
+export const isLocalLinkHostname = (hostname: string): boolean => {
+  const host = hostname.toLowerCase();
+  if (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '[::1]' ||
+    host === '0.0.0.0' ||
+    host.endsWith('.local') ||
+    host.endsWith('.localhost')
+  ) {
+    return true;
+  }
+  return /^(10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)$/.test(
+    host,
+  );
+};
+
+/**
  * Reads and validates the bot config from the environment. Throws with an
  * actionable message on the first problem (fail fast: a half-configured bot
  * must never start and retry against Steam with bad credentials).

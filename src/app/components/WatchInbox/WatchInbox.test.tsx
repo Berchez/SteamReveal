@@ -35,6 +35,7 @@ const STEAM_B = '76561198000000002';
 const notificationsResponse = (
   rows: Array<Record<string, unknown>>,
   unreadCount?: number,
+  antiLoopToken?: string,
 ) =>
   ({
     ok: true,
@@ -42,6 +43,7 @@ const notificationsResponse = (
       steamId: STEAM_A,
       notifications: rows,
       ...(unreadCount === undefined ? {} : { unreadCount }),
+      ...(antiLoopToken === undefined ? {} : { antiLoopToken }),
     }),
   }) as Response;
 
@@ -235,8 +237,10 @@ describe('WatchInbox', () => {
     fireEvent.click(screen.getByRole('button'));
     await settle();
 
+    // Reopen renders links, so it asks for the loop-guard token (the
+    // mount fetch above stays token-free — badge only).
     expect(fetchMock).toHaveBeenLastCalledWith(
-      '/api/watch/notifications?limit=20&sinceSearchedAt=2026-06-02T00%3A00%3A00.000Z',
+      '/api/watch/notifications?limit=20&sinceSearchedAt=2026-06-02T00%3A00%3A00.000Z&withToken=1',
     );
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
@@ -381,6 +385,82 @@ describe('WatchInbox', () => {
     // localized plain-body key (not English prose) is the assertion.
     expect(link.closest('p')).toHaveClass('whitespace-pre-line');
     expect(link.closest('p')).toHaveTextContent(/watchInboxItemPlainBody/);
+  });
+
+  it('appends the server-minted anti-loop token to row links (self-click records nothing)', async () => {
+    // The loop fix: opening your own profile from the inbox must not
+    // record a fresh search (which used to notify again per click).
+    const token = 'ab'.repeat(32);
+    fetchMock.mockResolvedValue(
+      notificationsResponse(
+        [row('search-1', '2026-06-01T00:00:00.000Z')],
+        1,
+        token,
+      ),
+    );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    expect(
+      screen.getByRole('link', { name: 'watchInboxItemViewHere' }),
+    ).toHaveAttribute(
+      'href',
+      `http://localhost/en/player/${STEAM_A}?anti_loop_token=${token}`,
+    );
+  });
+
+  it('keeps a working token across refetches that answer null (no downgrade on reopen)', async () => {
+    const token = 'cd'.repeat(32);
+    fetchMock.mockResolvedValue(
+      notificationsResponse(
+        [row('search-1', '2026-06-01T00:00:00.000Z')],
+        1,
+        token,
+      ),
+    );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    const href = `http://localhost/en/player/${STEAM_A}?anti_loop_token=${token}`;
+    expect(
+      screen.getByRole('link', { name: 'watchInboxItemViewHere' }),
+    ).toHaveAttribute('href', href);
+
+    // Reopen without clicking: the slot is occupied now, so the server
+    // answers null — the live token must survive, not be evicted.
+    fetchMock.mockResolvedValue(
+      notificationsResponse([row('search-1', '2026-06-01T00:00:00.000Z')], 0),
+    );
+    fireEvent.click(screen.getByRole('button'));
+    await settle();
+    fireEvent.click(screen.getByRole('button'));
+    await settle();
+
+    expect(
+      screen.getByRole('link', { name: 'watchInboxItemViewHere' }),
+    ).toHaveAttribute('href', href);
+  });
+
+  it('ignores a malformed anti-loop token instead of gluing it into links', async () => {
+    fetchMock.mockResolvedValue(
+      notificationsResponse(
+        [row('search-1', '2026-06-01T00:00:00.000Z')],
+        1,
+        'not-a-token',
+      ),
+    );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    expect(
+      screen.getByRole('link', { name: 'watchInboxItemViewHere' }),
+    ).toHaveAttribute('href', `http://localhost/en/player/${STEAM_A}`);
   });
 
   it('shows a visible error when the retry after a 400 also fails (never silent)', async () => {

@@ -9,6 +9,18 @@
 process.env.DEV_TEST_MODE = '1';
 process.env.PORT = '3100';
 process.env.LOCAL_PROXY_URL = '';
+// Ops-log isolation, same rationale as playwright.config.ts (fixed tmpdir,
+// wiped per boot so LHCI audits never touch the repo's .data/logs).
+const LHCI_OPS_LOG_DIR = require('node:path').join(
+  require('node:os').tmpdir(),
+  'opslog-lhci',
+);
+require('node:fs').rmSync(LHCI_OPS_LOG_DIR, {
+  recursive: true,
+  force: true,
+});
+require('node:fs').mkdirSync(LHCI_OPS_LOG_DIR, { recursive: true });
+process.env.OPS_LOG_DIR = LHCI_OPS_LOG_DIR;
 
 const { spawn } = require('node:child_process');
 const readline = require('node:readline');

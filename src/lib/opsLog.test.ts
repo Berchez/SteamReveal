@@ -10,6 +10,9 @@ import path from 'path';
 
 import {
   writeOpsLog,
+  clearOpsLogFsDisabled,
+  resetOpsLogRuntimeState,
+  truncateString,
   installCrashHandlers,
   formatOpsLine,
   flattenContext,
@@ -41,6 +44,23 @@ describe('opsLog pure pieces', () => {
     expect(formatOpsLine('bot', 'info', 'hello', {}, FIXED_NOW)).toBe(
       '[2026-09-19T14:22:03.512Z] [bot] INFO: hello',
     );
+  });
+
+  it('strips terminal control characters (no log injection via user input)', () => {
+    // ESC sequences smuggled in via user-controlled fields (e.g. a proxy
+    // steamId) must die here: these lines are tailed straight into
+    // terminals, where \x1b[2J would execute.
+    const line = formatOpsLine(
+      'proxy-local',
+      'error',
+      'scrape failed',
+      { steamId: '765\x1b[2J' },
+      FIXED_NOW,
+    );
+    expect(line).not.toContain('\x1b');
+    expect(line).toContain('steamId=765 ');
+    // eslint-disable-next-line no-control-regex
+    expect(line).not.toMatch(/[\u0000-\u001f\u007f-\u009f]/);
   });
 
   it('keeps one event on exactly one file line', () => {
@@ -130,6 +150,12 @@ describe('opsLog pure pieces', () => {
     expect(isLogFileExpired('bot-2026-13-99.log', 'bot', 14, FIXED_NOW)).toBe(
       false,
     );
+  });
+
+  it('truncates long strings with a marker, leaves short ones alone', () => {
+    expect(truncateString('abc', 10)).toBe('abc');
+    expect(truncateString('abcdefghij', 10)).toBe('abcdefghij');
+    expect(truncateString('abcdefghijk', 10)).toBe('abcdefghij...[truncated]');
   });
 
   it('trims to a byte tail cut on a line boundary', () => {
@@ -269,11 +295,60 @@ describe('writeOpsLog file integration (tmpdir)', () => {
     },
   );
 
+  it('resetOpsLogRuntimeState re-arms init and sweep for the same service', () => {
+    writeOpsLog('probe-reset', 'error', 'one');
+    resetOpsLogRuntimeState();
+    writeOpsLog('probe-reset', 'error', 'two');
+
+    const dayName = dayFileName('probe-reset', Date.now());
+    const content = fs.readFileSync(path.join(dir, dayName), 'utf8');
+    expect(content.split('==== process started pid=').length - 1).toBe(2);
+    expect(content).toContain('two');
+  });
+
   it('never throws when the disk fails (console already happened upstream)', () => {
     jest.spyOn(fs, 'appendFileSync').mockImplementation(() => {
       throw new Error('disk full');
     });
     expect(() => writeOpsLog('probe-disk', 'error', 'lost')).not.toThrow();
+  });
+
+  it('latches writes off after a read-only failure, but retries ordinary ones', () => {
+    // Vercel hot path: the first EROFS arms the latch; later writes make
+    // zero fs attempts instead of repaying doomed syscalls per error.
+    const roError = Object.assign(new Error('read-only filesystem'), {
+      code: 'EROFS',
+    });
+    const appendSpy = jest
+      .spyOn(fs, 'appendFileSync')
+      .mockImplementation(() => {
+        throw roError;
+      });
+    const statSpy = jest.spyOn(fs, 'statSync');
+    try {
+      expect(() => writeOpsLog('probe-ro', 'error', 'one')).not.toThrow();
+      const callsAfterFirst = appendSpy.mock.calls.length;
+      expect(callsAfterFirst).toBeGreaterThan(0);
+      writeOpsLog('probe-ro', 'error', 'two');
+      expect(appendSpy.mock.calls.length).toBe(callsAfterFirst);
+      expect(statSpy).not.toHaveBeenCalled();
+    } finally {
+      clearOpsLogFsDisabled();
+    }
+    // An ordinary failure (full disk, not read-only) never latches: the
+    // next write still attempts — and succeeds once the disk recovers.
+    appendSpy.mockImplementation(() => {
+      throw new Error('disk full');
+    });
+    try {
+      expect(() => writeOpsLog('probe-ro2', 'error', 'one')).not.toThrow();
+    } finally {
+      appendSpy.mockRestore();
+      clearOpsLogFsDisabled();
+    }
+    writeOpsLog('probe-ro2', 'error', 'two');
+    const dayName = dayFileName('probe-ro2', Date.now());
+    expect(fs.readFileSync(path.join(dir, dayName), 'utf8')).toContain('two');
   });
 
   it('recovers when the log dir is removed mid-run (operator cleanup)', () => {
@@ -357,6 +432,33 @@ describe('writeOpsLog file integration (tmpdir)', () => {
     expect(fs.readFileSync(path.join(dir, dayName), 'utf8')).toContain(
       'storm two',
     );
+  });
+
+  it('caps rollovers at .9, overwriting the newest continuation (onset survives)', () => {
+    const big = `x${'y'.repeat(10 * 1024 * 1024)}`;
+    const dayName = dayFileName('probe-cap', Date.now());
+    const sidecar = (n: number) => dayName.replace(/\.log$/, `.${n}.log`);
+    // Pre-fill every slot: the next storm must land on .9, and must never
+    // create a .10 (unbounded growth by another name).
+    for (let n = 1; n <= 9; n += 1) {
+      fs.writeFileSync(path.join(dir, sidecar(n)), `old-${n}\n`);
+    }
+    fs.writeFileSync(path.join(dir, dayName), `${big}\n`);
+    writeOpsLog('probe-cap', 'error', 'storm capped');
+    expect(fs.existsSync(path.join(dir, sidecar(9)))).toBe(true);
+    expect(fs.existsSync(path.join(dir, dayName.replace(/\.log$/, '.10.log')))).toBe(
+      false,
+    );
+    // The flooded day file (not the new line) rolled into .9, evicting the
+    // previous newest continuation; the fresh day file carries the storm.
+    expect(fs.readFileSync(path.join(dir, sidecar(9)), 'utf8')).not.toContain(
+      'old-9',
+    );
+    expect(fs.readFileSync(path.join(dir, dayName), 'utf8')).toContain(
+      'storm capped',
+    );
+    // .1 (the storm onset) is untouched by the cap overwrite.
+    expect(fs.readFileSync(path.join(dir, sidecar(1)), 'utf8')).toBe('old-1\n');
   });
 });
 

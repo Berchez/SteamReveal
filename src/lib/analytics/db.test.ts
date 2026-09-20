@@ -2167,3 +2167,56 @@ describe('watch/outbox DAL (Epic 1)', () => {
     await expect(getBotHeartbeat()).resolves.toBeNull();
   });
 });
+
+describe('issueAntiLoopTokenIfAbsent', () => {
+  const STEAM = '76561198000000001';
+  const HASH = 'ab'.repeat(32);
+  const FUTURE = '2026-12-01T00:00:00.000Z';
+
+  beforeEach(() => {
+    jest.resetModules();
+    mockExecute.mockClear();
+    buildMockClient();
+    process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
+    process.env.DATABASE_TOKEN = 'secret-token';
+  });
+
+  it('arms the token when the slot is free, in one atomic statement', async () => {
+    const { issueAntiLoopTokenIfAbsent } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] }); // PRAGMA foreign_keys
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+    await expect(
+      issueAntiLoopTokenIfAbsent(STEAM, HASH, FUTURE),
+    ).resolves.toBe(true);
+
+    // PRAGMA foreign_keys on cold start, then the guarded UPDATE (no
+    // separate SELECT — the absence check lives in the WHERE clause, so
+    // no read-then-write window exists for a concurrent issuer).
+    const update = mockExecute.mock.calls.at(-1)?.[0] as {
+      sql: string;
+      args: unknown[];
+    };
+    expect(update.sql).toContain('anti_loop_token_hash IS NULL');
+    expect(update.sql).toContain('anti_loop_expires_at <= ?');
+    expect(update.args).toEqual([HASH, FUTURE, STEAM, expect.any(String)]);
+  });
+
+  it('resolves false when another live token holds the slot (hands off)', async () => {
+    const { issueAntiLoopTokenIfAbsent } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] }); // PRAGMA foreign_keys
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    await expect(
+      issueAntiLoopTokenIfAbsent(STEAM, HASH, FUTURE),
+    ).resolves.toBe(false);
+  });
+
+  it('rejects malformed inputs without touching the database', async () => {
+    const { issueAntiLoopTokenIfAbsent } = require('./db');
+
+    await expect(issueAntiLoopTokenIfAbsent('nope', HASH, FUTURE)).rejects.toThrow();
+    await expect(issueAntiLoopTokenIfAbsent(STEAM, 'not-a-hash', FUTURE)).rejects.toThrow();
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+});

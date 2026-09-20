@@ -9,6 +9,10 @@ jest.mock('@/lib/analytics/db', () => ({
   countSearchesSince: jest.fn(),
   countSearchesInMonth: jest.fn(),
   getWatchedProfile: jest.fn(),
+  hashAntiLoopToken: jest.fn(),
+  issueAntiLoopTokenIfAbsent: jest.fn(),
+  ANTI_LOOP_TOKEN_BYTES: 32,
+  ANTI_LOOP_TOKEN_TTL_MS: 24 * 60 * 60 * 1000,
 }));
 
 // Same per-file limiter trick as the sibling route tests: the factory runs
@@ -35,11 +39,15 @@ const {
   countSearchesSince,
   countSearchesInMonth,
   getWatchedProfile,
+  hashAntiLoopToken,
+  issueAntiLoopTokenIfAbsent,
 } = jest.requireMock('@/lib/analytics/db') as {
   listProfileSearches: jest.Mock;
   countSearchesSince: jest.Mock;
   countSearchesInMonth: jest.Mock;
   getWatchedProfile: jest.Mock;
+  hashAntiLoopToken: jest.Mock;
+  issueAntiLoopTokenIfAbsent: jest.Mock;
 };
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
@@ -83,6 +91,10 @@ describe('GET /api/watch/notifications', () => {
     countSearchesSince.mockResolvedValue(0);
     countSearchesInMonth.mockResolvedValue(0);
     getWatchedProfile.mockResolvedValue(ACTIVE_ROW);
+    // Free token slot by default: withToken fetches mint unless a test
+    // overrides. The hash is fixed so issue-call assertions stay exact.
+    hashAntiLoopToken.mockReturnValue('test-token-hash');
+    issueAntiLoopTokenIfAbsent.mockResolvedValue(true);
   });
 
   it('returns recorded searches newest-first for the session user', async () => {
@@ -121,7 +133,11 @@ describe('GET /api/watch/notifications', () => {
       ],
       unreadCount: 2,
       monthlyCount: 11,
+      // Plain fetch (no ?withToken=1 — badge-only): never mints, even with
+      // rows and a free slot.
+      antiLoopToken: null,
     });
+    expect(issueAntiLoopTokenIfAbsent).not.toHaveBeenCalled();
     expect(listProfileSearches).toHaveBeenCalledWith(
       STEAM_ID,
       20,
@@ -215,7 +231,9 @@ describe('GET /api/watch/notifications', () => {
       ],
       unreadCount: 5,
       monthlyCount: 0,
+      antiLoopToken: null,
     });
+    expect(issueAntiLoopTokenIfAbsent).not.toHaveBeenCalled();
     expect(countSearchesSince).toHaveBeenCalledWith(
       STEAM_ID,
       '2026-06-01T00:00:00.000Z',
@@ -321,10 +339,12 @@ describe('GET /api/watch/notifications', () => {
       notifications: [],
       unreadCount: 0,
       monthlyCount: 0,
+      antiLoopToken: null,
     });
     expect(listProfileSearches).not.toHaveBeenCalled();
     expect(countSearchesSince).not.toHaveBeenCalled();
     expect(countSearchesInMonth).not.toHaveBeenCalled();
+    expect(issueAntiLoopTokenIfAbsent).not.toHaveBeenCalled();
   });
 
   it('stays empty after opt-out deleted the watch row (no post-exit leak)', async () => {
@@ -345,6 +365,7 @@ describe('GET /api/watch/notifications', () => {
       notifications: [],
       unreadCount: 0,
       monthlyCount: 0,
+      antiLoopToken: null,
     });
     expect(listProfileSearches).not.toHaveBeenCalled();
     expect(countSearchesSince).not.toHaveBeenCalled();
@@ -363,6 +384,99 @@ describe('GET /api/watch/notifications', () => {
     expect(limited.status).toBe(429);
     expect(listProfileSearches).not.toHaveBeenCalled();
     expect(countSearchesInMonth).not.toHaveBeenCalled();
+  });
+
+  it('mints a fresh token only on link-rendering fetches (?withToken=1)', async () => {
+    listProfileSearches.mockResolvedValue([
+      {
+        searchId: 'search-9',
+        searchedAt: '2026-06-02T00:00:00.000Z',
+        cheaterChecked: false,
+      },
+    ]);
+
+    const res = await GET(makeRequest(`${BASE}?withToken=1`));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    // Raw single-use token in body: intermediaries must never cache it.
+    expect(res.headers.get('Cache-Control')).toBe('no-store');
+    expect(body.antiLoopToken).toEqual(
+      expect.stringMatching(/^[0-9a-f]{64}$/),
+    );
+    expect(hashAntiLoopToken).toHaveBeenCalledWith(body.antiLoopToken);
+    expect(issueAntiLoopTokenIfAbsent).toHaveBeenCalledWith(
+      STEAM_ID,
+      'test-token-hash',
+      expect.any(String),
+    );
+  });
+
+  it('hands off an occupied slot atomically (a lost race degrades, never clobbers)', async () => {
+    // The bot issued concurrently: the atomic WHERE finds a live token and
+    // the UPDATE hits zero rows. The raw chat value is hash-only at rest
+    // and unrecoverable, so false here is the whole point — the other
+    // link survives, the inbox links stay plain.
+    listProfileSearches.mockResolvedValue([
+      {
+        searchId: 'search-9',
+        searchedAt: '2026-06-02T00:00:00.000Z',
+        cheaterChecked: false,
+      },
+    ]);
+    issueAntiLoopTokenIfAbsent.mockResolvedValue(false);
+
+    const res = await GET(makeRequest(`${BASE}?withToken=1`));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.antiLoopToken).toBeNull();
+  });
+
+  it('skips minting entirely when there are no rows to link', async () => {
+    listProfileSearches.mockResolvedValue([]);
+
+    const res = await GET(makeRequest(`${BASE}?withToken=1`));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.antiLoopToken).toBeNull();
+    expect(issueAntiLoopTokenIfAbsent).not.toHaveBeenCalled();
+  });
+
+  it('ignores a malformed withToken instead of 400ing (hint, not contract)', async () => {
+    listProfileSearches.mockResolvedValue([
+      {
+        searchId: 'search-9',
+        searchedAt: '2026-06-02T00:00:00.000Z',
+        cheaterChecked: false,
+      },
+    ]);
+
+    const res = await GET(makeRequest(`${BASE}?withToken=yes`));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.antiLoopToken).toBeNull();
+    expect(issueAntiLoopTokenIfAbsent).not.toHaveBeenCalled();
+  });
+
+  it('degrades to plain links when minting fails (loud fail-open, never a 500)', async () => {
+    listProfileSearches.mockResolvedValue([
+      {
+        searchId: 'search-9',
+        searchedAt: '2026-06-02T00:00:00.000Z',
+        cheaterChecked: false,
+      },
+    ]);
+    issueAntiLoopTokenIfAbsent.mockRejectedValue(new Error('db down'));
+
+    const res = await GET(makeRequest(`${BASE}?withToken=1`));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.antiLoopToken).toBeNull();
+    expect(body.notifications).toHaveLength(1);
   });
 
   it('returns 500 when the DAL fails (no stack traces leak)', async () => {
