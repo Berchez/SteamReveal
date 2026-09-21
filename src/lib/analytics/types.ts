@@ -198,3 +198,54 @@ export interface WatchNotification {
   /** Whether the searcher opened the cheater report (cheater_results row). */
   cheaterChecked: boolean;
 }
+
+// ---------------------------------------------------------------------------
+// Watch dashboard (read-only aggregates for the analytics dashboard).
+// These DTOs carry NO secrets: explicit columns only — token hashes,
+// anti-loop hashes and session material never leave the database. Timestamps
+// drive the per-day charts; statuses drive the funnel. Everything optional
+// or nullable degrades to an empty panel, never a failed dashboard.
+// ---------------------------------------------------------------------------
+
+/** One accounts row, reduced to funnel dimensions. */
+export interface WatchDashboardAccount {
+  createdAt: string;
+  confirmedAt: string | null;
+  locale: string | null;
+  lastLoginAt: string | null;
+}
+
+/** One watched_profiles row, reduced to funnel dimensions. */
+export interface WatchDashboardWatched {
+  requestedAt: string;
+  activatedAt: string | null;
+  status: WatchStatus;
+  locale: string | null;
+}
+
+/** One watch_events row, reduced to delivery dimensions. */
+export interface WatchDashboardEvent {
+  kind: WatchEventKind;
+  status: WatchEventStatus;
+  createdAt: string;
+  sentAt: string | null;
+}
+
+/** Bot liveness snapshot at render time (single-row table, no history). */
+export interface WatchDashboardLiveness {
+  beatAt: string;
+  connected: boolean;
+}
+
+/**
+ * Everything the dashboard's Watch section renders. Null (not {}) when the
+ * reads fail — the section renders "unavailable" instead of failing the
+ * whole page (fail-open, same contract as a missing analytics DB).
+ */
+export interface WatchDashboardData {
+  accounts: WatchDashboardAccount[];
+  watched: WatchDashboardWatched[];
+  events: WatchDashboardEvent[];
+  liveness: WatchDashboardLiveness | null;
+  generatedAt: string;
+}

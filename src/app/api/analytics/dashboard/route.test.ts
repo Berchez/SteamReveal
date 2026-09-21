@@ -6,6 +6,12 @@ import { GET } from './route';
 
 jest.mock('@/lib/analytics/db', () => ({
   getSearchRecords: jest.fn(),
+  getWatchDashboardData: jest.fn(),
+}));
+
+jest.mock('@/lib/logRouteError', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 // Factory must not reference outer variables (TDZ: `import { GET }` runs
@@ -22,13 +28,18 @@ jest.mock('@/lib/rateLimit', () => {
   };
 });
 
-const { getSearchRecords } = jest.requireMock('@/lib/analytics/db') as {
+const { getSearchRecords, getWatchDashboardData } = jest.requireMock(
+  '@/lib/analytics/db',
+) as {
   getSearchRecords: jest.Mock;
+  getWatchDashboardData: jest.Mock;
 };
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
   __testIsRateLimited: jest.Mock;
 };
+
+const logRouteErrorMock = jest.requireMock('@/lib/logRouteError').default as jest.Mock;
 
 const makeRequest = (url: string, headers?: Record<string, string>) => ({
   url: `http://localhost${url}`,
@@ -57,6 +68,13 @@ describe('GET /api/analytics/dashboard', () => {
     // limiter to "open" so a persistent mockReturnValue can't leak across tests.
     __testIsRateLimited.mockReturnValue(false);
     getSearchRecords.mockResolvedValue([SAMPLE_RECORD]);
+    getWatchDashboardData.mockResolvedValue({
+      accounts: [],
+      watched: [],
+      events: [],
+      liveness: null,
+      generatedAt: '2026-09-19T00:00:00.000Z',
+    });
     originalDbUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
   });
@@ -182,5 +200,86 @@ describe('GET /api/analytics/dashboard', () => {
     getSearchRecords.mockRejectedValue(new Error('db down'));
     const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
     expect(res.status).toBe(500);
+  });
+
+  it('embeds the watch aggregates in a second JSON block', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    getWatchDashboardData.mockResolvedValue({
+      accounts: [
+        {
+          createdAt: '2026-09-01T00:00:00.000Z',
+          confirmedAt: null,
+          locale: 'pt',
+        },
+      ],
+      watched: [],
+      events: [],
+      liveness: null,
+      generatedAt: '2026-09-19T00:00:00.000Z',
+    });
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+    const html = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(html).toContain('<script type="application/json" id="watch-db">');
+    expect(getWatchDashboardData).toHaveBeenCalledTimes(1);
+  });
+
+  it('still renders searches when the watch reads fail (fail-open section)', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    getWatchDashboardData.mockRejectedValue(new Error('watch tables down'));
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+    const html = await res.text();
+
+    // Searches render normally; the watch block degrades to null (the
+    // client shows "unavailable" states instead of breaking the page).
+    expect(res.status).toBe(200);
+    expect(html).toContain('76561198000000000');
+    expect(html).toContain('<script type="application/json" id="watch-db">');
+    expect(html).toMatch(/id="watch-db">\s*null\s*<\/script>/);
+    expect(logRouteErrorMock).toHaveBeenCalledWith(
+      'analytics/dashboard:watch',
+      expect.anything(),
+    );
+  });
+
+  it('still renders searches when the watch half times out (same fail-open path)', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    getWatchDashboardData.mockRejectedValue(
+      Object.assign(
+        new Error('watch dashboard timed out after 4000ms'),
+        { name: 'SteamCallTimeoutError' },
+      ),
+    );
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+    const html = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(html).toMatch(/id="watch-db">\s*null\s*<\/script>/);
+    expect(logRouteErrorMock).toHaveBeenCalledWith(
+      'analytics/dashboard:watch',
+      expect.anything(),
+    );
+  });
+
+  it('logs both causes when searches and watch fail together (watch first)', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    getSearchRecords.mockRejectedValueOnce(new Error('searches down'));
+    getWatchDashboardData.mockRejectedValueOnce(new Error('watch down'));
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+
+    expect(res.status).toBe(500);
+    expect(logRouteErrorMock).toHaveBeenCalledWith(
+      'analytics/dashboard:watch',
+      expect.anything(),
+    );
+    expect(logRouteErrorMock).toHaveBeenCalledWith(
+      'analytics/dashboard',
+      expect.anything(),
+    );
   });
 });

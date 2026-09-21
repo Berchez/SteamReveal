@@ -1,5 +1,9 @@
-import { serializeEntries, renderDashboard } from './dashboardRender';
-import type { SearchRecord } from './types';
+import {
+  serializeEntries,
+  serializeWatchStats,
+  renderDashboard,
+} from './dashboardRender';
+import type { SearchRecord, WatchDashboardData } from './types';
 
 const makeRecord = (nickname: string): SearchRecord => ({
   id: '1788564056404-tzx2nt',
@@ -35,5 +39,41 @@ describe('renderDashboard', () => {
     expect(html).not.toContain('<img src=x onerror=alert(1)>');
     expect(html).not.toContain('<script>alert(1)');
     expect(html).not.toContain('</script>alert(1)');
+  });
+
+  it('embeds an empty watch block by default (panels render empty states)', () => {
+    const html = renderDashboard([]);
+    expect(html).toContain('<script type="application/json" id="watch-db">');
+    expect(html).toMatch(/id="watch-db">\s*null\s*<\/script>/);
+    expect(html).toContain('Watcher locales');
+    expect(html).toContain('Bot deliveries per day');
+  });
+});
+
+describe('serializeWatchStats', () => {
+  const watch: WatchDashboardData = {
+    accounts: [
+      {
+        createdAt: '2026-09-01T00:00:00.000Z',
+        confirmedAt: null,
+        locale: 'pt<script>',
+        lastLoginAt: null,
+      },
+    ],
+    watched: [],
+    events: [],
+    liveness: null,
+    generatedAt: '2026-09-19T00:00:00.000Z',
+  };
+
+  it('escapes < exactly like the entries block (no script breakout)', () => {
+    const out = serializeWatchStats(watch);
+    expect(out).not.toContain('</script>');
+    expect(out).toContain('\\u003cscript>');
+    expect(out).toContain('"locale": "pt');
+  });
+
+  it('serializes null (failed reads degrade to empty panels)', () => {
+    expect(serializeWatchStats(null)).toBe('null');
   });
 });

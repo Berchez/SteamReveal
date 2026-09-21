@@ -2220,3 +2220,198 @@ describe('issueAntiLoopTokenIfAbsent', () => {
     expect(mockExecute).not.toHaveBeenCalled();
   });
 });
+
+describe('getWatchDashboardData', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    mockCreateClient.mockReset();
+    mockExecute.mockReset();
+    mockBatch.mockReset();
+    mockClose.mockReset();
+    buildMockClient();
+    mockExecute.mockResolvedValue({ rows: [] });
+    process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
+    process.env.DATABASE_TOKEN = 'secret-token';
+  });
+
+  const batchRows = (
+    accounts: unknown[],
+    watched: unknown[],
+    events: unknown[],
+    heartbeat: unknown[],
+  ) => {
+    mockBatch.mockResolvedValue([
+      { rows: accounts },
+      { rows: watched },
+      { rows: events },
+      { rows: heartbeat },
+    ]);
+  };
+
+  it('maps the four reads into funnel dimensions in one batch', async () => {
+    batchRows(
+      [
+        {
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: '2026-09-02T00:00:00.000Z',
+          locale: 'pt',
+          last_login_at: '2026-09-10T00:00:00.000Z',
+        },
+      ],
+      [
+        {
+          status: 'active',
+          locale: 'pt',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: '2026-09-02T00:00:00.000Z',
+        },
+      ],
+      [
+        {
+          kind: 'notify',
+          status: 'sent',
+          created_at: '2026-09-03T00:00:00.000Z',
+          sent_at: '2026-09-03T00:01:00.000Z',
+        },
+      ],
+      [{ beat_at: '2026-09-19T00:00:00.000Z', connected: 1 }],
+    );
+    const { getWatchDashboardData } = require('./db');
+
+    const data = await getWatchDashboardData();
+
+    // One batch call with four statements (single snapshot for the page).
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+    expect(mockBatch.mock.calls[0][0]).toHaveLength(4);
+    expect(data.accounts).toEqual([
+      {
+        createdAt: '2026-09-01T00:00:00.000Z',
+        confirmedAt: '2026-09-02T00:00:00.000Z',
+        locale: 'pt',
+        lastLoginAt: '2026-09-10T00:00:00.000Z',
+      },
+    ]);
+    expect(data.watched).toEqual([
+      {
+        requestedAt: '2026-09-01T00:00:00.000Z',
+        activatedAt: '2026-09-02T00:00:00.000Z',
+        status: 'active',
+        locale: 'pt',
+      },
+    ]);
+    expect(data.events).toEqual([
+      {
+        kind: 'notify',
+        status: 'sent',
+        createdAt: '2026-09-03T00:00:00.000Z',
+        sentAt: '2026-09-03T00:01:00.000Z',
+      },
+    ]);
+    expect(data.liveness).toEqual({
+      beatAt: '2026-09-19T00:00:00.000Z',
+      connected: true,
+    });
+    expect(typeof data.generatedAt).toBe('string');
+  });
+
+  it('never selects secret columns (hashes, tokens, sessions)', async () => {
+    batchRows([], [], [], []);
+    const { getWatchDashboardData } = require('./db');
+
+    await getWatchDashboardData();
+
+    const sql = mockBatch.mock.calls[0][0]
+      .map((statement: { sql: string }) => statement.sql)
+      .join('\n')
+      .toLowerCase();
+    expect(sql).not.toContain('token_hash');
+    expect(sql).not.toContain('anti_loop');
+    expect(sql).not.toContain('password');
+    expect(sql).not.toContain('session');
+  });
+
+  it('hints db:migrate when the watch tables are missing', async () => {
+    mockBatch.mockRejectedValueOnce(new Error('no such table: accounts'));
+    const { getWatchDashboardData } = require('./db');
+
+    await expect(getWatchDashboardData()).rejects.toThrow(/db:migrate/);
+  });
+
+  it('drops malformed rows and degrades liveness to null', async () => {
+    batchRows(
+      [
+        // Missing created_at: cannot bucket by day, dropped.
+        { created_at: null, confirmed_at: null, locale: 'en' },
+        { created_at: '2026-09-01T00:00:00.000Z', confirmed_at: 7, locale: 7 },
+      ],
+      [
+        // Unknown status collapses to pending (toWatchedProfile rule).
+        {
+          status: 'weird',
+          locale: null,
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: null,
+        },
+      ],
+      [
+        // Unknown kind is dropped (never misfiled under another lane).
+        {
+          kind: 'carrier-pigeon',
+          status: 'sent',
+          created_at: '2026-09-03T00:00:00.000Z',
+          sent_at: null,
+        },
+      ],
+      [],
+    );
+    const { getWatchDashboardData } = require('./db');
+
+    const data = await getWatchDashboardData();
+
+    expect(data.accounts).toHaveLength(1);
+    expect(data.accounts[0]).toEqual({
+      createdAt: '2026-09-01T00:00:00.000Z',
+      confirmedAt: null,
+      locale: null,
+      lastLoginAt: null,
+    });
+    expect(data.watched).toEqual([
+      {
+        requestedAt: '2026-09-01T00:00:00.000Z',
+        activatedAt: null,
+        status: 'pending',
+        locale: null,
+      },
+    ]);
+    expect(data.events).toEqual([]);
+    expect(data.liveness).toBeNull();
+  });
+
+  it('passes unknown event statuses through verbatim (client buckets only sent/dropped)', async () => {
+    batchRows(
+      [],
+      [],
+      [
+        {
+          kind: 'notify',
+          status: 'mystery-future-status',
+          created_at: '2026-09-03T00:00:00.000Z',
+          sent_at: null,
+        },
+      ],
+      [],
+    );
+    const { getWatchDashboardData } = require('./db');
+
+    const data = await getWatchDashboardData();
+
+    expect(data.events).toEqual([
+      {
+        kind: 'notify',
+        status: 'mystery-future-status',
+        createdAt: '2026-09-03T00:00:00.000Z',
+        sentAt: null,
+      },
+    ]);
+  });
+});

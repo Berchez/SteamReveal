@@ -1,5 +1,5 @@
 import { buildAnalyticsHtml } from './dashboardTemplate';
-import type { SearchRecord } from './types';
+import type { SearchRecord, WatchDashboardData } from './types';
 
 /**
  * Serializes SearchRecord[] for embedding into the dashboard shell.
@@ -13,6 +13,18 @@ import type { SearchRecord } from './types';
 export const serializeEntries = (entries: SearchRecord[]): string =>
   JSON.stringify(entries, null, 2).replace(/</g, '\\u003c');
 
+/**
+ * Same embed escaping as serializeEntries (watch payloads carry steamIds
+ * and locale strings — constrained, but the rule is uniform: anything
+ * embedded into a <script> block gets it).
+ */
+export const serializeWatchStats = (
+  watch: WatchDashboardData | null,
+): string => JSON.stringify(watch, null, 2).replace(/</g, '\\u003c');
+
 /** Renders a full dashboard HTML document from the given records. */
-export const renderDashboard = (entries: SearchRecord[]): string =>
-  buildAnalyticsHtml(serializeEntries(entries));
+export const renderDashboard = (
+  entries: SearchRecord[],
+  watch: WatchDashboardData | null = null,
+): string =>
+  buildAnalyticsHtml(serializeEntries(entries), serializeWatchStats(watch));
