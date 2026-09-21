@@ -7,7 +7,9 @@ export type ApiErrorCode =
   | 'RATE_LIMITED'
   | 'METHOD_NOT_ALLOWED'
   | 'TIMEOUT'
-  | 'INTERNAL_ERROR';
+  | 'INTERNAL_ERROR'
+  | 'UNAUTHENTICATED'
+  | 'FORBIDDEN';
 
 export function errorResponse(
   message: string,

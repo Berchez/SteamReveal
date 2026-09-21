@@ -1,0 +1,40 @@
+-- =====================================================================
+-- Turso (SQLite) schema — confirm-link expiry-notice marker.
+-- Migration: 008_accounts_expire_notice.sql
+--
+-- Idempotent via the runner, not via SQL: SQLite has no
+-- ALTER TABLE ... IF NOT EXISTS, so re-running the bare ALTER errors.
+-- scripts/migrate-db.ts tracks applied files in _migrations and never
+-- replays them (that table is the idempotency mechanism here).
+-- NEVER RENAME this file after it has been applied anywhere: the runner
+-- keys on filename, so a rename replays the ALTER and fails with
+-- "duplicate column" (real incident with 007, which was applied as
+-- 006_watch_anti_loop_token.sql and then renamed). Apply with
+-- `pnpm run db:migrate`.
+--
+-- Design notes:
+-- - confirm_expire_noticed_for stores WHICH token generation was already
+--   noticed (the confirm_expires_at value at notice time). Re-issuing a
+--   token always sets a fresh expiry, so a new generation implicitly
+--   re-arms the notice with no extra clearing write; concurrent clicks
+--   win naturally (consume clears the token columns, the marker predicate
+--   misses, the poller stands down).
+-- =====================================================================
+
+-- Marker for the confirm-link expiry poller ("your link expired, generate
+-- a new one" is sent at most once per token generation).
+-- (see idempotency note above: safe to run once via the runner).
+ALTER TABLE accounts ADD COLUMN confirm_expire_noticed_for TEXT;
+
+-- =====================================================================
+-- ROLLBACK (manual only — READ THIS BEFORE COPYING ANYTHING OUT).
+--
+-- The migrate runner (scripts/migrate-db.ts) executes EVERY file matching
+-- NNN_*.sql as a FORWARD migration, so a down script must NEVER live in a
+-- separate file in this directory: it would be applied as a forward
+-- migration and DROP THE COLUMN. The rollback lives here, commented out,
+-- as documentation for a human running it by hand (sqlite3 / Turso shell):
+--
+--   ALTER TABLE accounts DROP COLUMN confirm_expire_noticed_for;
+--   DELETE FROM _migrations WHERE filename = '008_accounts_expire_notice.sql';
+-- =====================================================================

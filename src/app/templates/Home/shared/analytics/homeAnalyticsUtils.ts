@@ -231,6 +231,7 @@ export type AnalyticsMeta = {
   requesterBrowserLanguage: string | null;
   device: 'mobile' | 'desktop' | null;
   durationMs: number | null;
+  antiLoopToken?: string;
 };
 
 export const recordAnalytics = async (
@@ -304,6 +305,7 @@ export const recordAnalytics = async (
       requesterBrowserLanguage: meta.requesterBrowserLanguage,
       device: meta.device,
       durationMs: meta.durationMs,
+      antiLoopToken: meta.antiLoopToken,
     };
 
     const { data } = await axios.post('/api/recordAnalytics', payload, {

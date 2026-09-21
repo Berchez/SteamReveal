@@ -1,4 +1,8 @@
-import { isMockModeEnabled, isMockInvalidTarget, makeMockProfile } from './devFixtures';
+import {
+  isMockModeEnabled,
+  isMockInvalidTarget,
+  makeMockProfile,
+} from './devFixtures';
 
 describe('dev fixtures guard', () => {
   const originalEnv = { ...process.env };
@@ -40,8 +44,20 @@ describe('dev fixtures guard', () => {
     expect(isMockModeEnabled()).toBe(false);
   });
 
+  it('blocks the mock path when the platform signal is present even with the flag on', () => {
+    // The exact misconfiguration this gate exists for: DEV_TEST_MODE leaked
+    // into an env file, but the platform truth (VERCEL_ENV, set by Vercel
+    // itself on every deploy type) still vetoes. No single variable can
+    // open the mock path on a deployed host.
+    setEnv('DEV_TEST_MODE', '1');
+    setEnv('NODE_ENV', 'development');
+    setEnv('VERCEL_ENV', 'production');
+
+    expect(isMockModeEnabled()).toBe(false);
+  });
+
   it('keeps invalid targets rejected even in mock mode', () => {
-    expect(isMockInvalidTarget('estainvalido')).toBe(true);
-    expect(makeMockProfile('estainvalido')).toBeUndefined();
+    expect(isMockInvalidTarget('no-such-target')).toBe(true);
+    expect(makeMockProfile('no-such-target')).toBeUndefined();
   });
 });

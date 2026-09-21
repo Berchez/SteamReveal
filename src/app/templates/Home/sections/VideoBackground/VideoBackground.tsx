@@ -90,7 +90,7 @@ function VideoBackground() {
 
   if (!shouldLoadVideo && process.env.NODE_ENV === 'development') {
     return (
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      <div data-testid="video-background" className="fixed inset-0 z-0 pointer-events-none">
         <Image
           src="/images/background.webp"
           alt="background"

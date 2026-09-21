@@ -1,6 +1,14 @@
+/**
+ * GamersClub local proxy entrypoint — `pnpm run start:proxy-local`. Same
+ * import-side-effect contract as bot-steam/index.ts: importing this module
+ * binds the port AND installs global crash handlers, so nothing (tests,
+ * Next.js) may ever import it — it only runs when executed directly.
+ */
 import express, { Request, Response } from 'express';
 import { loadEnv } from '../lib/env';
+import { installCrashHandlers, writeOpsLog } from '../lib/opsLog';
 import { sanitizeError } from '../lib/sanitizeError';
+import { isSteamId64 } from '../lib/steamId';
 import scrapeGamersClubName, {
   scrapeGamersClubBan,
 } from './utils/scrapeGamersClubName';
@@ -9,6 +17,10 @@ import scrapeGamersClubName, {
 // dotenv semantics: a var already present in the process (shell/CI export)
 // is NEVER overwritten by .env, so host-provided values win over the file.
 loadEnv();
+
+// Last-resort crash trace (bug-capture net — shared helper, same contract
+// as the bot): stderr + durable file, then non-zero exit.
+installCrashHandlers('proxy-local');
 
 const app = express();
 const PORT = process.env.LOCAL_PROXY_PORT || process.env.PORT || '3001';
@@ -20,7 +32,13 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
   const { steamId } = req.params;
   const allowScrape = req.query.allowScrape !== 'false';
 
-  if (!steamId || Array.isArray(steamId)) {
+  // This endpoint is public (Cloudflare tunnel): shape-gate BEFORE the
+  // steamId reaches the scraper URL or the ops log. All in-repo callers
+  // send SteamID64 (Steam API-sourced friend/player ids — vanity names
+  // are resolved upstream), so nothing legitimate is rejected; anything
+  // else (path tricks, control characters for terminal escape injection
+  // via logs) gets a 400 without touching GamersClub.
+  if (!isSteamId64(steamId)) {
     return res.status(400).json({ error: 'Invalid steamId parameter' });
   }
 
@@ -63,6 +81,13 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
       `[Local Proxy] Scraping error for Steam ID ${steamId}:`,
       error,
     );
+    // Durable side of the same event (console line above is unchanged).
+    // writeOpsLog re-sanitizes at the boundary — the console call here
+    // receives the RAW error object by pre-existing design.
+    writeOpsLog('proxy-local', 'error', 'GamersClub scrape failed', {
+      steamId,
+      error: sanitizeError(error),
+    });
     return res.status(500).json({
       error: 'Failed to scrape GamersClub name',
       details: sanitizeError(error),

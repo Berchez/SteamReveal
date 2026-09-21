@@ -10,6 +10,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 jest.mock('next/navigation', () => ({
   useParams: () => ({ steamId: 'target-steam-id' }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 jest.mock('next-intl', () => ({

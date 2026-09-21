@@ -76,6 +76,7 @@ function CheaterReport({
     return (
       <motion.div
         key="error"
+        data-testid="cheater-report"
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -99,6 +100,7 @@ function CheaterReport({
       {!cheaterData && (
         <motion.div
           key="loading"
+          data-testid="cheater-report"
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -110,6 +112,7 @@ function CheaterReport({
       {cheaterData && (
         <motion.div
           key="data"
+          data-testid="cheater-report"
           className="mt-8"
           initial={animateData ? { opacity: 0, y: -30 } : false}
           animate={animateData ? { opacity: 1, y: 0 } : false}

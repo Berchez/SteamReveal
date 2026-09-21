@@ -4,10 +4,12 @@ import React, { useContext, useLayoutEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 
-import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 import targetInfoJsonType, {
   EnrichedUserSummary,
 } from '@/@types/targetInfoJsonType';
+
+import QueryToast from '@/app/components/QueryToast';
+import PendingLoginRoom from '@/app/components/PendingLoginRoom';
 
 import { HomeDataContext, HomeActionsContext } from './context';
 import VideoBackground from './sections/VideoBackground';
@@ -113,8 +115,17 @@ export default function Home({
     : 'flex flex-col relative';
 
   return (
-    <main className="max-h-dvh">
+    <main data-testid="home" className="max-h-dvh">
       <VideoBackground />
+      {/* One-shot landing toasts: /api/watch/confirm (?confirmed=ok|error)
+          and the failed Steam callback leg (?auth=error). The toast strips
+          its own param. */}
+      <QueryToast />
+      {/* Login-first waiting room (?login=waiting): the OpenID identity is
+          already proven, only the bot friendship is outstanding. Polls the
+          pending route until it completes the login by itself; renders
+          null without the param. */}
+      <PendingLoginRoom />
       {showSponsorMe && (
         <SponsorMe
           onClose={() => onCloseSponsorMe(0)}
@@ -127,20 +138,40 @@ export default function Home({
           dontAskAgain={() => onCloseSupportMe(-50)}
         />
       )}
-      {hasNoDataYet && <WelcomeText />}
-      <div className="fixed top-4 right-4 z-50">
-        <LanguageSwitcher />
-      </div>
+      {/* Mobile: the hero greeting renders NOTHING (space is tight under
+          the fixed navbar bar) — but via sr-only, not display:none: this
+          block carries the page's only <h1>, so SEO and screen readers
+          keep the heading on mobile while nothing paints. sm:not-sr-only
+          restores the visible hero on sm+ untouched. */}
+      {hasNoDataYet && (
+        <div className="sr-only sm:not-sr-only">
+          <WelcomeText />
+        </div>
+      )}
+      {/* Mobile top clearance for the fixed navbar bar (py-2 + h-11 =
+          60px band): the player branch starts its content at pt-20 so the
+          bar never covers it; the fresh-home branch keeps pt-8 because
+          MyUserSection's mt-[15vh] clears the bar (see the load-bearing
+          comment there). sm+ restores desktop spacing untouched. */}
       <div
-        className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 pt-8 md:px-12 md:pt-12 text-white z-20 ${wrapperClassName}`}
+        className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 md:px-12 ${hasNoDataYet ? 'pt-8 md:pt-12' : 'pt-20 sm:pt-8 md:pt-12'} text-white z-20 ${wrapperClassName}`}
       >
         <div className={hasNoDataYet ? 'min-h-[70dvh]' : undefined}>
+          {/* mt-[max(15vh,80px)] is LOAD-BEARING on mobile beyond visual
+              rhythm: it is also what clears the fixed navbar bar (~60px
+              incl. padding), since the fresh branch keeps the wrapper at
+              pt-8 with no other clearance. The 80px floor only binds on
+              short/landscape viewports (15vh of a 844px portrait screen is
+              ~126px, so portrait is untouched); without it, landscape
+              (~56-64px from 15vh alone) would slide under the bar. If this
+              value is ever reduced below ~60px of clearance, add explicit
+              padding to the wrapper instead. */}
           <MyUserSection
             targetInfoJson={myUserSectionTargetInfoJson}
             isLoading={isLoading.myCard}
             onChangeTarget={onChangeTarget}
             targetValue={targetValue}
-            className={hasNoDataYet ? 'mt-[25vh]' : ''}
+            className={hasNoDataYet ? 'mt-[max(15vh,80px)] sm:mt-[25vh]' : ''}
           />
           {hasNoDataYet && <SupportedFormatsSection />}
         </div>

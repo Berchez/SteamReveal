@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-var-requires */
 /**
- * Sobe um túnel Cloudflare (free tier / quick tunnel), captura a URL
- * *.trycloudflare.com gerada dinamicamente, atualiza LOCAL_PROXY_URL
- * no .env, abre o painel de env vars da Vercel (update manual lá)
- * e então inicia o script "start proxy local" do package.json.
+ * Spins up a Cloudflare tunnel (free tier / quick tunnel), captures the
+ * dynamically generated *.trycloudflare.com URL, updates LOCAL_PROXY_URL
+ * in .env, opens the Vercel env vars panel (manual update there),
+ * and then starts the package.json "start proxy local" script.
  *
- * Uso: node scripts/start-tunnel.cjs
- * (ou adicione como script no package.json: "tunnel:dev": "node scripts/start-tunnel.cjs")
+ * Usage: node scripts/start-tunnel.cjs
+ * (or add as a script in package.json: "tunnel:dev": "node scripts/start-tunnel.cjs")
  *
- * Requisitos: cloudflared instalado e disponível no PATH.
+ * Requirements: cloudflared installed and available on PATH.
  */
 
 const { spawn } = require('child_process');
@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 
 // ----------------------------------------------------------------------
-// CONFIG — ajuste estes dois valores pro seu projeto
+// CONFIG — adjust these two values for your project
 // ----------------------------------------------------------------------
 const PORT = process.env.LOCAL_PROXY_PORT || 3001;
 const PROXY_LOCAL_SCRIPT = 'start:proxy-local';
@@ -73,13 +73,13 @@ function copyToClipboard(text) {
     proc.stdin.end();
     proc.on('error', (err) => {
       console.warn(
-        `⚠ Não consegui copiar pro clipboard automaticamente (${cmd} falhou):`,
+        `⚠ Could not copy to clipboard automatically (${cmd} failed):`,
         err.message,
       );
     });
   } catch (err) {
     console.warn(
-      '⚠ Não consegui copiar pro clipboard automaticamente:',
+      '⚠ Could not copy to clipboard automatically:',
       err.message,
     );
   }
@@ -107,7 +107,7 @@ function openBrowser(url) {
   }).unref();
 }
 
-console.log(`Abrindo túnel Cloudflare em http://localhost:${PORT} ...\n`);
+console.log(`Opening Cloudflare tunnel on http://localhost:${PORT} ...\n`);
 
 const tunnel = spawn(
   'cloudflared',
@@ -128,7 +128,7 @@ function shutdown(code) {
 
 function handleTunnelOutput(data) {
   const text = data.toString();
-  process.stdout.write(text); // eco cru pro terminal, útil se algo der errado
+  process.stdout.write(text); // raw echo to the terminal, useful if something goes wrong
 
   if (urlCaptured) return;
 
@@ -138,21 +138,21 @@ function handleTunnelOutput(data) {
   urlCaptured = true;
   const url = match[0];
 
-  console.log(`\n✔ URL do túnel capturada: ${url}`);
+  console.log(`\n✔ Tunnel URL captured: ${url}`);
 
   updateEnvLocal(url);
-  console.log(`✔ .env atualizado (LOCAL_PROXY_URL=${url})`);
+  console.log(`✔ .env updated (LOCAL_PROXY_URL=${url})`);
 
   copyToClipboard(url);
   console.log(
-    '✔ URL copiada pro clipboard — é só dar Ctrl+V no valor da env var na Vercel',
+    '✔ URL copied to clipboard — just Ctrl+V the env var value in Vercel',
   );
 
-  console.log('→ Abrindo painel de env vars da Vercel...');
+  console.log('→ Opening the Vercel env vars panel...');
   openBrowser(VERCEL_ENV_URL);
 
   console.log(
-    `\n→ Iniciando proxy local (pnpm run ${PROXY_LOCAL_SCRIPT})...\n`,
+    `\n→ Starting local proxy (pnpm run ${PROXY_LOCAL_SCRIPT})...\n`,
   );
   proxyProcess = spawn('pnpm', ['run', PROXY_LOCAL_SCRIPT], {
     stdio: 'inherit',
@@ -160,7 +160,7 @@ function handleTunnelOutput(data) {
   });
 
   proxyProcess.on('exit', (code) => {
-    console.log(`\nProxy local encerrado (code ${code}). Encerrando túnel...`);
+    console.log(`\nLocal proxy exited (code ${code}). Shutting down tunnel...`);
     shutdown(code);
   });
 }
@@ -170,7 +170,7 @@ tunnel.stderr.on('data', handleTunnelOutput);
 
 tunnel.on('error', (err) => {
   console.error(
-    'Erro ao iniciar o cloudflared. Ele está instalado e disponível no PATH?',
+    'Error starting cloudflared. Is it installed and available on PATH?',
     err,
   );
   process.exit(1);
@@ -179,13 +179,13 @@ tunnel.on('error', (err) => {
 tunnel.on('exit', (code) => {
   if (!urlCaptured) {
     console.error(
-      `\ncloudflared encerrou antes de gerar a URL do túnel (code ${code}).`,
+      `\ncloudflared exited before generating the tunnel URL (code ${code}).`,
     );
     process.exit(code ?? 1);
   }
 });
 
 process.on('SIGINT', () => {
-  console.log('\nCtrl+C recebido — encerrando túnel e proxy local...');
+  console.log('\nCtrl+C received — shutting down tunnel and local proxy...');
   shutdown(0);
 });

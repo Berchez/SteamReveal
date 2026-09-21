@@ -22,8 +22,12 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/e2e/'],
-  // Add more setup options before each test is run
-  // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  // Redirects the ops-log layer (src/lib/opsLog.ts) into a per-file tmpdir
+  // (created + cleaned in jest.setup.js) so the suite never touches the
+  // repo's real .data/logs. AfterEnv — not setupFiles — because the layer
+  // resolves OPS_LOG_DIR lazily per write; nothing needs it at import
+  // time, and AfterEnv supports the afterAll cleanup.
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

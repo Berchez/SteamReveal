@@ -57,7 +57,7 @@
  */
 
 export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -134,11 +134,11 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   .legend .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
   .legend .val { margin-left: auto; color: var(--muted); padding-left: 8px; }
 
-  /* O svgBarChart agora gera o SVG já do tamanho exato do container (1:1
-     com o viewBox), então este width:100%/height:auto só serve de "rede de
-     segurança" visual entre um resize da janela e o próximo re-render
-     (que acontece com debounce) — mantém o escalonamento uniforme (sem
-     esticar X e Y de forma diferente) nesse intervalo. */
+  /* svgBarChart now renders the SVG at exactly the container size (1:1
+     with the viewBox), so this width:100%/height:auto only acts as a
+     visual safety net between a window resize and the next re-render
+     (which happens debounced) — it keeps scaling uniform (no stretching
+     X and Y differently) in that interval. */
   .bar-chart-svg { display: block; width: 100%; height: auto; }
   .bar-rect { cursor: pointer; transition: opacity 0.1s ease; }
   .bar-rect:hover { opacity: 0.8; }
@@ -236,123 +236,123 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
 <div class="chart-tooltip" id="chart-tooltip"></div>
 
 <h1>Steam Friend Finder — Analytics</h1>
-<div class="subtitle">Histórico de buscas, perfis, amigos e sinais de comportamento</div>
+<div class="subtitle">Search history, profiles, friends and behavior signals</div>
 
 <div class="stats" id="stats"></div>
 
 <div class="charts-grid">
   <div class="panel">
-    <h2>Buscas por dia</h2>
-    <p class="panel-note">Últimos 30 dias</p>
+    <h2>Searches per day</h2>
+    <p class="panel-note">Last 30 days</p>
     <div id="chart-by-day"></div>
   </div>
 
   <div class="panel">
-    <h2>Buscas por hora do dia</h2>
-    <p class="panel-note">Horário local de cada busca, todos os dias somados</p>
+    <h2>Searches by hour of day</h2>
+    <p class="panel-note">Local time of each search, all days combined</p>
     <div id="chart-by-hour"></div>
   </div>
 
   <div class="panel">
-    <h2>Idioma de quem busca</h2>
+    <h2>Searcher language</h2>
     <p class="panel-note">Requester locale (next-intl)</p>
     <div id="chart-locale" class="chart-with-legend"></div>
   </div>
 
   <div class="panel">
-    <h2>Idioma do navegador</h2>
+    <h2>Browser language</h2>
     <p class="panel-note">Browser language (navigator.language)</p>
     <div id="chart-browser-lang" class="chart-with-legend"></div>
   </div>
 
   <div class="panel">
-    <h2>Dispositivo</h2>
-    <p class="panel-note">Mobile vs. desktop de quem busca</p>
+    <h2>Device</h2>
+    <p class="panel-note">Mobile vs. desktop</p>
     <div id="chart-device" class="chart-with-legend"></div>
   </div>
 
   <div class="panel">
-    <h2>Países de quem busca</h2>
-    <p class="panel-note">Top países + "outros"</p>
+    <h2>Searcher countries</h2>
+    <p class="panel-note">Top countries + "others"</p>
     <div id="chart-country"></div>
   </div>
 
   <div class="panel">
-    <h2>Probabilidade de cheater</h2>
-    <p class="panel-note">Distribuição dos relatórios já calculados</p>
+    <h2>Cheater probability</h2>
+    <p class="panel-note">Distribution of computed reports</p>
     <div id="chart-cheater"></div>
   </div>
 
   <div class="panel" style="grid-column: 1 / -1;">
-    <h2>Locais mais previstos para os alvos</h2>
-    <p class="panel-note">Palpite #1 de localização (geolocalização por amigos) em cada busca</p>
+    <h2>Most predicted target locations</h2>
+    <p class="panel-note">#1 location guess (friend-based geolocation) per search</p>
     <div id="chart-locations"></div>
   </div>
 
   <div class="panel" style="grid-column: 1 / -1;">
-    <h2>Games mais jogados — Média por Perfil Buscado</h2>
-    <p class="panel-note">Top 20 games: total de horas do jogo / total de perfis buscados (dilui popularidade)</p>
+    <h2>Most played games — Average per Searched Profile</h2>
+    <p class="panel-note">Top 20 games: total game hours / total searched profiles (dilutes popularity)</p>
     <div id="chart-games-per-profile"></div>
   </div>
 
   <div class="panel" style="grid-column: 1 / -1;">
-    <h2>Games mais jogados — Média de Engajamento</h2>
-    <p class="panel-note">Top 20 games: total de horas do jogo / quantidade de perfis que jogaram (mede intensidade)</p>
+    <h2>Most played games — Engagement Average</h2>
+    <p class="panel-note">Top 20 games: total game hours / number of profiles that played it (measures intensity)</p>
     <div id="chart-games-engagement"></div>
   </div>
 </div>
 
 <div class="charts-grid">
   <div class="panel">
-    <h2>Counter-Strike Ativo</h2>
-    <p class="panel-note">Perfis onde CS tem ≥300 horas OU é o jogo mais jogado</p>
+    <h2>Active Counter-Strike</h2>
+    <p class="panel-note">Profiles where CS has ≥300 hours OR is the most played game</p>
     <div id="chart-cs-active"></div>
   </div>
 
   <div class="panel">
-    <h2>Perfis mais buscados</h2>
+    <h2>Most searched profiles</h2>
     <ul class="rank-list" id="top-profiles"></ul>
   </div>
 
   <div class="panel">
-    <h2>Amigos que mais aparecem</h2>
+    <h2>Most frequent friends</h2>
     <ul class="rank-list" id="top-friends"></ul>
   </div>
 </div>
 
 <div class="panel">
-  <h2>Histórico de buscas</h2>
+  <h2>Search history</h2>
   <div class="toolbar">
-    <input id="filter" type="text" placeholder="Filtrar por nickname, SteamID, nome GC, país, idioma..." />
-    <button class="btn" id="export-csv">⬇ Exportar CSV</button>
+    <input id="filter" type="text" placeholder="Filter by nickname, SteamID, GC name, country, language..." />
+    <button class="btn" id="export-csv">⬇ Export CSV</button>
   </div>
   <table id="searches-table">
     <thead>
       <tr>
-        <th>Data</th>
-        <th>Perfil buscado</th>
-        <th>Nome GC</th>
-        <th>Amigos</th>
-        <th>Local previsto</th>
+        <th>Date</th>
+        <th>Searched profile</th>
+        <th>GC name</th>
+        <th>Friends</th>
+        <th>Predicted location</th>
         <th>Cheater</th>
-        <th>Origem</th>
-        <th>Duração</th>
+        <th>Origin</th>
+        <th>Duration</th>
       </tr>
     </thead>
     <tbody id="searches-body"></tbody>
   </table>
-  <div class="empty" id="empty-msg" style="display:none;">Nenhuma busca registrada ainda.</div>
+  <div class="empty" id="empty-msg" style="display:none;">No searches recorded yet.</div>
 </div>
 
 <!--
-  Este bloco JSON É o "banco de dados". Ele é lido e reescrito
-  programaticamente (ver analytics.ts) — não editar a mão
-  a menos que saiba o que está fazendo.
+  This JSON block IS the "database". It is read and rewritten
+  programmatically (see analytics.ts) — do not hand-edit
+  unless you know what you are doing.
 
-  Campos novos (requesterLocale, requesterCountry, device, locationGuess,
-  cheater, durationMs, friends[].probability/mutualCount, etc.) são
-  OPCIONAIS. Entradas antigas simplesmente não os têm — isso é esperado,
-  não é um erro, e todo o código abaixo trata isso como "sem dado ainda".
+  New fields (requesterLocale, requesterCountry, device, locationGuess,
+  cheater, durationMs, friends[].probability/mutualCount, etc.) are
+  OPTIONAL. Old entries simply don't have them — that is expected,
+  not an error, and all the code below treats that as "no data yet".
 -->
 <script type="application/json" id="db">`;
 
@@ -455,7 +455,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     if (arr.length <= n) return arr;
     var top = arr.slice(0, n);
     var restSum = arr.slice(n).reduce(function (s, d) { return s + d.value; }, 0);
-    if (restSum > 0) top.push({ label: 'outros', value: restSum });
+    if (restSum > 0) top.push({ label: 'others', value: restSum });
     return top;
   }
 
@@ -470,21 +470,21 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     };
   }
 
-  // Largura real (em px) do container do gráfico. Antes usávamos width=700
-  // fixo e esticávamos o SVG pra 100% com preserveAspectRatio="none" — isso
-  // escala X e Y por fatores diferentes sempre que o painel não tem
-  // exatamente 700px (o que num grid responsivo praticamente nunca
-  // acontece), espremendo/esticando cada glifo e deixando os labels
-  // ilegíveis. Medindo o container e montando o gráfico nessa largura exata
-  // eliminamos essa distorção.
+  // Real width (in px) of the chart container. We used to hardcode width=700
+  // and stretch the SVG to 100% with preserveAspectRatio="none" — that
+  // scales X and Y by different factors whenever the panel isn't
+  // exactly 700px (which in a responsive grid is practically never),
+  // squeezing/stretching every glyph and leaving labels illegible.
+  // Measuring the container and building the chart at that exact width
+  // eliminates the distortion.
   function containerWidth(el, fallback) {
     var w = el && el.clientWidth;
     return w && w > 0 ? w : (fallback || 700);
   }
 
-  // Largura média estimada de um glifo nessa stack de fontes (~0.56em por
-  // caractere) — suficiente pra decidir "esse label cabe?" sem medir de
-  // verdade via canvas.
+  // Estimated average glyph width in this font stack (~0.56em per
+  // character) — enough to decide "does this label fit?" without truly
+  // measuring via canvas.
   function estimateTextWidth(text, fontSize) {
     return String(text).length * fontSize * 0.56;
   }
@@ -497,23 +497,22 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   }
 
   // ---- Minimal SVG bar chart (no external deps, matches the dark theme) ----
-  // opts.width deve ser a largura real do container (ver containerWidth
-  // acima), assim o viewBox mapeia 1:1 com pixels de CSS e nada fica
-  // distorcido. Cada barra também carrega data-label/data-value pro popover
-  // (ver attachChartTooltip mais abaixo) — o popover mostra o valor exato,
-  // o texto do eixo aqui é só orientação, então pode ficar esparso.
+  // opts.width must be the real container width (see containerWidth
+  // above), so the viewBox maps 1:1 to CSS pixels and nothing gets
+  // distorted. Each bar also carries data-label/data-value for the popover
+  // (see attachChartTooltip below) — the popover shows the exact value,
+  // the axis text here is just orientation, so it can stay sparse.
   //
-  // Os labels do eixo são escolhidos por colisão real, não por "a cada N
-  // barras": cada um só é desenhado se não sobrepuser o anterior (usando a
-  // largura estimada do texto). O orçamento mínimo de 90px pro truncamento
-  // existe pra não cortar um label curto tipo "desconhecido" ou "20-30%" só
-  // porque a barra em si é estreita — a barra vizinha sem label cede o
-  // espaço.
+  // Axis labels are picked by real collision, not "every N bars": each one
+  // is only drawn if it doesn't overlap the previous one (using the
+  // estimated text width). The 90px minimum budget for truncation exists
+  // so a short label like "unknown" or "20-30%" isn't cut just because
+  // its bar is narrow — the unlabeled neighbor bar yields the space.
   //
-  // opts.showLabels: false desliga o texto do eixo por completo. Usado no
-  // gráfico de "Locais mais previstos", onde as strings (cidade+estado+país)
-  // são longas demais pra caber embaixo de qualquer barra sem virar bagunça
-  // — ali usamos uma legenda por baixo (ver barLegendHtml) em vez disso.
+  // opts.showLabels: false turns the axis text off entirely. Used in the
+  // "Most predicted locations" chart, where the strings (city+state+country)
+  // are too long to fit under any bar without turning into a mess
+  // — there we use a legend underneath (see barLegendHtml) instead.
   function svgBarChart(data, opts) {
     opts = opts || {};
     var width = opts.width || 700;
@@ -529,7 +528,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     var slot = barW + barGap;
 
     if (!data.length || max === 0) {
-      return '<div class="empty">Sem dados suficientes ainda.</div>';
+      return '<div class="empty">Not enough data yet.</div>';
     }
 
     var lastLabelRight = -Infinity;
@@ -563,10 +562,10 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     return '<svg class="bar-chart-svg" viewBox="0 0 ' + width + ' ' + height + '" width="' + width + '" height="' + height + '">' + bars + '</svg>';
   }
 
-  // Legenda por baixo do gráfico (swatch + nome completo + valor), pra
-  // categorias cujo texto é longo demais pra caber num eixo (ex. locais
-  // previstos). Reaproveita o mesmo layout do texto do eixo dos outros
-  // gráficos: nunca trunca, nunca sobrepõe, só quebra linha.
+  // Legend below the chart (swatch + full name + value), for
+  // categories whose text is too long to fit on an axis (e.g. predicted
+  // locations). Reuses the same layout as the other charts' axis text:
+  // never truncates, never overlaps, only wraps.
   function barLegendHtml(data) {
     if (!data.length) return '';
     return '<ul class="bar-legend">' + data.map(function (d) {
@@ -576,10 +575,10 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     }).join('') + '</ul>';
   }
 
-  // ---- Popover de hover pras barras ----
-  // Delegação num único listener (em vez de um por barra) porque os
-  // gráficos são regerados a cada resize — assim não precisa reanexar
-  // nada depois de re-renderizar.
+  // ---- Hover popover for the bars ----
+  // Delegation on a single listener (instead of one per bar) because the
+  // charts are regenerated on every resize — so nothing needs re-attaching
+  // after re-rendering.
   function attachChartTooltip() {
     var tooltipEl = document.getElementById('chart-tooltip');
     if (!tooltipEl) return;
@@ -623,7 +622,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     var total = data.reduce(function (s, d) { return s + d.value; }, 0);
 
     if (!data.length || total === 0) {
-      return '<div class="empty">Sem dados suficientes ainda.</div>';
+      return '<div class="empty">Not enough data yet.</div>';
     }
 
     var colors = opts.colors || PALETTE;
@@ -661,7 +660,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   try {
     entries = JSON.parse(raw) || [];
   } catch (e) {
-    console.error('Falha ao ler o bloco de dados do analytics.html', e);
+    console.error('Failed to read the analytics.html data block', e);
   }
 
   var totalSearches = entries.length;
@@ -694,21 +693,21 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   // ---- Stat cards ----
   var statsEl = document.getElementById('stats');
   var stats = [
-    { value: totalSearches, label: 'Buscas registradas' },
-    { value: uniqueProfiles.size, label: 'Perfis únicos buscados' },
-    { value: uniqueFriends.size, label: 'Amigos únicos catalogados' },
-    { value: avgFriends, label: 'Média de amigos por busca' },
-    { value: gcMatchRate, label: 'Taxa de match com GamersClub' },
-    { value: searchesToday, label: 'Buscas hoje' },
-    { value: searchesThisWeek, label: 'Buscas nos últimos 7 dias' },
-    { value: avgDuration, label: 'Duração média da busca' },
-    { value: avgCheater, label: 'Probabilidade média de cheater' },
+    { value: totalSearches, label: 'Recorded searches' },
+    { value: uniqueProfiles.size, label: 'Unique searched profiles' },
+    { value: uniqueFriends.size, label: 'Unique cataloged friends' },
+    { value: avgFriends, label: 'Average friends per search' },
+    { value: gcMatchRate, label: 'GamersClub match rate' },
+    { value: searchesToday, label: 'Searches today' },
+    { value: searchesThisWeek, label: 'Searches in the last 7 days' },
+    { value: avgDuration, label: 'Average search duration' },
+    { value: avgCheater, label: 'Average cheater probability' },
   ];
   statsEl.innerHTML = stats.map(function (s) {
     return '<div class="stat-card"><div class="value">' + escapeHtml(s.value) + '</div><div class="label">' + escapeHtml(s.label) + '</div></div>';
   }).join('');
 
-  // ---- Buscas por dia (30 dias) ----
+  // ---- Searches per day (30 days) ----
   var dayCounts = {};
   entries.forEach(function (e) {
     var d = new Date(e.searchedAt);
@@ -729,7 +728,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   }
   renderByDayChart();
 
-  // ---- Buscas por hora do dia ----
+  // ---- Searches by hour of day ----
   var hourCounts = new Array(24).fill(0);
   entries.forEach(function (e) {
     var d = new Date(e.searchedAt);
@@ -743,34 +742,34 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   }
   renderByHourChart();
 
-  // ---- Idioma ----
+  // ---- Language ----
   var localeCounts = {};
   entries.forEach(function (e) {
-    var loc = (e.requesterLocale || 'desconhecido').toLowerCase();
+    var loc = (e.requesterLocale || 'unknown').toLowerCase();
     localeCounts[loc] = (localeCounts[loc] || 0) + 1;
   });
   document.getElementById('chart-locale').innerHTML = donutAndLegend(topNPlusOthers(localeCounts, 6));
 
-  // ---- Browser Language ----
+  // ---- Browser language ----
   var browserLangCounts = {};
   entries.forEach(function (e) {
-    var lang = (e.requesterBrowserLanguage || 'desconhecido').toLowerCase();
+    var lang = (e.requesterBrowserLanguage || 'unknown').toLowerCase();
     browserLangCounts[lang] = (browserLangCounts[lang] || 0) + 1;
   });
   document.getElementById('chart-browser-lang').innerHTML = donutAndLegend(topNPlusOthers(browserLangCounts, 6));
 
-  // ---- Dispositivo ----
+  // ---- Device ----
   var deviceCounts = {};
   entries.forEach(function (e) {
-    var dev = e.device || 'desconhecido';
+    var dev = e.device || 'unknown';
     deviceCounts[dev] = (deviceCounts[dev] || 0) + 1;
   });
   document.getElementById('chart-device').innerHTML = donutAndLegend(topNPlusOthers(deviceCounts, 6));
 
-  // ---- Países de quem busca ----
+  // ---- Searcher countries ----
   var countryCounts = {};
   entries.forEach(function (e) {
-    var c = e.requesterCountry || 'desconhecido';
+    var c = e.requesterCountry || 'unknown';
     countryCounts[c] = (countryCounts[c] || 0) + 1;
   });
   var countryData = topNPlusOthers(countryCounts, 8).map(function (d, i) {
@@ -782,7 +781,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   }
   renderCountryChart();
 
-  // ---- Distribuição de probabilidade de cheater ----
+  // ---- Cheater probability distribution ----
   var cheaterBins = new Array(10).fill(0);
   withCheater.forEach(function (e) {
     var normalized = normalizeScore(e.cheater.score);
@@ -797,11 +796,11 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     var el = document.getElementById('chart-cheater');
     el.innerHTML = withCheater.length
       ? svgBarChart(cheaterData, { width: containerWidth(el) })
-      : '<div class="empty">Nenhum relatório de cheater calculado ainda.</div>';
+      : '<div class="empty">No cheater reports computed yet.</div>';
   }
   renderCheaterChart();
 
-  // ---- Locais mais previstos ----
+  // ---- Most predicted locations ----
   var locationCounts = {};
   entries.forEach(function (e) {
     var g = e.locationGuess && e.locationGuess[0];
@@ -816,7 +815,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   function renderLocationsChart() {
     var el = document.getElementById('chart-locations');
     if (!locationData.length) {
-      el.innerHTML = '<div class="empty">Nenhuma previsão de localização registrada ainda.</div>';
+      el.innerHTML = '<div class="empty">No location predictions recorded yet.</div>';
       return;
     }
     el.innerHTML = svgBarChart(locationData, { width: containerWidth(el), height: 170, showLabels: false }) + barLegendHtml(locationData);
@@ -824,10 +823,10 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   renderLocationsChart();
 
   // ---- Games Analytics (Top 20) ----
-  // Métrica 1: Média por perfil buscado (dilui pela população total)
-  // Métrica 2: Média de engajamento (apenas entre quem jogou)
-  var TOP_GAMES_LIMIT = 20; // CONFIGURÁVEL
-  var CS_HOUR_THRESHOLD = 300; // CONFIGURÁVEL
+  // Metric 1: Average per searched profile (diluted across the total population)
+  // Metric 2: Engagement average (only among those who played)
+  var TOP_GAMES_LIMIT = 20; // CONFIGURABLE
+  var CS_HOUR_THRESHOLD = 300; // CONFIGURABLE
 
   var gameStats = {};
   var csActiveCount = 0;
@@ -869,7 +868,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   function renderGameChart(games, elementId, showMetric) {
     var el = document.getElementById(elementId);
     if (!games.length) {
-      el.innerHTML = '<div class="empty">Nenhum dados de games. Execute: node scripts/enrich-analytics.mjs</div>';
+      el.innerHTML = '<div class="empty">No games data. Run: node scripts/enrich-analytics.mjs</div>';
       return;
     }
 
@@ -883,8 +882,8 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
       var barWidth = maxValue > 0 ? (value / maxValue) * 100 : 0;
       var barColor = PALETTE[idx % PALETTE.length];
       var subtitle = showMetric === 'engagement' 
-        ? '(' + game.profilesCount + ' jogadores)'
-        : '(' + game.profilesCount + ' perfis)';
+        ? '(' + game.profilesCount + ' players)'
+        : '(' + game.profilesCount + ' profiles)';
       
       html += '<div class="game-row">' +
         '<div class="game-label">' + (idx + 1) + '. ' + escapeHtml(game.name) + '</div>' +
@@ -916,7 +915,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
         '</div>' +
         '<div style="background:rgba(167, 139, 250, 0.1); border:1px solid rgba(167, 139, 250, 0.3); border-radius:6px; padding:12px; text-align:center;">' +
           '<div style="font-size:24px; font-weight:bold; color:#a78bfa;">' + percentage + '%</div>' +
-          '<div style="font-size:12px; color:var(--muted); margin-top:4px;">de ' + total + ' perfis</div>' +
+          '<div style="font-size:12px; color:var(--muted); margin-top:4px;">of ' + total + ' profiles</div>' +
         '</div>' +
       '</div>' +
     '</div>';
@@ -925,8 +924,8 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   }
   renderCSActiveChart();
 
-  // Reconstrói os gráficos sempre que o layout muda de largura
-  // (ex: redimensionar a janela), pra manter o viewBox 1:1 com o container.
+  // Rebuilds the charts whenever the layout changes width
+  // (e.g. resizing the window), to keep the viewBox 1:1 with the container.
   window.addEventListener('resize', debounce(function () {
     renderByDayChart();
     renderByHourChart();
@@ -937,12 +936,12 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     renderGameChart(topGamesEngagement, 'chart-games-engagement', 'engagement');
   }, 200));
 
-  // ---- Ranking: perfis mais buscados / amigos que mais aparecem ----
+  // ---- Ranking: most searched profiles / most frequent friends ----
   function topRankHtml(counts, labelFn) {
     var arr = Object.keys(counts).map(function (k) { return { key: k, count: counts[k].count, meta: counts[k].meta }; });
     arr.sort(function (a, b) { return b.count - a.count; });
     arr = arr.slice(0, 8);
-    if (!arr.length) return '<li class="empty">Sem dados ainda.</li>';
+    if (!arr.length) return '<li class="empty">No data yet.</li>';
     return arr.map(function (item) {
       return '<li><span>' + escapeHtml(labelFn(item)) + '</span><span class="count">' + item.count + 'x</span></li>';
     }).join('');
@@ -953,7 +952,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     var id = e.profile.steamId;
     if (!profileCounts[id]) profileCounts[id] = { count: 0, meta: e.profile };
     profileCounts[id].count += 1;
-    profileCounts[id].meta = e.profile; // mantém o dado mais recente
+    profileCounts[id].meta = e.profile; // keeps the most recent data
   });
   document.getElementById('top-profiles').innerHTML = topRankHtml(profileCounts, function (item) {
     var flag = flagEmoji(item.meta.countryCode);
@@ -974,7 +973,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   });
 
   // ---------------------------------------------------------------------
-  // Tabela de histórico
+  // History table
   // ---------------------------------------------------------------------
 
   var body = document.getElementById('searches-body');
@@ -994,7 +993,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
         return '<li>' + escapeHtml(f.nickname || f.steamId) + prob + (f.gcName ? ' — GC: ' + escapeHtml(f.gcName) : '') + '</li>';
       }).join('');
       var friendsCell = friends.length
-        ? '<details><summary>' + friends.length + ' amigo(s)</summary><ul>' + friendsList + '</ul></details>'
+        ? '<details><summary>' + friends.length + ' friend(s)</summary><ul>' + friendsList + '</ul></details>'
         : '0';
 
       var profileLabel = escapeHtml(e.profile.nickname || e.profile.steamId);
@@ -1053,7 +1052,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
 
   // ---- Export CSV ----
   document.getElementById('export-csv').addEventListener('click', function () {
-    var header = ['Data', 'SteamID', 'Nickname', 'GC Name', 'Idioma', 'País', 'Dispositivo', 'Duração(s)', 'Cheater(%)', 'Local previsto', 'Qtd amigos'];
+    var header = ['Date', 'SteamID', 'Nickname', 'GC Name', 'Language', 'Country', 'Device', 'Duration(s)', 'Cheater(%)', 'Predicted location', 'Friend count'];
     var rows = [header];
     entries.forEach(function (e) {
       rows.push([

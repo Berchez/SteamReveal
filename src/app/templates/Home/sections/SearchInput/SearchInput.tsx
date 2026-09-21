@@ -14,7 +14,7 @@ function SearchInput({
 }: SearchInputProps) {
   const translator = useTranslations('General');
   return (
-    <div className="relative w-full md:w-[75%] m-auto">
+    <div data-testid="search-input" className="relative w-full md:w-[75%] m-auto">
       <input
         className="w-full h-12 pl-4 pr-24 text-center text-white text-xs md:text-sm bg-gray-800/75 border border-gray-500 rounded-full placeholder:text-gray-400 focus:border-blue-500 focus:outline-none"
         onChange={onChange}

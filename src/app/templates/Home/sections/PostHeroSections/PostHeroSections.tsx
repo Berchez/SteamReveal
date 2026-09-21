@@ -8,7 +8,7 @@ export default function PostHeroSections() {
   return (
     <>
       {/* WHY USE */}
-      <section className="text-white text-center px-6">
+      <section data-testid="post-hero-why-use" className="text-white text-center px-6">
         <motion.h2
           className="text-2xl font-bold mb-6"
           initial={{ opacity: 0 }}
@@ -47,7 +47,7 @@ export default function PostHeroSections() {
       </section>
 
       {/* NUMBERS */}
-      <section className="mt-20 text-center text-white px-6">
+      <section data-testid="post-hero-numbers" className="mt-20 text-center text-white px-6">
         <motion.h2
           className="text-2xl font-bold mb-4"
           initial={{ opacity: 0 }}
@@ -83,7 +83,7 @@ export default function PostHeroSections() {
       </section>
 
       {/* FEEDBACK */}
-      <section className="mt-24 text-center text-white px-6">
+      <section data-testid="post-hero-feedback" className="mt-24 text-center text-white px-6">
         <motion.h2
           className="text-2xl font-bold mb-4"
           initial={{ opacity: 0 }}

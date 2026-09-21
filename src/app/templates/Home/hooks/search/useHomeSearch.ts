@@ -65,6 +65,7 @@ interface UseHomeSearchParams {
   clearSyncedUrlPlayer: () => void;
   handleShowSponsorMe: () => void;
   handleShowSupportMe: (days: number) => void;
+  antiLoopToken?: string;
 }
 
 type CloseFriendsJsonState = closeFriendsDataIWant[] | undefined;
@@ -89,6 +90,7 @@ const useHomeSearch = ({
   clearSyncedUrlPlayer,
   handleShowSponsorMe,
   handleShowSupportMe,
+  antiLoopToken,
 }: UseHomeSearchParams) => {
   const { reserveNewRun, isCurrentRun } = runGuard;
 
@@ -105,6 +107,13 @@ const useHomeSearch = ({
   const friendGcNameSyncCancelRef = useRef<(() => void) | null>(null);
   const friendGcNameSentRef = useRef<Set<string>>(new Set());
 
+  // Single-use anti-loop token: the backend consumes it on first sight, so
+  // resending it on every later search of this page session only burns a
+  // no-op UPDATE per search. Attach it to the first analytics record, then
+  // stop. A failed record needs no suppression anyway (no row, no notify),
+  // and two in-flight runs may both carry it harmlessly (the backend
+  // consume is idempotent: first wins, rest no-op).
+  const antiLoopTokenSentRef = useRef(false);
   const cancelFriendGcNameSync = useCallback(() => {
     friendGcNameSyncCancelRef.current?.();
     friendGcNameSyncCancelRef.current = null;
@@ -550,8 +559,16 @@ const useHomeSearch = ({
             requesterBrowserLanguage: getRequesterBrowserLanguage(),
             device: getRequesterDevice(),
             durationMs: Date.now() - startedAt,
+            antiLoopToken: antiLoopTokenSentRef.current
+              ? undefined
+              : antiLoopToken,
           },
         );
+        // First record attempted: the token (if any) has now been offered
+        // to the backend exactly once — stop attaching it. A throw above
+        // skips this line, so a genuinely unsent token is kept for the
+        // next attempt.
+        antiLoopTokenSentRef.current = true;
       } catch (e) {
         console.error('recordAnalytics error:', e);
         resolvedSearchId = null;

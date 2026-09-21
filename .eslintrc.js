@@ -53,4 +53,27 @@ module.exports = {
     '**/*.test.ts',
     '**/*.test.tsx',
   ],
+  overrides: [
+    {
+      // ts-node runs the bot with zero path mapping (no tsconfig-paths),
+      // so a `@/` import compiles fine under Next/jest but explodes as
+      // MODULE_NOT_FOUND the moment the real bot boots. Forbid the alias
+      // here so the failure surfaces at lint time, never in production.
+      files: ['src/bot-steam/**/*.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/*'],
+                message:
+                  'Use relative imports in bot-steam: ts-node does not resolve the @/ alias.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
 };

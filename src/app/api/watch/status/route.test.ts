@@ -1,0 +1,336 @@
+/**
+ * @jest-environment node
+ */
+
+import { GET } from './route';
+
+jest.mock('@/lib/analytics/db', () => ({
+  createWatchRequest: jest.fn(),
+  deactivateWatch: jest.fn(),
+  enqueueEvent: jest.fn(),
+  getAccount: jest.fn(),
+  getWatchedProfile: jest.fn(),
+  getWatchStatus: jest.fn(),
+  refreshWatchRequest: jest.fn(),
+}));
+
+// Same trick as recordAnalytics/route.test.ts: the factory runs once, so
+// expose the limiter mock for per-test control.
+jest.mock('@/lib/rateLimit', () => {
+  const isRateLimited = jest.fn(() => false);
+  return {
+    createRateLimiter: jest.fn().mockReturnValue({ isRateLimited }),
+    getRequestIp: jest.fn(() => 'test-ip'),
+    __testIsRateLimited: isRateLimited,
+  };
+});
+
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(),
+}));
+
+jest.mock('@/lib/watch/session', () => ({
+  resolveWatchSession: jest.fn(),
+}));
+
+const mockedDb = jest.requireMock('@/lib/analytics/db') as {
+  createWatchRequest: jest.Mock;
+  deactivateWatch: jest.Mock;
+  enqueueEvent: jest.Mock;
+  getAccount: jest.Mock;
+  getWatchedProfile: jest.Mock;
+  getWatchStatus: jest.Mock;
+  refreshWatchRequest: jest.Mock;
+};
+
+const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
+  __testIsRateLimited: jest.Mock;
+};
+
+const { resolveWatchSession } = jest.requireMock('@/lib/watch/session') as {
+  resolveWatchSession: jest.Mock;
+};
+
+const STEAM_ID = '76561198000000001';
+
+const makeRequest = (searchParams = '', method = 'GET') =>
+  ({
+    method,
+    url: `http://localhost/api/watch/status${searchParams}`,
+    headers: { get: jest.fn(() => null) },
+  }) as unknown as Request;
+
+describe('GET /api/watch/status', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __testIsRateLimited.mockReturnValue(false);
+    resolveWatchSession.mockResolvedValue({ status: 'authenticated', steamId: STEAM_ID });
+    mockedDb.getAccount.mockResolvedValue(null);
+  });
+
+  it('returns pending for a pending watch', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'pending',
+      confirmExpired: false,
+      confirmLinkSent: false,
+    });
+    expect(mockedDb.getWatchStatus).toHaveBeenCalledWith(STEAM_ID);
+  });
+
+  it('returns active for an active watch', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('active');
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'active',
+      confirmExpired: false,
+      confirmLinkSent: false,
+    });
+  });
+
+  it('returns none when no watch was ever requested', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue(null);
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'none',
+      confirmExpired: false,
+      confirmLinkSent: false,
+    });
+  });
+
+  it('returns none for an opted-out (deactivated) watch', async () => {
+    // Opt-out DELETES the watched_profiles row, so a deactivated watch is
+    // indistinguishable from never-requested at the DAL level — both are
+    // getWatchStatus() === null, and both must read as 'none' (the
+    // distinction is internal state this API deliberately hides).
+    mockedDb.getWatchStatus.mockResolvedValue(null);
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'none',
+      confirmExpired: false,
+      confirmLinkSent: false,
+    });
+  });
+
+  it('flags confirmExpired only for a real past expiry on unconfirmed accounts', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmExpiresAt: '2000-01-01T00:00:00.000Z',
+      confirmTokenHash: 'ab'.repeat(32),
+    });
+
+    const expired = await GET(makeRequest());
+    expect(await expired.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'pending',
+      confirmExpired: true,
+      // Expired implies issued (issue writes hash + expiry together).
+      confirmLinkSent: true,
+    });
+
+    // Live token: not expired.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmExpiresAt: '2999-01-01T00:00:00.000Z',
+    });
+    const live = await GET(makeRequest());
+    expect(await live.json()).toEqual(
+      expect.objectContaining({ confirmExpired: false }),
+    );
+
+    // Confirmed: never expired (token columns are cleared on consume).
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: '2026-09-03T00:00:00.000Z',
+      confirmExpiresAt: null,
+    });
+    const confirmed = await GET(makeRequest());
+    expect(await confirmed.json()).toEqual(
+      expect.objectContaining({ confirmExpired: false }),
+    );
+
+    // Corrupt clock: fail closed toward "not expired" (no resend offered
+    // for a state we cannot read).
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmExpiresAt: 'not-a-date',
+    });
+    const corrupt = await GET(makeRequest());
+    expect(await corrupt.json()).toEqual(
+      expect.objectContaining({ confirmExpired: false }),
+    );
+  });
+
+  it('flags confirmLinkSent whenever a token generation exists', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+    // Live token: issued, awaiting click.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmTokenHash: 'ab'.repeat(32),
+      confirmExpiresAt: '2999-01-01T00:00:00.000Z',
+    });
+    const live = await GET(makeRequest());
+    expect(await live.json()).toEqual(
+      expect.objectContaining({
+        confirmExpired: false,
+        confirmLinkSent: true,
+      }),
+    );
+
+    // No token ever issued (invite phase): nothing sent yet.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+    });
+    const fresh = await GET(makeRequest());
+    expect(await fresh.json()).toEqual(
+      expect.objectContaining({
+        confirmExpired: false,
+        confirmLinkSent: false,
+      }),
+    );
+
+    // Confirmed: token columns cleared on consume.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: '2026-09-03T00:00:00.000Z',
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+    });
+    const confirmed = await GET(makeRequest());
+    expect(await confirmed.json()).toEqual(
+      expect.objectContaining({ confirmLinkSent: false }),
+    );
+  });
+
+  it('corrupt clock with hash present: fail-closed on expiry, link-sent detected from token presence', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+    // Corrupt expiry but hash exists: link was issued, fail-closed on expiry.
+    mockedDb.getAccount.mockResolvedValue({
+      confirmedAt: null,
+      confirmTokenHash: 'ab'.repeat(32),
+      confirmExpiresAt: 'not-a-date',
+    });
+    const corrupt = await GET(makeRequest());
+    expect(await corrupt.json()).toEqual(
+      expect.objectContaining({
+        confirmExpired: false,
+        confirmLinkSent: true,
+      }),
+    );
+  });
+
+  it('degrades confirmExpired to false (loudly) when the account read fails', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+    mockedDb.getAccount.mockRejectedValue(new Error('turso blip'));
+
+    const res = await GET(makeRequest());
+
+    // Display-only garnish must not 500 the polling loop.
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      steamId: STEAM_ID,
+      status: 'pending',
+      confirmExpired: false,
+      confirmLinkSent: false,
+    });
+  });
+
+  it('returns 401 without a login session (never touches the DAL)', async () => {
+    resolveWatchSession.mockResolvedValue({ status: 'unauthenticated' });
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: 'UNAUTHENTICATED' }),
+      }),
+    );
+    expect(mockedDb.getWatchStatus).not.toHaveBeenCalled();
+  });
+
+  it('rejects any ?steamId= outright (self-scoped, no third-party lookups)', async () => {
+    for (const searchParams of [
+      `?steamId=${STEAM_ID}`,
+      '?steamId=short',
+      '?steamId=',
+    ]) {
+      const res = await GET(makeRequest(searchParams));
+
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual(
+        expect.objectContaining({
+          error: expect.objectContaining({ code: 'INVALID_REQUEST' }),
+        }),
+      );
+    }
+    expect(mockedDb.getWatchStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns 429 when rate limited', async () => {
+    __testIsRateLimited.mockReturnValue(true);
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(429);
+    expect(mockedDb.getWatchStatus).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-GET methods', async () => {
+    const res = await GET(makeRequest('', 'POST'));
+
+    expect(res.status).toBe(405);
+    expect(mockedDb.getWatchStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns 500 when the DAL throws', async () => {
+    mockedDb.getWatchStatus.mockRejectedValue(new Error('db down'));
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(500);
+  });
+
+  it('returns 500 when the session layer blows up (loud, not silent)', async () => {
+    resolveWatchSession.mockResolvedValue({
+      status: 'error',
+      error: new Error('SESSION_SECRET exploded'),
+    });
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(500);
+    expect(mockedDb.getWatchStatus).not.toHaveBeenCalled();
+  });
+
+  it('never mutates watch state (read-only contract)', async () => {
+    mockedDb.getWatchStatus.mockResolvedValue('pending');
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(200);
+    expect(mockedDb.createWatchRequest).not.toHaveBeenCalled();
+    expect(mockedDb.deactivateWatch).not.toHaveBeenCalled();
+    expect(mockedDb.enqueueEvent).not.toHaveBeenCalled();
+    expect(mockedDb.getWatchedProfile).not.toHaveBeenCalled();
+    expect(mockedDb.refreshWatchRequest).not.toHaveBeenCalled();
+  });
+});

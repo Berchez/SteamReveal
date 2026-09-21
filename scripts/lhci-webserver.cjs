@@ -9,6 +9,18 @@
 process.env.DEV_TEST_MODE = '1';
 process.env.PORT = '3100';
 process.env.LOCAL_PROXY_URL = '';
+// Ops-log isolation, same rationale as playwright.config.ts (fixed tmpdir,
+// wiped per boot so LHCI audits never touch the repo's .data/logs).
+const LHCI_OPS_LOG_DIR = require('node:path').join(
+  require('node:os').tmpdir(),
+  'opslog-lhci',
+);
+require('node:fs').rmSync(LHCI_OPS_LOG_DIR, {
+  recursive: true,
+  force: true,
+});
+require('node:fs').mkdirSync(LHCI_OPS_LOG_DIR, { recursive: true });
+process.env.OPS_LOG_DIR = LHCI_OPS_LOG_DIR;
 
 const { spawn } = require('node:child_process');
 const readline = require('node:readline');
@@ -64,6 +76,21 @@ const child = spawn(process.execPath, [nextBin, 'dev', '-p', process.env.PORT], 
 
 process.on('SIGINT', () => child.kill('SIGINT'));
 process.on('SIGTERM', () => child.kill('SIGTERM'));
+// Windows Ctrl+Break (and some CI runners) deliver SIGBREAK, not SIGINT —
+// without this the Next dev child survived the wrapper and held :3100,
+// failing/hanging the NEXT push or LHCI run on a busy port.
+process.on('SIGBREAK', () => child.kill('SIGTERM'));
+// LHCI kills this wrapper after collection (TerminateProcess on Windows
+// skips handlers, but on every graceful path this stops the dev server from
+// outliving the audit as an orphan on :3100). Sync-only: kill() just
+// delivers the signal.
+process.on('exit', () => {
+  try {
+    child.kill('SIGTERM');
+  } catch {
+    // child already gone — nothing to clean up
+  }
+});
 child.on('exit', (code, signal) => process.exit(signal ? 1 : code ?? 0));
 
 (async () => {

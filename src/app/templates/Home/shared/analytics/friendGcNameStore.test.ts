@@ -11,8 +11,8 @@ describe('friendGcNameStore', () => {
   });
 
   it('stores and retrieves a confirmed name', () => {
-    setFriendGcName('76561198000000000', 'João Teste');
-    expect(getFriendGcName('76561198000000000')).toBe('João Teste');
+    setFriendGcName('76561198000000000', 'John Test');
+    expect(getFriendGcName('76561198000000000')).toBe('John Test');
   });
 
   it('never stores a null/empty name (a miss must stay a miss)', () => {

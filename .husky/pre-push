@@ -1,15 +1,52 @@
 set -e
+# Each gate below echoes a timestamped START/DONE line: the full hook takes
+# many minutes when healthy (e2e + live GC scrape + 3x2 LHCI audits), and a
+# gate used to be able to stall with zero output — indistinguishable from
+# "rodando para sempre". The markers make a stall attributable at a glance
+# (last START without a DONE is the stuck gate), and every gate is now
+# time-bounded (see smoke-timeout.cjs + lhci-hook.cjs) so a stall fails
+# loudly instead of hanging the push.
+gate() { echo "[pre-push $(date '+%H:%M:%S')] START $1"; }
+done_gate() { echo "[pre-push $(date '+%H:%M:%S')] DONE $1"; }
+# Free the gates' ports first: orphaned `next dev -p 3100` servers from
+# previously aborted pushes hold :3100 (e2e + LHCI both demand it with
+# reuseExistingServer:false). Only repo dev servers are ever killed —
+# anything else fails loudly instead (see the script).
+gate "prepush-clean"
+node scripts/prepush-clean.cjs
+done_gate "prepush-clean"
+# Freeze .env for the whole run: tunnel:dev rewrites LOCAL_PROXY_URL live,
+# and a mid-hook rewrite would change what later gates (smokes, LHCI
+# server) see. Snapshot now, restore on exit even when a gate fails.
+PREPUSH_ENV_BAK=""
+if [ -f .env ]; then
+  PREPUSH_ENV_BAK="$(mktemp "${TMPDIR:-/tmp}/osint-prepush-env.XXXXXX")"
+  cp .env "$PREPUSH_ENV_BAK"
+  restore_pushenv() { cp "$PREPUSH_ENV_BAK" .env; rm -f "$PREPUSH_ENV_BAK"; }
+  trap restore_pushenv EXIT
+fi
+gate "e2e"
 pnpm run e2e
+done_gate "e2e"
+gate "smoke:gc"
 pnpm run smoke:gc
-# Best-effort: skips (exit 0) when no local dev server is reachable on :3000
-# and when DATABASE_URL isn't set — e.g. the machine is offline, or only
-# e2e's temporary server was up. It still FAILS loudly (set -e) on real
+done_gate "smoke:gc"
+# Best-effort: skips (exit 0) when no local dev server is reachable on :3000,
+# when DATABASE_URL isn't set, and when Turso/the dev server stalls mid-run
+# (bounded waits in scripts/smoke-timeout.cjs) — e.g. the machine is offline,
+# or only e2e's temporary server was up. It still FAILS loudly (set -e) on real
 # analytics regressions, which is the point of running it here.
+gate "smoke:analytics"
 pnpm run smoke:analytics
+done_gate "smoke:analytics"
+gate "db:smoke"
 pnpm run db:smoke
+done_gate "db:smoke"
 # Lighthouse regression gate (lighthouserc.js): runs the same mocked-server
 # audit CI runs. Requires a Chrome binary — scripts/lhci-hook.cjs auto-resolves
 # one and BLOCKS the push (exit 1, under set -e) if none is found or if LHCI
 # reports a regression. No skip switch by design; git push --no-verify is the
 # only escape hatch.
+gate "lhci"
 node scripts/lhci-hook.cjs
+done_gate "lhci"

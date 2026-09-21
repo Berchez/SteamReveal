@@ -1,4 +1,4 @@
-﻿{
+{
   "General": {
     "search": "Search"
   },
@@ -165,5 +165,47 @@
       "fallbackTitle": "SteamReveal - Analyze Steam Profiles",
       "fallbackDescription": "SteamReveal is an OSINT tool designed for the Steam community. Analyze Steam profiles, discover real friends, and locate players using public data."
     }
+  },
+  "Watch": {
+    "watchWelcome": "Watch active! The bot will message you on Steam when this profile is searched.",
+    "watchTitle": "Watch a Steam profile",
+    "watchDescription": "Get a Steam message from our bot whenever this profile is searched. Click below, accept the bot's friend request on Steam, and you're covered.",
+    "watchSubmit": "Watch your profile",
+    "watchSignupSteps": "How it works: click the button below to start, accept the bot's friend request on Steam, then click the confirmation link the bot sends you in Steam chat.",
+    "watchConfirmOk": "Watch confirmed! The bot will message you on Steam whenever your profile is searched.",
+    "watchConfirmError": "This confirmation link is invalid or expired. Generate a fresh one from the Watch panel.",
+    "watchLoginButton": "Sign in with Steam",
+    "watchNavSignIn": "Sign in",
+    "watchWaitTitle": "Finish signing in",
+    "watchWaitBody": "To complete your login, add the SteamReveal bot as a friend on Steam:",
+    "watchWaitAddBot": "Add the SteamReveal bot",
+    "watchWaitWaiting": "Checking automatically… if you just added the bot, hang tight — we'll take it from here.",
+    "watchWaitExpired": "This login attempt expired.",
+    "watchWaitRetry": "Sign in again",
+    "watchWaitNoScript": "To complete your login, please enable JavaScript and sign in again.",
+    "watchAvatarAlt": "Profile picture of {nickname}",
+    "watchLoginError": "Steam login failed. Try again in a moment.",
+    "watchLogout": "Sign out",
+    "watchPendingTitle": "Invite sent",
+    "watchPendingHint": "Accept the SteamReveal bot's friend request on Steam to activate notifications.",
+    "watchLinkExpired": "Your confirmation link expired. Generate a new one below — the bot will send it to you here on Steam.",
+    "watchResendSubmit": "Generate new link",
+    "watchResendSent": "New link on its way — check your Steam chat.",
+    "watchLinkSentHint": "Check your Steam chat for the confirmation link.",
+    "watchActiveTitle": "Watching",
+    "watchActiveHint": "You're all set — the bot will message you on Steam each time this profile is searched. To stop, just unfriend the bot; nothing else is needed.",
+    "watchErrorFailed": "Could not start watching. Try again in a moment.",
+    "watchInboxTitle": "Notifications",
+    "watchInboxBellLabel": "Watch notifications, {count} unread",
+    "watchInboxEmpty": "No notifications yet. You will see a message here each time your watched profile is searched.",
+    "watchInboxLoading": "Loading notifications…",
+    "watchInboxError": "Could not load notifications.",
+    "watchInboxRetry": "Try again",
+    "watchInboxMonthlyBadge": "{count} searches this month",
+    "watchInboxItemCheckedBody": "Someone viewed your profile on {date} at {time} and checked whether you are a cheater.",
+    "watchInboxItemPlainBody": "Someone viewed your profile on {date} at {time}.",
+    "watchInboxItemViewHere": "See what they saw",
+    "watchInboxItemTrailing": "in that search",
+    "watchInboxCheaterChecked": "Cheater report opened"
   }
 }

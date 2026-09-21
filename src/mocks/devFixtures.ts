@@ -4,7 +4,7 @@ export const isMockModeEnabled = () =>
   !process.env.VERCEL_ENV;
 
 export const isMockInvalidTarget = (target: string) =>
-  target === 'estainvalido' || target === 'invalid';
+  target === 'no-such-target' || target === 'invalid';
 
 // countryCode/stateCode/cityID correspond to a REAL entry in
 // lib/locations/data/BR.json (Amambai, Mato Grosso do Sul) — chosen

@@ -1,4 +1,4 @@
-﻿{
+{
   "General": {
     "search": "Suchen"
   },
@@ -165,5 +165,47 @@
       "fallbackTitle": "SteamReveal – Steam-Profile analysieren",
       "fallbackDescription": "SteamReveal ist ein OSINT-Tool für die Steam-Community. Analysiere Steam-Profile, entdecke echte Freunde und finde den Standort von Spielern mithilfe öffentlicher Daten."
     }
+  },
+  "Watch": {
+    "watchWelcome": "Beobachtung aktiv! Der Bot schreibt dir auf Steam, wenn dieses Profil gesucht wird.",
+    "watchTitle": "Steam-Profil beobachten",
+    "watchDescription": "Erhalte eine Nachricht unseres Bots auf Steam, sobald dieses Profil gesucht wird. Klicke unten, nimm die Freundschaftsanfrage des Bots auf Steam an, und fertig.",
+    "watchSubmit": "Dein Profil beobachten",
+    "watchSignupSteps": "So geht's: Klicke unten auf Starten, nimm die Freundschaftsanfrage des Bots auf Steam an und klicke auf den Bestätigungslink, den der Bot dir im Steam-Chat schickt.",
+    "watchConfirmOk": "Beobachtung bestätigt! Der Bot schickt dir eine Nachricht auf Steam, sobald dein Profil gesucht wird.",
+    "watchConfirmError": "Dieser Bestätigungslink ist ungültig oder abgelaufen. Erstelle im Watch-Bereich einen neuen.",
+    "watchLoginButton": "Mit Steam anmelden",
+    "watchNavSignIn": "Anmelden",
+    "watchWaitTitle": "Schließe die Anmeldung ab",
+    "watchWaitBody": "Um deine Anmeldung abzuschließen, füge den SteamReveal-Bot auf Steam als Freund hinzu:",
+    "watchWaitAddBot": "SteamReveal-Bot hinzufügen",
+    "watchWaitWaiting": "Wird automatisch geprüft… falls du ihn gerade erst hinzugefügt hast, warte kurz — wir übernehmen ab hier.",
+    "watchWaitExpired": "Dieser Anmeldeversuch ist abgelaufen.",
+    "watchWaitRetry": "Erneut anmelden",
+    "watchWaitNoScript": "Um dich anzumelden, aktiviere bitte JavaScript und melde dich erneut an.",
+    "watchAvatarAlt": "Profilbild von {nickname}",
+    "watchLoginError": "Steam-Anmeldung fehlgeschlagen. Versuche es gleich noch einmal.",
+    "watchLogout": "Abmelden",
+    "watchPendingTitle": "Einladung gesendet",
+    "watchPendingHint": "Nimm die Freundschaftsanfrage des SteamReveal-Bots auf Steam an, um die Benachrichtigungen zu aktivieren.",
+    "watchLinkExpired": "Dein Bestätigungslink ist abgelaufen. Erstelle unten einen neuen — der Bot schickt ihn dir hier auf Steam.",
+    "watchResendSubmit": "Neuen Link erstellen",
+    "watchResendSent": "Neuer Link unterwegs — schau in deinen Steam-Chat.",
+    "watchLinkSentHint": "Schau in deinen Steam-Chat für den Bestätigungslink.",
+    "watchActiveTitle": "Wird beobachtet",
+    "watchActiveHint": "Alles bereit — der Bot schickt dir bei jeder Suche nach diesem Profil eine Nachricht auf Steam. Zum Abbestellen entferne den Bot einfach aus deiner Freundesliste; sonst ist nichts nötig.",
+    "watchErrorFailed": "Beobachtung konnte nicht gestartet werden. Versuche es gleich noch einmal.",
+    "watchInboxTitle": "Benachrichtigungen",
+    "watchInboxBellLabel": "Watch-Benachrichtigungen, {count} ungelesen",
+    "watchInboxEmpty": "Noch keine Benachrichtigungen. Du siehst hier eine Nachricht, sobald dein beobachtetes Profil abgerufen wird.",
+    "watchInboxLoading": "Benachrichtigungen werden geladen…",
+    "watchInboxError": "Benachrichtigungen konnten nicht geladen werden.",
+    "watchInboxRetry": "Erneut versuchen",
+    "watchInboxMonthlyBadge": "{count} Suchanfragen diesen Monat",
+    "watchInboxItemCheckedBody": "Jemand hat dein Profil am {date} um {time} angesehen und geprüft, ob du ein Cheater bist.",
+    "watchInboxItemPlainBody": "Jemand hat dein Profil am {date} um {time} angesehen.",
+    "watchInboxItemViewHere": "Sieh, was sie gesehen haben",
+    "watchInboxItemTrailing": "bei dieser Suche",
+    "watchInboxCheaterChecked": "Cheater-Bericht geöffnet"
   }
 }

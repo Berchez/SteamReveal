@@ -1,0 +1,394 @@
+/**
+ * Watch Bot invite poller (WB-7) — consumes queued invite events and sends
+ * real Steam friend invitations.
+ *
+ * Single pass (`pollInviteQueueOnce`, exported for tests and for the
+ * explicit first pass in index.ts) + interval driver (`startInvitePoller`).
+ * Per-row isolation: one bad event never aborts the pass. Retry policy is
+ * short and bounded — a transient addFriend failure requeues for the next
+ * pass, and after maxAttempts the event is dropped with a loud log (a
+ * permanently-failing invite, e.g. Steam-side throttling, must not spin
+ * the poller forever). Already-friends targets skip the send entirely
+ * (dropped as already-friends): Steam would reject addFriend as
+ * DuplicateName after burning attempts for a state that is not an error.
+ *
+ * This module never sees credentials (no secrets in scope by construction)
+ * and never touches Steam beyond client.addFriend — the structural client
+ * type below is the entire Steam surface it needs, which is also what
+ * makes it trivially fakeable in tests.
+ */
+
+import withTimeout from '../lib/withTimeout';
+
+import type { WatchBotLogger } from './logger';
+
+export interface InvitePollerClient {
+  addFriend: (steamId: string) => Promise<unknown>;
+}
+
+export interface InvitePollerDal {
+  claimNextQueuedEvents: (
+    kind: 'invite',
+    limit: number,
+  ) => Promise<Array<{ id: number; steamId: string }>>;
+  markEventSent: (id: number) => Promise<boolean>;
+  markEventDropped: (id: number) => Promise<boolean>;
+  recordEventAttempt: (
+    id: number,
+    maxAttempts: number,
+  ) => Promise<'requeued' | 'dropped' | null>;
+  /**
+   * Invites sent at/after an ISO-8601 timestamp. Feeds the daily send cap
+   * (P1-1): DB-backed, so the count survives bot restarts instead of
+   * resetting "since this boot".
+   */
+  countInvitesSentSince: (sinceIso: string) => Promise<number>;
+}
+
+export interface InvitePollReport {
+  claimed: number;
+  sent: number;
+  retried: number;
+  dropped: number;
+  alreadyFriends: number;
+  errors: Array<{ eventId: number; message: string }>;
+  durationMs: number;
+  /** True when the pass did no work (overlap / not-connected / cap skip). */
+  skipped: boolean;
+}
+
+export interface PollInviteQueueOptions {
+  client: InvitePollerClient;
+  dal: InvitePollerDal;
+  logger?: WatchBotLogger;
+  batchLimit?: number;
+  /**
+   * Global cap on REAL friend invites sent per UTC day (P1-1 abuse bound —
+   * see BotConfig.inviteDailyLimit). Checked BEFORE claiming, so a capped
+   * pass claims nothing (claimed-but-unsent rows would only sit until the
+   * stale sweep requeues them). Undefined disables the cap — production
+   * always sets it via loadBotConfig; keep it that way.
+   */
+  dailyLimit?: number;
+  maxAttempts?: number;
+  /** Watchdog for a single addFriend call (a hang must fail visibly). */
+  sendTimeoutMs?: number;
+  /**
+   * Liveness gate: when provided and false, the pass is skipped without
+   * touching Steam or the DAL (no attempts burned). This is what keeps the
+   * boot-time first pass — fired before logon completes — from consuming
+   * invite attempts it could never fulfill.
+   */
+  isConnected?: () => boolean;
+  /**
+   * Friendship check: when provided and true for a profile, its invite is
+   * dropped WITHOUT calling addFriend (Steam would reject it as
+   * DuplicateName after burning attempts — and scare operators with error
+   * logs for a state that is not an error at all: re-signup without
+   * unfriend, manual row edits, or a stale requeue). Reconcile owns
+   * whatever comes next for these profiles (link or activation). Absent
+   * checkers preserve the old behavior (always attempt the send).
+   */
+  isFriend?: (steamId: string) => boolean;
+}
+
+const DEFAULT_BATCH_LIMIT = 5;
+const DEFAULT_MAX_ATTEMPTS = 3;
+const DEFAULT_SEND_TIMEOUT_MS = 30000;
+// Settle retries after a successful send: a single DB timeout blip must
+// not manufacture a duplicate invite (or a lost one) for free.
+const SETTLE_RETRIES = 3;
+
+/** UTC-midnight ISO for `nowMs` — the daily-cap window boundary. */
+const utcDayStartIso = (nowMs: number): string =>
+  `${new Date(nowMs).toISOString().slice(0, 10)}T00:00:00.000Z`;
+
+const settleSentWithRetry = async (
+  dal: InvitePollerDal,
+  eventId: number,
+  attemptsLeft: number = SETTLE_RETRIES,
+): Promise<boolean> => {
+  try {
+    // A false return (row left 'claimed' state — e.g. requeued by a stale
+    // sweep mid-send) is NOT retried: retrying cannot help, and the caller
+    // must not count it as sent.
+    if (await dal.markEventSent(eventId)) return true;
+    return false;
+  } catch (error) {
+    if (attemptsLeft <= 1) throw error;
+    return settleSentWithRetry(dal, eventId, attemptsLeft - 1);
+  }
+};
+
+export const pollInviteQueueOnce = async (
+  options: PollInviteQueueOptions,
+): Promise<InvitePollReport> => {
+  const {
+    client,
+    dal,
+    logger = console,
+    batchLimit = DEFAULT_BATCH_LIMIT,
+    dailyLimit,
+    maxAttempts = DEFAULT_MAX_ATTEMPTS,
+    sendTimeoutMs = DEFAULT_SEND_TIMEOUT_MS,
+    isConnected,
+    isFriend,
+  } = options;
+  if (!Number.isFinite(maxAttempts) || maxAttempts < 1) {
+    throw new Error(
+      'Invalid invite poller maxAttempts: expected positive integer',
+    );
+  }
+
+  const startedAt = Date.now();
+  const report: InvitePollReport = {
+    claimed: 0,
+    sent: 0,
+    retried: 0,
+    dropped: 0,
+    alreadyFriends: 0,
+    errors: [],
+    durationMs: 0,
+    skipped: false,
+  };
+
+  if (isConnected !== undefined && !isConnected()) {
+    logger.info('[WatchBot] invite poll skipped (not connected to Steam)');
+    return { ...report, skipped: true };
+  }
+
+  // Uncapped passes claim the full batch; capped passes claim at most the
+  // REMAINING budget (see below).
+  let claimLimit = batchLimit;
+  if (dailyLimit !== undefined) {
+    if (!Number.isInteger(dailyLimit) || dailyLimit < 1) {
+      throw new Error(
+        'Invalid invite poller dailyLimit: expected positive integer',
+      );
+    }
+    // Sink-side abuse bound: the count comes from the DB (restart-proof),
+    // and the check runs BEFORE claiming — a capped pass must not claim
+    // rows it will not send.
+    const dayStart = utcDayStartIso(Date.now());
+    const sentToday = await dal.countInvitesSentSince(dayStart);
+    if (sentToday >= dailyLimit) {
+      logger.info(
+        `[WatchBot] invite poll skipped (daily send cap reached: ${sentToday}/${dailyLimit})`,
+      );
+      return { ...report, skipped: true };
+    }
+    // Clamp the claim to the REMAINING budget, not the full batch: without
+    // this, a pass starting at 49/50 would still claim 5 and send 5,
+    // overshooting the "at most N/day" guarantee this cap exists to give.
+    // remaining >= 1 here (the early return above handles the rest).
+    claimLimit = Math.min(batchLimit, dailyLimit - sentToday);
+  }
+
+  const events = await dal.claimNextQueuedEvents('invite', claimLimit);
+  report.claimed = events.length;
+
+  // One event, fully handled: already-friends skip first (no Steam call
+  // at all), then the send with settle bookkeeping. Early returns replace
+  // `continue` (no-continue is on in this repo); the caller awaits these
+  // one at a time, so per-row sequentiality is preserved.
+  const processEvent = async (event: {
+    id: number;
+    steamId: string;
+  }): Promise<void> => {
+    if (isFriend !== undefined && isFriend(event.steamId)) {
+      // Already friends: Steam would reject addFriend as DuplicateName
+      // after burning attempts. Drop loudly with a self-explanatory
+      // reason instead (see the option contract above).
+      try {
+        const settled = await dal.markEventDropped(event.id);
+        if (settled) {
+          report.alreadyFriends += 1;
+          logger.info(
+            `[WatchBot] invite dropped: steamId=${event.steamId} eventId=${event.id} reason=already-friends`,
+          );
+        } else {
+          report.errors.push({
+            eventId: event.id,
+            message:
+              'drop did not land (not claimed anymore): already-friends',
+          });
+        }
+      } catch (error) {
+        report.errors.push({
+          eventId: event.id,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+      return;
+    }
+    let inviteSent = false;
+    try {
+      // Watchdog: a hung addFriend (network stall, lib bug) must fail
+      // visibly instead of wedging this pass — and, once the overlap guard
+      // below exists, a wedged pass would wedge the poller forever. Same
+      // accepted limitation as everywhere withTimeout is used: the
+      // underlying call is not aborted, only our wait for it.
+      await withTimeout(
+        client.addFriend(event.steamId),
+        `invitePoller: addFriend(${event.steamId})`,
+        sendTimeoutMs,
+      );
+      inviteSent = true;
+      // The send already happened: settling the bookkeeping must not route
+      // through the failure path below (which would requeue and re-send).
+      // Retry the mark itself a few times first — a single DB timeout
+      // blip must not manufacture a duplicate invite.
+      const settled = await settleSentWithRetry(dal, event.id);
+      if (!settled) {
+        // The row left 'claimed' under us (e.g. a stale sweep requeued it
+        // mid-send): the send DID happen but this worker no longer owns
+        // the row. Count it as an error, never as sent — and do NOT
+        // requeue (that would schedule a duplicate invite for sure).
+        throw new Error('event left claimed state before settle');
+      }
+      report.sent += 1;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (inviteSent) {
+        // addFriend SUCCEEDED but the bookkeeping never landed: do NOT
+        // call recordEventAttempt (it would requeue and re-send). Loud
+        // error + errors[] entry; the row stays claimed and resetStaleClaims
+        // requeues it in ~30min as a last resort — a delayed duplicate
+        // invite beats a silently lost one, and Steam dedupes pending
+        // invites server-side in practice.
+        logger.error(
+          `[WatchBot] invite sent to ${event.steamId} but not recorded: ${message}`,
+        );
+        report.errors.push({
+          eventId: event.id,
+          message: `sent but not recorded: ${message}`,
+        });
+      } else {
+        try {
+          const outcome = await dal.recordEventAttempt(event.id, maxAttempts);
+          if (outcome === 'dropped') {
+            report.dropped += 1;
+            logger.error(
+              `[WatchBot] invite to ${event.steamId} dropped after ${maxAttempts} attempts: ${message}`,
+            );
+          } else if (outcome === 'requeued') {
+            report.retried += 1;
+          } else {
+            // Row vanished mid-flight (settled by nobody we know of) —
+            // visible, not silent.
+            report.errors.push({ eventId: event.id, message });
+          }
+        } catch (inner) {
+          // bookkeeping itself failed (DB down): the event stays claimed and
+          // resetStaleClaims requeues it later. Count loudly, move on.
+          report.errors.push({
+            eventId: event.id,
+            message: inner instanceof Error ? inner.message : String(inner),
+          });
+        }
+      }
+    }
+  };
+
+  // Sequential per-row awaits are intentional: invite sends are
+  // Steam-side rate-sensitive, and determinism beats throughput here.
+  // eslint-disable-next-line no-restricted-syntax
+  for (const event of events) {
+    // eslint-disable-next-line no-await-in-loop
+    await processEvent(event);
+  }
+
+  report.durationMs = Date.now() - startedAt;
+  if (report.claimed === 0) {
+    // Quiet on empty passes: a line per minute 24/7 is noise, and liveness
+    // is the heartbeat's job, not the poller's.
+    return report;
+  }
+  logger.info(
+    `[WatchBot] invite poll done: claimed=${report.claimed} sent=${report.sent} ` +
+      `retried=${report.retried} dropped=${report.dropped} ` +
+      `errors=${report.errors.length} durationMs=${report.durationMs}`,
+  );
+  // The count above is not actionable (which event failed, and why?).
+  // Log each failure individually so production debugging never needs a DB
+  // dive just to learn what broke.
+  // Sequential logging only; the disable mirrors the main loop below.
+  // eslint-disable-next-line no-restricted-syntax
+  for (const entry of report.errors) {
+    logger.error(
+      `[WatchBot] invite poll error: eventId=${entry.eventId} message=${entry.message}`,
+    );
+  }
+
+  return report;
+};
+
+export interface InvitePollerHandle {
+  stop: () => void;
+  pollOnce: () => Promise<InvitePollReport>;
+}
+
+/**
+ * Interval driver. Does NOT run an immediate pass (index.ts calls pollOnce
+ * explicitly, mirroring the heartbeat beat() pattern) so startup ordering
+ * stays visible at the call site. Timer is unref'd like the heartbeat's:
+ * the Steam connection owns process lifetime, not the poller.
+ */
+export const startInvitePoller = (
+  options: PollInviteQueueOptions & { pollIntervalMs: number },
+): InvitePollerHandle => {
+  const { pollIntervalMs, logger = console } = options;
+  if (!Number.isFinite(pollIntervalMs) || pollIntervalMs <= 0) {
+    throw new Error(
+      'Invalid invite poller interval: expected positive milliseconds',
+    );
+  }
+
+  // Overlap guard, shared by the interval ticks AND external callers
+  // (index.ts fires the first pass directly through the returned pollOnce):
+  // a pass slower than the interval must not stack a second concurrent pass
+  // on top — concurrent addFriend bursts are exactly the throttling pattern
+  // this service avoids. Skipped ticks are not lost work: unclaimed rows
+  // wait for the next tick.
+  let running = false;
+  const pollOnce = async (): Promise<InvitePollReport> => {
+    if (running) {
+      logger.info(
+        '[WatchBot] invite poll skipped (previous pass still running)',
+      );
+      return {
+        claimed: 0,
+        sent: 0,
+        retried: 0,
+        dropped: 0,
+        alreadyFriends: 0,
+        errors: [],
+        durationMs: 0,
+        skipped: true,
+      };
+    }
+    running = true;
+    try {
+      return await pollInviteQueueOnce(options);
+    } finally {
+      running = false;
+    }
+  };
+  const timer = setInterval(() => {
+    pollOnce().catch((error: unknown) => {
+      logger.error(
+        `[WatchBot] invite poll pass failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    });
+  }, pollIntervalMs);
+  if (typeof timer.unref === 'function') {
+    timer.unref();
+  }
+
+  return {
+    stop: () => clearInterval(timer),
+    pollOnce,
+  };
+};

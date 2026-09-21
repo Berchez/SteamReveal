@@ -3,6 +3,15 @@ import { loadEnv, requireRemoteTursoToken } from '../src/lib/env';
 import { sanitizeError } from '../src/lib/sanitizeError';
 import { isTransportFailure } from '../src/lib/analytics/db';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { withTimeout, isTimeoutError } = require('./smoke-timeout.cjs');
+
+// Bounded: an unbounded batch() once hung `git push` FOREVER on a stalled
+// Turso connection (no default timeout on the hrana transport). A stall is
+// an environment problem — SKIP (exit 0) like any transport failure, never
+// hang the push.
+const DB_SMOKE_TIMEOUT_MS = 25_000;
+
 // Proxy-less read-only Turso sanity check: table schema + row counts.
 loadEnv();
 
@@ -44,18 +53,23 @@ const EXPECTED_TABLES = [
   // so a recordSearch landing mid-run can't make searches != joined children
   // for a few ms and trip a false FAIL (same pattern as the DAL's
   // getSearchRecords).
-  const [countRows, joinedProfilesRows, joinedMetaRows, tablesRows] = await client.batch([
-    { sql: 'SELECT COUNT(*) AS n FROM searches' },
-    {
-      sql: 'SELECT COUNT(*) AS n FROM searches s JOIN profiles p ON p.search_id = s.id',
-    },
-    {
-      sql: 'SELECT COUNT(*) AS n FROM searches s JOIN search_meta m ON m.search_id = s.id',
-    },
-    { sql: "SELECT name FROM sqlite_master WHERE type = 'table'" },
-  ]);
+  const [countRows, joinedProfilesRows, joinedMetaRows, tablesRows] =
+    await withTimeout(
+      client.batch([
+        { sql: 'SELECT COUNT(*) AS n FROM searches' },
+        {
+          sql: 'SELECT COUNT(*) AS n FROM searches s JOIN profiles p ON p.search_id = s.id',
+        },
+        {
+          sql: 'SELECT COUNT(*) AS n FROM searches s JOIN search_meta m ON m.search_id = s.id',
+        },
+        { sql: "SELECT name FROM sqlite_master WHERE type = 'table'" },
+      ]),
+      DB_SMOKE_TIMEOUT_MS,
+      'turso db:smoke batch',
+    );
 
-  const names = new Set(tablesRows.rows.map((r) => String(r.name)));
+  const names = new Set(tablesRows.rows.map((r: { name: unknown }) => String(r.name)));
   const missingTables = EXPECTED_TABLES.filter((t) => !names.has(t));
 
   const checks = {
@@ -92,11 +106,13 @@ const EXPECTED_TABLES = [
 })().catch((e) => {
   // A transport-level failure (Turso down, network blip) is an environment
   // problem, not an analytics regression — the pre-push hook runs this smoke,
-  // and a reachable-Turso outage must not block pushes. Genuine schema/logic
-  // failures still FAIL loudly.
-  if (isTransportFailure(e)) {
+  // and a reachable-Turso outage must not block pushes. A stall (timeout)
+  // skips for the same reason: it proves nothing about schema/logic, and
+  // hanging the push forever is the failure mode this guard exists to kill.
+  // Genuine schema/logic failures still FAIL loudly.
+  if (isTransportFailure(e) || isTimeoutError(e)) {
     // eslint-disable-next-line no-console
-    console.log('DB SMOKE SKIPPED: Turso unreachable (transport-level failure)');
+    console.log('DB SMOKE SKIPPED: Turso unreachable or stalled (timeout/transport-level failure)');
     process.exit(0);
   }
   // eslint-disable-next-line no-console

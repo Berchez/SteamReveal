@@ -36,7 +36,7 @@ function FriendsSection({ closeFriendsJson }: FriendsSectionProps) {
     // margins don't collapse — the footer below already carries mt-12, and
     // keeping mb-12 too would stack 48+48=96px instead of the collapsed 48px
     // this gap has always been. See Home.tsx footer comment.
-    <div className="w-full">
+    <div data-testid="friends-section" className="w-full">
       <h1 className="text-2xl font-bold text-gray-100">
         {translator('friendsIRL')}
       </h1>

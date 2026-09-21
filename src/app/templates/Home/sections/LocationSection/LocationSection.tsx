@@ -22,7 +22,7 @@ function LocationSection({
   // page. Home.tsx only mounts this section when !hasNoDataYet, so showing
   // the skeleton here can never leak onto the empty home state.
   return (
-    <div>
+    <div data-testid="location-section">
       <h1 className="text-2xl font-bold text-gray-100">
         {translator('userPossibleLocation')}
       </h1>

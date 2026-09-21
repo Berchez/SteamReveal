@@ -4,6 +4,8 @@ import { track } from '@vercel/analytics';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import useSupportMe from '@/app/components/SupportMe/useSupportMe';
 
+import { useSearchParams } from 'next/navigation';
+import { ANTI_LOOP_TOKEN_PARAM } from '@/lib/watch/notificationText';
 import { useRunGuard } from './run-guard/useRunGuard';
 import usePlayerUrlSync from './url-sync/usePlayerUrlSync';
 import useHomeSearch from './search/useHomeSearch';
@@ -36,6 +38,26 @@ const useHome = () => {
   const { showSupportMe, handleShowSupportMe, onCloseSupportMe } =
     useSupportMe();
 
+  const searchParams = useSearchParams();
+  const antiLoopToken = searchParams.get(ANTI_LOOP_TOKEN_PARAM) || undefined;
+
+  // Strip the single-use token from the address bar once captured (same
+  // QueryToast pattern): a spent token lingering in the URL leaks via the
+  // Referer header on every outbound link of the player page
+  // (Steam/FACEIT/GamersClub/sponsor). The value itself was already read
+  // above for this mount's analytics call; stripping never affects it.
+  // Idempotent (StrictMode-safe): deleting an absent param is a no-op.
+  useEffect(() => {
+    if (
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).has(ANTI_LOOP_TOKEN_PARAM)
+    ) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete(ANTI_LOOP_TOKEN_PARAM);
+      window.history.replaceState(null, '', url.toString());
+    }
+  }, []);
+
   const {
     navigateToPlayer,
     syncPlayerUrl,
@@ -63,6 +85,7 @@ const useHome = () => {
     clearSyncedUrlPlayer,
     handleShowSponsorMe,
     handleShowSupportMe,
+    antiLoopToken,
   });
 
   const { prefetchCheaterReport, cheaterError, retryCheaterReport, resetCheaterError } =
@@ -84,7 +107,7 @@ const useHome = () => {
   // CLS/LCP/FCP regression: the fetch runs in the background, but no DOM is
   // produced at that spot until the user actually clicks. Opening the report
   // also fires the monetization + analytics side effects, since those are
-  // deliberately gated behind the user action ("só no clique").
+  // deliberately gated behind the user action ("only on click").
   const [isReportOpen, setIsReportOpen] = useState(false);
 
   // Kept in a ref (assigned synchronously during render) so openCheaterReport

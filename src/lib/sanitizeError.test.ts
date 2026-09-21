@@ -1,4 +1,18 @@
-import { sanitizeError } from './sanitizeError';
+import { escapeStructuralQuotes, sanitizeError } from './sanitizeError';
+
+describe('escapeStructuralQuotes', () => {
+  const bs = String.fromCharCode(92);
+
+  it('prefixes structural quotes, preserves escape pairs and classes', () => {
+    // `"a":"b"` -> backslash-quote spans; escape pairs (`\\`) and the
+    // class interior (`[^"\\]`) travel untouched.
+    expect(escapeStructuralQuotes('"a":"b"')).toBe(
+      `${bs}${bs}"a${bs}${bs}":${bs}${bs}"b${bs}${bs}"`,
+    );
+    expect(escapeStructuralQuotes(`[^"${bs}${bs}]`)).toBe(`[^"${bs}${bs}]`);
+    expect(escapeStructuralQuotes(`${bs}${bs}n`)).toBe(`${bs}${bs}n`);
+  });
+});
 
 describe('sanitizeError', () => {
   it('redacts token= and token: literals', () => {
@@ -17,6 +31,19 @@ describe('sanitizeError', () => {
     expect(sanitizeError('Unauthorized token abc123XYZ_')).toBe(
       'Unauthorized token=[REDACTED]',
     );
+  });
+
+  it('leaves plain-English token phrases intact (bot incident lines stay greppable)', () => {
+    // `token` + short alpha word = prose, not a secret (opaque values
+    // carry digits/underscores or length). The file log must keep these
+    // readable — the runbook greps them.
+    expect(sanitizeError('issued token rolled back, retry')).toBe(
+      'issued token rolled back, retry',
+    );
+    expect(sanitizeError('token rollback failed')).toBe(
+      'token rollback failed',
+    );
+    expect(sanitizeError('token expired, retry')).toBe('token expired, retry');
   });
 
   it('redacts standalone JWT-shaped strings anywhere in the message', () => {
@@ -52,7 +79,7 @@ describe('sanitizeError', () => {
       'refused token=[REDACTED]',
     );
     expect(sanitizeError('bad credentials authtoken=sup3r-secret')).toBe(
-      'bad credentials token=[REDACTED]',
+      'bad credentials authtoken=[REDACTED]',
     );
   });
 
@@ -61,5 +88,131 @@ describe('sanitizeError', () => {
       'Rate limit exceeded',
     );
     expect(sanitizeError('plain string')).toBe('plain string');
+  });
+
+  it('redacts bot confirm-link and anti-loop token shapes (real link forms)', () => {
+    const hex64 = 'a'.repeat(64);
+    // Bare query shape (no scheme): the token pattern does the work and
+    // the surrounding text survives.
+    expect(sanitizeError(`open confirm?token=${hex64} now`)).toBe(
+      'open confirm?token=[REDACTED] now',
+    );
+    // anti_loop_token= has no word boundary before "token" — the \w*
+    // prefix exists exactly for this shape.
+    const antiLoop = sanitizeError(
+      `see /en/player/1?anti_loop_token=${hex64} end`,
+    );
+    expect(antiLoop).not.toContain(hex64);
+    expect(antiLoop).toContain('token=[REDACTED]');
+    // Full https URLs are eaten whole by the URL pattern (even stronger).
+    expect(
+      sanitizeError(`open https://site/api/watch/confirm?token=${hex64} now`),
+    ).toBe('open [URL REDACTED] now');
+  });
+
+  it('preserves the field-name prefix so redacted lines stay diagnosable', () => {
+    expect(sanitizeError('call failed sessionKey=abc123XYZ')).toBe(
+      'call failed sessionKey=[REDACTED]',
+    );
+    expect(sanitizeError('call failed api_key=abc123XYZ')).toBe(
+      'call failed api_key=[REDACTED]',
+    );
+  });
+
+  it('redacts Steam-style key= secrets but keeps neighboring steamIds', () => {
+    const apiKey = 'b'.repeat(32);
+    const redacted = sanitizeError(
+      `steam call failed key=${apiKey} for steamId=76561198000000001`,
+    );
+    expect(redacted).not.toContain(apiKey);
+    expect(redacted).toContain('key=[REDACTED]');
+    // steamId= carries no secret (searchable public id) and must survive
+    // for the log line to stay diagnosable.
+    expect(redacted).toContain('steamId=76561198000000001');
+  });
+
+  it('redacts authorization headers including the Bearer scheme', () => {
+    expect(
+      sanitizeError('rejected authorization: Bearer abc123XYZ tail'),
+    ).toBe('rejected authorization=[REDACTED] tail');
+  });
+
+  it('does not redact words that merely contain key without a secret', () => {
+    expect(sanitizeError('monkey business as usual')).toBe(
+      'monkey business as usual',
+    );
+    expect(sanitizeError('profile key check passed')).toBe(
+      'profile key check passed',
+    );
+  });
+
+  it('redacts secret names in JSON-quoted form (nested stringified context)', () => {
+    // flattenContext stringifies nested objects, so the key arrives quoted
+    // with a colon — invisible to the =-anchored patterns above. The key
+    // name is preserved so the line stays diagnosable.
+    expect(sanitizeError('body={"token":"a1b2c3d4"} end')).toBe(
+      'body={"token":"[REDACTED]"} end',
+    );
+    expect(sanitizeError('params={"apiKey":"zzz999"}')).toBe(
+      'params={"apiKey":"[REDACTED]"}',
+    );
+    expect(sanitizeError('headers={"authorization":"Bearer abc"} done')).toBe(
+      'headers={"authorization":"[REDACTED]"} done',
+    );
+    expect(sanitizeError('cfg={"session":"deadbeef"}')).toBe(
+      'cfg={"session":"[REDACTED]"}',
+    );
+    // Non-string JSON values carry no secret and stay untouched.
+    expect(sanitizeError('opts={"retries":3}')).toBe('opts={"retries":3}');
+    // Backslash-escaped quotes (error bodies serialized inside a string):
+    // the value still redacts instead of stopping at the first \".
+    // (Backslashes built via fromCharCode so this test cannot silently
+    // decay into the plain-quote case through an escaping slip.)
+    const bs = String.fromCharCode(92);
+    expect(
+      sanitizeError(`body={${bs}"token${bs}":${bs}"a1b2c3${bs}"} end`),
+    ).toBe(`body={${bs}"token${bs}":${bs}"[REDACTED]${bs}"} end`);
+  });
+
+  it('redacts only secret-SUFFIXED json keys, not mid-word contains', () => {
+    // Suffix rule: real secret names end with the kind (apiKey, authToken,
+    // SESSION_SECRET). Mid-word contains stay readable for debuggability.
+    expect(sanitizeError('ui={"sessionType":"x","authorName":"y"}')).toBe(
+      'ui={"sessionType":"x","authorName":"y"}',
+    );
+    // Quoted value, so only the suffix rule saves it (a boolean would
+    // pass for the wrong reason — unquoted values never match).
+    expect(sanitizeError('ui={"cookieBanner":"seen"}')).toBe(
+      'ui={"cookieBanner":"seen"}',
+    );
+    // ...except a name that also ENDS with a kind (`monkey` ends with
+    // `key`): still redacts — accepted residual, fail-closed on purpose.
+    expect(sanitizeError('ui={"monkey":"banana"}')).toBe(
+      'ui={"monkey":"[REDACTED]"}',
+    );
+  });
+
+  it('redacts password/secret/cookie/session/clearance in literal form', () => {
+    expect(sanitizeError('login failed password=s3cr3t!')).toBe(
+      'login failed password=[REDACTED]',
+    );
+    expect(sanitizeError('SESSION_SECRET=deadbeef cfg')).toBe(
+      'SESSION_SECRET=[REDACTED] cfg',
+    );
+    expect(sanitizeError('set cookie: abc123')).toBe(
+      'set cookie=[REDACTED]',
+    );
+    expect(sanitizeError('cf_clearance=abc123 blocked')).toBe(
+      'cf_clearance=[REDACTED] blocked',
+    );
+  });
+
+  it('leaves benign JSON keys and bare prose untouched (documented boundary)', () => {
+    expect(sanitizeError('data={"nickname":"fred","steamId":"1"}')).toBe(
+      'data={"nickname":"fred","steamId":"1"}',
+    );
+    expect(sanitizeError('session expired, retry')).toBe(
+      'session expired, retry',
+    );
   });
 });

@@ -86,7 +86,9 @@ describe('analytics db DAL', () => {
     await recordSearch(newSearchInput);
 
     mockBatch.mockRejectedValueOnce(new Error('The session is closed'));
-    await expect(recordSearch(newSearchInput)).rejects.toThrow('session is closed');
+    await expect(recordSearch(newSearchInput)).rejects.toThrow(
+      'session is closed',
+    );
 
     // The dead client must not be reused: the next call rebuilds it.
     await recordSearch(newSearchInput);
@@ -208,7 +210,11 @@ describe('attachFriendGcNames backfill', () => {
       sql: 'UPDATE friends SET gc_name = ? WHERE search_id = ? AND steam_id = ?',
       args: ['Alice', 'search-id', '76561198000000001'],
     });
-    expect(statements[1].args).toEqual(['Bob', 'search-id', '76561198000000002']);
+    expect(statements[1].args).toEqual([
+      'Bob',
+      'search-id',
+      '76561198000000002',
+    ]);
   });
 
   it('filters blank/oversized names and invalid steamIds before writing', async () => {
@@ -230,7 +236,11 @@ describe('attachFriendGcNames backfill', () => {
     expect(result).toEqual({ searchExists: true, updated: 1 });
     const statements = mockBatch.mock.calls[0][0];
     expect(statements).toHaveLength(1);
-    expect(statements[0].args).toEqual(['Ok', 'search-id', '76561198000000001']);
+    expect(statements[0].args).toEqual([
+      'Ok',
+      'search-id',
+      '76561198000000001',
+    ]);
   });
 
   it('treats an empty batch as a successful no-op', async () => {
@@ -371,7 +381,14 @@ describe('getSearchRecords read path', () => {
         ],
       },
       {
-        rows: [{ search_id: searchId, id: 1, name: 'Counter-Strike 2', playtime_hours: 120.5 }],
+        rows: [
+          {
+            search_id: searchId,
+            id: 1,
+            name: 'Counter-Strike 2',
+            playtime_hours: 120.5,
+          },
+        ],
       },
       {
         rows: [
@@ -412,7 +429,10 @@ describe('getSearchRecords read path', () => {
       { name: 'Counter-Strike 2', playtimeHours: 120.5 },
     ]);
     expect(record.locationGuess).toEqual([
-      { location: { cityName: 'Sao Paulo', countryCode: 'BR' }, probability: 87.5 },
+      {
+        location: { cityName: 'Sao Paulo', countryCode: 'BR' },
+        probability: 87.5,
+      },
     ]);
     expect(record.cheater).toEqual({
       score: 72,
@@ -424,7 +444,9 @@ describe('getSearchRecords read path', () => {
   it('maps is_cs_active NULL / invalid device to null instead of crashing', async () => {
     mockBatch.mockResolvedValueOnce([
       {
-        rows: [{ ...searchRow, is_cs_active: null, device: 'potato', city_id: null }],
+        rows: [
+          { ...searchRow, is_cs_active: null, device: 'potato', city_id: null },
+        ],
       },
       { rows: [] },
       { rows: [] },
@@ -478,8 +500,16 @@ describe('getSearchRecords read path', () => {
     mockBatch.mockResolvedValueOnce([
       {
         rows: [
-          { id: 'orphan-1', searched_at: '2026-09-04T20:00:00.000Z', steam_id: null },
-          { id: 'orphan-2', searched_at: '2026-09-04T21:00:00.000Z', steam_id: '' },
+          {
+            id: 'orphan-1',
+            searched_at: '2026-09-04T20:00:00.000Z',
+            steam_id: null,
+          },
+          {
+            id: 'orphan-2',
+            searched_at: '2026-09-04T21:00:00.000Z',
+            steam_id: '',
+          },
           searchRow,
         ],
       },
@@ -495,5 +525,1698 @@ describe('getSearchRecords read path', () => {
     expect(records).toHaveLength(1);
     expect(records[0].id).toBe(searchId);
     expect(records[0].profile.steamId).toBe('76561198000000000');
+  });
+});
+
+describe('watch/outbox DAL (Epic 1)', () => {
+  const STEAM = '76561198000000000';
+
+  beforeEach(() => {
+    jest.resetModules();
+    mockCreateClient.mockReset();
+    mockExecute.mockReset();
+    mockBatch.mockReset();
+    mockClose.mockReset();
+    buildMockClient();
+    // Every execute resolves empty by default (pre-check SELECTs).
+    mockExecute.mockResolvedValue({ rows: [] });
+    // Every test below requires a fresh ./db (module reset above), so its
+    // first execute is always getClient's PRAGMA — reserve it up front so
+    // per-test mockResolvedValueOnce queues line up with real statements.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
+    process.env.DATABASE_TOKEN = 'secret-token';
+  });
+
+  const watchRow = (overrides = {}) => ({
+    steam_id: STEAM,
+    status: 'pending',
+    locale: null,
+    requested_at: '2026-09-08T00:00:00.000Z',
+    activated_at: null,
+    last_notified_at: null,
+    ...overrides,
+  });
+
+  it('createWatchRequest inserts pending and returns the mapped row', async () => {
+    // PRAGMA placeholder comes from beforeEach; INSERT takes the default
+    // empty rows, SELECT takes the row below.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [watchRow()] });
+
+    const { createWatchRequest } = require('./db');
+    const profile = await createWatchRequest(STEAM, 'pt');
+
+    expect(profile).toEqual({
+      steamId: STEAM,
+      status: 'pending',
+      locale: null,
+      requestedAt: '2026-09-08T00:00:00.000Z',
+      activatedAt: null,
+      lastNotifiedAt: null,
+    });
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watched_profiles'),
+    );
+    expect(insert).toBeDefined();
+    expect(String(insert[0]?.sql ?? insert[0])).toContain(
+      'ON CONFLICT(steam_id) DO NOTHING',
+    );
+    expect(insert[0].args[0]).toBe(STEAM);
+    expect(insert[0].args[1]).toBe('pt');
+    expect(typeof insert[0].args[2]).toBe('string');
+  });
+
+  it('createWatchRequest returns the existing row untouched on duplicate (no second insert possible)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        watchRow({
+          status: 'active',
+          activated_at: '2026-09-08T01:00:00.000Z',
+        }),
+      ],
+    });
+
+    const { createWatchRequest } = require('./db');
+    const profile = await createWatchRequest(STEAM);
+
+    expect(profile.status).toBe('active');
+    expect(profile.locale).toBeNull();
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watched_profiles'),
+    );
+    // Exactly one INSERT attempt (made a no-op by the constraint) + SELECT.
+    expect(inserts).toHaveLength(1);
+  });
+
+  it('createWatchRequest coerces a malformed locale to null instead of failing', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [watchRow()] });
+
+    const { createWatchRequest } = require('./db');
+    await createWatchRequest(STEAM, 'pt-BR!!');
+
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watched_profiles'),
+    );
+    expect(insert[0].args[1]).toBeNull();
+  });
+
+  it('createWatchRequest throws on invalid steamId before touching the client', async () => {
+    const { createWatchRequest } = require('./db');
+
+    await expect(createWatchRequest('short')).rejects.toThrow(/17 digits/);
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+
+  it('hashConfirmToken is a stable 64-hex SHA-256 (never the token)', () => {
+    const { hashConfirmToken } = require('./db');
+
+    const first: string = hashConfirmToken('token-abc');
+    expect(first).toMatch(/^[0-9a-f]{64}$/);
+    expect(hashConfirmToken('token-abc')).toBe(first);
+    expect(hashConfirmToken('token-abd')).not.toBe(first);
+    expect(first).not.toContain('token-abc');
+  });
+
+  it('createAccount inserts unconfirmed and returns the mapped row', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-08T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'pt',
+        },
+      ],
+    });
+
+    const { createAccount } = require('./db');
+    const account = await createAccount(STEAM, 'pt');
+
+    expect(account).toEqual({
+      steamId: STEAM,
+      createdAt: '2026-09-08T00:00:00.000Z',
+      confirmedAt: null,
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+      locale: 'pt',
+      lastLoginAt: null,
+    });
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO accounts'),
+    );
+    expect(String(insert[0]?.sql ?? insert[0])).toContain(
+      'ON CONFLICT(steam_id) DO NOTHING',
+    );
+  });
+
+  it('createAccount never resets confirmation on re-signup (returns row untouched)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: '2026-09-02T00:00:00.000Z',
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'en',
+        },
+      ],
+    });
+
+    const { createAccount } = require('./db');
+    const account = await createAccount(STEAM, 'pt');
+
+    expect(account.confirmedAt).toBe('2026-09-02T00:00:00.000Z');
+    expect(account.createdAt).toBe('2026-09-01T00:00:00.000Z');
+  });
+
+  it('recordLogin upserts (first insert, then last_login_at refresh) and maps the row', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'pt',
+          last_login_at: '2026-09-16T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const { recordLogin } = require('./db');
+    const account = await recordLogin(STEAM, 'pt');
+
+    expect(account).toEqual({
+      steamId: STEAM,
+      createdAt: '2026-09-01T00:00:00.000Z',
+      confirmedAt: null,
+      confirmTokenHash: null,
+      confirmExpiresAt: null,
+      locale: 'pt',
+      lastLoginAt: '2026-09-16T00:00:00.000Z',
+    });
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO accounts'),
+    );
+    const sql = String(insert[0]?.sql ?? insert[0]);
+    // Upsert semantics: PK conflict refreshes the audit clock + locale,
+    // never resets created_at (no DO NOTHING — that would pin
+    // last_login_at at the first login forever).
+    expect(sql).toContain('ON CONFLICT(steam_id) DO UPDATE SET');
+    expect(sql).toContain('last_login_at = excluded.last_login_at');
+    expect(sql).toContain('locale = COALESCE(excluded.locale, accounts.locale)');
+  });
+
+  it('recordLogin validates before touching the client', async () => {
+    const { recordLogin } = require('./db');
+    await expect(recordLogin('short')).rejects.toThrow(/17 digits/);
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it('ensureActiveWatch inserts fresh profiles straight to active (no follow-up reads)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(true);
+    expect(profile).toMatchObject({
+      steamId: STEAM,
+      status: 'active',
+      locale: 'pt',
+      lastNotifiedAt: null,
+    });
+    expect(profile.activatedAt).toBe(profile.requestedAt);
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watched_profiles'),
+    );
+    expect(String(insert[0]?.sql ?? insert[0])).toContain(
+      "VALUES (?, 'active'",
+    );
+    // Winner path: the INSERT decided everything — no follow-up reads.
+    // (Cold-start PRAGMA counts as a call too; asserting on statement
+    // SHAPE, not raw totals, keeps this decoupled from that plumbing.)
+    const selects = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0])
+        .trimStart()
+        .startsWith('SELECT'),
+    );
+    expect(selects).toHaveLength(0);
+    const updates = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0])
+        .trimStart()
+        .startsWith('UPDATE'),
+    );
+    expect(updates).toHaveLength(0);
+  });
+
+  it('ensureActiveWatch is idempotent on active rows (activated=false, locale refreshed)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'active',
+          locale: 'pt',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: '2026-09-01T00:00:00.000Z',
+          last_notified_at: null,
+        },
+      ],
+    });
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'en');
+
+    expect(activated).toBe(false);
+    expect(profile.status).toBe('active');
+    expect(profile.locale).toBe('en');
+    const update = mockExecute.mock.calls.find(
+      (call) =>
+        String(call[0]?.sql ?? call[0]).includes('SET locale = COALESCE') &&
+        String(call[0]?.sql ?? call[0]).includes("status = 'active'"),
+    );
+    expect(String(update[0]?.sql ?? update[0])).toContain(
+      'COALESCE(?, locale)',
+    );
+  });
+
+  it('ensureActiveWatch flips account-less legacy pending rows to active (grandfathered consent)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'pending',
+          locale: 'es',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: null,
+          last_notified_at: null,
+        },
+      ],
+    });
+    // No accounts row (pre-confirmation rows never created one).
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(true);
+    expect(profile.status).toBe('active');
+    expect(profile.locale).toBe('pt');
+    const flip = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes("SET status = 'active'"),
+    );
+    expect(String(flip[0]?.sql ?? flip[0])).toContain(
+      "AND status = 'pending'",
+    );
+  });
+
+  it('ensureActiveWatch flips pending rows with a CONFIRMED account', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'pending',
+          locale: 'es',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: null,
+          last_notified_at: null,
+        },
+      ],
+    });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: '2026-09-02T00:00:00.000Z',
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'es',
+          last_login_at: null,
+        },
+      ],
+    });
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(true);
+    expect(profile.status).toBe('active');
+  });
+
+  it('ensureActiveWatch LEAVES pending rows with an UNCONFIRMED account (link click owns them)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'pending',
+          locale: 'es',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: null,
+          last_notified_at: null,
+        },
+      ],
+    });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: 'ab'.repeat(32),
+          confirm_expires_at: '2026-09-03T00:00:00.000Z',
+          locale: 'es',
+          last_login_at: null,
+        },
+      ],
+    });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    // No flip, no welcome owed — the outstanding link click activates.
+    expect(activated).toBe(false);
+    expect(profile.status).toBe('pending');
+    const flips = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes("SET status = 'active'"),
+    );
+    expect(flips).toHaveLength(0);
+  });
+
+  it('ensureActiveWatch handles a lost flip race by rereading (activated=false)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'pending',
+          locale: 'pt',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: null,
+          last_notified_at: null,
+        },
+      ],
+    });
+    // No accounts row: the flip branch is reached, then loses the race.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          status: 'active',
+          locale: 'pt',
+          requested_at: '2026-09-01T00:00:00.000Z',
+          activated_at: '2026-09-02T00:00:00.000Z',
+          last_notified_at: null,
+        },
+      ],
+    });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(false);
+    expect(profile.status).toBe('active');
+    expect(profile.activatedAt).toBe('2026-09-02T00:00:00.000Z');
+  });
+
+  it('ensureActiveWatch validates before touching the client', async () => {
+    const { ensureActiveWatch } = require('./db');
+    await expect(ensureActiveWatch('short')).rejects.toThrow(/17 digits/);
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it('getAccount returns the row or null', async () => {
+    const { getAccount } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(getAccount(STEAM)).resolves.toBeNull();
+
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-08T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: 'ab'.repeat(32),
+          confirm_expires_at: '2026-09-09T00:00:00.000Z',
+          locale: null,
+        },
+      ],
+    });
+    await expect(getAccount(STEAM)).resolves.toMatchObject({
+      steamId: STEAM,
+      confirmedAt: null,
+    });
+    await expect(getAccount('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('issueConfirmToken arms the token only for existing rows', async () => {
+    const { issueConfirmToken } = require('./db');
+    const hash = 'ab'.repeat(32);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(
+      issueConfirmToken(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(true);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(
+      issueConfirmToken(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(false);
+  });
+
+  it('issueConfirmToken never touches confirmed accounts and validates the hash', async () => {
+    const { issueConfirmToken } = require('./db');
+
+    await expect(
+      issueConfirmToken(STEAM, 'not-a-hash', '2026-09-09T00:00:00.000Z'),
+    ).rejects.toThrow(/64 lowercase hex/);
+
+    const hash = 'ab'.repeat(32);
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(
+      issueConfirmToken(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(true);
+    const update = mockExecute.mock.calls.at(-1);
+    expect(String(update[0]?.sql ?? update[0])).toContain(
+      'confirmed_at IS NULL',
+    );
+  });
+
+  it('clearConfirmToken rolls back by compare-and-delete (hash match + unconfirmed only)', async () => {
+    const { clearConfirmToken } = require('./db');
+    const hash = 'ab'.repeat(32);
+
+    await expect(clearConfirmToken(STEAM, 'not-a-hash')).rejects.toThrow(
+      /64 lowercase hex/,
+    );
+    await expect(clearConfirmToken('short', hash)).rejects.toThrow(
+      /17 digits/,
+    );
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(clearConfirmToken(STEAM, hash)).resolves.toBe(true);
+    const update = mockExecute.mock.calls.at(-1);
+    const sql = String(update[0]?.sql ?? update[0]);
+    // Compare-and-delete: the exact hash must appear in the predicate so a
+    // concurrent click (consumed) or resend generation (replaced) is never
+    // clobbered by a late rollback — and a confirmed account never loses
+    // its confirmation trace.
+    expect(sql).toContain('confirm_token_hash = ?');
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_token_hash = NULL');
+    expect(sql).toContain('confirm_expires_at = NULL');
+    expect((update[0] as { args: unknown[] }).args).toEqual([STEAM, hash]);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(clearConfirmToken(STEAM, hash)).resolves.toBe(false);
+  });
+
+  it('issueConfirmTokenIfAbsent arms only when no generation is outstanding (atomic guard)', async () => {
+    const { issueConfirmTokenIfAbsent } = require('./db');
+    const hash = 'ab'.repeat(32);
+
+    await expect(
+      issueConfirmTokenIfAbsent(STEAM, 'not-a-hash', '2026-09-09T00:00:00.000Z'),
+    ).rejects.toThrow(/64 lowercase hex/);
+    await expect(
+      issueConfirmTokenIfAbsent('short', hash, '2026-09-09T00:00:00.000Z'),
+    ).rejects.toThrow(/17 digits/);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(
+      issueConfirmTokenIfAbsent(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(true);
+    const update = mockExecute.mock.calls.at(-1);
+    const sql = String(update[0]?.sql ?? update[0]);
+    // Same arming as the unconditional issue, plus the absent-guard: one
+    // statement, no read-then-write window for the reconcile/resend race.
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_token_hash IS NULL');
+    expect((update[0] as { args: unknown[] }).args).toEqual([
+      hash,
+      '2026-09-09T00:00:00.000Z',
+      STEAM,
+    ]);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(
+      issueConfirmTokenIfAbsent(STEAM, hash, '2026-09-09T00:00:00.000Z'),
+    ).resolves.toBe(false);
+  });
+
+  it('consumeConfirmToken resolves the winner row or null in one statement', async () => {
+    const { consumeConfirmToken } = require('./db');
+    const hash = 'ab'.repeat(32);
+
+    mockExecute.mockResolvedValueOnce({ rows: [{ steam_id: STEAM }] });
+    await expect(consumeConfirmToken(hash)).resolves.toBe(STEAM);
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE accounts'),
+    );
+    // Atomic consume: expiry + single-use + unconfirmed all in the
+    // predicate — no read-then-write race for double-clicks.
+    const sql = String(update[0]?.sql ?? update[0]);
+    expect(sql).toContain('confirm_token_hash = ?');
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_expires_at > ?');
+    expect(sql).toContain('RETURNING steam_id');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(consumeConfirmToken(hash)).resolves.toBeNull();
+
+    await expect(consumeConfirmToken('not-hex')).rejects.toThrow(
+      /confirm token hash/,
+    );
+  });
+
+  it('activateWatch flips pending->active with activated_at', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+
+    const { activateWatch } = require('./db');
+    await expect(activateWatch(STEAM)).resolves.toBe(true);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
+    );
+    expect(String(update[0]?.sql ?? update[0])).toContain("status = 'active'");
+    expect(String(update[0]?.sql ?? update[0])).toContain("status = 'pending'");
+  });
+
+  it('activateWatch returns false when already active (only the flipper owns side effects)', async () => {
+    // Strict rowsAffected semantics: two unsynchronized activators (the
+    // confirm POST and the bot reconcile) must never BOTH believe they
+    // flipped the row, or the user gets two welcomes. Exactly one UPDATE
+    // wins; everyone else reads false and stands down — no fallback
+    // re-read (re-reading to "confirm" would resurrect the race).
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+
+    const { activateWatch } = require('./db');
+    await expect(activateWatch(STEAM)).resolves.toBe(false);
+    // PRAGMA + UPDATE only: no follow-up SELECT (the UPDATE's own
+    // EXISTS subqueries don't count — only top-level statements do).
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    const selects = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0])
+        .trimStart()
+        .startsWith('SELECT'),
+    );
+    expect(selects).toHaveLength(0);
+  });
+
+  it('activateWatch returns false when nothing was ever requested', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+
+    const { activateWatch } = require('./db');
+    await expect(activateWatch(STEAM)).resolves.toBe(false);
+  });
+
+  it('activateWatch gates on confirmation (click-to-activate)', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+
+    const { activateWatch } = require('./db');
+    await expect(activateWatch(STEAM)).resolves.toBe(true);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
+    );
+    const sql = String(update[0]?.sql ?? update[0]);
+    expect(sql).toContain('confirmed_at IS NOT NULL');
+    expect(sql).toContain('NOT EXISTS');
+    expect(update[0].args).toEqual([
+      expect.any(String),
+      STEAM,
+      STEAM,
+      STEAM,
+    ]);
+  });
+
+  it('activateWatch refuses unconfirmed pending watches', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({ rows: [{ status: 'pending' }] });
+
+    const { activateWatch } = require('./db');
+    await expect(activateWatch(STEAM)).resolves.toBe(false);
+  });
+
+  it('listExpiredUnnoticedConfirms maps candidates and guards the limit', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          watch_locale: 'pt',
+          account_locale: null,
+          expires_at: '2026-09-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const { listExpiredUnnoticedConfirms } = require('./db');
+    await expect(listExpiredUnnoticedConfirms()).resolves.toEqual([
+      {
+        steamId: STEAM,
+        watchLocale: 'pt',
+        accountLocale: null,
+        expiresAt: '2026-09-01T00:00:00.000Z',
+      },
+    ]);
+
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM accounts'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_expire_noticed_for');
+    expect(sql).toContain("w.status = 'pending'");
+    expect(sql).toContain('LIMIT ?');
+    expect(select[0].args[1]).toBe(10);
+
+    await expect(listExpiredUnnoticedConfirms(NaN)).rejects.toThrow(/finite/);
+  });
+
+  it('getAccountByConfirmTokenHash reads without spending the token', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-01T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: 'ab'.repeat(32),
+          confirm_expires_at: '2030-01-01T00:00:00.000Z',
+          locale: 'pt',
+        },
+      ],
+    });
+
+    const { getAccountByConfirmTokenHash } = require('./db');
+    await expect(
+      getAccountByConfirmTokenHash('ab'.repeat(32)),
+    ).resolves.toMatchObject({ steamId: STEAM, confirmedAt: null });
+
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes(
+        'FROM accounts WHERE confirm_token_hash = ?',
+      ),
+    );
+    expect(select).toBeDefined();
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(
+      getAccountByConfirmTokenHash('ab'.repeat(32)),
+    ).resolves.toBeNull();
+
+    await expect(getAccountByConfirmTokenHash('not-hex')).rejects.toThrow(
+      /confirm token hash/,
+    );
+  });
+
+  it('markExpireNoticed writes conditionally (concurrent click wins)', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+
+    const { markExpireNoticed } = require('./db');
+    await expect(
+      markExpireNoticed(STEAM, '2026-09-01T00:00:00.000Z'),
+    ).resolves.toBe(true);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE accounts'),
+    );
+    const sql = String(update[0]?.sql ?? update[0]);
+    expect(sql).toContain('confirm_expire_noticed_for = ?');
+    expect(sql).toContain('confirmed_at IS NULL');
+    expect(sql).toContain('confirm_expires_at = ?');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(
+      markExpireNoticed(STEAM, '2026-09-01T00:00:00.000Z'),
+    ).resolves.toBe(false);
+
+    await expect(
+      markExpireNoticed('short', '2026-09-01T00:00:00.000Z'),
+    ).rejects.toThrow(/17 digits/);
+    await expect(markExpireNoticed(STEAM, '')).rejects.toThrow(/expiresAt/);
+  });
+
+  it('deactivateWatch deletes the row (opt-out PII removal)', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+
+    const { deactivateWatch } = require('./db');
+    await expect(deactivateWatch(STEAM)).resolves.toBe(true);
+
+    const del = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('DELETE FROM watched_profiles'),
+    );
+    expect(del).toBeDefined();
+  });
+
+  it('deactivateWatch returns false when nothing was stored', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+
+    const { deactivateWatch } = require('./db');
+    await expect(deactivateWatch(STEAM)).resolves.toBe(false);
+  });
+
+  it('deleteAccount removes the signup row (opt-out half, always paired)', async () => {
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+
+    const { deleteAccount } = require('./db');
+    await expect(deleteAccount(STEAM)).resolves.toBe(true);
+
+    const del = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('DELETE FROM accounts'),
+    );
+    expect(del).toBeDefined();
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(deleteAccount(STEAM)).resolves.toBe(false);
+    await expect(deleteAccount('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('removeWatchAndAccount deletes both rows in one batch (atomic opt-out)', async () => {
+    const { removeWatchAndAccount } = require('./db');
+
+    mockBatch.mockResolvedValueOnce([{ rowsAffected: 1 }, { rowsAffected: 1 }]);
+    await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
+      accountDeleted: true,
+      watchDeleted: true,
+    });
+
+    // One batch, account statement first: a single transaction, both rows
+    // go or neither does.
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+    const statements = mockBatch.mock.calls[0][0];
+    expect(statements).toHaveLength(2);
+    expect(String(statements[0].sql)).toContain('DELETE FROM accounts');
+    expect(String(statements[1].sql)).toContain('DELETE FROM watched_profiles');
+
+    mockBatch.mockResolvedValueOnce([{ rowsAffected: 0 }, { rowsAffected: 0 }]);
+    await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
+      accountDeleted: false,
+      watchDeleted: false,
+    });
+    await expect(removeWatchAndAccount('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('getWatchStatus maps pending/active/null and collapses garbage to pending', async () => {
+    const { getWatchStatus } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [{ status: 'pending' }] });
+    await expect(getWatchStatus(STEAM)).resolves.toBe('pending');
+
+    mockExecute.mockResolvedValueOnce({ rows: [{ status: 'active' }] });
+    await expect(getWatchStatus(STEAM)).resolves.toBe('active');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(getWatchStatus(STEAM)).resolves.toBeNull();
+
+    // Same contract as toWatchedProfile: the row exists but is not active.
+    mockExecute.mockResolvedValueOnce({ rows: [{ status: 'banned' }] });
+    await expect(getWatchStatus(STEAM)).resolves.toBe('pending');
+  });
+
+  it('getWatchStatus throws on invalid steamId', async () => {
+    const { getWatchStatus } = require('./db');
+
+    await expect(getWatchStatus('nope')).rejects.toThrow(/17 digits/);
+  });
+
+  it('enqueueEvent inserts a notify with the search id (not a duplicate)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] }); // pre-check: unseen
+    mockExecute.mockResolvedValueOnce({ rows: [], lastInsertRowid: 7 });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'notify', 'search-1');
+
+    expect(result).toEqual({ eventId: 7, duplicate: false });
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watch_events'),
+    );
+    expect(insert[0].args).toEqual([
+      'search-1',
+      STEAM,
+      'notify',
+      expect.any(String),
+    ]);
+  });
+
+  it('enqueueEvent returns duplicate without inserting when the search was already queued', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ id: 5 }] });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'notify', 'search-1');
+
+    expect(result).toEqual({ eventId: 5, duplicate: true });
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watch_events'),
+    );
+    expect(inserts).toHaveLength(0);
+  });
+
+  it('enqueueEvent inserts invites with NULL search_id and no pre-check', async () => {
+    // PRAGMA (placeholder) + open-invite SELECT (empty) + INSERT.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [], lastInsertRowid: 3 });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'invite');
+
+    expect(result).toEqual({ eventId: 3, duplicate: false });
+    expect(mockExecute).toHaveBeenCalledTimes(3);
+    expect(mockExecute.mock.calls[2][0].args[0]).toBeNull();
+  });
+
+  it('enqueueEvent accepts the welcome and confirm_resend lanes without a search', async () => {
+    // PRAGMA + INSERT each (no search pre-check, no invite open-dedupe —
+    // one row per request, throttling enforced by the fulfilling poller).
+    mockExecute.mockResolvedValueOnce({ rows: [], lastInsertRowid: 11 });
+    mockExecute.mockResolvedValueOnce({ rows: [], lastInsertRowid: 12 });
+
+    const { enqueueEvent } = require('./db');
+    await expect(enqueueEvent(STEAM, 'welcome')).resolves.toEqual({
+      eventId: 11,
+      duplicate: false,
+    });
+    await expect(enqueueEvent(STEAM, 'confirm_resend')).resolves.toEqual({
+      eventId: 12,
+      duplicate: false,
+    });
+
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watch_events'),
+    );
+    expect(inserts).toHaveLength(2);
+    expect(inserts[0][0].args[2]).toBe('welcome');
+    expect(inserts[1][0].args[2]).toBe('confirm_resend');
+  });
+
+  it('enqueueEvent collapses a second invite while one is still open', async () => {
+    // PRAGMA + open-invite SELECT finds the still-queued first invite.
+    mockExecute.mockResolvedValueOnce({ rows: [{ id: 8 }] });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'invite');
+
+    expect(result).toEqual({ eventId: 8, duplicate: true });
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watch_events'),
+    );
+    expect(inserts).toHaveLength(0);
+  });
+
+  it('enqueueEvent allows a new invite after the previous one settled', async () => {
+    // PRAGMA + open-invite SELECT (sent/dropped do not block) + INSERT.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [], lastInsertRowid: 9 });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'invite');
+
+    expect(result).toEqual({ eventId: 9, duplicate: false });
+    const openCheck = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM watch_events'),
+    );
+    // Only open (queued/claimed) invites block — settled history does not.
+    expect(String(openCheck[0]?.sql ?? openCheck[0])).toContain(
+      "status IN ('queued', 'claimed')",
+    );
+  });
+
+  it('enqueueEvent throws on invalid kind/steamId/searchId', async () => {
+    const { enqueueEvent } = require('./db');
+
+    await expect(enqueueEvent(STEAM, 'email' as never)).rejects.toThrow(
+      /event kind/,
+    );
+    await expect(enqueueEvent('short', 'notify')).rejects.toThrow(/17 digits/);
+    await expect(enqueueEvent(STEAM, 'notify', '')).rejects.toThrow(/searchId/);
+    // All validation runs before any client is built (fail-fast, no wasted
+    // connections — matters on serverless).
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+
+  it('enqueueEvent treats a concurrent UNIQUE collision as duplicate (re-reads the winner)', async () => {
+    // PRAGMA, pre-check SELECT (miss), INSERT (loses the race)...
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(
+      new Error('UNIQUE constraint failed: watch_events.search_id'),
+    );
+    // ...re-read finds the winner's row.
+    mockExecute.mockResolvedValueOnce({ rows: [{ id: 11 }] });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'notify', 'search-race');
+
+    expect(result).toEqual({ eventId: 11, duplicate: true });
+  });
+
+  it('enqueueEvent collapses a concurrent invite race via the open-invite index', async () => {
+    // PRAGMA, pre-check SELECT (miss — rival not yet visible), INSERT
+    // (loses the race on idx_watch_events_open_invite)...
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(
+      new Error('UNIQUE constraint failed: watch_events.steam_id'),
+    );
+    // ...re-read finds the winner's open row.
+    mockExecute.mockResolvedValueOnce({ rows: [{ id: 12 }] });
+
+    const { enqueueEvent } = require('./db');
+    const result = await enqueueEvent(STEAM, 'invite');
+
+    expect(result).toEqual({ eventId: 12, duplicate: true });
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watch_events'),
+    );
+    expect(inserts).toHaveLength(1);
+  });
+
+  it('enqueueEvent rethrows non-unique invite INSERT failures untouched', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(new Error('db down'));
+
+    const { enqueueEvent } = require('./db');
+    await expect(enqueueEvent(STEAM, 'invite')).rejects.toThrow('db down');
+  });
+
+  it('countInvitesSentSince counts sent invites at/after the boundary', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 7 }] });
+
+    const { countInvitesSentSince } = require('./db');
+    await expect(
+      countInvitesSentSince('2026-01-01T00:00:00.000Z'),
+    ).resolves.toBe(7);
+    const call = mockExecute.mock.calls.find((c) =>
+      String(c[0]?.sql ?? c[0]).includes('COUNT(*)'),
+    );
+    expect(String(call[0]?.sql ?? call[0])).toContain('sent_at IS NOT NULL');
+    expect(call[0]?.args).toEqual(['2026-01-01T00:00:00.000Z']);
+  });
+
+  it('countInvitesSentSince throws on a non-ISO boundary', async () => {
+    const { countInvitesSentSince } = require('./db');
+    await expect(countInvitesSentSince('yesterday')).rejects.toThrow(
+      /ISO-8601/,
+    );
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+
+  it('enqueueEvent rethrows non-unique INSERT failures untouched', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(new Error('db down'));
+
+    const { enqueueEvent } = require('./db');
+    await expect(enqueueEvent(STEAM, 'notify', 'search-race')).rejects.toThrow(
+      'db down',
+    );
+  });
+
+  it('claimNextQueuedEvents claims atomically via a single UPDATE...RETURNING', async () => {
+    const rows = [
+      {
+        id: 1,
+        search_id: 'search-1',
+        steam_id: STEAM,
+        kind: 'notify',
+        status: 'claimed',
+        created_at: '2026-09-08T00:00:00.000Z',
+        claimed_at: '2026-09-08T00:00:01.000Z',
+        sent_at: null,
+      },
+    ];
+    mockExecute.mockResolvedValueOnce({ rows });
+
+    const { claimNextQueuedEvents } = require('./db');
+    const claimed = await claimNextQueuedEvents('notify', 5);
+
+    expect(claimed).toHaveLength(1);
+    expect(claimed[0]).toEqual({
+      id: 1,
+      searchId: 'search-1',
+      steamId: STEAM,
+      kind: 'notify',
+      status: 'claimed',
+      createdAt: '2026-09-08T00:00:00.000Z',
+      claimedAt: '2026-09-08T00:00:01.000Z',
+      sentAt: null,
+    });
+    // Exactly one statement (PRAGMA aside): no read-then-write race window.
+    const updates = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watch_events'),
+    );
+    expect(updates).toHaveLength(1);
+    expect(String(updates[0][0]?.sql ?? updates[0][0])).toContain('RETURNING');
+    expect(updates[0][0].args).toEqual([expect.any(String), 'notify', 5]);
+  });
+  it('claimNextQueuedEvents clamps the limit, no-ops on zero, throws on NaN', async () => {
+    const { claimNextQueuedEvents } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(claimNextQueuedEvents('invite', 500)).resolves.toEqual([]);
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watch_events'),
+    );
+    expect(update[0].args[2]).toBe(100);
+
+    // Zero capacity: returns [] without issuing the claim statement —
+    // getClient is memoized from the call above, so zero executes at all.
+    mockExecute.mockClear();
+    await expect(claimNextQueuedEvents('invite', 0)).resolves.toEqual([]);
+    expect(mockExecute).not.toHaveBeenCalled();
+
+    await expect(claimNextQueuedEvents('invite', NaN)).rejects.toThrow(
+      /finite/,
+    );
+    await expect(claimNextQueuedEvents('invite', -3)).resolves.toEqual([]);
+  });
+
+  it('claimNextQueuedEvents sorts by id (RETURNING order is not guaranteed)', async () => {
+    const row = (id: number) => ({
+      id,
+      search_id: null,
+      steam_id: STEAM,
+      kind: 'invite',
+      status: 'claimed',
+      created_at: '2026-09-08T00:00:00.000Z',
+      claimed_at: '2026-09-08T00:00:01.000Z',
+      sent_at: null,
+    });
+    mockExecute.mockResolvedValueOnce({ rows: [row(9), row(3)] });
+
+    const { claimNextQueuedEvents } = require('./db');
+    const claimed = await claimNextQueuedEvents('invite', 10);
+
+    expect(claimed.map((e: { id: number }) => e.id)).toEqual([3, 9]);
+  });
+
+  it('claimNextQueuedEvents preserves the welcome/confirm_resend lanes', async () => {
+    const row = (id: number, kind: string) => ({
+      id,
+      search_id: null,
+      steam_id: STEAM,
+      kind,
+      status: 'claimed',
+      created_at: '2026-09-08T00:00:00.000Z',
+      claimed_at: '2026-09-08T00:00:01.000Z',
+      sent_at: null,
+    });
+    mockExecute.mockResolvedValueOnce({
+      rows: [row(1, 'welcome'), row(2, 'confirm_resend'), row(3, 'bogus')],
+    });
+
+    const { claimNextQueuedEvents } = require('./db');
+    const claimed = await claimNextQueuedEvents('welcome', 5);
+
+    expect(claimed.map((e: { kind: string }) => e.kind)).toEqual([
+      'welcome',
+      'confirm_resend',
+      'invite',
+    ]);
+  });
+
+  it('markEventSent flips a claimed row and bumps the cooldown clock atomically', async () => {
+    mockBatch.mockResolvedValueOnce([{ rowsAffected: 1 }, { rowsAffected: 1 }]);
+
+    const { markEventSent } = require('./db');
+    await expect(markEventSent(9)).resolves.toBe(true);
+
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+    const statements = mockBatch.mock.calls[0][0];
+    expect(statements).toHaveLength(2);
+    expect(statements[0].sql).toContain("status = 'sent'");
+    expect(statements[0].sql).toContain("status = 'claimed'");
+    expect(statements[1].sql).toContain('last_notified_at');
+    expect(statements[1].sql).toContain("kind = 'notify'");
+    // The cooldown bump is guarded by the sent_at this call just wrote —
+    // a duplicate markEventSent (first statement: 0 rows) turns the second
+    // into a no-op instead of pushing the cooldown forward again.
+    expect(statements[1].sql).toContain('sent_at = ?');
+    expect(statements[1].args).toHaveLength(3);
+  });
+
+  it('markEventSent returns false when the row was never claimed', async () => {
+    mockBatch.mockResolvedValueOnce([{ rowsAffected: 0 }, { rowsAffected: 0 }]);
+
+    const { markEventSent } = require('./db');
+    await expect(markEventSent(9)).resolves.toBe(false);
+  });
+
+  it('markEventDropped settles claimed rows only', async () => {
+    const { markEventDropped } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(markEventDropped(9)).resolves.toBe(true);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(markEventDropped(9)).resolves.toBe(false);
+  });
+
+  it('resetStaleClaims requeues old claims and validates the window', async () => {
+    const { resetStaleClaims } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 3 });
+    await expect(resetStaleClaims(30)).resolves.toBe(3);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watch_events'),
+    );
+    expect(String(update[0]?.sql ?? update[0])).toContain("status = 'queued'");
+
+    await expect(resetStaleClaims(0)).rejects.toThrow(/positive minutes/);
+    await expect(resetStaleClaims(NaN)).rejects.toThrow(/positive minutes/);
+  });
+
+  it('isWithinCooldown reads the notify clock (open on missing/corrupt)', async () => {
+    const { isWithinCooldown } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          last_notified_at: new Date(Date.now() - 3600000).toISOString(),
+        },
+      ],
+    });
+    await expect(isWithinCooldown(STEAM, 24)).resolves.toBe(true);
+
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          last_notified_at: new Date(Date.now() - 25 * 3600000).toISOString(),
+        },
+      ],
+    });
+    await expect(isWithinCooldown(STEAM, 24)).resolves.toBe(false);
+
+    mockExecute.mockResolvedValueOnce({ rows: [{ last_notified_at: null }] });
+    await expect(isWithinCooldown(STEAM, 24)).resolves.toBe(false);
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(isWithinCooldown(STEAM, 24)).resolves.toBe(false);
+
+    await expect(isWithinCooldown(STEAM, 0)).rejects.toThrow(/positive hours/);
+    await expect(isWithinCooldown('short', 24)).rejects.toThrow(/17 digits/);
+  });
+
+  it('listWatchedProfiles returns all rows oldest-first without filter', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: '76561198000000002',
+          status: 'active',
+          locale: 'en',
+          requested_at: '2026-09-08T01:00:00.000Z',
+          activated_at: '2026-09-08T02:00:00.000Z',
+          last_notified_at: null,
+        },
+      ],
+    });
+
+    const { listWatchedProfiles } = require('./db');
+    const rows = await listWatchedProfiles();
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      steamId: '76561198000000002',
+      status: 'active',
+      locale: 'en',
+    });
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM watched_profiles'),
+    );
+    expect(String(select[0]?.sql ?? select[0])).not.toContain('WHERE');
+  });
+
+  it('listWatchedProfiles filters by status and rejects anything else', async () => {
+    const { listWatchedProfiles } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(listWatchedProfiles('pending')).resolves.toEqual([]);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM watched_profiles'),
+    );
+    expect(String(select[0]?.sql ?? select[0])).toContain('WHERE status = ?');
+    expect(select[0].args).toEqual(['pending']);
+
+    await expect(listWatchedProfiles('banned' as never)).rejects.toThrow(
+      /status filter/,
+    );
+  });
+
+  it('hints db:migrate when listWatchedProfiles hits a missing schema', async () => {
+    // PRAGMA placeholder comes from beforeEach; the SELECT itself rejects.
+    mockExecute.mockRejectedValueOnce(
+      new Error('no such table: watched_profiles'),
+    );
+    const { listWatchedProfiles } = require('./db');
+
+    await expect(listWatchedProfiles()).rejects.toThrow(/db:migrate/);
+  });
+
+  it('listProfileSearches projects searches newest-first', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          search_id: 'search-9',
+          searched_at: '2026-06-02T00:00:00.000Z',
+          cheater_checked: 1,
+        },
+        {
+          search_id: 'search-7',
+          searched_at: '2026-06-01T00:00:00.000Z',
+          cheater_checked: 0,
+        },
+      ],
+    });
+
+    const { listProfileSearches } = require('./db');
+    const rows = await listProfileSearches(STEAM, 5);
+
+    expect(rows).toEqual([
+      {
+        searchId: 'search-9',
+        searchedAt: '2026-06-02T00:00:00.000Z',
+        cheaterChecked: true,
+      },
+      {
+        searchId: 'search-7',
+        searchedAt: '2026-06-01T00:00:00.000Z',
+        cheaterChecked: false,
+      },
+    ]);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM searches'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    // Every recorded search qualifies — no cooldown gate on the inbox
+    // side (the bot keeps its own 24h discipline at send time).
+    expect(sql).not.toContain('watch_events');
+    expect(sql).toContain('JOIN profiles');
+    expect(sql).toContain('ORDER BY s.searched_at DESC');
+    // Session details come from PK joins, never requester PII.
+    expect(sql).toContain('cheater_results');
+    expect(sql).not.toContain('search_meta');
+    expect(sql).not.toContain('requester_');
+    expect(select[0].args).toEqual([STEAM, 5]);
+  });
+
+  it('listProfileSearches clamps the limit and validates inputs', async () => {
+    const { listProfileSearches } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(listProfileSearches(STEAM, 500)).resolves.toEqual([]);
+    const clamped = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM searches'),
+    );
+    expect(clamped[0].args).toEqual([STEAM, 50]);
+
+    await expect(listProfileSearches('short')).rejects.toThrow(/17 digits/);
+    await expect(listProfileSearches(STEAM, NaN)).rejects.toThrow(/finite/);
+    await expect(listProfileSearches(STEAM, 5, 'nope')).rejects.toThrow(
+      /since/,
+    );
+  });
+
+  it('listProfileSearches applies the watch-start floor when given', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+
+    const { listProfileSearches } = require('./db');
+    await expect(
+      listProfileSearches(STEAM, 5, '2026-06-01T12:00:00.000Z'),
+    ).resolves.toEqual([]);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('FROM searches'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    // Pre-watch rows never qualify: shared analytics holds lookups from
+    // before the watch existed.
+    expect(sql).toContain('s.searched_at >= ?');
+    expect(select[0].args).toEqual([STEAM, '2026-06-01T12:00:00.000Z', 5]);
+  });
+
+  it('countSearchesSince counts searches past the watermark', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 30 }] });
+
+    const { countSearchesSince } = require('./db');
+    await expect(
+      countSearchesSince(STEAM, '2026-06-01T00:00:00.000Z'),
+    ).resolves.toBe(30);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    // Same source as the inbox read — the two can never disagree on what
+    // counts. Search-timestamp cursor (NOT any id): search ids embed
+    // wall-clock plus randomness, so they are not strictly ordered.
+    expect(sql).toContain('FROM searches');
+    expect(sql).toContain('searched_at > ?');
+    expect(select[0].args).toEqual([STEAM, '2026-06-01T00:00:00.000Z']);
+  });
+
+  it('countSearchesSince composes the watermark cursor with the watch floor', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 4 }] });
+
+    const { countSearchesSince } = require('./db');
+    await expect(
+      countSearchesSince(
+        STEAM,
+        '2026-06-01T00:00:00.000Z',
+        '2026-05-01T00:00:00.000Z',
+      ),
+    ).resolves.toBe(4);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    // Watermark stays strict (>), the watch floor inclusive (>=).
+    expect(sql).toContain('searched_at > ?');
+    expect(sql).toContain('searched_at >= ?');
+    expect(select[0].args).toEqual([
+      STEAM,
+      '2026-06-01T00:00:00.000Z',
+      '2026-05-01T00:00:00.000Z',
+    ]);
+  });
+
+  it('countSearchesSince counts everything without a watermark', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 7 }] });
+
+    const { countSearchesSince } = require('./db');
+    await expect(countSearchesSince(STEAM)).resolves.toBe(7);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    expect(String(select[0]?.sql ?? select[0])).not.toContain(
+      'searched_at > ?',
+    );
+    expect(select[0].args).toEqual([STEAM]);
+  });
+
+  it('countSearchesInMonth counts profile searches since the UTC month start', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 12 }] });
+
+    const { countSearchesInMonth } = require('./db');
+    // 2026-06-15 UTC -> window opens 2026-06-01T00:00:00.000Z.
+    await expect(
+      countSearchesInMonth(STEAM, Date.UTC(2026, 5, 15)),
+    ).resolves.toBe(12);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    const sql = String(select[0]?.sql ?? select[0]);
+    expect(sql).toContain('JOIN profiles');
+    expect(select[0].args).toEqual([STEAM, '2026-06-01T00:00:00.000Z']);
+  });
+
+  it('countSearchesInMonth prefers the watch floor when it is later than month start', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 3 }] });
+
+    const { countSearchesInMonth } = require('./db');
+    // Mid-month watch start beats the month start: a first-day confirmer
+    // never inherits a pre-watch monthly total.
+    await expect(
+      countSearchesInMonth(
+        STEAM,
+        Date.UTC(2026, 5, 15),
+        '2026-06-10T00:00:00.000Z',
+      ),
+    ).resolves.toBe(3);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    expect(select[0].args).toEqual([STEAM, '2026-06-10T00:00:00.000Z']);
+  });
+
+  it('countSearchesInMonth keeps month start when the watch floor is older', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [{ n: 9 }] });
+
+    const { countSearchesInMonth } = require('./db');
+    await expect(
+      countSearchesInMonth(
+        STEAM,
+        Date.UTC(2026, 5, 15),
+        '2026-05-20T00:00:00.000Z',
+      ),
+    ).resolves.toBe(9);
+    const select = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('COUNT(*)'),
+    );
+    expect(select[0].args).toEqual([STEAM, '2026-06-01T00:00:00.000Z']);
+  });
+
+  it('countSearchesInMonth validates inputs before touching the client', async () => {
+    const { countSearchesInMonth } = require('./db');
+    const callsBefore = mockExecute.mock.calls.length;
+
+    await expect(countSearchesInMonth('short')).rejects.toThrow(/17 digits/);
+    await expect(countSearchesInMonth(STEAM, NaN)).rejects.toThrow(
+      /month clock/,
+    );
+    await expect(countSearchesInMonth(STEAM, Infinity)).rejects.toThrow(
+      /month clock/,
+    );
+    await expect(
+      countSearchesInMonth(STEAM, Date.UTC(2026, 5, 15), 'nope'),
+    ).rejects.toThrow(/watchSince/);
+
+    expect(mockExecute.mock.calls.length).toBe(callsBefore);
+  });
+
+  it('countSearchesSince validates inputs before touching the client', async () => {
+    const { countSearchesSince } = require('./db');
+    const callsBefore = mockExecute.mock.calls.length;
+
+    await expect(countSearchesSince('short', null)).rejects.toThrow(
+      /17 digits/,
+    );
+    await expect(countSearchesSince(STEAM, 'nope')).rejects.toThrow(
+      /sinceSearchedAt/,
+    );
+    await expect(countSearchesSince(STEAM, '')).rejects.toThrow(
+      /sinceSearchedAt/,
+    );
+    await expect(countSearchesSince(STEAM, null, 'nope')).rejects.toThrow(
+      /watchSince/,
+    );
+
+    expect(mockExecute.mock.calls.length).toBe(callsBefore);
+  });
+
+  it('hasOpenInviteEvent reports open invites (queued/claimed only)', async () => {
+    const { hasOpenInviteEvent } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [{ 1: 1 }] });
+    await expect(hasOpenInviteEvent(STEAM)).resolves.toBe(true);
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(hasOpenInviteEvent(STEAM)).resolves.toBe(false);
+
+    await expect(hasOpenInviteEvent('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('getWatchedProfile returns the mapped row or null', async () => {
+    const { getWatchedProfile } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [watchRow()] });
+    await expect(getWatchedProfile(STEAM)).resolves.toMatchObject({
+      steamId: STEAM,
+      status: 'pending',
+    });
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(getWatchedProfile(STEAM)).resolves.toBeNull();
+
+    await expect(getWatchedProfile('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('refreshWatchRequest touches only pending rows', async () => {
+    const { refreshWatchRequest } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(refreshWatchRequest(STEAM)).resolves.toBe(true);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
+    );
+    expect(String(update[0]?.sql ?? update[0])).toContain("status = 'pending'");
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+    await expect(refreshWatchRequest(STEAM)).resolves.toBe(false);
+
+    await expect(refreshWatchRequest('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('refreshWatchRequest overwrites locale when valid, keeps it otherwise', async () => {
+    const { refreshWatchRequest } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(refreshWatchRequest(STEAM, 'pt-BR')).resolves.toBe(true);
+    const withLocale = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
+    );
+    expect(withLocale[0].args).toEqual([expect.any(String), 'pt-BR', STEAM]);
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+    await expect(refreshWatchRequest(STEAM, 'pt-BR!!')).resolves.toBe(true);
+    const kept = mockExecute.mock.calls
+      .filter((call) =>
+        String(call[0]?.sql ?? call[0]).includes('UPDATE watched_profiles'),
+      )
+      .pop();
+    expect(kept[0].args).toEqual([expect.any(String), null, STEAM]);
+  });
+
+  it('recordBotHeartbeat upserts the single heartbeat row (id=1, never grows)', async () => {
+    const { recordBotHeartbeat } = require('./db');
+
+    await recordBotHeartbeat(true, STEAM);
+
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO bot_heartbeat'),
+    );
+    expect(String(insert[0]?.sql ?? insert[0])).toContain(
+      'ON CONFLICT(id) DO UPDATE',
+    );
+    // The upsert maintains disconnected_since atomically in SQL.
+    expect(String(insert[0]?.sql ?? insert[0])).toContain(
+      'COALESCE(bot_heartbeat.disconnected_since, excluded.beat_at)',
+    );
+    const args = (insert[0] as { args: unknown[] }).args;
+    // [beatAt, connectedFlag=1, steamId, connectedFlag=1, beatAt]
+    expect(args[0]).toEqual(expect.any(String));
+    expect(args[1]).toBe(1);
+    expect(args[2]).toBe(STEAM);
+    expect(args[3]).toBe(1);
+    expect(args[4]).toBe(args[0]);
+
+    // `connected: false` stores 0 both places and would open the
+    // disconnected_since window (gate + ops visibility).
+    await recordBotHeartbeat(false, null);
+    const second = mockExecute.mock.calls
+      .filter((call) =>
+        String(call[0]?.sql ?? call[0]).includes('INSERT INTO bot_heartbeat'),
+      )
+      .pop();
+    const secondArgs = (second[0] as { args: unknown[] }).args;
+    expect(secondArgs[1]).toBe(0);
+    expect(secondArgs[2]).toBeNull();
+    expect(secondArgs[3]).toBe(0);
+    expect(secondArgs[4]).toBe(secondArgs[0]);
+  });
+
+  it('getBotHeartbeat reads the row shape (incl. disconnected_since)', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          beat_at: '2026-09-01T00:00:00.000Z',
+          connected: 1,
+          steam_id: STEAM,
+          disconnected_since: null,
+        },
+      ],
+    });
+    const { getBotHeartbeat } = require('./db');
+
+    await expect(getBotHeartbeat()).resolves.toEqual({
+      beatAt: '2026-09-01T00:00:00.000Z',
+      connected: true,
+      steamId: STEAM,
+      disconnectedSince: null,
+    });
+
+    // Sustained-disconnect row: disconnected_since passes through as-is.
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          beat_at: '2026-09-01T00:05:00.000Z',
+          connected: 0,
+          steam_id: null,
+          disconnected_since: '2026-09-01T00:00:00.000Z',
+        },
+      ],
+    });
+    await expect(getBotHeartbeat()).resolves.toEqual({
+      beatAt: '2026-09-01T00:05:00.000Z',
+      connected: false,
+      steamId: null,
+      disconnectedSince: '2026-09-01T00:00:00.000Z',
+    });
+  });
+
+  it('getBotHeartbeat returns null when no beat exists yet (fail-open upstream)', async () => {
+    mockExecute.mockResolvedValue({ rows: [] });
+    const { getBotHeartbeat } = require('./db');
+
+    await expect(getBotHeartbeat()).resolves.toBeNull();
+  });
+});
+
+describe('issueAntiLoopTokenIfAbsent', () => {
+  const STEAM = '76561198000000001';
+  const HASH = 'ab'.repeat(32);
+  const FUTURE = '2026-12-01T00:00:00.000Z';
+
+  beforeEach(() => {
+    jest.resetModules();
+    mockExecute.mockClear();
+    buildMockClient();
+    process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
+    process.env.DATABASE_TOKEN = 'secret-token';
+  });
+
+  it('arms the token when the slot is free, in one atomic statement', async () => {
+    const { issueAntiLoopTokenIfAbsent } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] }); // PRAGMA foreign_keys
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+    await expect(
+      issueAntiLoopTokenIfAbsent(STEAM, HASH, FUTURE),
+    ).resolves.toBe(true);
+
+    // PRAGMA foreign_keys on cold start, then the guarded UPDATE (no
+    // separate SELECT — the absence check lives in the WHERE clause, so
+    // no read-then-write window exists for a concurrent issuer).
+    const update = mockExecute.mock.calls.at(-1)?.[0] as {
+      sql: string;
+      args: unknown[];
+    };
+    expect(update.sql).toContain('anti_loop_token_hash IS NULL');
+    expect(update.sql).toContain('anti_loop_expires_at <= ?');
+    expect(update.args).toEqual([HASH, FUTURE, STEAM, expect.any(String)]);
+  });
+
+  it('resolves false when another live token holds the slot (hands off)', async () => {
+    const { issueAntiLoopTokenIfAbsent } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] }); // PRAGMA foreign_keys
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    await expect(
+      issueAntiLoopTokenIfAbsent(STEAM, HASH, FUTURE),
+    ).resolves.toBe(false);
+  });
+
+  it('rejects malformed inputs without touching the database', async () => {
+    const { issueAntiLoopTokenIfAbsent } = require('./db');
+
+    await expect(issueAntiLoopTokenIfAbsent('nope', HASH, FUTURE)).rejects.toThrow();
+    await expect(issueAntiLoopTokenIfAbsent(STEAM, 'not-a-hash', FUTURE)).rejects.toThrow();
+    expect(mockExecute).not.toHaveBeenCalled();
   });
 });

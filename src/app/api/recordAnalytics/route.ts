@@ -4,13 +4,17 @@ import timingSafeEqualStrings from '@/lib/timingSafeEqualStrings';
 import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
-import { recordSearch } from '@/lib/analytics/db';
+import { recordSearch, consumeAntiLoopToken, hashAntiLoopToken } from '@/lib/analytics/db';
+import { enqueueWatchNotification } from '@/lib/analytics/watchNotify';
 import { parseRecordBody } from '@/app/api/analytics/input';
 import redactBodyForLog from '@/app/api/analytics/redactBody';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 30;
-const writeRateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
+const writeRateLimiter = createRateLimiter(
+  RATE_LIMIT_WINDOW_MS,
+  RATE_LIMIT_MAX,
+);
 
 /**
  * Records a finished search straight into the Turso analytics DB.
@@ -23,7 +27,11 @@ const writeRateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX)
  *
  * Best-effort: without DATABASE_URL (e.g. an env that lacks Turso) it
  * returns the same `{ id: null, skipped: true }` shape as before, so
- * callers never mistake a skip for a real record id.
+ * callers never mistake a skip for a real record id. Ordering note
+ * (deliberate): the body is parsed BEFORE the DATABASE_URL skip — the
+ * anti-loop consume below needs the parsed steamId, and a malformed
+ * body is a client bug regardless of DB presence (400), while VALID
+ * searches still get the skip shape in DB-less envs.
  *
  * Path: src/app/api/recordAnalytics/route.ts
  */
@@ -64,21 +72,87 @@ export async function POST(req: Request) {
       return errorResponse('Too many requests.', 429, 'RATE_LIMITED');
     }
 
-    const { DATABASE_URL } = process.env;
     body = await req.json();
 
-    if (!DATABASE_URL) {
-      // Analytics is best-effort: without Turso configured we just skip
-      // recording instead of failing the search.
-      return NextResponse.json({ id: null, skipped: true }, { status: 200 });
-    }
-
-    const input = parseRecordBody(body);
-    if (!input) {
+    // Parse the body first to get the steamId for anti-loop token validation
+    const parsedInput = parseRecordBody(body);
+    if (!parsedInput) {
       return errorResponse('Invalid request body.', 400, 'INVALID_REQUEST');
     }
 
-    const record = await recordSearch(input);
+    const { DATABASE_URL } = process.env;
+    if (!DATABASE_URL) {
+      // Analytics is best-effort: without Turso configured we just skip
+      // recording instead of failing the search. Do this before anti-loop
+      // validation so a missing DB never turns into a 500.
+      return NextResponse.json({ id: null, skipped: true }, { status: 200 });
+    }
+
+    // Anti-loop suppression, single round trip: the client sends the RAW
+    // token from the bot-generated player-page link; only its hash is
+    // compared here. consumeAntiLoopToken re-checks the same predicate
+    // (steamId + hash + unexpired) atomically, so a separate validate
+    // read would be a TOCTOU round trip that proves nothing — branch on
+    // the consume result directly. A token the bot never issued (including
+    // a hand-crafted one) simply fails and the search records normally:
+    // there is no bypass to forge, because suppression requires a
+    // server-issued secret. Deliberately silent on failure (no log):
+    // stale/double-clicked links are normal user behavior, not errors.
+    const antiLoopToken = body?.antiLoopToken;
+    if (typeof antiLoopToken === 'string' && antiLoopToken !== '') {
+      // Fail-open by design: loop suppression is a secondary feature —
+      // a sick DB must degrade to "record normally", never 500 a plain
+      // search. (Same contract as the notify hook's defensive .catch
+      // below; the consume itself stays atomic inside the DAL. A false
+      // return is normal — stale/double-clicked links — and stays silent
+      // as before; only a THROW logs.)
+      // Accepted residual of that fail-open: if the consume throws while
+      // the record succeeds, a bot-link search records AND notifies once
+      // (a single-cycle loop). The 24h notify cooldown bounds it to one
+      // spurious notice per day — strictly better than dropping real
+      // searches on a DB blip.
+      let consumed = false;
+      try {
+        consumed = await consumeAntiLoopToken(
+          parsedInput.profile.steamId,
+          hashAntiLoopToken(antiLoopToken),
+        );
+      } catch (antiLoopError) {
+        logRouteError(
+          'recordAnalytics',
+          `anti-loop consume failed (fail-open): ${sanitizeError(antiLoopError)}`,
+          { steamId: parsedInput.profile.steamId },
+        );
+      }
+      if (consumed) {
+        return NextResponse.json({ id: null, skipped: true, reason: 'anti_loop' }, { status: 200 });
+      }
+    }
+
+    const record = await recordSearch(parsedInput);
+
+    // WB-12 notify hook: AWAITED deliberately, not fire-and-forget.
+    // Reason: this repo pins Next 14.2, whose next/server exports no
+    // after()/waitUntil (verified against the installed package) — a
+    // floating promise may never run after a serverless function returns,
+    // which would silently lose core-product notifications. Awaiting only
+    // the enqueue (indexed reads + one insert, ms-scale) never gates Steam
+    // delivery (bot-owned, asynchronous, retry/deadline-driven), and the
+    // hook never rejects, so the response can neither wait on delivery
+    // nor fail with the pipeline. The analytics beacon itself is
+    // fire-and-forget client-side — nothing blocks on this response.
+    // The .catch below is defensive-only (contract: never rejects), kept
+    // because the alternative failure mode would be a 500 on analytics.
+    await enqueueWatchNotification(parsedInput.profile.steamId, record.id, {
+      error: (message: string) =>
+        logRouteError('recordAnalytics', message, {
+          steamId: parsedInput.profile.steamId,
+        }),
+    }).catch((error: unknown) => {
+      logRouteError('recordAnalytics', sanitizeError(error), {
+        steamId: parsedInput.profile.steamId,
+      });
+    });
 
     // `id` lets the client attach a cheater-probability score to this same
     // search later, via /api/recordAnalytics/cheater.
