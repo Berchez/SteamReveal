@@ -18,7 +18,8 @@
     "searchFriend": "Search"
   },
   "LocationCard": {
-    "providedByUser": "Provided by user:"
+    "providedByUser": "Provided by user:",
+    "noLocationEstimate": "Could not estimate a location from the available data."
   },
   "ServerMessages": {
     "friendsNotPublic": "The friend list of this player is not public. Try a different one!",

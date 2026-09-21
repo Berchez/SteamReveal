@@ -130,4 +130,68 @@ describe('LocationCard component', () => {
     expect(screen.queryByText('providedByUser')).not.toBeInTheDocument();
     expect(screen.queryByText('New York,')).not.toBeInTheDocument();
   });
+
+  it('renders the no-estimate message when there is nothing to show', () => {
+    render(<LocationCard providedLocation={{}} possibleLocations={[]} />);
+
+    expect(screen.getByText('noLocationEstimate')).toBeInTheDocument();
+  });
+
+  it('renders the no-estimate message when every candidate is a legacy zero row', () => {
+    const possibleLocations = [
+      {
+        location: {
+          cityName: 'Joao Pessoa',
+          stateName: 'Paraiba',
+          countryName: 'Brazil',
+          countryCode: 'BR',
+        },
+        probability: 0,
+        count: 0,
+      },
+    ];
+
+    render(
+      <LocationCard providedLocation={{}} possibleLocations={possibleLocations} />,
+    );
+
+    expect(screen.queryByText(/Joao Pessoa,/i)).not.toBeInTheDocument();
+    expect(screen.getByText('noLocationEstimate')).toBeInTheDocument();
+  });
+
+  it('does not render the no-estimate message when triangulation exists', () => {
+    const possibleLocations = [
+      {
+        location: {
+          cityName: 'New York',
+          stateName: 'New York',
+          countryName: 'USA',
+          countryCode: 'US',
+        },
+        probability: 85.5,
+        count: 150,
+      },
+    ];
+
+    render(
+      <LocationCard providedLocation={{}} possibleLocations={possibleLocations} />,
+    );
+
+    expect(screen.getByText(/New York,/i)).toBeInTheDocument();
+    expect(screen.queryByText('noLocationEstimate')).not.toBeInTheDocument();
+  });
+
+  it('does not render the no-estimate message when the user provided a location', () => {
+    const providedLocation = {
+      cityName: 'São Paulo',
+      stateName: 'São Paulo',
+      countryName: 'Brazil',
+      countryCode: 'BR',
+    };
+
+    render(<LocationCard providedLocation={providedLocation} />);
+
+    expect(screen.getByText(/providedByUser/i)).toBeInTheDocument();
+    expect(screen.queryByText('noLocationEstimate')).not.toBeInTheDocument();
+  });
 });

@@ -27,6 +27,15 @@ function LocationCard({
     (l) => l.count > 0 && l.probability > 0,
   );
 
+  // Whether the profile itself provided a location (rendered as the
+  // "Provided by user" block below). The estimate only covers friend-based
+  // triangulation; when neither exists there is nothing to show, so render
+  // an explicit empty state instead of a blank card.
+  const hasProvidedLocation = Boolean(
+    providedLocation.stateName && providedLocation.countryCode,
+  );
+  const hasEstimate = visibleLocations.length > 0;
+
   const topLocation = visibleLocations[0];
   const showMap =
     topLocation && topLocation.probability >= 60 && topLocation.count >= 30;
@@ -59,6 +68,10 @@ function LocationCard({
             )}
           </div>
         </div>
+      )}
+
+      {!hasEstimate && !hasProvidedLocation && (
+        <p>{translator('noLocationEstimate')}</p>
       )}
 
       {visibleLocations.map((l, index) => {

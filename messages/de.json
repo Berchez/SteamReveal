@@ -18,7 +18,8 @@
     "searchFriend": "Suchen"
   },
   "LocationCard": {
-    "providedByUser": "Vom Benutzer angegeben:"
+    "providedByUser": "Vom Benutzer angegeben:",
+    "noLocationEstimate": "Anhand der verfügbaren Daten konnte kein Standort geschätzt werden."
   },
   "ServerMessages": {
     "friendsNotPublic": "Die Freundesliste dieses Spielers ist nicht öffentlich. Versuche ein anderes Profil!",

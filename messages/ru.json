@@ -18,7 +18,8 @@
     "searchFriend": "Поиск"
   },
   "LocationCard": {
-    "providedByUser": "Указано пользователем:"
+    "providedByUser": "Указано пользователем:",
+    "noLocationEstimate": "Не удалось определить местоположение по имеющимся данным."
   },
   "ServerMessages": {
     "friendsNotPublic": "Список друзей этого игрока скрыт. Попробуйте другой профиль!",
