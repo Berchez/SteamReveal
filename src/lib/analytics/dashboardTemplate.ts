@@ -51,9 +51,11 @@
  *      diffing the runtime string against the source you started from --
  *      not just eyeballing it -- before committing.
  *
- * Split in two around the <script id="db"> data block: HEAD ends right
- * after the opening tag, TAIL starts at its closing tag. buildAnalyticsHtml()
- * joins them around a serialized entries array.
+ * Split in three around the data blocks: HEAD ends right after the
+ * `<script id="db">` opening tag, the entries array follows, then WATCH_MID
+ * closes it and opens `<script id="watch-db">`, then the watch JSON, then
+ * TAIL (which starts at the watch block's closing tag).
+ * buildAnalyticsHtml() joins the parts around the two serialized payloads.
  */
 
 export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
@@ -320,6 +322,37 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   </div>
 </div>
 
+<h1 style="margin-top: 8px;">Watch</h1>
+<p class="subtitle">Opt-in Steam-profile monitoring: counts, locales, bot deliveries and current status (read from the watch tables — no extra writes)</p>
+
+<div class="stats" id="watch-stats"></div>
+
+<div class="charts-grid">
+  <div class="panel">
+    <h2>Signups per day</h2>
+    <p class="panel-note">Watch accounts created, last 30 days</p>
+    <div id="chart-watch-signups"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Watcher locales</h2>
+    <p class="panel-note">Requester locale at signup (accounts — one row per user)</p>
+    <div id="chart-watch-locales" class="chart-with-legend"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Bot deliveries per day</h2>
+    <p class="panel-note">Sent events, all lanes combined, last 30 days</p>
+    <div id="chart-watch-deliveries"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Delivery totals</h2>
+    <p class="panel-note">Sent vs dropped, all time by lane</p>
+    <ul class="rank-list" id="watch-delivery-totals"></ul>
+  </div>
+</div>
+
 <div class="panel">
   <h2>Search history</h2>
   <div class="toolbar">
@@ -353,6 +386,10 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   cheater, durationMs, friends[].probability/mutualCount, etc.) are
   OPTIONAL. Old entries simply don't have them — that is expected,
   not an error, and all the code below treats that as "no data yet".
+
+  The second block below (<script id="watch-db">, inserted by
+  buildAnalyticsHtml between this block's closing tag and TAIL) carries
+  the Watch aggregates (or null when those reads failed) — same rules.
 -->
 <script type="application/json" id="db">`;
 
@@ -934,7 +971,167 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     renderLocationsChart();
     renderGameChart(topGamesPerProfileLimit, 'chart-games-per-profile', 'per-profile');
     renderGameChart(topGamesEngagement, 'chart-games-engagement', 'engagement');
+    renderWatchSignups();
+    renderWatchDeliveries();
   }, 200));
+
+  // ---------------------------------------------------------------------
+  // Watch section (opt-in Steam-profile monitoring: counts + locales + bot
+  // deliveries + current status). Reads the #watch-db JSON block (null when
+  // the reads failed — every panel below degrades to an explicit empty
+  // state instead of breaking the page, same fail-open contract as the
+  // server side that served null).
+  // ---------------------------------------------------------------------
+
+  var watch = null;
+  try {
+    watch = JSON.parse(document.getElementById('watch-db').textContent);
+  } catch (e) {
+    console.error('Failed to read the watch data block', e);
+  }
+
+  function watchDayCounts(rows, getDate) {
+    var counts = {};
+    rows.forEach(function (r) {
+      var stamp = getDate(r);
+      if (typeof stamp !== 'string' || !stamp) return;
+      var d = new Date(stamp);
+      if (isNaN(d.getTime())) return;
+      counts[dayKey(d)] = (counts[dayKey(d)] || 0) + 1;
+    });
+    var out = [];
+    for (var i = 29; i >= 0; i -= 1) {
+      var day = new Date(startOfToday.getTime() - i * 24 * 60 * 60 * 1000);
+      out.push({
+        label: String(day.getDate()).padStart(2, '0') + '/' + String(day.getMonth() + 1).padStart(2, '0'),
+        value: counts[dayKey(day)] || 0,
+      });
+    }
+    return out;
+  }
+
+  function renderWatchSignups() {
+    if (!watch) return;
+    var el = document.getElementById('chart-watch-signups');
+    var byDay = watchDayCounts(watch.accounts || [], function (a) { return a.createdAt; });
+    el.innerHTML = svgBarChart(byDay, { width: containerWidth(el), color: 'var(--accent5)' });
+  }
+
+  function renderWatchDeliveries() {
+    if (!watch) return;
+    var el = document.getElementById('chart-watch-deliveries');
+    var sent = (watch.events || []).filter(function (ev) {
+      return ev.status === 'sent' && typeof ev.sentAt === 'string' && ev.sentAt;
+    });
+    var byDay = watchDayCounts(sent, function (ev) { return ev.sentAt; });
+    el.innerHTML = svgBarChart(byDay, { width: containerWidth(el), color: 'var(--accent2)' });
+  }
+
+  (function renderWatchSection() {
+    var statsEl = document.getElementById('watch-stats');
+    if (!watch) {
+      statsEl.innerHTML = '<div class="stat-card"><div class="value">—</div><div class="label">Watch data unavailable</div></div>';
+      ['chart-watch-signups', 'chart-watch-locales', 'chart-watch-deliveries'].forEach(function (id) {
+        document.getElementById(id).innerHTML = '<div class="empty">Watch data unavailable.</div>';
+      });
+      document.getElementById('watch-delivery-totals').innerHTML = '<li class="empty">Watch data unavailable.</li>';
+      return;
+    }
+    var accounts = watch.accounts || [];
+    var watched = watch.watched || [];
+    var events = watch.events || [];
+
+    // Raw counts only, deliberately no cross-table rates: confirmed_at is
+    // written solely by the legacy confirm-link lane (single-state logins
+    // never touch it), and accounts vs watched_profiles populations can
+    // drift (grandfathered rows) — so any signup-denominated % would decay
+    // or exceed 100% without anything breaking. Counts stay truthful.
+    var signups = accounts.length;
+    var active = watched.filter(function (w) { return w.status === 'active'; }).length;
+    var pending = watched.filter(function (w) { return w.status !== 'active'; }).length;
+    var weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    var loginsWeek = accounts.filter(function (a) {
+      return typeof a.lastLoginAt === 'string' && Date.parse(a.lastLoginAt) >= weekAgo;
+    }).length;
+    statsEl.innerHTML = [
+      { value: signups, label: 'Watch accounts' },
+      { value: active, label: 'Active watches' },
+      { value: pending, label: 'Pending watches' },
+      { value: loginsWeek, label: 'Active users (7d)' },
+    ].map(function (s) {
+      return '<div class="stat-card"><div class="value">' + escapeHtml(s.value) + '</div><div class="label">' + escapeHtml(s.label) + '</div></div>';
+    }).join('');
+
+    renderWatchSignups();
+
+    var watcherLocales = {};
+    // accounts ONLY: accounts and watched_profiles are 1:1 for the same user
+    // (signup creates both with the same locale), so counting both would
+    // count every normal user twice and skew the donut. watched rows without
+    // an account (grandfathered pre-confirmation rows) are rare enough that
+    // one truthful population beats a doubled one.
+    accounts.forEach(function (a) {
+      var key = (typeof a.locale === 'string' && a.locale) || 'unknown';
+      watcherLocales[key] = (watcherLocales[key] || 0) + 1;
+    });
+    var localeData = topNPlusOthers(watcherLocales, 6);
+    document.getElementById('chart-watch-locales').innerHTML = localeData.length
+      ? donutAndLegend(localeData)
+      : '<div class="empty">No data yet.</div>';
+
+    renderWatchDeliveries();
+
+    // Lanes derived from the data, not a hardcoded list: a new event kind
+    // added to WatchEventKind/validKinds shows up here automatically instead
+    // of silently disappearing from the breakdown. Single pass over events
+    // (not one .filter() per lane per status).
+    var totals = {};
+    events.forEach(function (ev) {
+      var lane = (typeof ev.kind === 'string' && ev.kind) || 'unknown';
+      if (!totals[lane]) totals[lane] = { sent: 0, dropped: 0 };
+      if (ev.status === 'sent') totals[lane].sent += 1;
+      else if (ev.status === 'dropped') totals[lane].dropped += 1;
+    });
+    var laneNames = Object.keys(totals).sort();
+    var totalsHtml = laneNames.length
+      ? laneNames.map(function (kind) {
+          var t = totals[kind];
+          return '<li><span>' + escapeHtml(kind) + '</span><span class="count">' + t.sent + ' sent · ' + t.dropped + ' dropped</span></li>';
+        }).join('')
+      : '<li class="empty">No deliveries yet.</li>';
+    var live = watch.liveness;
+    var liveLine;
+    // STALE_MS mirrors BOT_ONLINE_MAX_AGE_MS in src/lib/watch/botLiveness.ts:
+    // past it the bot process is down even when the last row said connected.
+    var STALE_MS = 4 * 60 * 1000;
+    if (!live || typeof live.beatAt !== 'string') {
+      liveLine = 'Bot heartbeat: unknown (no beat recorded yet)';
+    } else {
+      var beatMs = Date.parse(live.beatAt);
+      if (!isFinite(beatMs)) {
+        liveLine = 'Bot heartbeat: unknown (invalid beat timestamp)';
+      } else {
+        var ageMs = Math.max(0, Date.now() - beatMs);
+        var ageText;
+        if (ageMs < 60 * 1000) {
+          ageText = Math.round(ageMs / 1000) + 's ago';
+        } else if (ageMs < 60 * 60 * 1000) {
+          ageText = Math.round(ageMs / (60 * 1000)) + 'm ago';
+        } else if (ageMs < 24 * 60 * 60 * 1000) {
+          ageText = Math.round(ageMs / (60 * 60 * 1000)) + 'h ago';
+        } else {
+          ageText = Math.round(ageMs / (24 * 60 * 60 * 1000)) + 'd ago';
+        }
+        var sessionText = live.connected ? 'connected' : 'disconnected';
+        if (ageMs >= STALE_MS) {
+          sessionText = 'stale, likely offline (last: ' + sessionText + ')';
+        }
+        liveLine = 'Bot heartbeat: ' + ageText + ', session ' + sessionText;
+      }
+    }
+    document.getElementById('watch-delivery-totals').innerHTML = totalsHtml +
+      '<li><span>' + escapeHtml(liveLine) + '</span><span class="count">now</span></li>';
+  })();
 
   // ---- Ranking: most searched profiles / most frequent friends ----
   function topRankHtml(counts, labelFn) {
@@ -1094,12 +1291,17 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
 </body>
 </html>`;
 
+/** Closes the entries block and opens the watch block (joined by buildAnalyticsHtml). */
+const WATCH_DB_MID = `</script>
+<script type="application/json" id="watch-db">`;
+
 /**
  * Assembles a full analytics.html from the dashboard shell (HEAD/TAIL,
- * above) around an already-serialized JSON string for the
- * <script id="db"> block.
+ * above) around two already-serialized JSON strings: the searches array
+ * for the <script id="db"> block and the Watch aggregates (or 'null' when
+ * those reads failed) for the <script id="watch-db"> block.
  *
- * Deliberately takes a pre-serialized string rather than SearchRecord[]:
+ * Deliberately takes pre-serialized strings rather than SearchRecord[]:
  * this file only knows about markup/styling/behavior, not about what a
  * "search record" is or how it should be escaped for embedding (that's
  * dashboardRender.ts's job -- see its `<` -> `\u003c` escaping, which
@@ -1107,8 +1309,12 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
  * Keeping that split also avoids a circular import, since dashboardRender.ts
  * already imports from this file.
  */
-export const buildAnalyticsHtml = (serializedEntriesJson: string): string =>
-  `${ANALYTICS_DASHBOARD_HEAD}\n${serializedEntriesJson}\n${ANALYTICS_DASHBOARD_TAIL}`;
+
+export const buildAnalyticsHtml = (
+  serializedEntriesJson: string,
+  serializedWatchJson: string = 'null',
+): string =>
+  `${ANALYTICS_DASHBOARD_HEAD}\n${serializedEntriesJson}\n${WATCH_DB_MID}\n${serializedWatchJson}\n${ANALYTICS_DASHBOARD_TAIL}`;
 
 /**
  * Convenience wrapper for an empty-history dashboard — used by tests and by

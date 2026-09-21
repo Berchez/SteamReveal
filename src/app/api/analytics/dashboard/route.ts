@@ -4,7 +4,11 @@ import timingSafeEqualStrings from '@/lib/timingSafeEqualStrings';
 import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
-import { getSearchRecords } from '@/lib/analytics/db';
+import withTimeout from '@/lib/withTimeout';
+import {
+  getSearchRecords,
+  getWatchDashboardData,
+} from '@/lib/analytics/db';
 import { renderDashboard } from '@/lib/analytics/dashboardRender';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -12,8 +16,25 @@ const RATE_LIMIT_MAX = 30;
 const dashboardRateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
 
 /**
+ * Budget for the additive Watch half of the dashboard. allSettled alone only
+ * covers *errors* — without this, a slow/hung watch query (watch_events
+ * grows one row per bot delivery, no retention) would hold the whole page,
+ * including the primary searches section, until the platform 504s.
+ * Promise.race doesn't cancel the driver query, it just frees the response
+ * (accepted limitation, same as every other withTimeout call site).
+ *
+ * Module-scoped (NOT exported: Next.js route files may only export
+ * route-related names — an extra export breaks the generated route types).
+ */
+const WATCH_READ_TIMEOUT_MS = 4_000;
+
+/**
  * Serves the analytics dashboard as live HTML, rebuilt on every request
- * from the current Turso data (getSearchRecords).
+ * from the current Turso data (searches via getSearchRecords + the additive
+ * Watch section via getWatchDashboardData).
+ *
+ * The Watch half is fail-open (error AND latency): a throw or a timeout
+ * degrades it to null instead of 500ing/delaying the primary searches page.
  *
  * This replaces the old local analytics.html file, which only lived on the
  * machine running the proxy. The markup/styling/JS shell is
@@ -101,8 +122,36 @@ export async function GET(req: Request) {
   }
 
   try {
-    const entries = await getSearchRecords();
-    const html = renderDashboard(entries);
+    // Reads run together (one Turso round trip each, no shared snapshot
+    // needed across the two domains). The Watch half is fail-open: if it
+    // throws OR exceeds WATCH_READ_TIMEOUT_MS, the dashboard still renders
+    // searches with an "unavailable" Watch section (null) instead of 500ing
+    // or stalling the whole page — the search history is the primary
+    // content, Watch stats are additive.
+    const [entriesResult, watchResult] = await Promise.allSettled([
+      getSearchRecords(),
+      withTimeout(
+        getWatchDashboardData(),
+        'watch dashboard',
+        WATCH_READ_TIMEOUT_MS,
+      ),
+    ]);
+    // Log the watch failure FIRST so a simultaneous entries failure (which
+    // throws below) cannot swallow it — in a real incident both halves
+    // failing at once is exactly when each reason matters. Separate tag so
+    // a missing 010/011 migration (watch-only) doesn't read as a searches
+    // outage in the logs.
+    if (watchResult.status === 'rejected') {
+      logRouteError(
+        'analytics/dashboard:watch',
+        sanitizeError(watchResult.reason),
+      );
+    }
+    if (entriesResult.status === 'rejected') throw entriesResult.reason;
+    const html = renderDashboard(
+      entriesResult.value,
+      watchResult.status === 'fulfilled' ? watchResult.value : null,
+    );
 
     return new NextResponse(html, {
       status: 200,

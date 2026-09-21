@@ -26,9 +26,14 @@ import type {
   WatchAccount,
   WatchStatus,
   WatchEventKind,
+  WatchEventStatus,
   WatchNotification,
   WatchedProfile,
   WatchEvent,
+  WatchDashboardAccount,
+  WatchDashboardWatched,
+  WatchDashboardEvent,
+  WatchDashboardData,
   ExpiredConfirmCandidate,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
@@ -1595,6 +1600,114 @@ export const getBotHeartbeat = async (): Promise<BotHeartbeat | null> => {
       typeof record.disconnected_since === 'string'
         ? record.disconnected_since
         : null,
+  };
+};
+
+/**
+ * Read-only Watch aggregates for the analytics dashboard (no migration, no
+ * writes — these tables already exist). Four SELECTs in ONE db.batch(), so
+ * the funnel, deliveries and liveness snapshot share one instant instead
+ * of drifting across sequential reads (same rationale as getSearchRecords).
+ *
+ * Column allowlist by construction: token hashes, anti-loop state and
+ * session material are never selected, so they cannot leak into the
+ * dashboard payload. Malformed rows (hand edits, legacy imports) are
+ * dropped when a required timestamp is missing — a corrupt row must not
+ * poison dashboard aggregates with NaN buckets.
+ */
+export const getWatchDashboardData = async (): Promise<WatchDashboardData> => {
+  // Full-table reads, same pattern as getSearchRecords (no pagination):
+  // watch_events grows one row per bot delivery, faster than searches.
+  // Acceptable at current scale (single bot, friend-cap-bounded watches);
+  // if it ever dominates page cost, aggregate in SQL (GROUP BY day/kind +
+  // 31-day window) instead of shipping rows for the client to bucket —
+  // and note the bucketing timezone would move from browser-local to UTC.
+  // No ORDER BY: the client only buckets/counts, order is irrelevant and an
+  // unindexed sort is pure cost.
+  const db = await getClient();
+
+  const [accounts, watched, events, heartbeat] = await withSchemaHint(
+    db.batch([
+      {
+        sql: 'SELECT created_at, confirmed_at, locale, last_login_at FROM accounts',
+      },
+      {
+        sql: 'SELECT status, locale, requested_at, activated_at FROM watched_profiles',
+      },
+      {
+        sql: 'SELECT kind, status, created_at, sent_at FROM watch_events',
+      },
+      { sql: 'SELECT beat_at, connected FROM bot_heartbeat WHERE id = 1' },
+    ]),
+  );
+
+  const accountRows: WatchDashboardAccount[] = [];
+  accounts.rows.forEach((row) => {
+    if (typeof row.created_at !== 'string') return;
+    accountRows.push({
+      createdAt: row.created_at,
+      confirmedAt:
+        typeof row.confirmed_at === 'string' ? row.confirmed_at : null,
+      locale: typeof row.locale === 'string' ? row.locale : null,
+      lastLoginAt:
+        typeof row.last_login_at === 'string' ? row.last_login_at : null,
+    });
+  });
+
+  const watchedRows: WatchDashboardWatched[] = [];
+  watched.rows.forEach((row) => {
+    if (typeof row.requested_at !== 'string') return;
+    watchedRows.push({
+      requestedAt: row.requested_at,
+      activatedAt:
+        typeof row.activated_at === 'string' ? row.activated_at : null,
+      // Same collapse as toWatchedProfile: unknown statuses read as
+      // pending rather than leaking a third state into the funnel.
+      status: row.status === 'active' ? 'active' : 'pending',
+      locale: typeof row.locale === 'string' ? row.locale : null,
+    });
+  });
+
+  const validKinds: WatchEventKind[] = [
+    'invite',
+    'notify',
+    'welcome',
+    'confirm_resend',
+  ];
+  const eventRows: WatchDashboardEvent[] = [];
+  events.rows.forEach((row) => {
+    if (
+      typeof row.created_at !== 'string' ||
+      typeof row.kind !== 'string' ||
+      !(validKinds as string[]).includes(row.kind) ||
+      typeof row.status !== 'string'
+    ) {
+      return;
+    }
+    eventRows.push({
+      kind: row.kind as WatchEventKind,
+      // Statuses are writer-owned ('queued'|'claimed'|'sent'|'dropped');
+      // an unknown one passes through verbatim and simply never matches a
+      // sent/dropped bucket client-side — fail-open, same rationale.
+      status: row.status as WatchEventStatus,
+      createdAt: row.created_at,
+      sentAt: typeof row.sent_at === 'string' ? row.sent_at : null,
+    });
+  });
+
+  const beatRow = heartbeat.rows[0] as Record<string, unknown> | undefined;
+  return {
+    accounts: accountRows,
+    watched: watchedRows,
+    events: eventRows,
+    liveness:
+      beatRow !== undefined && typeof beatRow.beat_at === 'string'
+        ? {
+            beatAt: beatRow.beat_at,
+            connected: Number(beatRow.connected) > 0,
+          }
+        : null,
+    generatedAt: new Date().toISOString(),
   };
 };
 
