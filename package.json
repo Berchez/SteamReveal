@@ -13,6 +13,7 @@
     "smoke:analytics": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/smoke-analytics.ts",
     "db:smoke": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/db-smoke.ts",
     "smoke:gc": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/gc-selector-smoke.ts",
+    "check:ban": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/check-ban.ts",
     "db:migrate": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/migrate-db.ts",
     "db:migrate-data": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/migrate-data.ts",
     "lint": "next lint",
