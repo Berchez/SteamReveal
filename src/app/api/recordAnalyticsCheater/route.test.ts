@@ -8,6 +8,18 @@ jest.mock('@/lib/analytics/db', () => ({
   attachCheaterProbability: jest.fn(),
 }));
 
+jest.mock('@/lib/analytics/banWatchSubscribe', () => ({
+  subscribeBanWatcher: jest.fn(),
+}));
+
+jest.mock('@/lib/watch/session', () => ({
+  resolveWatchSession: jest.fn(),
+}));
+
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(),
+}));
+
 // Factory must not reference outer variables (TDZ: `import { POST }` runs
 // before module-body consts). Expose the limiter's isRateLimited through the
 // mocked module so the 429 test can flip it.
@@ -22,6 +34,14 @@ jest.mock('@/lib/rateLimit', () => {
 
 const { attachCheaterProbability } = jest.requireMock('@/lib/analytics/db') as {
   attachCheaterProbability: jest.Mock;
+};
+
+const { subscribeBanWatcher } = jest.requireMock(
+  '@/lib/analytics/banWatchSubscribe',
+) as { subscribeBanWatcher: jest.Mock };
+
+const { resolveWatchSession } = jest.requireMock('@/lib/watch/session') as {
+  resolveWatchSession: jest.Mock;
 };
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
@@ -57,6 +77,10 @@ describe('POST /api/recordAnalyticsCheater', () => {
     originalDbUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
     process.env.ANALYTICS_SKIP_PASSWORD = 'test-password';
+    // Ban Reveal hook defaults: anonymous (no session) unless a test opts
+    // into a login — the cheater write itself never depends on it.
+    resolveWatchSession.mockResolvedValue({ status: 'unauthenticated' });
+    subscribeBanWatcher.mockResolvedValue({ subscribed: true, created: true });
   });
 
   afterEach(() => {
@@ -149,5 +173,95 @@ describe('POST /api/recordAnalyticsCheater', () => {
   it('returns 400 when searchId or score is missing', async () => {
     const res = await POST(makeRequest({ jsonBody: { score: 10 } }));
     expect(res.status).toBe(400);
+  });
+
+  it('subscribes the logged-in reviewer to ban alerts (server-side, at the write)', async () => {
+    attachCheaterProbability.mockResolvedValue(true);
+    resolveWatchSession.mockResolvedValue({
+      status: 'authenticated',
+      steamId: '76561198000000001',
+    });
+
+    const res = await POST(
+      makeRequest({
+        jsonBody: { searchId: 'abc-123', score: 42, bannedFriendsCount: 2 },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(subscribeBanWatcher).toHaveBeenCalledWith(
+      '76561198000000001',
+      'abc-123',
+      expect.objectContaining({ error: expect.any(Function) }),
+    );
+  });
+
+  it('skips the subscribe hook for anonymous cheater opens', async () => {
+    attachCheaterProbability.mockResolvedValue(true);
+    resolveWatchSession.mockResolvedValue({ status: 'unauthenticated' });
+
+    const res = await POST(
+      makeRequest({ jsonBody: { searchId: 'abc-123', score: 42 } }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(subscribeBanWatcher).not.toHaveBeenCalled();
+  });
+
+  it('still returns ok when the subscribe hook fails (cheater write wins)', async () => {
+    attachCheaterProbability.mockResolvedValue(true);
+    resolveWatchSession.mockResolvedValue({
+      status: 'authenticated',
+      steamId: '76561198000000001',
+    });
+    subscribeBanWatcher.mockRejectedValueOnce(new Error('ban-watch down'));
+
+    const res = await POST(
+      makeRequest({ jsonBody: { searchId: 'abc-123', score: 42 } }),
+    );
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).ok).toBe(true);
+  });
+
+  it('does not hang the cheater write when the subscribe hook stalls (8s watchdog)', async () => {
+    attachCheaterProbability.mockResolvedValue(true);
+    resolveWatchSession.mockResolvedValue({
+      status: 'authenticated',
+      steamId: '76561198000000001',
+    });
+    // A stalled Turso write: never resolves. try/catch alone would hang
+    // the whole POST on this — the withTimeout watchdog must win instead.
+    subscribeBanWatcher.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    jest.useFakeTimers();
+    try {
+      const pending = POST(
+        makeRequest({ jsonBody: { searchId: 'abc-123', score: 42 } }),
+      );
+      await jest.advanceTimersByTimeAsync(8000);
+      const res = await pending;
+      expect(res.status).toBe(200);
+      expect((await res.json()).ok).toBe(true);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('never subscribes when the search record is missing (404 first)', async () => {
+    attachCheaterProbability.mockResolvedValue(false);
+    resolveWatchSession.mockResolvedValue({
+      status: 'authenticated',
+      steamId: '76561198000000001',
+    });
+
+    const res = await POST(
+      makeRequest({ jsonBody: { searchId: 'nope', score: 10 } }),
+    );
+
+    expect(res.status).toBe(404);
+    expect(subscribeBanWatcher).not.toHaveBeenCalled();
   });
 });

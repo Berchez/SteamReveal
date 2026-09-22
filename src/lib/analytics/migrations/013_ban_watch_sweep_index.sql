@@ -1,0 +1,43 @@
+-- =====================================================================
+-- Turso (SQLite) schema — Ban Reveal sweep scan index.
+-- Migration: 013_ban_watch_sweep_index.sql
+--
+-- Idempotent via the runner AND via SQL: the CREATE INDEX below uses IF
+-- NOT EXISTS, so re-running is a safe no-op — but scripts/migrate-db.ts
+-- tracks applied files in _migrations and never replays them (that table
+-- is the idempotency mechanism here).
+-- NEVER RENAME this file after it has been applied anywhere: the runner
+-- keys on filename, so a rename replays the statement set (real incident
+-- with 007, which was applied as 006_watch_anti_loop_token.sql and then
+-- renamed). Apply with `pnpm run db:migrate`.
+--
+-- Design notes:
+-- - listDistinctBanTargets filters WHERE source = 'steam' and orders by
+--   last_ban_checked_at ASC NULLS FIRST (never-checked targets converge
+--   within one pass). The per-subscription fan-out reads already ride the
+--   idx_ban_subs_target_notified / idx_ban_subs_subscriber_notified
+--   indexes from 012 — this file covers the remaining sweep input.
+-- - At Phase-1 volume (~1 new subscription/day, one 6h sweep pass) this
+--   index is pure hygiene: the table is tiny and a full scan every 6h
+--   would be negligible. It exists so the sweep cannot become the slow
+--   query if the target base ever grows two orders of magnitude.
+-- - DEPLOY ORDER: additive index only — code runs identically with or
+--   without it (slower without). No ordering constraint vs 012 beyond
+--   the obvious (the table must exist first).
+-- =====================================================================
+
+CREATE INDEX IF NOT EXISTS idx_ban_targets_source_checked
+  ON ban_watch_targets(source, last_ban_checked_at);
+
+-- =====================================================================
+-- ROLLBACK (manual only — READ THIS BEFORE COPYING ANYTHING OUT).
+--
+-- The migrate runner (scripts/migrate-db.ts) executes EVERY file matching
+-- NNN_*.sql as a FORWARD migration, so a down script must NEVER live in a
+-- separate file in this directory: it would be applied as a forward
+-- migration and DROP THE INDEX. The rollback lives here, commented out,
+-- as documentation for a human running it by hand (sqlite3 / Turso shell):
+--
+--   DROP INDEX IF EXISTS idx_ban_targets_source_checked;
+--   DELETE FROM _migrations WHERE filename = '013_ban_watch_sweep_index.sql';
+-- =====================================================================

@@ -269,3 +269,25 @@ const CONFIRM_EXPIRED_TEXT: Record<WatchMessageLocale, string> = {
 export const getConfirmExpiredText = (
   locale: string | null | undefined,
 ): string => CONFIRM_EXPIRED_TEXT[resolveWatchLocale(locale)];
+
+const BAN_ALERT_TEXT: Record<WatchMessageLocale, string> = {
+  // Ban Reveal alert (Phase 1): deliberately GENERIC — never names the
+  // profile, nickname, or any identifying detail. The subscriber learns
+  // WHICH profile only by opening the notifications tab and clicking
+  // through the reveal (instrumented server-side). Same contract as every
+  // template above: 5 locales, never throws, never empty, no `[`
+  // (Steam BBCode mangling), no rich-text tags (bot prints verbatim).
+  en: 'A profile you reviewed was flagged as banned. Open your notifications tab to see which.',
+  pt: 'Um perfil que você analisou foi sinalizado como banido. Abra sua aba de notificações para ver qual.',
+  es: 'Un perfil que revisaste fue marcado como baneado. Abre tu pestaña de notificaciones aquí para ver cuál.',
+  de: 'Ein von dir geprüftes Profil wurde als gesperrt markiert. Öffne deinen Benachrichtigungs-Tab, um zu sehen, welches.',
+  ru: 'Профиль, который вы проверяли, отмечен как забаненный. Откройте вкладку уведомлений, чтобы узнать какой.',
+};
+
+/**
+ * Ban-alert text (Ban Reveal Phase 1): generic by design — the profile is
+ * revealed only after the instrumented reveal click, never in chat.
+ */
+export const getBanAlertText = (
+  locale: string | null | undefined,
+): string => BAN_ALERT_TEXT[resolveWatchLocale(locale)];

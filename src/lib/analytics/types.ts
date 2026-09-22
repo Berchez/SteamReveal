@@ -103,10 +103,16 @@ export type NewSearchInput = Omit<
 /** Lifecycle of a watched profile: invite sent vs friendship observed. */
 export type WatchStatus = 'pending' | 'active';
 
-/** Poller lane: invite/notify senders, post-confirm welcome sender, and
- * confirm-link resend requests (never contend — kind is in every claim
- * predicate, so concurrent pollers cannot grab each other's rows). */
-export type WatchEventKind = 'invite' | 'notify' | 'welcome' | 'confirm_resend';
+/** Poller lane: invite/notify senders, post-confirm welcome sender,
+ * confirm-link resend requests, and ban-reveal alerts (never contend —
+ * kind is in every claim predicate, so concurrent pollers cannot grab
+ * each other's rows). */
+export type WatchEventKind =
+  | 'invite'
+  | 'notify'
+  | 'welcome'
+  | 'confirm_resend'
+  | 'ban_alert';
 
 /**
  * Event lifecycle: queued (pollable) -> claimed (transient: a worker owns
@@ -200,6 +206,55 @@ export interface WatchNotification {
   cheaterChecked: boolean;
   /** Searcher country (search_meta.requester_country, 2-letter, uppercase). */
   requesterCountry: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Ban Reveal Phase 1 (cheater-review-triggered subscriptions).
+// Opposite direction from watched_profiles: the SUBSCRIBER is the person
+// who opened the cheater report, the TARGET is the reviewed profile. The
+// two tables split sweep cardinality (one row per distinct target) from
+// notification cardinality (one row per subscriber x target).
+// ---------------------------------------------------------------------------
+
+/** Ban-check source. Phase 1 only ever reads/writes 'steam'. */
+export type BanWatchSource = 'steam';
+
+/** One distinct (profile, source) row checked by the sweep. */
+export interface BanWatchTarget {
+  targetSteamId: string;
+  source: BanWatchSource;
+  /** Last sweep verdict (false until the first sighting confirms a ban). */
+  lastKnownBanned: boolean;
+  /** Last sweep sighting (ISO-8601), null until the sweep sees it once. */
+  lastBanCheckedAt: string | null;
+}
+
+/** One subscriber x target subscription (permanent in Phase 1: no unsubscribe UI). */
+export interface BanWatchSubscription {
+  id: number;
+  subscriberSteamId: string;
+  targetSteamId: string;
+  /** Originating search, audit trail only (nullable). */
+  searchId: string | null;
+  subscribedAt: string;
+  /** Set once an alert fired for the current ban episode — or at subscribe
+   * time when the target was already banned (pre-existing bans never alert). */
+  notifiedAt: string | null;
+}
+
+/**
+ * Inbox row for the ban-alert stream: deliberately generic (no target
+ * steamId, nickname, or profile link) until the subscriber clicks through
+ * the reveal route. `id` is the subscription id — the opaque handle the
+ * reveal route accepts, so the list payload never names the profile.
+ */
+export interface BanAlertNotification {
+  /** Subscription id (ban_watch_subscriptions.id) — reveal handle. */
+  id: number;
+  /** When the subscription was created (ISO-8601). */
+  subscribedAt: string;
+  /** When the ban alert fired (ISO-8601, always non-null in this stream). */
+  notifiedAt: string;
 }
 
 // ---------------------------------------------------------------------------

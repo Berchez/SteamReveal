@@ -17,6 +17,7 @@ import {
   watchProfileUrl,
 } from '@/lib/watch/notificationText';
 import { isWatchTokenShape } from '@/lib/watch/tokens';
+import { isSteamId64 } from '@/lib/steamId';
 import { WATCH_INBOX_DEFAULT_LIMIT } from '@/lib/watch/limits';
 import resolveLoginNext from '@/lib/watch/loginNext';
 import { usePathname } from '@/navigation';
@@ -38,6 +39,38 @@ interface InboxNotification {
   /** Searcher country (2-letter, uppercase) — null when unknown/legacy. */
   requesterCountry: string | null;
 }
+
+/**
+ * Ban-alert row (Ban Reveal Phase 1): deliberately generic — id plus
+ * timestamps only, never the target steamId. The target is disclosed only
+ * through the instrumented reveal click (POST /api/watch/ban-reveal).
+ */
+interface InboxBanAlert {
+  /** Subscription id — the opaque reveal handle. */
+  id: number;
+  subscribedAt: string;
+  notifiedAt: string;
+}
+
+const BAN_SEEN_PREFIX = 'banAlertSeen_';
+
+const getBanSeenMax = (steamId: string): number => {
+  try {
+    const raw = localStorage.getItem(`${BAN_SEEN_PREFIX}${steamId}`);
+    const n = raw === null ? 0 : Number(raw);
+    return Number.isInteger(n) && n > 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+};
+
+const setBanSeenMax = (steamId: string, maxId: number): void => {
+  try {
+    localStorage.setItem(`${BAN_SEEN_PREFIX}${steamId}`, String(maxId));
+  } catch {
+    // localStorage full/blocked: badge overcounts, never an error screen.
+  }
+};
 
 const NOTIFICATIONS_LIMIT = WATCH_INBOX_DEFAULT_LIMIT;
 /**
@@ -190,6 +223,17 @@ function WatchInbox({ steamId }: { steamId: string }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<InboxNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Ban Reveal stream (Phase 1, option (a): one bell, one badge). Separate
+  // state from the search rows above: different shape (generic until
+  // reveal), different seen-tracking (max subscription id watermark, not a
+  // searched_at cursor), same bell.
+  const [banAlerts, setBanAlerts] = useState<InboxBanAlert[]>([]);
+  const [banUnread, setBanUnread] = useState(0);
+  // Revealed targets by subscription id (target steamId only lands here
+  // AFTER the instrumented POST — the list payload never names it).
+  const [revealed, setRevealed] = useState<Record<number, string>>({});
+  const [revealing, setRevealing] = useState<Record<number, boolean>>({});
+  const [revealError, setRevealError] = useState<Record<number, boolean>>({});
   // Server-minted loop guard for this open (null = slot busy or mint
   // failed — links stay plain). Shared by every row: the token slot is
   // single per profile and single-use, so the first self-click consumes
@@ -220,6 +264,7 @@ function WatchInbox({ steamId }: { steamId: string }) {
         unreadCount?: unknown;
         monthlyCount?: unknown;
         antiLoopToken?: unknown;
+        banAlerts?: unknown;
       } | null,
       markVisibleAsSeen: boolean,
       seq: number,
@@ -265,6 +310,49 @@ function WatchInbox({ steamId }: { steamId: string }) {
       // the previous profile's rows land in the new profile's inbox.
       if (fetchSeqRef.current !== seq) return;
       setNotifications(parsed);
+      // Ban-alert stream: validate strictly (id is the reveal handle AND
+      // the seen watermark — a malformed row is dropped, never rendered
+      // half-true). Malformed timestamps degrade to epoch-zero strings so
+      // the row still renders (the alert fact matters, the when is garnish).
+      const banRows: unknown[] = Array.isArray(body?.banAlerts)
+        ? body.banAlerts
+        : [];
+      const parsedBans: InboxBanAlert[] = [];
+      banRows.forEach((row) => {
+        if (typeof row !== 'object' || row === null) return;
+        const { id, subscribedAt, notifiedAt } = row as {
+          id?: unknown;
+          subscribedAt?: unknown;
+          notifiedAt?: unknown;
+        };
+        if (typeof id !== 'number' || !Number.isInteger(id) || id <= 0) {
+          return;
+        }
+        if (typeof notifiedAt !== 'string' || notifiedAt.length === 0) return;
+        parsedBans.push({
+          id,
+          subscribedAt:
+            typeof subscribedAt === 'string' ? subscribedAt : notifiedAt,
+          notifiedAt,
+        });
+      });
+      setBanAlerts(parsedBans);
+      // Ban seen-tracking: max-id watermark in localStorage (ids are
+      // AUTOINCREMENT, strictly ordered). Opening the panel marks every
+      // visible alert as seen; the mount fetch only counts past it.
+      const seenMax = getBanSeenMax(steamId);
+      const maxVisible = parsedBans.reduce(
+        (max, alert) => Math.max(max, alert.id),
+        0,
+      );
+      if (markVisibleAsSeen) {
+        if (maxVisible > 0) setBanSeenMax(steamId, maxVisible);
+        setBanUnread(0);
+      } else {
+        setBanUnread(
+          parsedBans.filter((alert) => alert.id > seenMax).length,
+        );
+      }
       // Loop-guard token for this open: shape-checked (a malformed value
       // is never glued into a link). A null answer (occupied slot, mint
       // failure) must NOT evict a working token from a previous fetch:
@@ -373,6 +461,8 @@ function WatchInbox({ steamId }: { steamId: string }) {
           setSessionExpired(true);
           setNotifications([]);
           setUnreadCount(0);
+          setBanAlerts([]);
+          setBanUnread(0);
           setMonthlyCount(null);
           setInboxToken(null);
           return;
@@ -385,6 +475,9 @@ function WatchInbox({ steamId }: { steamId: string }) {
         const body = (await res.json().catch(() => null)) as {
           notifications?: unknown;
           unreadCount?: unknown;
+          monthlyCount?: unknown;
+          antiLoopToken?: unknown;
+          banAlerts?: unknown;
         } | null;
         applyInboxPayload(body, markVisibleAsSeen, seq, effectiveWatermark);
         setError(false);
@@ -403,6 +496,11 @@ function WatchInbox({ steamId }: { steamId: string }) {
   useEffect(() => {
     setNotifications([]);
     setUnreadCount(0);
+    setBanAlerts([]);
+    setBanUnread(0);
+    setRevealed({});
+    setRevealing({});
+    setRevealError({});
     setMonthlyCount(null);
     setInboxToken(null);
     setError(false);
@@ -413,6 +511,40 @@ function WatchInbox({ steamId }: { steamId: string }) {
 
   const handleToggle = useCallback(() => {
     setOpen((wasOpen) => !wasOpen);
+  }, []);
+
+  // Ban reveal click: POSTs the opaque subscription id (never a target
+  // steamId), logs server-side, and stores the disclosed target for the
+  // link. One in-flight request per row; failures show a per-row retry,
+  // never a panel-wide error.
+  const handleReveal = useCallback(async (subscriptionId: number) => {
+    setRevealing((prev) => ({ ...prev, [subscriptionId]: true }));
+    setRevealError((prev) => ({ ...prev, [subscriptionId]: false }));
+    try {
+      const res = await fetch('/api/watch/ban-reveal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptionId }),
+      });
+      if (!res.ok) throw new Error(`ban reveal: ${res.status}`);
+      const body = (await res.json().catch(() => null)) as {
+        targetSteamId?: unknown;
+      } | null;
+      if (
+        typeof body?.targetSteamId !== 'string' ||
+        body.targetSteamId.length === 0
+      ) {
+        throw new Error('ban reveal: malformed response');
+      }
+      setRevealed((prev) => ({
+        ...prev,
+        [subscriptionId]: body.targetSteamId as string,
+      }));
+    } catch {
+      setRevealError((prev) => ({ ...prev, [subscriptionId]: true }));
+    } finally {
+      setRevealing((prev) => ({ ...prev, [subscriptionId]: false }));
+    }
   }, []);
 
   // Refetch on every open: cheap, and the only refresh path (no interval
@@ -505,14 +637,14 @@ function WatchInbox({ steamId }: { steamId: string }) {
         </div>
       );
     }
-    if (loading && notifications.length === 0) {
+    if (loading && notifications.length === 0 && banAlerts.length === 0) {
       return (
         <p className="animate-pulse text-sm text-gray-400">
           {translator('watchInboxLoading')}
         </p>
       );
     }
-    if (error && notifications.length === 0) {
+    if (error && notifications.length === 0 && banAlerts.length === 0) {
       return (
         <div className="flex flex-col gap-2">
           <p role="alert" className="text-sm text-red-400">
@@ -528,60 +660,135 @@ function WatchInbox({ steamId }: { steamId: string }) {
         </div>
       );
     }
+    // Ban-alert section first (newest alert first): generic copy + reveal.
+    // The target link only renders AFTER the instrumented POST above —
+    // the list payload never names the profile.
+    const banSection =
+      banAlerts.length === 0 ? null : (
+        <ul className="mb-3 flex flex-col gap-3">
+          {banAlerts.map((alert) => {
+            const target = revealed[alert.id] ?? null;
+            // Defense in depth (mirrors the backend's assertSteamId64): the
+            // revealed id comes from our own API, but it is interpolated
+            // into an href — a malformed value fails closed to the error
+            // row instead of a crafted path. Unreachable in practice.
+            const safeTarget =
+              target !== null && isSteamId64(target) ? target : null;
+            const busy = revealing[alert.id] === true;
+            const failed =
+              revealError[alert.id] === true || (target !== null && safeTarget === null);
+            return (
+              <li
+                key={`ban-${alert.id}`}
+                className="rounded-xl border border-red-500/40 p-3"
+              >
+                <p className="text-sm text-gray-200">
+                  {translator('watchBanAlertBody')}
+                </p>
+                <time
+                  dateTime={alert.notifiedAt}
+                  className="mt-1 block text-xs font-bold text-purple-300"
+                >
+                  {formatSearchedAt(alert.notifiedAt)}
+                </time>
+                {safeTarget === null ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => handleReveal(alert.id)}
+                    className="mt-2 h-8 rounded-full border border-red-400/60 px-3 text-sm text-red-200 hover:border-red-300 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                  >
+                    {busy
+                      ? translator('watchBanAlertLoading')
+                      : translator('watchBanAlertReveal')}
+                  </button>
+                ) : (
+                  <a
+                    href={`/${locale}/player/${safeTarget}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-block h-8 rounded-full border border-red-400/60 px-3 text-sm leading-8 text-red-200 hover:border-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                  >
+                    {translator('watchBanAlertOpen')}
+                  </a>
+                )}
+                {failed && safeTarget === null && (
+                  <p role="alert" className="mt-1 text-xs text-red-400">
+                    {translator('watchBanAlertError')}
+                  </p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      );
     if (notifications.length === 0) {
       return (
-        <p className="text-sm text-gray-400">{translator('watchInboxEmpty')}</p>
+        <>
+          {banSection}
+          {banAlerts.length === 0 && (
+            <p className="text-sm text-gray-400">
+              {translator('watchInboxEmpty')}
+            </p>
+          )}
+        </>
       );
     }
     return (
-      <ul className="flex flex-col gap-3">
-        {notifications.map((item) => {
-          // Country name, computed ONCE per row and shared by both the
-          // in-sentence flag (tooltip/aria) and the visible origin text
-          // below the timestamp. Visible origin exists because hover
-          // tooltips do not exist on touch screens and several flags are
-          // near-identical (Romania/Chad, Indonesia/Monaco); the bare
-          // name needs no article in any locale, so it sidesteps the
-          // gender/inflection problem the sentence avoids via the flag.
-          const countryName =
-            item.requesterCountry === null
-              ? null
-              : countryDisplayName(item.requesterCountry, locale);
-          return (
-            <li
-              key={item.searchId}
-              className="rounded-xl border border-gray-700 p-3"
-            >
-              <NotifyItemText
-                locale={locale}
-                steamId={steamId}
-                cheaterChecked={item.cheaterChecked}
-                searchedAt={item.searchedAt}
-                antiLoopToken={inboxToken}
-                requesterCountry={item.requesterCountry}
-                countryName={countryName}
-              />
-              {item.cheaterChecked && (
-                <p className="mt-1 text-sm text-lime-400">
-                  {translator('watchInboxCheaterChecked')}
-                </p>
-              )}
-              {/* Viewed-at: when the reported search ran. Emphasized
-                  (purple + bold) so the moment of the lookup reads at a
-                  glance next to the sentence above. */}
-              <time
-                dateTime={item.searchedAt}
-                className="mt-1 block text-xs font-bold text-purple-300"
+      <>
+        {banSection}
+        <ul className="flex flex-col gap-3">
+          {notifications.map((item) => {
+            // Country name, computed ONCE per row and shared by both the
+            // in-sentence flag (tooltip/aria) and the visible origin text
+            // below the timestamp. Visible origin exists because hover
+            // tooltips do not exist on touch screens and several flags are
+            // near-identical (Romania/Chad, Indonesia/Monaco); the bare
+            // name needs no article in any locale, so it sidesteps the
+            // gender/inflection problem the sentence avoids via the flag.
+            const countryName =
+              item.requesterCountry === null
+                ? null
+                : countryDisplayName(item.requesterCountry, locale);
+            return (
+              <li
+                key={item.searchId}
+                className="rounded-xl border border-gray-700 p-3"
               >
-                {formatSearchedAt(item.searchedAt)}
-                {countryName !== null && ` · ${countryName}`}
-              </time>
-            </li>
-          );
-        })}
-      </ul>
+                <NotifyItemText
+                  locale={locale}
+                  steamId={steamId}
+                  cheaterChecked={item.cheaterChecked}
+                  searchedAt={item.searchedAt}
+                  antiLoopToken={inboxToken}
+                  requesterCountry={item.requesterCountry}
+                  countryName={countryName}
+                />
+                {item.cheaterChecked && (
+                  <p className="mt-1 text-sm text-lime-400">
+                    {translator('watchInboxCheaterChecked')}
+                  </p>
+                )}
+                {/* Viewed-at: when the reported search ran. Emphasized
+                    (purple + bold) so the moment of the lookup reads at a
+                    glance next to the sentence above. */}
+                <time
+                  dateTime={item.searchedAt}
+                  className="mt-1 block text-xs font-bold text-purple-300"
+                >
+                  {formatSearchedAt(item.searchedAt)}
+                  {countryName !== null && ` · ${countryName}`}
+                </time>
+              </li>
+            );
+          })}
+        </ul>
+      </>
     );
   };
+
+  // One bell, one badge, for both streams (option (a)).
+  const badgeCount = unreadCount + banUnread;
 
   return (
     <div
@@ -594,9 +801,9 @@ function WatchInbox({ steamId }: { steamId: string }) {
         type="button"
         onClick={handleToggle}
         aria-expanded={open}
-        aria-label={translator('watchInboxBellLabel', { count: unreadCount })}
+        aria-label={translator('watchInboxBellLabel', { count: badgeCount })}
         className={`relative flex h-11 w-11 items-center justify-center rounded-full border-2 border-purple-500/50 bg-slate-900/20 text-white hover:border-purple-400/60 hover:bg-purple-600/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400${
-          unreadCount > 0 ? ' shadow-[0_0_12px_rgba(168,85,247,0.35)]' : ''
+          badgeCount > 0 ? ' shadow-[0_0_12px_rgba(168,85,247,0.35)]' : ''
         }`}
       >
         {/* Brand treatment (matches the avatar button + monthly badge):
@@ -614,12 +821,12 @@ function WatchInbox({ steamId }: { steamId: string }) {
         >
           <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
         </svg>
-        {unreadCount > 0 && (
+        {badgeCount > 0 && (
           <span
             aria-hidden="true"
             className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white"
           >
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {badgeCount > 99 ? '99+' : badgeCount}
           </span>
         )}
       </button>

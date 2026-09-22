@@ -207,6 +207,11 @@
     "watchInboxItemPlainBody": "Someone <flag>from</flag> viewed your profile on {date} at {time}.",
     "watchInboxItemViewHere": "See what they saw",
     "watchInboxItemTrailing": "in that search",
-    "watchInboxCheaterChecked": "Cheater report opened"
+    "watchInboxCheaterChecked": "Cheater report opened",
+    "watchBanAlertBody": "A profile you reviewed was flagged as banned.",
+    "watchBanAlertReveal": "Reveal profile",
+    "watchBanAlertLoading": "Revealing…",
+    "watchBanAlertError": "Could not reveal. Try again.",
+    "watchBanAlertOpen": "Open profile"
   }
 }

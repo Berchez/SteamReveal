@@ -59,6 +59,14 @@ describe('loadBotConfig', () => {
       staleSweepIntervalMs: BOT_CONFIG_DEFAULTS.DEFAULT_STALE_SWEEP_INTERVAL_MS,
       staleClaimWindowMinutes:
         BOT_CONFIG_DEFAULTS.DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
+      banSweepIntervalMs: BOT_CONFIG_DEFAULTS.DEFAULT_BAN_SWEEP_INTERVAL_MS,
+      banSweepBatchLimit: BOT_CONFIG_DEFAULTS.DEFAULT_BAN_SWEEP_BATCH_LIMIT,
+      banAlertPollIntervalMs:
+        BOT_CONFIG_DEFAULTS.DEFAULT_BAN_ALERT_POLL_INTERVAL_MS,
+      banAlertBatchLimit: BOT_CONFIG_DEFAULTS.DEFAULT_BAN_ALERT_BATCH_LIMIT,
+      banAlertMaxAttempts: BOT_CONFIG_DEFAULTS.DEFAULT_BAN_ALERT_MAX_ATTEMPTS,
+      banAlertSendTimeoutMs:
+        BOT_CONFIG_DEFAULTS.DEFAULT_BAN_ALERT_SEND_TIMEOUT_MS,
     });
   });
 
@@ -79,6 +87,15 @@ describe('loadBotConfig', () => {
     expect(config.heartbeatStaleMs).toBe(15000);
     expect(config.reconnectBaseMs).toBe(500);
     expect(config.reconnectMaxMs).toBe(10000);
+  });
+
+  it('defaults the ban sweep to a multi-hour interval and a single-call batch', () => {
+    // Freshness is explicitly not required (stale-by-hours is fine), so the
+    // default interval biases toward quota discipline, and the batch equals
+    // one GetPlayerBans call (100 ids) regardless of subscriber count.
+    const config = loadBotConfig({ ...FULL_ENV });
+    expect(config.banSweepIntervalMs).toBe(6 * 60 * 60 * 1000);
+    expect(config.banSweepBatchLimit).toBe(100);
   });
 
   it.each([
@@ -165,6 +182,12 @@ describe('loadBotConfig', () => {
     ['BOT_CONFIRM_TOKEN_TTL_MS', '0'],
     ['BOT_STALE_SWEEP_INTERVAL_MS', '0'],
     ['BOT_STALE_CLAIM_WINDOW_MINUTES', '-2'],
+    ['BOT_BAN_SWEEP_INTERVAL_MS', '0'],
+    ['BOT_BAN_SWEEP_BATCH_LIMIT', '-1'],
+    ['BOT_BAN_ALERT_POLL_INTERVAL_MS', '0'],
+    ['BOT_BAN_ALERT_BATCH_LIMIT', '-1'],
+    ['BOT_BAN_ALERT_MAX_ATTEMPTS', 'NaN'],
+    ['BOT_BAN_ALERT_SEND_TIMEOUT_MS', '0'],
     // Fractional values would floor to 0 downstream ("always expired") —
     // rejected loudly instead.
     ['BOT_HEARTBEAT_INTERVAL_MS', '0.5'],

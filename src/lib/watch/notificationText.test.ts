@@ -1,5 +1,6 @@
 import {
   DEFAULT_WATCH_LOCALE,
+  getBanAlertText,
   getConfirmExpiredText,
   getConfirmText,
   getInboxSearchDateTime,
@@ -153,6 +154,7 @@ describe('shared watch message base', () => {
       expect(getNotifyTeaserText(locale, STEAM)).not.toContain('[');
       expect(getConfirmText(locale, CONFIRM_URL)).not.toContain('[');
       expect(getConfirmExpiredText(locale)).not.toContain('[');
+      expect(getBanAlertText(locale)).not.toContain('[');
     }
   });
 
@@ -168,6 +170,7 @@ describe('shared watch message base', () => {
       expect(getNotifyTeaserText(locale, STEAM)).not.toMatch(tagPattern);
       expect(getConfirmText(locale, CONFIRM_URL)).not.toMatch(tagPattern);
       expect(getConfirmExpiredText(locale)).not.toMatch(tagPattern);
+      expect(getBanAlertText(locale)).not.toMatch(tagPattern);
     }
   });
 
@@ -194,6 +197,7 @@ describe('shared watch message base', () => {
       expect(getNotifyTeaserText(locale, STEAM)).not.toContain('�');
       expect(getConfirmText(locale, CONFIRM_URL)).not.toContain('�');
       expect(getConfirmExpiredText(locale)).not.toContain('�');
+      expect(getBanAlertText(locale)).not.toContain('�');
     }
   });
 
@@ -231,6 +235,7 @@ describe('shared watch message base', () => {
       getNotifyTeaserText(locale, STEAM),
       getConfirmText(locale, CONFIRM_URL),
       getConfirmExpiredText(locale),
+      getBanAlertText(locale),
     ];
     const combined: Record<string, string> = {};
     for (const locale of WATCH_LOCALES) {
@@ -331,5 +336,37 @@ describe('getInboxSearchDateTime', () => {
     expect(getInboxSearchDateTime(undefined, 'en')).toBeNull();
     expect(getInboxSearchDateTime('', 'en')).toBeNull();
     expect(getInboxSearchDateTime('not-a-date', 'en')).toBeNull();
+  });
+});
+
+describe('getBanAlertText (Ban Reveal Phase 1)', () => {
+  it.each([...WATCH_LOCALES])('is non-empty in %s', (locale) => {
+    expect(getBanAlertText(locale).length).toBeGreaterThan(0);
+  });
+
+  it('is generic: never names a profile, nickname, or steamId', () => {
+    for (const locale of WATCH_LOCALES) {
+      const text = getBanAlertText(locale);
+      expect(text).not.toContain(STEAM);
+      expect(text).not.toContain('steamcommunity.com');
+      expect(text).not.toContain('http');
+    }
+  });
+
+  it('never throws and falls back to English', () => {
+    expect(() => getBanAlertText('xx')).not.toThrow();
+    expect(getBanAlertText('xx')).toBe(
+      getBanAlertText(DEFAULT_WATCH_LOCALE),
+    );
+    expect(getBanAlertText(null)).toBe(
+      getBanAlertText(DEFAULT_WATCH_LOCALE),
+    );
+  });
+
+  it('ships intact UTF-8 in every locale', () => {
+    expect(getBanAlertText('ru')).toMatch(/[Ѐ-џ]/);
+    expect(getBanAlertText('pt')).toMatch(/[ãç]/);
+    expect(getBanAlertText('es')).toMatch(/[óí]/);
+    expect(getBanAlertText('de')).toMatch(/[äöüÄÖÜß]/);
   });
 });

@@ -35,6 +35,9 @@ import type {
   WatchDashboardEvent,
   WatchDashboardData,
   ExpiredConfirmCandidate,
+  BanWatchSubscription,
+  BanWatchTarget,
+  BanAlertNotification,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
 import { normalizeCountryCode } from '../countryFlag';
@@ -479,10 +482,11 @@ const assertWatchEventKind: (kind: string) => asserts kind is WatchEventKind = (
     kind !== 'invite' &&
     kind !== 'notify' &&
     kind !== 'welcome' &&
-    kind !== 'confirm_resend'
+    kind !== 'confirm_resend' &&
+    kind !== 'ban_alert'
   ) {
     throw new Error(
-      "Invalid watch event kind: expected 'invite' | 'notify' | 'welcome' | 'confirm_resend'",
+      "Invalid watch event kind: expected 'invite' | 'notify' | 'welcome' | 'confirm_resend' | 'ban_alert'",
     );
   }
 };
@@ -530,13 +534,14 @@ const toWatchedProfile = (row: Record<string, unknown>): WatchedProfile => ({
 });
 
 const toWatchEventKind = (value: unknown): WatchEventKind => {
-  // Writes only ever store the four lane names; anything else read back
+  // Writes only ever store the five lane names; anything else read back
   // (hand-edited rows) collapses to 'invite' rather than leaking an
   // unknown kind into pollers typed as WatchEventKind.
   if (
     value === 'notify' ||
     value === 'welcome' ||
-    value === 'confirm_resend'
+    value === 'confirm_resend' ||
+    value === 'ban_alert'
   ) {
     return value;
   }
@@ -2348,6 +2353,489 @@ export const recordEventAttempt = async (
   );
   if (updated.rows.length === 0) return null;
   return updated.rows[0].status === 'dropped' ? 'dropped' : 'requeued';
+};
+
+// ---------------------------------------------------------------------------
+// Ban Reveal Phase 1 — targets, subscriptions, fan-out, reveals.
+// Opposite direction from watched_profiles (see types.ts): the SUBSCRIBER
+// is the logged-in user who opened the cheater report, the TARGET is the
+// reviewed profile. Every steamId input asserts SteamID64; every state
+// transition below is a single atomic statement (never read-then-write).
+// Phase 1 only ever reads/writes source = 'steam' — the column exists so
+// a future FACEIT/Gamersclub sweep reuses the PK without a migration.
+// ---------------------------------------------------------------------------
+
+// Always bound as a `?` arg, never interpolated into SQL — the value is
+// fixed today, but the file's parametrized convention must survive the day
+// it becomes dynamic.
+const BAN_WATCH_SOURCE = 'steam';
+
+const toBanWatchTarget = (row: Record<string, unknown>): BanWatchTarget => ({
+  targetSteamId: String(row.target_steam_id),
+  source: 'steam',
+  lastKnownBanned: Number(row.last_known_banned ?? 0) === 1,
+  lastBanCheckedAt:
+    typeof row.last_ban_checked_at === 'string'
+      ? row.last_ban_checked_at
+      : null,
+});
+
+const toBanWatchSubscription = (
+  row: Record<string, unknown>,
+): BanWatchSubscription => ({
+  id: Number(row.id),
+  subscriberSteamId: String(row.subscriber_steam_id),
+  targetSteamId: String(row.target_steam_id),
+  searchId: typeof row.search_id === 'string' ? row.search_id : null,
+  subscribedAt: String(row.subscribed_at),
+  notifiedAt: typeof row.notified_at === 'string' ? row.notified_at : null,
+});
+
+/**
+ * Resolves the reviewed profile's SteamID64 from a recorded search id via
+ * the trusted profiles join (same join pattern as listProfileSearches).
+ * The cheater route only receives searchId from the client, so the target
+ * MUST come from this join — never from client input (same
+ * identity-from-session-or-trusted-join convention as the signup route
+ * rejecting a client-supplied steamId). Returns null when the search (or
+ * its profile row) does not exist.
+ */
+export const getSteamIdBySearchId = async (
+  searchId: string,
+): Promise<string | null> => {
+  if (typeof searchId !== 'string' || searchId.length === 0) {
+    throw new Error(
+      'Invalid searchId for ban-watch lookup: expected non-empty string',
+    );
+  }
+  const db = await getClient();
+  const row = await withSchemaHint(
+    db.execute({
+      sql: 'SELECT steam_id FROM profiles WHERE search_id = ?',
+      args: [searchId],
+    }),
+  );
+  if (row.rows.length === 0) return null;
+  const steamId = (row.rows[0] as Record<string, unknown>).steam_id;
+  return typeof steamId === 'string' && steamId.length > 0 ? steamId : null;
+};
+
+/**
+ * Ensures the sweep tracks this target (one row per distinct profile).
+ * Idempotent INSERT ... ON CONFLICT DO NOTHING — re-opening the cheater
+ * report for an already-tracked profile is a no-op here, same idiom as
+ * createWatchRequest / createAccount.
+ */
+export const ensureBanTarget = async (targetSteamId: string): Promise<void> => {
+  assertSteamId64(targetSteamId);
+  const db = await getClient();
+  await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO ban_watch_targets
+            (target_steam_id, source, last_known_banned, last_ban_checked_at)
+            VALUES (?, ?, 0, NULL)
+            ON CONFLICT(target_steam_id, source) DO NOTHING`,
+      args: [targetSteamId, BAN_WATCH_SOURCE],
+    }),
+  );
+};
+
+/**
+ * Reads one sweep target (Phase 1: source = 'steam' only). Null when the
+ * sweep has never seen this profile — the subscribe path treats that as
+ * "unchecked" (live single-ID ban check or fail-open, never an alert).
+ */
+export const getBanTarget = async (
+  targetSteamId: string,
+): Promise<BanWatchTarget | null> => {
+  assertSteamId64(targetSteamId);
+  const db = await getClient();
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT target_steam_id, source, last_known_banned, last_ban_checked_at
+            FROM ban_watch_targets
+            WHERE target_steam_id = ? AND source = ?`,
+      args: [targetSteamId, BAN_WATCH_SOURCE],
+    }),
+  );
+  if (row.rows.length === 0) return null;
+  return toBanWatchTarget(row.rows[0] as Record<string, unknown>);
+};
+
+export interface CreateBanSubscriptionResult {
+  subscription: BanWatchSubscription;
+  /** False when the row already existed (re-opened report: no-op insert). */
+  created: boolean;
+}
+
+/**
+ * Creates a ban-watch subscription. Idempotent: at most one row per
+ * (subscriber, target) — re-opening the cheater report for an already
+ * subscribed profile is a no-op insert (ON CONFLICT DO NOTHING + SELECT,
+ * same idiom as createWatchRequest). When alreadyBanned is true (target
+ * was already banned at subscribe time — a pre-existing ban, not a new
+ * detection), notified_at is set immediately so the sweep can never fire
+ * an alert for it.
+ */
+export const createBanSubscription = async (
+  subscriberSteamId: string,
+  targetSteamId: string,
+  searchId: string | null,
+  alreadyBanned: boolean,
+): Promise<CreateBanSubscriptionResult> => {
+  assertSteamId64(subscriberSteamId);
+  assertSteamId64(targetSteamId);
+  if (searchId !== null && (typeof searchId !== 'string' || searchId === '')) {
+    throw new Error(
+      'Invalid searchId for ban-watch subscription: expected non-empty string or null',
+    );
+  }
+  const db = await getClient();
+  const now = new Date().toISOString();
+
+  const inserted = await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO ban_watch_subscriptions
+            (subscriber_steam_id, target_steam_id, search_id, subscribed_at, notified_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(subscriber_steam_id, target_steam_id) DO NOTHING`,
+      args: [
+        subscriberSteamId,
+        targetSteamId,
+        searchId,
+        now,
+        alreadyBanned ? now : null,
+      ],
+    }),
+  );
+  const created = Number(inserted.rowsAffected) > 0;
+
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT id, subscriber_steam_id, target_steam_id, search_id, subscribed_at, notified_at
+            FROM ban_watch_subscriptions
+            WHERE subscriber_steam_id = ? AND target_steam_id = ?`,
+      args: [subscriberSteamId, targetSteamId],
+    }),
+  );
+  // Unreachable unless the row was deleted between the two statements (no
+  // production path deletes subscriptions in Phase 1 — no unsubscribe UI).
+  // Throw rather than fabricate a row.
+  if (row.rows.length === 0) {
+    throw new Error(
+      'createBanSubscription lost a concurrent race unexpectedly',
+    );
+  }
+  return {
+    subscription: toBanWatchSubscription(row.rows[0] as Record<string, unknown>),
+    created,
+  };
+};
+
+/**
+ * Sweep input: distinct Steam targets to check this pass, oldest-sighting
+ * first (NULL sightings — never checked — sort first so new targets
+ * converge within one interval). One slot per DISTINCT target regardless
+ * of subscriber count — a popular target with many subscribers still
+ * costs exactly one GetPlayerBans id. `limit` mirrors
+ * claimNextQueuedEvents: default 100 (= one GetPlayerBans call), clamped
+ * to 1..100, non-finite throws.
+ */
+export const listDistinctBanTargets = async (
+  limit = 100,
+): Promise<string[]> => {
+  if (!Number.isFinite(limit)) {
+    throw new Error(
+      'Invalid limit for ban-target scan: expected a finite number',
+    );
+  }
+  const n = Math.max(1, Math.min(100, Math.floor(limit)));
+  const db = await getClient();
+  const rows = await withSchemaHint(
+    db.execute({
+      sql: `SELECT target_steam_id FROM ban_watch_targets
+            WHERE source = ?
+            ORDER BY last_ban_checked_at ASC NULLS FIRST, target_steam_id ASC
+            LIMIT ?`,
+      args: [BAN_WATCH_SOURCE, n],
+    }),
+  );
+  return rows.rows.map((row) =>
+    String((row as Record<string, unknown>).target_steam_id),
+  );
+};
+
+/**
+ * Records a sweep sighting. A true->false transition (unban / data
+ * correction) flips the flag ONLY — notified_at on every subscription is
+ * deliberately left untouched (no re-alert on a flapping ban status
+ * without an explicit product decision to allow it).
+ */
+export const markBanTargetChecked = async (
+  targetSteamId: string,
+  banned: boolean,
+): Promise<void> => {
+  assertSteamId64(targetSteamId);
+  const db = await getClient();
+  await withSchemaHint(
+    db.execute({
+      sql: `UPDATE ban_watch_targets
+            SET last_known_banned = ?, last_ban_checked_at = ?
+            WHERE target_steam_id = ? AND source = ?`,
+      args: [banned ? 1 : 0, new Date().toISOString(), targetSteamId, BAN_WATCH_SOURCE],
+    }),
+  );
+};
+
+/**
+ * Fan-out input: every subscription on this target that has never been
+ * notified (notified_at IS NULL). Ordered by id (oldest subscriber
+ * first) so delivery order is deterministic per target.
+ */
+export const listUnnotifiedBanSubscriptions = async (
+  targetSteamId: string,
+): Promise<BanWatchSubscription[]> => {
+  assertSteamId64(targetSteamId);
+  const db = await getClient();
+  const rows = await withSchemaHint(
+    db.execute({
+      sql: `SELECT id, subscriber_steam_id, target_steam_id, search_id, subscribed_at, notified_at
+            FROM ban_watch_subscriptions
+            WHERE target_steam_id = ? AND notified_at IS NULL
+            ORDER BY id ASC`,
+      args: [targetSteamId],
+    }),
+  );
+  return rows.rows.map((row) =>
+    toBanWatchSubscription(row as Record<string, unknown>),
+  );
+};
+
+export interface EnqueueBanAlertResult {
+  /** The outbox event id (null only when the rowid was unrecoverable). */
+  eventId: number | null;
+  /** False when another worker already notified this subscription. */
+  enqueued: boolean;
+}
+
+/**
+ * Fans out ONE alert: enqueues the ban_alert outbox event AND gates the
+ * subscription (notified_at) in the SAME db.batch — the same-transaction
+ * pattern as markEventSent + its cooldown clock. The predicate carries
+ * `notified_at IS NULL` so the caller can tell a lost race apart (the
+ * loser sees zero rows on the UPDATE and reports enqueued:false instead
+ * of counting a phantom alert).
+ *
+ * The event carries search_id = NULL deliberately: watch_events.search_id
+ * is UNIQUE (one message per search), and the originating search may
+ * already own a 'notify' event — reusing it here would collide. Ban
+ * alerts are per-subscription, not per-search.
+ */
+export const enqueueBanAlertForSubscription = async (
+  subscriptionId: number,
+  subscriberSteamId: string,
+): Promise<EnqueueBanAlertResult> => {
+  assertSteamId64(subscriberSteamId);
+  if (!Number.isInteger(subscriptionId) || subscriptionId <= 0) {
+    throw new Error(
+      'Invalid subscription id for ban alert: expected positive integer',
+    );
+  }
+  const db = await getClient();
+  const now = new Date().toISOString();
+
+  const results = await withSchemaHint(
+    db.batch([
+      {
+        sql: `INSERT INTO watch_events
+              (search_id, steam_id, kind, status, created_at, claimed_at, sent_at)
+              VALUES (NULL, ?, 'ban_alert', 'queued', ?, NULL, NULL)`,
+        args: [subscriberSteamId, now],
+      },
+      {
+        sql: `UPDATE ban_watch_subscriptions
+              SET notified_at = ?
+              WHERE id = ? AND notified_at IS NULL`,
+        args: [now, subscriptionId],
+      },
+    ]),
+  );
+  // The UPDATE is the gate: zero rows means another worker already
+  // notified this subscription (or the row vanished) — enqueued:false so
+  // the sweep never double-counts. Honest residual, stated plainly: the
+  // INSERT above still committed, and the ban-alert poller's recipient
+  // check is subscriber-scoped (any subscription row), NOT per-target —
+  // the event carries no target/subscription id — so that orphan WOULD be
+  // delivered as one generic duplicate, not dropped. That race needs two
+  // overlapping sweep workers, which this deployment cannot produce
+  // (single bot process + the sweeper's overlap guard + a 6h interval);
+  // the second-bot shard (ACQ_BOT_* namespace) must close it first, e.g.
+  // with a per-subscription UNIQUE event key. A duplicate is generic copy
+  // with no profile in it, so the blast radius is one redundant ping.
+  const gated = Number(results?.[1]?.rowsAffected) > 0;
+  if (!gated) return { eventId: null, enqueued: false };
+  const eventId = Number(results?.[0]?.lastInsertRowid ?? NaN);
+  return {
+    eventId: Number.isFinite(eventId) ? eventId : null,
+    enqueued: true,
+  };
+};
+
+/**
+ * Reads one subscription for the reveal-click auth check (must be the
+ * subscribing user for that row — no other gating in Phase 1). Null when
+ * no such subscription exists.
+ */
+export const getBanSubscription = async (
+  subscriberSteamId: string,
+  targetSteamId: string,
+): Promise<BanWatchSubscription | null> => {
+  assertSteamId64(subscriberSteamId);
+  assertSteamId64(targetSteamId);
+  const db = await getClient();
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT id, subscriber_steam_id, target_steam_id, search_id, subscribed_at, notified_at
+            FROM ban_watch_subscriptions
+            WHERE subscriber_steam_id = ? AND target_steam_id = ?`,
+      args: [subscriberSteamId, targetSteamId],
+    }),
+  );
+  if (row.rows.length === 0) return null;
+  return toBanWatchSubscription(row.rows[0] as Record<string, unknown>);
+};
+
+/**
+ * Reads one subscription by id (inbox reveal handle). The caller MUST
+ * verify subscription.subscriberSteamId equals the session steamId before
+ * disclosing anything — the id alone is not an auth proof.
+ */
+export const getBanSubscriptionById = async (
+  subscriptionId: number,
+): Promise<BanWatchSubscription | null> => {
+  if (!Number.isInteger(subscriptionId) || subscriptionId <= 0) {
+    throw new Error(
+      'Invalid subscription id for ban lookup: expected positive integer',
+    );
+  }
+  const db = await getClient();
+  const row = await withSchemaHint(
+    db.execute({
+      sql: `SELECT id, subscriber_steam_id, target_steam_id, search_id, subscribed_at, notified_at
+            FROM ban_watch_subscriptions WHERE id = ?`,
+      args: [subscriptionId],
+    }),
+  );
+  if (row.rows.length === 0) return null;
+  return toBanWatchSubscription(row.rows[0] as Record<string, unknown>);
+};
+
+/**
+ * Ban-alert inbox stream: every NOTIFIED subscription for this subscriber
+ * (notified_at IS NOT NULL), newest alert first. This is the web-visibility
+ * guarantee — it reads subscriptions, NOT outbox delivery state, so a chat
+ * send dropped for a non-friend subscriber still surfaces here (chat
+ * delivery and inbox visibility are deliberately not the same guarantee).
+ * The payload is generic by design: no target steamId until the reveal
+ * click (see getBanSubscriptionById + recordBanRevealClick).
+ */
+export const listBanAlertsForSubscriber = async (
+  subscriberSteamId: string,
+  limit = 50,
+): Promise<BanAlertNotification[]> => {
+  assertSteamId64(subscriberSteamId);
+  if (!Number.isFinite(limit)) {
+    throw new Error('Invalid limit for ban alerts: expected a finite number');
+  }
+  const n = Math.max(1, Math.min(100, Math.floor(limit)));
+  const db = await getClient();
+  const rows = await withSchemaHint(
+    db.execute({
+      sql: `SELECT id, subscribed_at, notified_at
+            FROM ban_watch_subscriptions
+            WHERE subscriber_steam_id = ? AND notified_at IS NOT NULL
+            ORDER BY notified_at DESC, id DESC LIMIT ?`,
+      args: [subscriberSteamId, n],
+    }),
+  );
+  return rows.rows.map((row) => {
+    const record = row as Record<string, unknown>;
+    return {
+      id: Number(record.id),
+      subscribedAt: String(record.subscribed_at),
+      notifiedAt: String(record.notified_at),
+    };
+  });
+};
+
+/**
+ * Logs a reveal-click event (subscriber, target, timestamp — server-side
+ * only). Append-only instrumentation for a future monetization decision,
+ * not a gate: the reveal itself is authorized by getBanSubscription* above.
+ */
+export const recordBanRevealClick = async (
+  subscriberSteamId: string,
+  targetSteamId: string,
+): Promise<void> => {
+  assertSteamId64(subscriberSteamId);
+  assertSteamId64(targetSteamId);
+  const db = await getClient();
+  await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO ban_watch_reveals
+            (subscriber_steam_id, target_steam_id, clicked_at)
+            VALUES (?, ?, ?)`,
+      args: [subscriberSteamId, targetSteamId, new Date().toISOString()],
+    }),
+  );
+};
+
+/**
+ * Ban-alert poller recipient check: does this subscriber still hold ANY
+ * ban-watch subscription, and in which language should the chat ping go?
+ * Null when no subscription row exists (deleted by a future admin action
+ * — the only Phase-1 path to zero rows, since there is no unsubscribe UI).
+ * Locale follows the watch rule (watch row first, account fallback,
+ * English past both) so the chat ping matches the subscriber's other bot
+ * messages.
+ *
+ * Wiring note: the bot (index.ts) binds this as the poller's
+ * `getBanSubscriptionForAlert` — the poller-lane name for this same
+ * subscriber-scoped check. Deliberately subscriber-scoped, not
+ * per-subscription: the ban_alert outbox row carries no target or
+ * subscription id (see enqueueBanAlertForSubscription), so a finer check
+ * is not expressible without a schema change.
+ */
+export const getBanSubscriberState = async (
+  subscriberSteamId: string,
+): Promise<{ locale: string | null } | null> => {
+  assertSteamId64(subscriberSteamId);
+  const db = await getClient();
+  const subs = await withSchemaHint(
+    db.execute({
+      sql: `SELECT 1 FROM ban_watch_subscriptions
+            WHERE subscriber_steam_id = ? LIMIT 1`,
+      args: [subscriberSteamId],
+    }),
+  );
+  if (subs.rows.length === 0) return null;
+  const locales = await withSchemaHint(
+    db.batch([
+      {
+        sql: 'SELECT locale FROM watched_profiles WHERE steam_id = ?',
+        args: [subscriberSteamId],
+      },
+      {
+        sql: 'SELECT locale FROM accounts WHERE steam_id = ?',
+        args: [subscriberSteamId],
+      },
+    ]),
+  );
+  const watchLocale = locales?.[0]?.rows?.[0]?.locale;
+  const accountLocale = locales?.[1]?.rows?.[0]?.locale;
+  if (typeof watchLocale === 'string') return { locale: watchLocale };
+  if (typeof accountLocale === 'string') return { locale: accountLocale };
+  return { locale: null };
 };
 
 // ---------------------------------------------------------------------------

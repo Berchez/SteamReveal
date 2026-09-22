@@ -16,19 +16,28 @@
  * the side effects behind require.main first.
  */
 import SteamUser from 'steam-user';
+import SteamAPI from 'steamapi';
 
 import { loadEnv } from '../lib/env';
 import { installCrashHandlers, writeOpsLog } from '../lib/opsLog';
+import withTimeout from '../lib/withTimeout';
+import { getBanCheckApiKey, parseBanVerdict } from '../lib/watch/banCheck';
 import {
   activateWatch,
   claimNextQueuedEvents,
   clearConfirmToken,
   countInvitesSentSince,
+  enqueueBanAlertForSubscription,
   getAccount,
+  getBanSubscriberState,
+  getBanTarget,
   getWatchedProfile,
   issueConfirmToken,
+  listDistinctBanTargets,
   listExpiredUnnoticedConfirms,
+  listUnnotifiedBanSubscriptions,
   listWatchedProfiles,
+  markBanTargetChecked,
   markEventDropped,
   markEventSent,
   markExpireNoticed,
@@ -56,6 +65,8 @@ import { startWelcomePoller } from './welcomePoller';
 import { startConfirmExpiryPoller } from './confirmExpiryPoller';
 import { startConfirmResendPoller } from './confirmResendPoller';
 import { startStaleClaimSweeper, sweepStaleClaimsOnce } from './staleSweep';
+import { startBanAlertPoller } from './banAlertPoller';
+import { startBanSweeper, type BanVerdictByTarget } from './banSweep';
 
 loadEnv();
 
@@ -141,6 +152,7 @@ const main = (): void => {
   let welcomePoller: ReturnType<typeof startWelcomePoller> | undefined;
   let resendPoller: ReturnType<typeof startConfirmResendPoller> | undefined;
   let expiryPoller: ReturnType<typeof startConfirmExpiryPoller> | undefined;
+  let banAlertPoller: ReturnType<typeof startBanAlertPoller> | undefined;
 
   // Live friendship check for the confirm lanes (expiry scan + resend
   // fulfillment) and the periodic reconcile below: same authoritative map
@@ -261,6 +273,12 @@ const main = (): void => {
       const notifies = notifyPoller;
       if (notifies !== undefined) {
         notifies.pollOnce().catch(logPollError('post-logon notify poll failed'));
+      }
+      const banAlerts = banAlertPoller;
+      if (banAlerts !== undefined) {
+        banAlerts
+          .pollOnce()
+          .catch(logPollError('post-logon ban-alert poll failed'));
       }
     },
     // WB-8 official opt-out: unfriend/block observed on the live event.
@@ -464,6 +482,83 @@ const main = (): void => {
   });
   expiryPoller.pollOnce().catch(logPollError('initial expiry scan failed'));
 
+  // Ban Reveal alert consumer (chat side of the sweep fan-out): queued by
+  // the sweep below, one event per newly-banned subscription. Same
+  // lifecycle as every other chat lane. No TTL by design (a ban verdict is
+  // durable news — late delivery after downtime is still correct).
+  banAlertPoller = startBanAlertPoller({
+    chat: client.chat as unknown as NotifyChatClient,
+    dal: {
+      claimNextQueuedEvents,
+      markEventSent,
+      markEventDropped,
+      recordEventAttempt,
+      // Name mapping (deliberate, not drift): the DAL export is
+      // getBanSubscriberState (subscriber-scoped existence + locale check —
+      // see its docblock); the poller lane calls the same slot
+      // getBanSubscriptionForAlert.
+      getBanSubscriptionForAlert: getBanSubscriberState,
+    },
+    pollIntervalMs: config.banAlertPollIntervalMs,
+    batchLimit: config.banAlertBatchLimit,
+    maxAttempts: config.banAlertMaxAttempts,
+    sendTimeoutMs: config.banAlertSendTimeoutMs,
+    logger,
+    isConnected: () => bot.isConnected(),
+    isFriend,
+  });
+  banAlertPoller.pollOnce().catch(logPollError('initial ban-alert poll failed'));
+
+  // Ban Reveal sweep (produces work, drains nothing): distinct Steam
+  // targets on a multi-hour interval, one batched GetPlayerBans call per
+  // 100 targets. Freshness is explicitly not required (stale-by-hours is
+  // fine), so this stays slow on purpose — quota discipline over speed.
+  // The Steam key is the optional dedicated sweep key (STEAM_BAN_CHECK_API
+  // _KEY) falling back to the shared pool — isolation possible, not
+  // mandatory. Picked once per process like every other steamapi consumer.
+  const banSteam = new SteamAPI(getBanCheckApiKey() ?? '');
+  const banSweeper = startBanSweeper({
+    dal: {
+      listDistinctBanTargets,
+      getBanTarget,
+      markBanTargetChecked,
+      listUnnotifiedBanSubscriptions,
+      enqueueBanAlertForSubscription,
+    },
+    steamCaller: async (ids: string[]): Promise<BanVerdictByTarget> => {
+      const bansInfo = await withTimeout(
+        banSteam.getUserBans(ids),
+        'banSweep: getUserBans',
+        30000,
+      );
+      const bansArray = Array.isArray(bansInfo) ? bansInfo : [bansInfo];
+      const verdicts: BanVerdictByTarget = new Map();
+      // No `continue` (repo style): malformed rows fall through the nested
+      // guards below into "unknown" (no map entry — the sweep skips the
+      // target this pass), never into a false clean or a false ban.
+      // Verdict parsing is shared (parseBanVerdict — VAC + game bans ONLY;
+      // community/economy bans are a different product question), so this
+      // lane and the single-target check cannot drift apart.
+      // eslint-disable-next-line no-restricted-syntax
+      for (const ban of bansArray) {
+        const steamID = String(
+          (ban as { steamID?: unknown }).steamID ?? '',
+        );
+        if (steamID !== '') {
+          const verdict = parseBanVerdict(ban);
+          if (verdict !== null) {
+            verdicts.set(steamID, verdict);
+          }
+        }
+      }
+      return verdicts;
+    },
+    sweepIntervalMs: config.banSweepIntervalMs,
+    batchLimit: config.banSweepBatchLimit,
+    logger,
+  });
+  banSweeper.pollOnce().catch(logPollError('initial ban sweep failed'));
+
   // Periodic full reconcile (backstop for missed snapshots AND for
   // click-activations that landed while the DB blipped: the confirm
   // route's activate is best-effort, this converges the rest within one
@@ -498,6 +593,8 @@ const main = (): void => {
     welcomePoller?.stop();
     resendPoller?.stop();
     expiryPoller?.stop();
+    banAlertPoller?.stop();
+    banSweeper?.stop();
     bot.stop();
     // Let logOff flush, then exit. The delay is ref'd on purpose: prompt
     // shutdown still waits out this beat instead of racing process exit

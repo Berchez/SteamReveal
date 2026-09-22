@@ -122,6 +122,35 @@ export interface BotConfig {
   confirmTokenTtlMs: number;
   staleSweepIntervalMs: number;
   staleClaimWindowMinutes: number;
+  /**
+   * Ban Reveal sweep (Phase 1): how often the bot re-checks DISTINCT
+   * ban-watch targets via batched GetPlayerBans. Multi-hour default is a
+   * deliberate product choice, not a conservative fallback: expected
+   * target volume is on the order of one new subscription/day, and there
+   * is no product need to detect a ban within minutes — a stale-by-hours
+   * verdict is fine. Bias every default toward lower quota usage, not
+   * toward speed.
+   */
+  banSweepIntervalMs: number;
+  /**
+   * Distinct targets checked per sweep pass. Capped at 100 (= one
+   * GetPlayerBans call: the API takes at most 100 IDs per call), so one
+   * pass costs exactly one batched call regardless of subscriber count.
+   * The cap lives in listDistinctBanTargets (clamped 1..100), NOT here:
+   * setting BOT_BAN_SWEEP_BATCH_LIMIT above 100 is silently clamped, not
+   * rejected — deliberate (an operator typo must degrade to the max, never
+   * fail the boot), but be aware the env value above 100 is a no-op.
+   */
+  banSweepBatchLimit: number;
+  /** Ban-alert chat drain (user-awaited news, same cadence class as the
+   * notify lane). No TTL by design (like welcomes, unlike notifies): a
+   * ban verdict is durable news, so late delivery after bot downtime is
+   * still correct. */
+  banAlertPollIntervalMs: number;
+  banAlertBatchLimit: number;
+  banAlertMaxAttempts: number;
+  /** Watchdog for a single sendFriendMessage call (same rationale). */
+  banAlertSendTimeoutMs: number;
 }
 
 const DEFAULT_AUTO_ACCEPT_DAILY_LIMIT = 50;
@@ -155,6 +184,12 @@ const DEFAULT_RECONCILE_INTERVAL_MS = 600000;
 const DEFAULT_CONFIRM_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_STALE_SWEEP_INTERVAL_MS = 600000;
 const DEFAULT_STALE_CLAIM_WINDOW_MINUTES = 30;
+const DEFAULT_BAN_SWEEP_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const DEFAULT_BAN_SWEEP_BATCH_LIMIT = 100;
+const DEFAULT_BAN_ALERT_POLL_INTERVAL_MS = 60000;
+const DEFAULT_BAN_ALERT_BATCH_LIMIT = 10;
+const DEFAULT_BAN_ALERT_MAX_ATTEMPTS = 3;
+const DEFAULT_BAN_ALERT_SEND_TIMEOUT_MS = 30000;
 
 const readPositiveInt = (
   raw: string | undefined,
@@ -418,6 +453,36 @@ export const loadBotConfig = (
       DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
       'BOT_STALE_CLAIM_WINDOW_MINUTES',
     ),
+    banSweepIntervalMs: readPositiveInt(
+      env.BOT_BAN_SWEEP_INTERVAL_MS,
+      DEFAULT_BAN_SWEEP_INTERVAL_MS,
+      'BOT_BAN_SWEEP_INTERVAL_MS',
+    ),
+    banSweepBatchLimit: readPositiveInt(
+      env.BOT_BAN_SWEEP_BATCH_LIMIT,
+      DEFAULT_BAN_SWEEP_BATCH_LIMIT,
+      'BOT_BAN_SWEEP_BATCH_LIMIT',
+    ),
+    banAlertPollIntervalMs: readPositiveInt(
+      env.BOT_BAN_ALERT_POLL_INTERVAL_MS,
+      DEFAULT_BAN_ALERT_POLL_INTERVAL_MS,
+      'BOT_BAN_ALERT_POLL_INTERVAL_MS',
+    ),
+    banAlertBatchLimit: readPositiveInt(
+      env.BOT_BAN_ALERT_BATCH_LIMIT,
+      DEFAULT_BAN_ALERT_BATCH_LIMIT,
+      'BOT_BAN_ALERT_BATCH_LIMIT',
+    ),
+    banAlertMaxAttempts: readPositiveInt(
+      env.BOT_BAN_ALERT_MAX_ATTEMPTS,
+      DEFAULT_BAN_ALERT_MAX_ATTEMPTS,
+      'BOT_BAN_ALERT_MAX_ATTEMPTS',
+    ),
+    banAlertSendTimeoutMs: readPositiveInt(
+      env.BOT_BAN_ALERT_SEND_TIMEOUT_MS,
+      DEFAULT_BAN_ALERT_SEND_TIMEOUT_MS,
+      'BOT_BAN_ALERT_SEND_TIMEOUT_MS',
+    ),
   };
   // Resend throttle must be strictly less than token TTL, otherwise a
   // freshly re-issued token could be immediately throttled again.
@@ -461,4 +526,10 @@ export const BOT_CONFIG_DEFAULTS = {
   DEFAULT_CONFIRM_TOKEN_TTL_MS,
   DEFAULT_STALE_SWEEP_INTERVAL_MS,
   DEFAULT_STALE_CLAIM_WINDOW_MINUTES,
+  DEFAULT_BAN_SWEEP_INTERVAL_MS,
+  DEFAULT_BAN_SWEEP_BATCH_LIMIT,
+  DEFAULT_BAN_ALERT_POLL_INTERVAL_MS,
+  DEFAULT_BAN_ALERT_BATCH_LIMIT,
+  DEFAULT_BAN_ALERT_MAX_ATTEMPTS,
+  DEFAULT_BAN_ALERT_SEND_TIMEOUT_MS,
 };

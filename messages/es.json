@@ -207,6 +207,11 @@
     "watchInboxItemPlainBody": "Alguien <flag>de</flag> vio tu perfil el {date} a las {time}.",
     "watchInboxItemViewHere": "Mira lo que vieron",
     "watchInboxItemTrailing": "en esa búsqueda",
-    "watchInboxCheaterChecked": "Informe de cheater abierto"
+    "watchInboxCheaterChecked": "Informe de cheater abierto",
+    "watchBanAlertBody": "Un perfil que revisaste fue marcado como baneado.",
+    "watchBanAlertReveal": "Revelar perfil",
+    "watchBanAlertLoading": "Revelando…",
+    "watchBanAlertError": "No se pudo revelar. Inténtalo de nuevo.",
+    "watchBanAlertOpen": "Abrir perfil"
   }
 }

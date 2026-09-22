@@ -13,6 +13,7 @@ import {
   getWatchedProfile,
   hashAntiLoopToken,
   issueAntiLoopTokenIfAbsent,
+  listBanAlertsForSubscriber,
   listProfileSearches,
 } from '@/lib/analytics/db';
 import { generateHexToken } from '@/lib/watch/tokens';
@@ -78,6 +79,23 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' };
  * `monthlyCount` counts recorded searches on this profile since the start
  * of the current UTC month (cooldown-suppressed views included) for the
  * inbox header badge.
+ *
+ * Ban Reveal stream (Phase 1, option (a): one bell, one badge): the same
+ * response also carries `banAlerts` — every NOTIFIED ban-watch subscription
+ * for the session user (subscriber side, not owner side), newest alert
+ * first. This stream is deliberately INDEPENDENT of the watch row above: a
+ * subscriber who never watched their own profile (or opted out — row
+ * deleted) still sees their ban alerts here, because the inbox reads
+ * subscriptions, not outbox delivery state. Each row is generic (id +
+ * timestamps only — never the target steamId) until the instrumented
+ * reveal click (POST /api/watch/ban-reveal with the subscription id).
+ * Ban rows count toward the bell badge alongside search rows: one bell,
+ * one unread badge, for both streams. Accepted residual (documented, not
+ * fixed): the stream is capped at 50 newest alerts with no server-side
+ * unread count — unlike the search stream's exact countSearchesSince —
+ * so a subscriber past 50 alerts undercounts the badge. Fine at Phase-1
+ * volume (~1 new subscription/day); a server-side count is the fix if the
+ * base ever grows two orders of magnitude.
  *
  * All three reads share one temporal floor — the watch's activated_at
  * (requested_at while still pending): pre-watch searches never appear, so
@@ -182,8 +200,26 @@ export async function GET(req: Request) {
     // is opt-in everywhere else in the product; "no row" means "no
     // inbox", not "no limit". Answered without touching the search
     // tables at all.
-    const watched = await getWatchedProfile(steamId);
+    //
+    // Ban Reveal carve-out (deliberate): the ban-alert stream below does
+    // NOT share this gate — it answers from subscriptions (subscriber
+    // side), so a subscriber without a watch row still sees their alerts.
+    // Both reads fire BEFORE either is awaited: they are independent
+    // (different tables, no shared input beyond steamId), so serializing
+    // them would be pure latency.
+    const watchedPromise = getWatchedProfile(steamId);
+    // Ban alerts travel regardless of the watch row (see above): fetch
+    // them alongside, degrading to [] loudly on failure (a sick ban table
+    // must never 500 the whole inbox).
+    const banAlertsPromise = listBanAlertsForSubscriber(steamId).catch(
+      (error: unknown) => {
+        logRouteError('watchNotifications:banAlerts', error, { steamId });
+        return [];
+      },
+    );
+    const watched = await watchedPromise;
     if (watched === null) {
+      const banAlerts = await banAlertsPromise;
       return NextResponse.json(
         {
           steamId,
@@ -191,6 +227,7 @@ export async function GET(req: Request) {
           unreadCount: 0,
           monthlyCount: 0,
           antiLoopToken: null,
+          banAlerts,
         },
         { status: 200, headers: NO_STORE_HEADERS },
       );
@@ -202,11 +239,13 @@ export async function GET(req: Request) {
     // badge). activated_at marks when monitoring actually started;
     // requested_at is the fallback for still-pending watches.
     const watchStart = watched.activatedAt ?? watched.requestedAt;
-    const [notifications, unreadCount, monthlyCount] = await Promise.all([
-      listProfileSearches(steamId, limit, watchStart),
-      countSearchesSince(steamId, sinceSearchedAt, watchStart),
-      countSearchesInMonth(steamId, Date.now(), watchStart),
-    ]);
+    const [notifications, unreadCount, monthlyCount, banAlerts] =
+      await Promise.all([
+        listProfileSearches(steamId, limit, watchStart),
+        countSearchesSince(steamId, sinceSearchedAt, watchStart),
+        countSearchesInMonth(steamId, Date.now(), watchStart),
+        banAlertsPromise,
+      ]);
     // Self-click loop guard: the inbox "see what they saw" links open the
     // owner's own profile, which would otherwise record a fresh search and
     // notify again (inbox + a new bot message per click). The player page
@@ -250,7 +289,14 @@ export async function GET(req: Request) {
       }
     }
     return NextResponse.json(
-      { steamId, notifications, unreadCount, monthlyCount, antiLoopToken },
+      {
+        steamId,
+        notifications,
+        unreadCount,
+        monthlyCount,
+        antiLoopToken,
+        banAlerts,
+      },
       { status: 200, headers: NO_STORE_HEADERS },
     );
   } catch (error) {

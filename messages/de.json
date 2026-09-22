@@ -207,6 +207,11 @@
     "watchInboxItemPlainBody": "Jemand <flag>aus</flag> hat dein Profil am {date} um {time} angesehen.",
     "watchInboxItemViewHere": "Sieh, was sie gesehen haben",
     "watchInboxItemTrailing": "bei dieser Suche",
-    "watchInboxCheaterChecked": "Cheater-Bericht geöffnet"
+    "watchInboxCheaterChecked": "Cheater-Bericht geöffnet",
+    "watchBanAlertBody": "Ein von dir geprüftes Profil wurde als gesperrt markiert.",
+    "watchBanAlertReveal": "Profil aufdecken",
+    "watchBanAlertLoading": "Wird aufgedeckt…",
+    "watchBanAlertError": "Konnte nicht aufgedeckt werden. Versuche es erneut.",
+    "watchBanAlertOpen": "Profil öffnen"
   }
 }

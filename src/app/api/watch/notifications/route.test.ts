@@ -11,6 +11,7 @@ jest.mock('@/lib/analytics/db', () => ({
   getWatchedProfile: jest.fn(),
   hashAntiLoopToken: jest.fn(),
   issueAntiLoopTokenIfAbsent: jest.fn(),
+  listBanAlertsForSubscriber: jest.fn(),
   ANTI_LOOP_TOKEN_BYTES: 32,
   ANTI_LOOP_TOKEN_TTL_MS: 24 * 60 * 60 * 1000,
 }));
@@ -41,6 +42,7 @@ const {
   getWatchedProfile,
   hashAntiLoopToken,
   issueAntiLoopTokenIfAbsent,
+  listBanAlertsForSubscriber,
 } = jest.requireMock('@/lib/analytics/db') as {
   listProfileSearches: jest.Mock;
   countSearchesSince: jest.Mock;
@@ -48,6 +50,7 @@ const {
   getWatchedProfile: jest.Mock;
   hashAntiLoopToken: jest.Mock;
   issueAntiLoopTokenIfAbsent: jest.Mock;
+  listBanAlertsForSubscriber: jest.Mock;
 };
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
@@ -95,6 +98,8 @@ describe('GET /api/watch/notifications', () => {
     // overrides. The hash is fixed so issue-call assertions stay exact.
     hashAntiLoopToken.mockReturnValue('test-token-hash');
     issueAntiLoopTokenIfAbsent.mockResolvedValue(true);
+    // Ban Reveal stream defaults to empty (no alerts) unless a test opts in.
+    listBanAlertsForSubscriber.mockResolvedValue([]);
   });
 
   it('returns recorded searches newest-first for the session user', async () => {
@@ -141,6 +146,8 @@ describe('GET /api/watch/notifications', () => {
       // Plain fetch (no ?withToken=1 — badge-only): never mints, even with
       // rows and a free slot.
       antiLoopToken: null,
+      // No ban alerts for this user in this fixture (stream defaults empty).
+      banAlerts: [],
     });
     expect(issueAntiLoopTokenIfAbsent).not.toHaveBeenCalled();
     expect(listProfileSearches).toHaveBeenCalledWith(
@@ -275,6 +282,7 @@ describe('GET /api/watch/notifications', () => {
       unreadCount: 5,
       monthlyCount: 0,
       antiLoopToken: null,
+      banAlerts: [],
     });
     expect(issueAntiLoopTokenIfAbsent).not.toHaveBeenCalled();
     expect(countSearchesSince).toHaveBeenCalledWith(
@@ -383,6 +391,7 @@ describe('GET /api/watch/notifications', () => {
       unreadCount: 0,
       monthlyCount: 0,
       antiLoopToken: null,
+      banAlerts: [],
     });
     expect(listProfileSearches).not.toHaveBeenCalled();
     expect(countSearchesSince).not.toHaveBeenCalled();
@@ -409,6 +418,7 @@ describe('GET /api/watch/notifications', () => {
       unreadCount: 0,
       monthlyCount: 0,
       antiLoopToken: null,
+      banAlerts: [],
     });
     expect(listProfileSearches).not.toHaveBeenCalled();
     expect(countSearchesSince).not.toHaveBeenCalled();
@@ -542,5 +552,60 @@ describe('GET /api/watch/notifications', () => {
     expect(res.status).toBe(500);
     expect(listProfileSearches).not.toHaveBeenCalled();
     expect(countSearchesInMonth).not.toHaveBeenCalled();
+  });
+
+  it('carries the generic ban-alert stream alongside search rows (one bell)', async () => {
+    listBanAlertsForSubscriber.mockResolvedValue([
+      {
+        id: 7,
+        subscribedAt: '2026-01-01T00:00:00.000Z',
+        notifiedAt: '2026-02-01T00:00:00.000Z',
+      },
+    ]);
+
+    const res = await GET(makeRequest(BASE));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(listBanAlertsForSubscriber).toHaveBeenCalledWith(STEAM_ID);
+    expect(body.banAlerts).toEqual([
+      {
+        id: 7,
+        subscribedAt: '2026-01-01T00:00:00.000Z',
+        notifiedAt: '2026-02-01T00:00:00.000Z',
+      },
+    ]);
+    // Generic by design: the list payload never names the profile.
+    expect(JSON.stringify(body.banAlerts)).not.toContain('targetSteamId');
+  });
+
+  it('still serves ban alerts without a watch row (subscriber side, not owner side)', async () => {
+    getWatchedProfile.mockResolvedValue(null);
+    listBanAlertsForSubscriber.mockResolvedValue([
+      {
+        id: 9,
+        subscribedAt: '2026-01-01T00:00:00.000Z',
+        notifiedAt: '2026-03-01T00:00:00.000Z',
+      },
+    ]);
+
+    const res = await GET(makeRequest(BASE));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.notifications).toEqual([]);
+    expect(body.banAlerts).toHaveLength(1);
+    expect(listProfileSearches).not.toHaveBeenCalled();
+  });
+
+  it('degrades to an empty ban stream when the ban read fails (never a 500)', async () => {
+    listBanAlertsForSubscriber.mockRejectedValue(new Error('ban table down'));
+
+    const res = await GET(makeRequest(BASE));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.banAlerts).toEqual([]);
+    expect(body.notifications).toBeDefined();
   });
 });
