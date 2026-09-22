@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
+import { countryDisplayName, normalizeCountryCode } from '@/lib/countryFlag';
 import {
   getInboxSearchDateTime,
   resolveWatchLocale,
@@ -24,6 +25,7 @@ import {
   latestSearchedAt,
   setLastSeenSearchedAt,
 } from '@/app/templates/Home/hooks/watch/watchReadState';
+import CountryFlag from '@/app/components/CountryFlag';
 import DropdownPanel from '@/app/components/DropdownPanel/DropdownPanel';
 
 interface InboxNotification {
@@ -33,6 +35,8 @@ interface InboxNotification {
   searchedAt: string;
   /** Whether the searcher opened the cheater report for that search. */
   cheaterChecked: boolean;
+  /** Searcher country (2-letter, uppercase) — null when unknown/legacy. */
+  requesterCountry: string | null;
 }
 
 const NOTIFICATIONS_LIMIT = WATCH_INBOX_DEFAULT_LIMIT;
@@ -47,9 +51,14 @@ const NOTIFICATIONS_LIMIT = WATCH_INBOX_DEFAULT_LIMIT;
  * line live below the text.
  *
  * Word-order note: body + anchor + trailing render as three fixed
- * segments, which holds for all 5 supported locales (all SVO). A future
- * non-SVO locale would need next-intl rich-text tags instead — do not
- * just add another flat key.
+ * segments, which holds for all 5 supported locales (all SVO) — that is
+ * why the body itself is ALREADY rich text (a single <flag> slot holding
+ * the locale preposition plus the searcher-country flag image), so a
+ * future non-SVO locale only moves the slot. The slot replaces the
+ * country NAME, so no locale ever needs a gendered article/preposition
+ * ("do Brasil" vs "da Argentina"); the bare name also renders visibly
+ * in the row metadata line (tooltips do not exist on touch screens)
+ * and in the flag's hover title, both inflection-free.
  */
 function NotifyItemText({
   locale,
@@ -57,12 +66,17 @@ function NotifyItemText({
   cheaterChecked,
   searchedAt,
   antiLoopToken,
+  requesterCountry,
+  countryName,
 }: {
   locale: string;
   steamId: string;
   cheaterChecked: boolean;
   searchedAt?: string | null;
   antiLoopToken?: string | null;
+  requesterCountry: string | null;
+  /** Intl display name for requesterCountry (parent computes once per row). */
+  countryName: string | null;
 }) {
   const translator = useTranslations('Watch');
   const resolved = resolveWatchLocale(locale);
@@ -86,13 +100,38 @@ function NotifyItemText({
     searchedAt,
     locale,
   ) ?? { date: '', time: '' };
+  // Searcher flag: image embedded mid-sentence via the <flag> rich-text
+  // slot, tooltip + screen-reader name from Intl (no translated strings,
+  // no gendered articles). Null country (unknown geo, legacy rows) or an
+  // unresolvable code renders nothing — the sentence stays grammatical
+  // (the message's preposition rides inside the tag, so it vanishes
+  // together with the flag; the leftover double space collapses under
+  // whitespace-pre-line). The name arrives as a prop (computed once per
+  // row by the parent — see renderPanelBody), never re-derived here.
+  const flagImg =
+    countryName === null || requesterCountry === null ? null : (
+      <CountryFlag
+        code={requesterCountry}
+        label={countryName}
+        className="align-middle"
+      />
+    );
   return (
     <p className="whitespace-pre-line text-sm text-gray-200">
-      {translator(
+      {translator.rich(
         cheaterChecked
           ? 'watchInboxItemCheckedBody'
           : 'watchInboxItemPlainBody',
-        dateValues,
+        {
+          ...dateValues,
+          // eslint-disable-next-line react/no-unstable-nested-components -- next-intl rich-text slots mandate a mapper function; this one is never rendered as <Flag/>, it only returns the prebuilt element above.
+          flag: (chunks) =>
+            flagImg === null ? null : (
+              <>
+                {chunks} {flagImg}
+              </>
+            ),
+        },
       )}{' '}
       <a
         href={link}
@@ -192,11 +231,13 @@ function WatchInbox({ steamId }: { steamId: string }) {
       const parsed: InboxNotification[] = [];
       rows.forEach((row) => {
         if (typeof row !== 'object' || row === null) return;
-        const { searchId, searchedAt, cheaterChecked } = row as {
-          searchId?: unknown;
-          searchedAt?: unknown;
-          cheaterChecked?: unknown;
-        };
+        const { searchId, searchedAt, cheaterChecked, requesterCountry } =
+          row as {
+            searchId?: unknown;
+            searchedAt?: unknown;
+            cheaterChecked?: unknown;
+            requesterCountry?: unknown;
+          };
         // searchId is the row identity (React key) AND the time anchor —
         // both are required, so a row missing either is dropped, never
         // rendered half-true. Legacy sentAt/id-only shapes (pre-split
@@ -209,10 +250,15 @@ function WatchInbox({ steamId }: { steamId: string }) {
         ) {
           return;
         }
+        // Country is garnish (old servers omit it): malformed values
+        // degrade to a flagless row, never drop the notification.
+        // Single choke point (lib/countryFlag): same normalization as
+        // the DAL read and the write parser.
         parsed.push({
           searchId,
           searchedAt,
           cheaterChecked: cheaterChecked === true,
+          requesterCountry: normalizeCountryCode(requesterCountry),
         });
       });
       // Stale-response guard: an identity switch mid-flight must not let
@@ -489,34 +535,50 @@ function WatchInbox({ steamId }: { steamId: string }) {
     }
     return (
       <ul className="flex flex-col gap-3">
-        {notifications.map((item) => (
-          <li
-            key={item.searchId}
-            className="rounded-xl border border-gray-700 p-3"
-          >
-            <NotifyItemText
-              locale={locale}
-              steamId={steamId}
-              cheaterChecked={item.cheaterChecked}
-              searchedAt={item.searchedAt}
-              antiLoopToken={inboxToken}
-            />
-            {item.cheaterChecked && (
-              <p className="mt-1 text-sm text-lime-400">
-                {translator('watchInboxCheaterChecked')}
-              </p>
-            )}
-            {/* Viewed-at: when the reported search ran. Emphasized
-                (purple + bold) so the moment of the lookup reads at a
-                glance next to the sentence above. */}
-            <time
-              dateTime={item.searchedAt}
-              className="mt-1 block text-xs font-bold text-purple-300"
+        {notifications.map((item) => {
+          // Country name, computed ONCE per row and shared by both the
+          // in-sentence flag (tooltip/aria) and the visible origin text
+          // below the timestamp. Visible origin exists because hover
+          // tooltips do not exist on touch screens and several flags are
+          // near-identical (Romania/Chad, Indonesia/Monaco); the bare
+          // name needs no article in any locale, so it sidesteps the
+          // gender/inflection problem the sentence avoids via the flag.
+          const countryName =
+            item.requesterCountry === null
+              ? null
+              : countryDisplayName(item.requesterCountry, locale);
+          return (
+            <li
+              key={item.searchId}
+              className="rounded-xl border border-gray-700 p-3"
             >
-              {formatSearchedAt(item.searchedAt)}
-            </time>
-          </li>
-        ))}
+              <NotifyItemText
+                locale={locale}
+                steamId={steamId}
+                cheaterChecked={item.cheaterChecked}
+                searchedAt={item.searchedAt}
+                antiLoopToken={inboxToken}
+                requesterCountry={item.requesterCountry}
+                countryName={countryName}
+              />
+              {item.cheaterChecked && (
+                <p className="mt-1 text-sm text-lime-400">
+                  {translator('watchInboxCheaterChecked')}
+                </p>
+              )}
+              {/* Viewed-at: when the reported search ran. Emphasized
+                  (purple + bold) so the moment of the lookup reads at a
+                  glance next to the sentence above. */}
+              <time
+                dateTime={item.searchedAt}
+                className="mt-1 block text-xs font-bold text-purple-300"
+              >
+                {formatSearchedAt(item.searchedAt)}
+                {countryName !== null && ` · ${countryName}`}
+              </time>
+            </li>
+          );
+        })}
       </ul>
     );
   };

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from '@/navigation';
 import { useSearchParams } from 'next/navigation';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@/locales';
 import { useTranslations, useLocale } from 'next-intl';
+import CountryFlag from '@/app/components/CountryFlag';
 
 const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
   en: 'English',
@@ -14,13 +15,28 @@ const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
   es: 'Español',
 };
 
-const LANGUAGE_FLAGS: Record<SupportedLocale, string> = {
-  en: '🇺🇸',
-  pt: '🇧🇷',
-  ru: '🇷🇺',
-  de: '🇩🇪',
-  es: '🇪🇸',
+const LANGUAGE_FLAG_CODES: Record<SupportedLocale, string> = {
+  en: 'us',
+  pt: 'br',
+  ru: 'ru',
+  de: 'de',
+  es: 'es',
 };
+
+// Decorative (label=""): the button carries the language name in its
+// aria-label and menu items show it as text. Same-origin assets
+// (public/flags, w40 displayed at 20px = retina-crisp with no srcSet):
+// the navbar mounts on every page, so its flags must never cost a
+// third-party request or fail with the CDN.
+function LanguageFlag({ code }: { code: string }) {
+  return (
+    <CountryFlag
+      code={code}
+      label=""
+      src={`/flags/${code.toLowerCase()}.png`}
+    />
+  );
+}
 
 const MENU_ID = 'language-switcher-menu';
 
@@ -88,7 +104,7 @@ export default function LanguageSwitcher() {
         aria-haspopup="menu"
         aria-controls={MENU_ID}
       >
-        <span className="text-sm">{LANGUAGE_FLAGS[currentLocale]}</span>
+        <LanguageFlag code={LANGUAGE_FLAG_CODES[currentLocale]} />
         <span className="text-xs font-medium hidden sm:inline">
           {LANGUAGE_NAMES[currentLocale]}
         </span>
@@ -129,7 +145,7 @@ export default function LanguageSwitcher() {
               aria-current={currentLocale === locale ? 'true' : undefined}
               type="button"
             >
-              <span className="text-xl">{LANGUAGE_FLAGS[locale]}</span>
+              <LanguageFlag code={LANGUAGE_FLAG_CODES[locale]} />
               <span className="font-medium">{LANGUAGE_NAMES[locale]}</span>
               {currentLocale === locale && (
                 <svg

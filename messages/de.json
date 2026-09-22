@@ -203,8 +203,8 @@
     "watchInboxError": "Benachrichtigungen konnten nicht geladen werden.",
     "watchInboxRetry": "Erneut versuchen",
     "watchInboxMonthlyBadge": "{count} Suchanfragen diesen Monat",
-    "watchInboxItemCheckedBody": "Jemand hat dein Profil am {date} um {time} angesehen und geprüft, ob du ein Cheater bist.",
-    "watchInboxItemPlainBody": "Jemand hat dein Profil am {date} um {time} angesehen.",
+    "watchInboxItemCheckedBody": "Jemand <flag>aus</flag> hat dein Profil am {date} um {time} angesehen und geprüft, ob du ein Cheater bist.",
+    "watchInboxItemPlainBody": "Jemand <flag>aus</flag> hat dein Profil am {date} um {time} angesehen.",
     "watchInboxItemViewHere": "Sieh, was sie gesehen haben",
     "watchInboxItemTrailing": "bei dieser Suche",
     "watchInboxCheaterChecked": "Cheater-Bericht geöffnet"

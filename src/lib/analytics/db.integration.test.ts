@@ -899,11 +899,13 @@ describe('analytics db integration against real libSQL', () => {
           searchId: 'inbox-search-2',
           searchedAt: '2026-06-02T00:00:00.000Z',
           cheaterChecked: false,
+          requesterCountry: null,
         },
         {
           searchId: 'inbox-search-1',
           searchedAt: '2000-01-01T00:00:00.000Z',
           cheaterChecked: false,
+          requesterCountry: null,
         },
       ]);
 
@@ -914,6 +916,7 @@ describe('analytics db integration against real libSQL', () => {
           searchId: 'inbox-search-2',
           searchedAt: '2026-06-02T00:00:00.000Z',
           cheaterChecked: false,
+          requesterCountry: null,
         },
       ]);
     });
@@ -975,6 +978,47 @@ describe('analytics db integration against real libSQL', () => {
           searchId: 'inbox-real-search',
           searchedAt: '2026-06-03T12:00:00.000Z',
           cheaterChecked: true,
+          requesterCountry: null,
+        },
+      ]);
+    });
+
+    it('plumbs the searcher country from search_meta (null without it)', async () => {
+      await db.createWatchRequest(STEAM);
+      await confirmProfileForTests(db, STEAM);
+      await db.activateWatch(STEAM);
+
+      await insertSearch('inbox-br', STEAM, '2026-06-04T00:00:00.000Z');
+      await insertSearch('inbox-nometa', STEAM, '2026-06-05T00:00:00.000Z');
+      await insertSearch('inbox-junk', STEAM, '2026-06-03T00:00:00.000Z');
+      await db.executeForTests(
+        'INSERT INTO search_meta (search_id, requester_locale, requester_country, requester_browser_language, device) VALUES (?, NULL, ?, NULL, NULL)',
+        ['inbox-br', 'br'],
+      );
+      await db.executeForTests(
+        'INSERT INTO search_meta (search_id, requester_locale, requester_country, requester_browser_language, device) VALUES (?, NULL, ?, NULL, NULL)',
+        ['inbox-junk', 'XXL'],
+      );
+
+      const all = await db.listProfileSearches(STEAM);
+      expect(all).toEqual([
+        {
+          searchId: 'inbox-nometa',
+          searchedAt: '2026-06-05T00:00:00.000Z',
+          cheaterChecked: false,
+          requesterCountry: null,
+        },
+        {
+          searchId: 'inbox-br',
+          searchedAt: '2026-06-04T00:00:00.000Z',
+          cheaterChecked: false,
+          requesterCountry: 'BR',
+        },
+        {
+          searchId: 'inbox-junk',
+          searchedAt: '2026-06-03T00:00:00.000Z',
+          cheaterChecked: false,
+          requesterCountry: null,
         },
       ]);
     });

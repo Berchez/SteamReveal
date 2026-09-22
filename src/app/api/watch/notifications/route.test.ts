@@ -117,6 +117,11 @@ describe('GET /api/watch/notifications', () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
+    // The body carries per-search history (now including searcher
+    // country): intermediaries must never cache it, with or without
+    // ?withToken=1 — a cached copy could serve one user's history (or a
+    // consumed single-use token) to later visitors.
+    expect(res.headers.get('cache-control')).toContain('no-store');
     expect(body).toEqual({
       steamId: STEAM_ID,
       notifications: [
@@ -155,6 +160,44 @@ describe('GET /api/watch/notifications', () => {
       expect.any(Number),
       WATCH_FLOOR,
     );
+  });
+
+  it('passes the searcher country through to the inbox rows', async () => {
+    listProfileSearches.mockResolvedValue([
+      {
+        searchId: 'search-1',
+        searchedAt: '2026-06-01T00:00:00.000Z',
+        cheaterChecked: false,
+        requesterCountry: 'BR',
+      },
+      {
+        searchId: 'search-0',
+        searchedAt: '2026-05-01T00:00:00.000Z',
+        cheaterChecked: false,
+        requesterCountry: null,
+      },
+    ]);
+    countSearchesSince.mockResolvedValue(2);
+    countSearchesInMonth.mockResolvedValue(2);
+
+    const res = await GET(makeRequest(BASE));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.notifications).toEqual([
+      {
+        searchId: 'search-1',
+        searchedAt: '2026-06-01T00:00:00.000Z',
+        cheaterChecked: false,
+        requesterCountry: 'BR',
+      },
+      {
+        searchId: 'search-0',
+        searchedAt: '2026-05-01T00:00:00.000Z',
+        cheaterChecked: false,
+        requesterCountry: null,
+      },
+    ]);
   });
 
   it('returns 401 without a login session (never touches the DAL)', async () => {

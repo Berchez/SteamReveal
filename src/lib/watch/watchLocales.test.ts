@@ -133,4 +133,19 @@ describe('Watch locale parity (WB-15)', () => {
       }
     }
   });
+
+  it('keeps the searcher-flag slot in every inbox item body', () => {
+    // The flag image is embedded mid-sentence via the <flag> rich-text
+    // slot (replacing the country name, so no locale needs a gendered
+    // article). The locale preposition ("de", "from", …) rides INSIDE
+    // the tag so it vanishes together with the flag when there is no
+    // country — hence the non-empty match. A template without the slot
+    // would silently drop the searcher origin for that language.
+    for (const locale of LOCALES) {
+      const watch = loadMessages(locale).Watch as Record<string, unknown>;
+      for (const key of ITEM_BODY_KEYS) {
+        expect(watch[key] as string).toMatch(/<flag>.+<\/flag>/);
+      }
+    }
+  });
 });

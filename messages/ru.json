@@ -203,8 +203,8 @@
     "watchInboxError": "Не удалось загрузить уведомления.",
     "watchInboxRetry": "Повторить",
     "watchInboxMonthlyBadge": "{count} поисков в этом месяце",
-    "watchInboxItemCheckedBody": "Кто-то просмотрел ваш профиль {date} в {time} и проверил, читер ли вы.",
-    "watchInboxItemPlainBody": "Кто-то просмотрел ваш профиль {date} в {time}.",
+    "watchInboxItemCheckedBody": "Кто-то <flag>из</flag> просмотрел ваш профиль {date} в {time} и проверил, читер ли вы.",
+    "watchInboxItemPlainBody": "Кто-то <flag>из</flag> просмотрел ваш профиль {date} в {time}.",
     "watchInboxItemViewHere": "Посмотрите, что они увидели",
     "watchInboxItemTrailing": "в этом поиске",
     "watchInboxCheaterChecked": "Отчёт о читере открыт"

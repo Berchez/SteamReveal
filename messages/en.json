@@ -203,8 +203,8 @@
     "watchInboxError": "Could not load notifications.",
     "watchInboxRetry": "Try again",
     "watchInboxMonthlyBadge": "{count} searches this month",
-    "watchInboxItemCheckedBody": "Someone viewed your profile on {date} at {time} and checked whether you are a cheater.",
-    "watchInboxItemPlainBody": "Someone viewed your profile on {date} at {time}.",
+    "watchInboxItemCheckedBody": "Someone <flag>from</flag> viewed your profile on {date} at {time} and checked whether you are a cheater.",
+    "watchInboxItemPlainBody": "Someone <flag>from</flag> viewed your profile on {date} at {time}.",
     "watchInboxItemViewHere": "See what they saw",
     "watchInboxItemTrailing": "in that search",
     "watchInboxCheaterChecked": "Cheater report opened"

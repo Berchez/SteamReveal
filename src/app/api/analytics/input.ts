@@ -10,6 +10,7 @@ import {
   MAX_GAMES_SNAPSHOT,
   MAX_LOCATION_GUESSES,
 } from '@/lib/analytics/normalize';
+import { normalizeCountryCode } from '@/lib/countryFlag';
 
 /**
  * Body parsing for the analytics write routes.
@@ -149,7 +150,10 @@ export const parseRecordBody = (body: unknown): NewSearchInput | null => {
       : null,
     isCSActive: typeof body.isCSActive === 'boolean' ? body.isCSActive : null,
     requesterLocale: nullableString(body.requesterLocale),
-    requesterCountry: nullableString(body.requesterCountry),
+    // Normalized at the boundary (single choke point): 'br' and 'BR'
+    // must not become two buckets/flags downstream. Malformed values
+    // fall back to null like every other optional field here.
+    requesterCountry: normalizeCountryCode(body.requesterCountry),
     requesterBrowserLanguage: nullableString(body.requesterBrowserLanguage),
     device: deviceValue,
     locationGuess: Array.isArray(body.locationGuess)

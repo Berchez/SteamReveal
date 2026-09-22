@@ -1797,6 +1797,7 @@ describe('watch/outbox DAL (Epic 1)', () => {
           search_id: 'search-9',
           searched_at: '2026-06-02T00:00:00.000Z',
           cheater_checked: 1,
+          requester_country: 'br',
         },
         {
           search_id: 'search-7',
@@ -1814,11 +1815,13 @@ describe('watch/outbox DAL (Epic 1)', () => {
         searchId: 'search-9',
         searchedAt: '2026-06-02T00:00:00.000Z',
         cheaterChecked: true,
+        requesterCountry: 'BR',
       },
       {
         searchId: 'search-7',
         searchedAt: '2026-06-01T00:00:00.000Z',
         cheaterChecked: false,
+        requesterCountry: null,
       },
     ]);
     const select = mockExecute.mock.calls.find((call) =>
@@ -1830,11 +1833,52 @@ describe('watch/outbox DAL (Epic 1)', () => {
     expect(sql).not.toContain('watch_events');
     expect(sql).toContain('JOIN profiles');
     expect(sql).toContain('ORDER BY s.searched_at DESC');
-    // Session details come from PK joins, never requester PII.
+    // Session details come from PK joins plus ONE deliberate coarse-geo
+    // exception (owner decision): the 2-letter requester country feeds
+    // the inbox flag. Never IP, city, locale or browser language.
     expect(sql).toContain('cheater_results');
-    expect(sql).not.toContain('search_meta');
-    expect(sql).not.toContain('requester_');
+    expect(sql).toContain('LEFT JOIN search_meta');
+    expect(sql).toContain('requester_country');
+    expect(sql).not.toContain('requester_locale');
+    expect(sql).not.toContain('requester_browser_language');
     expect(select[0].args).toEqual([STEAM, 5]);
+  });
+
+  it('listProfileSearches normalizes the searcher country (null for legacy/unknown)', async () => {
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          search_id: 'search-lower',
+          searched_at: '2026-06-03T00:00:00.000Z',
+          cheater_checked: 0,
+          requester_country: 'br',
+        },
+        {
+          search_id: 'search-wide',
+          searched_at: '2026-06-02T00:00:00.000Z',
+          cheater_checked: 0,
+          requester_country: 'BRA',
+        },
+        {
+          search_id: 'search-null',
+          searched_at: '2026-06-01T00:00:00.000Z',
+          cheater_checked: 0,
+          requester_country: null,
+        },
+        {
+          search_id: 'search-nometa',
+          searched_at: '2026-05-31T00:00:00.000Z',
+          cheater_checked: 0,
+        },
+      ],
+    });
+
+    const { listProfileSearches } = require('./db');
+    const rows = await listProfileSearches(STEAM, 5);
+
+    expect(
+      rows.map((row: { requesterCountry: string | null }) => row.requesterCountry),
+    ).toEqual(['BR', null, null, null]);
   });
 
   it('listProfileSearches clamps the limit and validates inputs', async () => {

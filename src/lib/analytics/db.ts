@@ -37,6 +37,7 @@ import type {
   ExpiredConfirmCandidate,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
+import { normalizeCountryCode } from '../countryFlag';
 import isWithinCooldownWindow from '../watch/cooldown';
 import {
   WATCH_INBOX_DEFAULT_LIMIT,
@@ -240,7 +241,10 @@ export const recordSearch = async (
       args: [
         id,
         record.requesterLocale ?? null,
-        record.requesterCountry ?? null,
+        // Normalized at write (same choke point as every read): 'br'
+        // and 'BR' must never become two buckets/flags downstream.
+        // Direct DAL callers get the same guarantee as the HTTP parser.
+        normalizeCountryCode(record.requesterCountry),
         record.requesterBrowserLanguage ?? null,
         record.device ?? null,
       ],
@@ -870,10 +874,14 @@ export const listWatchedProfiles = async (
  * confirmer would inherit months of strangers' pre-opt-in lookups (and a
  * misleading monthly badge). Null keeps the legacy unfiltered read.
  *
- * Projection (search id + timestamp + cheater flag): the inbox renders
- * message text from the shared WB-15 base, and the EXISTS adds WHETHER
- * the cheater report was opened for that search — the profile's own
- * search metadata, never requester PII (no search_meta columns travel).
+ * Projection (search id + timestamp + cheater flag + searcher country):
+ * the inbox renders message text from the shared WB-15 base, the EXISTS
+ * adds WHETHER the cheater report was opened for that search, and the
+ * LEFT JOIN adds the coarse 2-letter requester country for the inbox
+ * flag. That last column is the deliberate exception to the old
+ * "no search_meta travels" rule (owner decision: country-level geo only —
+ * never IP, city, locale or browser language); rows without search_meta
+ * (legacy imports, unknown geo) read back null and render flagless.
  * Limit defaults to WATCH_INBOX_DEFAULT_LIMIT, clamps to
  * [1, WATCH_INBOX_MAX_LIMIT] — an inbox is a recent-history view, not a
  * full export.
@@ -881,6 +889,8 @@ export const listWatchedProfiles = async (
  * SCALING NOTE: filters on profiles(steam_id) + ORDER BY searched_at;
  * profiles(steam_id) is indexed by 009, searched_at ordering sorts one
  * profile's rows only (small by construction), so no composite index.
+ * The search_meta LEFT JOIN is PK-keyed (search_meta.search_id is the
+ * table PK per 001_init) — no extra index needed.
  */
 export const listProfileSearches = async (
   steamId: string,
@@ -916,9 +926,11 @@ export const listProfileSearches = async (
       sql: `SELECT s.id AS search_id, s.searched_at,
               EXISTS (
                 SELECT 1 FROM cheater_results c WHERE c.search_id = s.id
-              ) AS cheater_checked
+              ) AS cheater_checked,
+              m.requester_country AS requester_country
             FROM searches s
             JOIN profiles p ON p.search_id = s.id
+            LEFT JOIN search_meta m ON m.search_id = s.id
             WHERE ${clauses.join(' AND ')}
             ORDER BY s.searched_at DESC, s.id DESC LIMIT ?`,
       args,
@@ -931,6 +943,10 @@ export const listProfileSearches = async (
       searchId: record.search_id as string,
       searchedAt: record.searched_at as string,
       cheaterChecked: Number(record.cheater_checked ?? 0) > 0,
+      // Coarse geo only (single choke point: a non-2-letter value from a
+      // hand edit or corrupt import degrades to null — flagless row —
+      // never to a broken flag or a split bucket).
+      requesterCountry: normalizeCountryCode(record.requester_country),
     };
   });
 };
@@ -2491,7 +2507,9 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
             ? isActive === 1
             : null,
         requesterLocale: toNullableString(row.requester_locale),
-        requesterCountry: toNullableString(row.requester_country),
+        // Same choke point as listProfileSearches: legacy lowercase
+        // rows read back canonical, so dashboard and inbox agree.
+        requesterCountry: normalizeCountryCode(row.requester_country),
         requesterBrowserLanguage: toNullableString(
           row.requester_browser_language,
         ),

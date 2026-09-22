@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import type { ReactNode } from 'react';
 
 import WatchInbox from './WatchInbox';
 import { WATCH_SEEN_KEY_PREFIX } from '@/app/templates/Home/hooks/watch/watchReadState';
@@ -9,9 +10,28 @@ import { WATCH_SEEN_KEY_PREFIX } from '@/app/templates/Home/hooks/watch/watchRea
 const mockTranslate = (key: string, values?: Record<string, unknown>) =>
   values === undefined ? key : `${key}:${JSON.stringify(values)}`;
 
+// Rich-text twin for translator.rich(bodyKey, { date, time, flag }):
+// echoes the key like mockTranslate, then actually invokes the flag
+// mapper so the country glyph renders for real (JSON.stringify would
+// drop the function). Same mock-prefix rule as mockTranslate.
+const mockRich = (key: string, values?: Record<string, unknown>) => {
+  const flagMapper = values?.flag as
+    | ((chunks: ReactNode) => ReactNode)
+    | undefined;
+  return (
+    <>
+      {mockTranslate(key, values)}
+      {typeof flagMapper === 'function' ? flagMapper('') : null}
+    </>
+  );
+};
+const mockTranslateWithRich = Object.assign(mockTranslate, {
+  rich: mockRich,
+});
+
 jest.mock('next-intl', () => ({
   useLocale: () => 'en',
-  useTranslations: () => mockTranslate,
+  useTranslations: () => mockTranslateWithRich,
 }));
 
 // Same interception precedent as SiteNavSignIn tests: mock the underlying
@@ -47,10 +67,18 @@ const notificationsResponse = (
     }),
   }) as Response;
 
-const row = (searchId: string, searchedAt: string, cheaterChecked = false) => ({
+const row = (
+  searchId: string,
+  searchedAt: string,
+  cheaterChecked = false,
+  requesterCountry?: string,
+) => ({
   searchId,
   searchedAt,
   cheaterChecked,
+  // Absent (not null) when the caller omits it: legacy servers predate
+  // the field, and the parser must default those rows to flagless.
+  ...(requesterCountry === undefined ? {} : { requesterCountry }),
 });
 
 describe('WatchInbox', () => {
@@ -685,5 +713,70 @@ describe('WatchInbox', () => {
     await settle();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(bell).toHaveFocus();
+  });
+
+  it('shows the searcher flag with a country tooltip when the country is known', async () => {
+    fetchMock.mockResolvedValue(
+      notificationsResponse(
+        [row('search-1', '2026-06-01T00:00:00.000Z', false, 'br')],
+        1,
+      ),
+    );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    // Lowercase code normalizes; tooltip + screen-reader name come from
+    // Intl in the page locale (en here) — no translated strings involved.
+    // flagcdn image (not emoji): Windows has no flag glyphs, so emoji
+    // would degrade to bare "BR" letters on desktop Chrome/Edge.
+    const flag = screen.getByRole('img', { name: 'Brazil' });
+    expect(flag).toHaveAttribute(
+      'src',
+      'https://flagcdn.com/w20/br.png',
+    );
+    expect(flag).toHaveAttribute(
+      'srcSet',
+      'https://flagcdn.com/w40/br.png 2x',
+    );
+    expect(flag).toHaveAttribute('title', 'Brazil');
+    expect(flag).toHaveAttribute('referrerpolicy', 'no-referrer');
+    // Visible origin next to the timestamp (touch screens have no
+    // hover): the bare name needs no article in any locale.
+    expect(screen.getByText(/· Brazil/)).toBeInTheDocument();
+    // Sentence itself is intact around the embedded slot.
+    expect(screen.getByText(/watchInboxItemPlainBody/)).toBeInTheDocument();
+  });
+
+  it('renders no flag when the country is unknown (legacy rows)', async () => {
+    fetchMock.mockResolvedValue(
+      notificationsResponse([row('search-1', '2026-06-01T00:00:00.000Z')], 1),
+    );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByText(/· Brazil/)).not.toBeInTheDocument();
+    expect(screen.getByText(/watchInboxItemPlainBody/)).toBeInTheDocument();
+  });
+
+  it('renders no flag for an unresolvable country code (row still renders)', async () => {
+    fetchMock.mockResolvedValue(
+      notificationsResponse(
+        [row('search-1', '2026-06-01T00:00:00.000Z', false, 'XX')],
+        1,
+      ),
+    );
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 });

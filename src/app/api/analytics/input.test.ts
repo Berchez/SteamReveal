@@ -32,6 +32,9 @@ describe('parseRecordBody', () => {
     expect(input?.friends).toHaveLength(1);
     expect(input?.device).toBe('desktop');
     expect(input?.durationMs).toBe(1500);
+    // Write-boundary normalization (single choke point): 'br' and 'BR'
+    // must not become two buckets/flags downstream.
+    expect(input?.requesterCountry).toBe('BR');
   });
 
   it('returns null when profile or steamId is missing', () => {

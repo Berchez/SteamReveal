@@ -156,6 +156,21 @@ describe('shared watch message base', () => {
     }
   });
 
+  it('keeps every bot template free of rich-text tags (web-inbox only)', () => {
+    // The inbox sentences live in messages/*.json and render through
+    // translator.rich(); the bot has no React/intl provider and prints
+    // these strings verbatim into Steam chat, where a "<flag>" would
+    // show up literally. If a web-only tag ever lands here, chat breaks.
+    const tagPattern = /<[a-z]+\/?>/;
+    for (const locale of [...WATCH_LOCALES, 'xx', null]) {
+      expect(getWelcomeText(locale)).not.toMatch(tagPattern);
+      expect(getNotifyText(locale, STEAM)).not.toMatch(tagPattern);
+      expect(getNotifyTeaserText(locale, STEAM)).not.toMatch(tagPattern);
+      expect(getConfirmText(locale, CONFIRM_URL)).not.toMatch(tagPattern);
+      expect(getConfirmExpiredText(locale)).not.toMatch(tagPattern);
+    }
+  });
+
   it('ships intact UTF-8 in every locale', () => {
     // Guards the Windows-codepage mojibake mirage at the byte level: real
     // Cyrillic / accented text must survive, never U+FFFD.

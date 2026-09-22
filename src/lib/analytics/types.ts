@@ -186,9 +186,10 @@ export interface ExpiredConfirmCandidate {
  * steamId is the query key (echoed by the route, not repeated per row).
  * The React key is searchId (searches.id PK — stable forever, unlike
  * rowids). No message text is stored (the inbox renders the shared WB-15
- * base text instead) and no requester PII travels — only the searched
- * profile's own search metadata (when it ran, whether the cheater report
- * was opened for it).
+ * base text instead). The only requester-side datum is the coarse
+ * 2-letter country (a flag in the inbox row — deliberate product
+ * decision; never IP, city, locale or any other search_meta column).
+ * Null when the geo was unknown or the row predates search_meta.
  */
 export interface WatchNotification {
   /** Producing search id (searches.id). */
@@ -197,6 +198,8 @@ export interface WatchNotification {
   searchedAt: string;
   /** Whether the searcher opened the cheater report (cheater_results row). */
   cheaterChecked: boolean;
+  /** Searcher country (search_meta.requester_country, 2-letter, uppercase). */
+  requesterCountry: string | null;
 }
 
 // ---------------------------------------------------------------------------

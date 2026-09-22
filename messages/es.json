@@ -203,8 +203,8 @@
     "watchInboxError": "No se pudieron cargar las notificaciones.",
     "watchInboxRetry": "Reintentar",
     "watchInboxMonthlyBadge": "{count} búsquedas este mes",
-    "watchInboxItemCheckedBody": "Alguien vio tu perfil el {date} a las {time} y verificó si eras un cheater.",
-    "watchInboxItemPlainBody": "Alguien vio tu perfil el {date} a las {time}.",
+    "watchInboxItemCheckedBody": "Alguien <flag>de</flag> vio tu perfil el {date} a las {time} y verificó si eras un cheater.",
+    "watchInboxItemPlainBody": "Alguien <flag>de</flag> vio tu perfil el {date} a las {time}.",
     "watchInboxItemViewHere": "Mira lo que vieron",
     "watchInboxItemTrailing": "en esa búsqueda",
     "watchInboxCheaterChecked": "Informe de cheater abierto"

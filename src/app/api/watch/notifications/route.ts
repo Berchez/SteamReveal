@@ -96,10 +96,11 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' };
  * session (401 otherwise — link prefetchers never carry it), and a blind
  * hit would only arm, never spend. Self-scoped via the Steam OpenID
  * session: each user reads ONLY their own history (the pre-login
- * `?steamId=` parameter is gone — its presence is a 400). Rows carry no
- * PII beyond the requester's own id (search timestamps + the profile's
- * own search metadata — viewed-at, cheater flag — never requester
- * geo/device).
+ * `?steamId=` parameter is gone — its presence is a 400). Rows carry
+ * the requester's own id (search timestamps + the profile's own search
+ * metadata — viewed-at, cheater flag — plus the coarse 2-letter
+ * searcher country for the inbox flag; never IP, city, device or
+ * browser language).
  */
 export async function GET(req: Request) {
   // App Router only routes GET here; kept as defense-in-depth (and so unit
