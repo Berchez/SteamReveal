@@ -1,4 +1,5 @@
 import { CheaterDataType } from '@/@types/cheaterDataType';
+import type { FriendsVisibility } from '@/lib/analytics/types';
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -23,11 +24,14 @@ function CheaterReport({
   cheaterError,
   nickname,
   onRetry,
+  friendsVisibility,
 }: {
   cheaterData: CheaterDataType | undefined;
   cheaterError: boolean;
   nickname: string;
   onRetry: () => void;
+  /** When private/empty, the banned-friends signal is missing (warning shown). */
+  friendsVisibility?: FriendsVisibility;
 }) {
   const {
     animateData,
@@ -124,6 +128,19 @@ function CheaterReport({
               return text.charAt(0).toUpperCase() + text.slice(1);
             })()}
           </h1>
+          {(friendsVisibility === 'private' ||
+            friendsVisibility === 'empty') && (
+            <p
+              data-testid="cheater-no-friends-warning"
+              className="mt-3 rounded-lg border border-yellow-800 bg-yellow-950/40 p-3 text-sm text-yellow-200"
+            >
+              {translator(
+                friendsVisibility === 'private'
+                  ? 'noFriendsWarningPrivate'
+                  : 'noFriendsWarningEmpty',
+              )}
+            </p>
+          )}
           <ReportBox
             color={config.color as StatusColorKey}
             icon={config.icon}

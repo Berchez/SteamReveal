@@ -74,7 +74,7 @@ describe('LocationCard component', () => {
     expect(screen.getByText(/(100)/i)).toBeInTheDocument();
   });
 
-  it('does not render providedLocation details if countryCode or stateName is missing', () => {
+  it('renders partial providedLocation details when only some fields are present', () => {
     const providedLocation = {
       cityName: 'São Paulo',
       countryName: 'Brazil',
@@ -82,8 +82,79 @@ describe('LocationCard component', () => {
 
     render(<LocationCard providedLocation={providedLocation} />);
 
-    expect(screen.queryByText('São Paulo,')).not.toBeInTheDocument();
-    expect(screen.queryByText('Brazil')).not.toBeInTheDocument();
+    expect(screen.getByText(/providedByUser/i)).toBeInTheDocument();
+    expect(screen.getByText('São Paulo,')).toBeInTheDocument();
+    expect(screen.getByText('Brazil')).toBeInTheDocument();
+    expect(screen.queryByText('noLocationEstimate')).not.toBeInTheDocument();
+  });
+
+  it('omits the header bottom margin when nothing follows the provided block', () => {
+    // A lone "Provided by user" (no triangulation, no map) must not carry
+    // a dangling mb-3 into the card's bottom padding.
+    render(
+      <LocationCard
+        providedLocation={{ countryName: 'China', countryCode: 'CN' }}
+      />,
+    );
+
+    const header = screen.getByText(/providedByUser/i).closest('div');
+    expect(header).not.toHaveClass('mb-3');
+  });
+
+  it('keeps the header bottom margin when a city-level map follows (no triangulation)', () => {
+    // City-declared location without triangulation still renders the map
+    // below the header, so mb-3 stays.
+    render(
+      <LocationCard
+        providedLocation={{
+          cityName: 'Beijing',
+          countryName: 'China',
+          countryCode: 'CN',
+        }}
+      />,
+    );
+
+    const header = screen.getByText(/providedByUser/i).closest('div');
+    expect(header).toHaveClass('mb-3');
+  });
+
+  it('keeps the header bottom margin when triangulation rows follow', () => {
+    render(
+      <LocationCard
+        providedLocation={{ countryName: 'China', countryCode: 'CN' }}
+        possibleLocations={[
+          {
+            location: {
+              cityName: 'Beijing',
+              countryName: 'China',
+              countryCode: 'CN',
+            },
+            probability: 85.5,
+            count: 150,
+          },
+        ]}
+      />,
+    );
+
+    const header = screen.getByText(/providedByUser/i).closest('div');
+    expect(header).toHaveClass('mb-3');
+  });
+
+  it('renders a country-only provided location instead of the no-estimate message', () => {
+    // Real case: a profile declaring only a country (e.g. China, no
+    // state/city, no friends to triangulate from) must show what the user
+    // declared — never "could not estimate".
+    const providedLocation = {
+      countryName: 'China',
+      countryCode: 'CN',
+    };
+
+    render(<LocationCard providedLocation={providedLocation} />);
+
+    expect(screen.getByText(/providedByUser/i)).toBeInTheDocument();
+    expect(screen.getByText('China')).toBeInTheDocument();
+    expect(screen.getByAltText(/CN's flag/i)).toBeInTheDocument();
+    expect(screen.queryByText('noLocationEstimate')).not.toBeInTheDocument();
   });
 
   it('does not render possibleLocations with count 0 or probability 0', () => {
@@ -135,6 +206,14 @@ describe('LocationCard component', () => {
     render(<LocationCard providedLocation={{}} possibleLocations={[]} />);
 
     expect(screen.getByText('noLocationEstimate')).toBeInTheDocument();
+  });
+
+  it('renders the empty state in the gray-glass card style (matching FriendsSection)', () => {
+    render(<LocationCard providedLocation={{}} possibleLocations={[]} />);
+
+    const emptyState = screen.getByTestId('location-empty-state');
+    expect(emptyState).toHaveClass('bg-gray-800/60');
+    expect(emptyState).not.toHaveClass('bg-purple-900');
   });
 
   it('renders the no-estimate message when every candidate is a legacy zero row', () => {

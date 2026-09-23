@@ -75,6 +75,11 @@ const BOT_HEARTBEAT_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const FRIENDS_VISIBILITY_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '014_search_meta_friends_visibility.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -213,6 +218,12 @@ describe('analytics db integration against real libSQL', () => {
     for (const statement of splitSqlStatements(BOT_HEARTBEAT_MIGRATION_SQL)) {
       await db.executeForTests(statement);
     }
+    // 014 carries search_meta.friends_visibility (private-list flag).
+    for (const statement of splitSqlStatements(
+      FRIENDS_VISIBILITY_MIGRATION_SQL,
+    )) {
+      await db.executeForTests(statement);
+    }
   });
 
   beforeEach(async () => {
@@ -302,6 +313,29 @@ describe('analytics db integration against real libSQL', () => {
       },
     ]);
     expect(read.cheater).toBeNull();
+    // Legacy input without the flag reads back NULL ("unknown").
+    expect(read.friendsVisibility).toBeNull();
+  });
+
+  it('recordSearch → getSearchRecords round-trips friendsVisibility', async () => {
+    await db.recordSearch({
+      profile: { steamId: '76561198000000010' },
+      friends: [],
+      friendsVisibility: 'private',
+    });
+    await db.recordSearch({
+      profile: { steamId: '76561198000000011' },
+      friends: [],
+      friendsVisibility: 'bogus' as unknown as 'private',
+    });
+
+    const records = await db.getSearchRecords();
+    const bySteamId = new Map(records.map((r) => [r.profile.steamId, r]));
+    expect(bySteamId.get('76561198000000010')?.friendsVisibility).toBe(
+      'private',
+    );
+    // Unknown values degrade to NULL, never to a mislabeled bucket.
+    expect(bySteamId.get('76561198000000011')?.friendsVisibility).toBeNull();
   });
 
   it('attachCheaterProbability upserts on the real schema', async () => {

@@ -3,16 +3,34 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import LocationMap from './LocationMap';
 
+export type ProvidedLocation = {
+  cityName?: string;
+  stateName?: string;
+  countryName?: string;
+  countryCode?: string;
+};
+
+/**
+ * Whether the profile declared any location itself. ANY field counts —
+ * profiles often declare only a country (e.g. countryCode "CN" with no
+ * state/city). Shared with LocationSection (which gates the triangulation
+ * notice on it) so the rule can never drift between the two.
+ */
+export const hasSelfDeclaredLocation = (
+  providedLocation: ProvidedLocation | undefined,
+): boolean =>
+  Boolean(
+    providedLocation?.cityName ||
+      providedLocation?.stateName ||
+      providedLocation?.countryName ||
+      providedLocation?.countryCode,
+  );
+
 function LocationCard({
   providedLocation,
   possibleLocations,
 }: {
-  providedLocation: {
-    cityName?: string;
-    stateName?: string;
-    countryName?: string;
-    countryCode?: string;
-  };
+  providedLocation: ProvidedLocation;
   possibleLocations?: locationDataIWant[];
 }) {
   const translator = useTranslations('LocationCard');
@@ -29,12 +47,29 @@ function LocationCard({
 
   // Whether the profile itself provided a location (rendered as the
   // "Provided by user" block below). The estimate only covers friend-based
-  // triangulation; when neither exists there is nothing to show, so render
-  // an explicit empty state instead of a blank card.
-  const hasProvidedLocation = Boolean(
-    providedLocation.stateName && providedLocation.countryCode,
-  );
+  // triangulation; when neither exists there is nothing to show, so the
+  // component returns the gray-glass empty state below instead of the
+  // purple triangulation card.
+  const hasProvidedLocation = hasSelfDeclaredLocation(providedLocation);
   const hasEstimate = visibleLocations.length > 0;
+
+  if (!hasEstimate && !hasProvidedLocation) {
+    return (
+      <div
+        data-testid="location-empty-state"
+        className="mt-8 rounded-xl border border-gray-700 bg-gray-800/60 p-6 text-left"
+      >
+        <p className="text-sm text-gray-300">
+          {translator('noLocationEstimate')}
+        </p>
+      </div>
+    );
+  }
+  // The header only needs bottom margin when content follows it —
+  // triangulation rows or the map (rendered for city-level declarations).
+  // A lone "Provided by user" block (e.g. country-only) must not carry a
+  // dangling mb-3 into the card's bottom padding.
+  const hasContentBelow = hasEstimate || Boolean(providedLocation.cityName);
 
   const topLocation = visibleLocations[0];
   const showMap =
@@ -50,17 +85,21 @@ function LocationCard({
 
   return (
     <div className={`mt-8 text-white py-4 px-8 ${glassmorphism}`}>
-      {providedLocation.stateName && providedLocation.countryCode && (
-        <div className="flex gap-x-5 mb-3 font-semibold text-lg flex-wrap">
+      {hasProvidedLocation && (
+        <div
+          className={`flex gap-x-5 ${hasContentBelow ? 'mb-3' : ''} font-semibold text-lg flex-wrap`}
+        >
           {translator('providedByUser')}
           <div className="flex items-center gap-x-2 flex-wrap">
-            <img
-              src={`https://flagcdn.com/w20/${providedLocation.countryCode.toLowerCase()}.png`}
-              className="w-max h-max"
-              alt={`${providedLocation.countryCode}'s flag`}
-              width={20}
-              height={14}
-            />
+            {providedLocation.countryCode && (
+              <img
+                src={`https://flagcdn.com/w20/${providedLocation.countryCode.toLowerCase()}.png`}
+                className="w-max h-max"
+                alt={`${providedLocation.countryCode}'s flag`}
+                width={20}
+                height={14}
+              />
+            )}
             {providedLocation.cityName && <p>{providedLocation.cityName},</p>}
             {providedLocation.stateName && <p>{providedLocation.stateName},</p>}
             {providedLocation.countryName && (
@@ -68,10 +107,6 @@ function LocationCard({
             )}
           </div>
         </div>
-      )}
-
-      {!hasEstimate && !hasProvidedLocation && (
-        <p>{translator('noLocationEstimate')}</p>
       )}
 
       {visibleLocations.map((l, index) => {

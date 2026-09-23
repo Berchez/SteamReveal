@@ -48,6 +48,7 @@ export default function Home({
   }
   const {
     closeFriendsJson,
+    friendsVisibility,
     targetValue,
     possibleLocationJson,
     targetInfoJson,
@@ -182,6 +183,7 @@ export default function Home({
             cheaterError={cheaterError}
             nickname={targetInfoJson?.profileInfo?.nickname ?? ''}
             onRetry={retryCheaterReport}
+            friendsVisibility={friendsVisibility}
           />
         )}
         {!hasNoDataYet && (
@@ -195,8 +197,12 @@ export default function Home({
             <LocationSection
               possibleLocationJson={possibleLocationJson}
               targetInfoJson={targetInfoJson}
+              friendsVisibility={friendsVisibility}
             />
-            <FriendsSection closeFriendsJson={closeFriendsJson} />
+            <FriendsSection
+              closeFriendsJson={closeFriendsJson}
+              friendsVisibility={friendsVisibility}
+            />
           </div>
         )}
         {/* FOOTER */}

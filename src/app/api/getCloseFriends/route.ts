@@ -211,7 +211,7 @@ export async function POST(req: Request) {
       return errorResponse(
         "Target's friends list is private or inaccessible.",
         400,
-        'INVALID_REQUEST',
+        'FRIENDS_LIST_PRIVATE',
       );
     }
 

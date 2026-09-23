@@ -27,6 +27,7 @@ jest.mock('../../shared/analytics/homeAnalyticsUtils', () => ({
   recordAnalytics: jest.fn(async () => 'search-id'),
   getRequesterDevice: jest.fn(() => 'desktop'),
   getRequesterCountry: jest.fn(() => 'BR'),
+  getRequesterBrowserLanguage: jest.fn(() => 'en-US'),
 }));
 
 jest.mock('./homeUtils', () => ({

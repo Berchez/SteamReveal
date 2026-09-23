@@ -235,7 +235,7 @@ describe('POST /api/getCloseFriends — error classification on getUserFriends(t
     expect(data.error.code).toBe('TIMEOUT');
   });
 
-  it('still maps an "Unauthorized" failure on getUserFriends(target) to 400 (works today, but by string-matching accident, not by type)', async () => {
+  it('maps an "Unauthorized" failure on getUserFriends(target) to 400 FRIENDS_LIST_PRIVATE (structured code contract)', async () => {
     mockGetUserFriends.mockImplementation((id: string) => {
       if (id === '76561198000000000') {
         return Promise.reject(new Error('Unauthorized'));
@@ -247,7 +247,14 @@ describe('POST /api/getCloseFriends — error classification on getUserFriends(t
     const data = await res.json();
 
     expect(res.status).toBe(400);
-    expect(data.error.code).toBe('INVALID_REQUEST');
+    // Structured-code contract with the client classifier
+    // (isPrivateFriendsError): the code — not the copy — is what the
+    // degraded-mode detection keys on, so a message refactor must never
+    // silently flip private lists back to the abort path.
+    expect(data.error.code).toBe('FRIENDS_LIST_PRIVATE');
+    expect(data.error.message).toBe(
+      "Target's friends list is private or inaccessible.",
+    );
   });
 });
 

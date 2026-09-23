@@ -21,7 +21,12 @@ import getCsStats, {
   CS_STATS_FIELD_ORDER,
   assertCsStatsShape,
 } from './utils/csStats';
-import { clearStat, getAccountAge } from './utils/utils';
+import {
+  clearStat,
+  getAccountAge,
+  getAccountAgeMonths,
+  toNumericFeature,
+} from './utils/utils';
 
 export const revalidate = 0;
 
@@ -219,6 +224,7 @@ export async function POST(req: Request) {
       bannedFriendsResult;
 
     const accountAge = getAccountAge(userSummary as UserSummary);
+    const accountAgeMonths = getAccountAgeMonths(userSummary as UserSummary);
 
     // Built by explicit field name (CS_STATS_FIELD_ORDER), not
     // Object.values(csStats) — see utils/csStats/index.ts for why. If
@@ -229,8 +235,13 @@ export async function POST(req: Request) {
       assertCsStatsShape(csStats);
     }
 
+    // CsStats fields are numeric STRINGS ('' when missing) — coerce to
+    // numbers here so the Flask model always receives a 100%-numeric
+    // vector (unparseable degrades to -1 via toNumericFeature).
     const csStatsFeaturesArr = csStats
-      ? CS_STATS_FIELD_ORDER.map((key) => clearStat(csStats[key]))
+      ? CS_STATS_FIELD_ORDER.map((key) =>
+          toNumericFeature(clearStat(csStats[key])),
+        )
       : Array(CS_STATS_FIELD_ORDER.length).fill(-1);
 
     const features = [
@@ -252,6 +263,7 @@ export async function POST(req: Request) {
       analyzedFriendsCount: closeFriends.length,
       bannedFriendsDetails,
       accountAge,
+      accountAgeMonths,
       totalGamesCount,
       platformBanScore: platformBanResult.score,
       platformBanCheatCount: platformBanResult.cheatCount,

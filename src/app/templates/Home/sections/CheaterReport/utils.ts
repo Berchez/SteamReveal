@@ -134,11 +134,16 @@ const analyzeCheaterData = (
     conditionToBeInnocent: (v) => v >= 1,
   });
 
-  // Banned friends
+  // Banned friends. No "clean" claim when nobody was analyzed (private
+  // or empty list scores 0 by construction — a 0/0 circle carries no
+  // evidence either way). -1 is addReason's "no data" sentinel, so neither
+  // message renders; the report-level no-friends warning banner already
+  // covers the missing signal.
+  const analyzedCount = featureObject.analyzedFriendsCount ?? 0;
   addReason({
-    value: featureObject.bannedFriendsScore,
+    value: analyzedCount > 0 ? featureObject.bannedFriendsScore : -1,
     positiveMsg: translator('cleanFriends', {
-      count: featureObject.analyzedFriendsCount,
+      count: analyzedCount,
     }),
     negativeMsg: translator('bannedFriends'),
     conditionToBeInnocent: (v) => v === 0,
@@ -210,12 +215,25 @@ const analyzeCheaterData = (
     }
   }
 
-  // Account Age
+  // Account Age. An age of 0 years (created within the last year) never
+  // renders as "0 years old" — it reads as missing data. With the backend's
+  // month companion (accountAgeMonths) it renders "N months old" instead;
+  // without it (legacy payloads) it falls back to the less-than-a-year
+  // wording. Same suspicion weight either way, only the wording changes.
   if (featureObject.accountAge !== undefined) {
     addReason({
       value: featureObject.accountAge,
       positiveMsg: translator('oldAccount', { age: featureObject.accountAge }),
-      negativeMsg: translator('newAccount', { age: featureObject.accountAge }),
+      negativeMsg: () => {
+        if ((featureObject.accountAge ?? 1) > 0) {
+          return translator('newAccount', { age: featureObject.accountAge });
+        }
+        const months = featureObject.accountAgeMonths;
+        if (typeof months === 'number' && months >= 1) {
+          return translator('newAccountMonths', { months });
+        }
+        return translator('newAccountLessThanYear');
+      },
       conditionToBeInnocent: (v) => v >= 7,
       conditionToBeSuspect: (v) => v <= 2,
     });

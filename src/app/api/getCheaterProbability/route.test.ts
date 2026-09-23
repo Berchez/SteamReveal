@@ -418,6 +418,39 @@ describe('POST /api/getCheaterProbability — Ticket 8 request validation', () =
     expect(data.cheaterProbability).toBe(0.55);
   });
 
+  it('sends a 100%-numeric feature vector to the model even when csStats fields are strings', async () => {
+    // CsStats travels as numeric strings ('' when missing). Without
+    // coercion the /predict payload would carry strings — or worse, a
+    // non-numeric string — instead of numbers.
+    const csStatsModule = jest.requireMock('./utils/csStats') as {
+      default: jest.Mock;
+      CS_STATS_FIELD_ORDER: string[];
+    };
+    csStatsModule.CS_STATS_FIELD_ORDER.push('kd', 'winrate');
+    csStatsModule.default.mockResolvedValueOnce({
+      kd: '1.25',
+      winrate: '55%',
+    });
+    try {
+      const res = await POST(
+        makeRequest({ target: 'somevanityurl', closeFriends: [] }),
+      );
+      expect(res.status).toBe(200);
+
+      const predictCall = mockedAxiosPost.mock.calls.find((args) =>
+        String(args[0]).includes('/predict'),
+      ) as unknown as [string, { features: unknown[] }];
+      const features = predictCall?.[1].features ?? [];
+      expect(features).toContain(1.25);
+      expect(features).toContain(55);
+      expect(
+        features.every((feature) => typeof feature === 'number'),
+      ).toBe(true);
+    } finally {
+      csStatsModule.CS_STATS_FIELD_ORDER.length = 0;
+    }
+  });
+
   it('exposes activity fields even when the platform result omits them', async () => {
     mockedPlatformBan.mockResolvedValue({
       score: 0,

@@ -1,10 +1,14 @@
 import type { SearchRecord } from '../src/lib/analytics/types';
-import { toSqlBool, nullableText } from '../src/lib/analytics/sqlHelpers';
+import { normalizeFriendsVisibility } from '../src/lib/analytics/friendsVisibility';
 import {
   filterValidFriends,
   filterValidGames,
   filterValidLocations,
+  MAX_FRIENDS,
+  MAX_GAMES_SNAPSHOT,
+  MAX_LOCATION_GUESSES,
 } from '../src/lib/analytics/normalize';
+import { toSqlBool, nullableText } from '../src/lib/analytics/sqlHelpers';
 
 export type Statement = { sql: string; args: (string | number | null)[] };
 
@@ -73,19 +77,21 @@ export function buildStatements(record: SearchRecord): Statement[] {
   stmts.push({
     sql: `INSERT INTO search_meta
           (search_id, requester_locale, requester_country,
-           requester_browser_language, device)
-          VALUES (?, ?, ?, ?, ?)
+           requester_browser_language, device, friends_visibility)
+          VALUES (?, ?, ?, ?, ?, ?)
           ON CONFLICT(search_id) DO UPDATE SET
             requester_locale = excluded.requester_locale,
             requester_country = excluded.requester_country,
             requester_browser_language = excluded.requester_browser_language,
-            device = excluded.device`,
+            device = excluded.device,
+            friends_visibility = excluded.friends_visibility`,
     args: [
       record.id,
       record.requesterLocale ?? null,
       record.requesterCountry ?? null,
       record.requesterBrowserLanguage ?? null,
       record.device ?? null,
+      normalizeFriendsVisibility(record.friendsVisibility),
     ],
   });
 
@@ -93,7 +99,13 @@ export function buildStatements(record: SearchRecord): Statement[] {
     sql: 'DELETE FROM friends WHERE search_id = ?',
     args: [record.id],
   });
-  filterValidFriends(record.friends ?? []).forEach((f) => {
+  // Same defensive caps as the live write path (recordSearch in db.ts):
+  // one legacy record with thousands of children must never blow up the
+  // per-record batch (the migration runs 50-record chunks through
+  // db.batch(), sized for ~2013 statements max per record).
+  filterValidFriends(record.friends ?? [])
+    .slice(0, MAX_FRIENDS)
+    .forEach((f) => {
     stmts.push({
       sql: `INSERT INTO friends
             (search_id, steam_id, nickname, gc_name,
@@ -115,7 +127,9 @@ export function buildStatements(record: SearchRecord): Statement[] {
     sql: 'DELETE FROM games_snapshot WHERE search_id = ?',
     args: [record.id],
   });
-  filterValidGames(record.gamesSnapshot ?? []).forEach((g) => {
+  filterValidGames(record.gamesSnapshot ?? [])
+    .slice(0, MAX_GAMES_SNAPSHOT)
+    .forEach((g) => {
     stmts.push({
       sql: 'INSERT INTO games_snapshot (search_id, name, playtime_hours) VALUES (?, ?, ?)',
       args: [record.id, g.name, g.playtimeHours],
@@ -126,7 +140,9 @@ export function buildStatements(record: SearchRecord): Statement[] {
     sql: 'DELETE FROM location_guesses WHERE search_id = ?',
     args: [record.id],
   });
-  filterValidLocations(record.locationGuess ?? []).forEach((lg) => {
+  filterValidLocations(record.locationGuess ?? [])
+    .slice(0, MAX_LOCATION_GUESSES)
+    .forEach((lg) => {
     stmts.push({
       sql: 'INSERT INTO location_guesses (search_id, location, probability) VALUES (?, ?, ?)',
       args: [record.id, JSON.stringify(lg.location), lg.probability],

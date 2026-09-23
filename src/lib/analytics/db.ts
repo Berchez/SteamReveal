@@ -40,6 +40,7 @@ import type {
   BanAlertNotification,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
+import { normalizeFriendsVisibility } from './friendsVisibility';
 import { normalizeCountryCode } from '../countryFlag';
 import isWithinCooldownWindow from '../watch/cooldown';
 import {
@@ -239,8 +240,8 @@ export const recordSearch = async (
     {
       sql: `INSERT INTO search_meta
             (search_id, requester_locale, requester_country,
-             requester_browser_language, device)
-            VALUES (?, ?, ?, ?, ?)`,
+             requester_browser_language, device, friends_visibility)
+            VALUES (?, ?, ?, ?, ?, ?)`,
       args: [
         id,
         record.requesterLocale ?? null,
@@ -250,6 +251,7 @@ export const recordSearch = async (
         normalizeCountryCode(record.requesterCountry),
         record.requesterBrowserLanguage ?? null,
         record.device ?? null,
+        normalizeFriendsVisibility(record.friendsVisibility),
       ],
     },
   ];
@@ -2894,7 +2896,8 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
                  p.country_code, p.state_code, p.city_id,
                  p.is_cs_active, p.duration_ms,
                  m.requester_locale, m.requester_country,
-                 m.requester_browser_language, m.device
+                 m.requester_browser_language, m.device,
+                 m.friends_visibility
           FROM searches s
           LEFT JOIN profiles p ON p.search_id = s.id
           LEFT JOIN search_meta m ON m.search_id = s.id
@@ -2985,6 +2988,7 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
         id: searchId,
         searchedAt: row.searched_at as string,
         profile,
+        friendsVisibility: normalizeFriendsVisibility(row.friends_visibility),
         // An empty child table reads back as arrays/nulls regardless of whether
         // the source sent `[]` or `undefined` (both store zero rows) — fine, the
         // dashboard treats null and [] the same (it maps over `?? []`).

@@ -711,6 +711,8 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   var gcMatches = entries.filter(function (e) { return e.profile && e.profile.gcName; }).length;
   var gcMatchRate = totalSearches ? ((gcMatches / totalSearches) * 100).toFixed(1) + '%' : '—';
 
+  var privateListSearches = entries.filter(function (e) { return e.friendsVisibility === 'private'; }).length;
+
   var withCheater = entries.filter(function (e) { return e.cheater && typeof e.cheater.score === 'number'; });
   var avgCheater = withCheater.length
     ? (withCheater.reduce(function (s, e) { return s + normalizeScore(e.cheater.score); }, 0) / withCheater.length).toFixed(1) + '%'
@@ -734,6 +736,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     { value: uniqueProfiles.size, label: 'Unique searched profiles' },
     { value: uniqueFriends.size, label: 'Unique cataloged friends' },
     { value: avgFriends, label: 'Average friends per search' },
+    { value: privateListSearches, label: 'Private-list searches' },
     { value: gcMatchRate, label: 'GamersClub match rate' },
     { value: searchesToday, label: 'Searches today' },
     { value: searchesThisWeek, label: 'Searches in the last 7 days' },

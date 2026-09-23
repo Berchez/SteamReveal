@@ -351,6 +351,7 @@ describe('getSearchRecords read path', () => {
         cityId: '2786',
       },
       friends: [],
+      friendsVisibility: null,
       gamesSnapshot: null,
       isCSActive: true,
       requesterLocale: 'pt',

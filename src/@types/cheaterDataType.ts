@@ -41,6 +41,8 @@ export type FeatureObjectType = {
   analyzedFriendsCount: number;
   bannedFriendsDetails?: BannedFriendDetail[];
   accountAge?: number;
+  /** Whole months since creation (companion to accountAge, for sub-one-year display). */
+  accountAgeMonths?: number;
   totalGamesCount?: number;
   serviceMedalsCount?: number;
   platformBanScore?: number;

@@ -92,6 +92,7 @@ describe('buildStatements', () => {
       'BR',
       'pt-BR',
       'desktop',
+      null, // legacy fixture carries no friendsVisibility → NULL ("unknown")
     ]);
 
     const friendStms = stmts.filter((s) => s.sql.includes('INSERT INTO friends'));
@@ -194,6 +195,61 @@ describe('buildStatements', () => {
     expect(stmts.some((s) => s.sql.includes('games_snapshot'))).toBe(true);
     expect(stmts.some((s) => s.sql.includes('location_guesses'))).toBe(true);
     expect(stmts.filter((s) => s.sql.includes('cheater_results'))).toHaveLength(0);
+  });
+
+  it('persists friendsVisibility into search_meta and upserts it on re-run', () => {
+    const stmts = buildStatements({ ...fullRecord, friendsVisibility: 'private' });
+    const meta = findStmt(stmts, 'INSERT INTO search_meta');
+    expect(meta?.args).toEqual([
+      '1788564056404-tzx2nt',
+      'pt-BR',
+      'BR',
+      'pt-BR',
+      'desktop',
+      'private',
+    ]);
+    expect(meta?.sql).toContain('friends_visibility = excluded.friends_visibility');
+  });
+
+  it('degrades unknown friendsVisibility to NULL instead of a mislabeled bucket', () => {
+    const stmts = buildStatements({
+      ...fullRecord,
+      friendsVisibility: 'bogus' as unknown as SearchRecord['friendsVisibility'],
+    });
+    expect(findStmt(stmts, 'INSERT INTO search_meta')?.args?.[5]).toBeNull();
+  });
+
+  it('caps child rows to the shared MAX_* bounds like the live write path', () => {
+    // A legacy record with thousands of children must not explode the
+    // per-record batch (the migration runs 50-record chunks through
+    // db.batch(), sized for ~2013 statements max per record).
+    const friends = Array.from({ length: 1005 }, (_, i) => ({
+      steamId: `76561198${String(100000 + i).padStart(6, '0')}`,
+    }));
+    const gamesSnapshot = Array.from({ length: 1005 }, (_, i) => ({
+      name: `game-${i}`,
+      playtimeHours: 1,
+    }));
+    const locationGuess = Array.from({ length: 15 }, (_, i) => ({
+      location: { cityName: `city-${i}` },
+      probability: 50,
+    }));
+    const stmts = buildStatements({
+      ...fullRecord,
+      friends,
+      gamesSnapshot,
+      locationGuess,
+    });
+
+    expect(
+      stmts.filter((s) => s.sql.includes('INSERT INTO friends')),
+    ).toHaveLength(1000);
+    expect(
+      stmts.filter((s) => s.sql.includes('INSERT INTO games_snapshot')),
+    ).toHaveLength(1000);
+    expect(
+      stmts.filter((s) => s.sql.includes('INSERT INTO location_guesses')),
+    ).toHaveLength(10);
   });
 
   it('surfaces the record identity when profile is missing (caller skips it)', () => {

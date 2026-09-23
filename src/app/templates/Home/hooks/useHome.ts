@@ -68,6 +68,7 @@ const useHome = () => {
   const {
     onChangeTarget,
     closeFriendsJson,
+    friendsVisibility,
     targetValue,
     possibleLocationJson,
     targetInfoJson,
@@ -245,6 +246,7 @@ const useHome = () => {
   return {
     onChangeTarget,
     closeFriendsJson,
+    friendsVisibility,
     targetValue,
     possibleLocationJson,
     targetInfoJson,

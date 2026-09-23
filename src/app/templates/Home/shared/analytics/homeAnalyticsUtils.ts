@@ -2,6 +2,7 @@ import axios from 'axios';
 import { UserSummary } from 'steamapi';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import { locationDataIWant } from '@/@types/locationDataIWant';
+import type { FriendsVisibility } from '@/lib/analytics/types';
 
 // ---- Analytics helpers ---------------------------------------------------
 
@@ -232,6 +233,8 @@ export type AnalyticsMeta = {
   device: 'mobile' | 'desktop' | null;
   durationMs: number | null;
   antiLoopToken?: string;
+  /** How the friends list resolved (persisted to search_meta). */
+  friendsVisibility?: FriendsVisibility | null;
 };
 
 export const recordAnalytics = async (
@@ -306,6 +309,7 @@ export const recordAnalytics = async (
       device: meta.device,
       durationMs: meta.durationMs,
       antiLoopToken: meta.antiLoopToken,
+      friendsVisibility: meta.friendsVisibility ?? null,
     };
 
     const { data } = await axios.post('/api/recordAnalytics', payload, {

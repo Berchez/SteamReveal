@@ -1,12 +1,19 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import MAX_CLOSE_FRIENDS from '@/lib/closeFriendsLimits';
+import type { FriendsVisibility } from '@/lib/analytics/types';
 import UserCard from '@/app/components/UserCard';
 import UserCardSkeleton from '@/app/components/UserCard/UserCardSkeleton';
 import { closeFriendsDataIWant } from '../../../../../@types/closeFriendsDataIWant';
 
 type FriendsSectionProps = {
   closeFriendsJson: closeFriendsDataIWant[] | undefined;
+  /**
+   * How the list resolved. Undefined while loading AND when the friends
+   * request failed (unknown — renders no empty-state claim either way).
+   * Drives the empty-state copy.
+   */
+  friendsVisibility?: FriendsVisibility;
 };
 
 // Skeleton pool matches the product cap for this list: the route trims the
@@ -21,8 +28,57 @@ const skeletonUUIDs = Array.from(
   () => crypto.randomUUID(),
 );
 
-function FriendsSection({ closeFriendsJson }: FriendsSectionProps) {
+function FriendsSection({
+  closeFriendsJson,
+  friendsVisibility,
+}: FriendsSectionProps) {
   const translator = useTranslations('Index');
+
+  // Settled-but-empty lists render an explained empty state instead of a
+  // bare header: private (Steam refused) and genuinely-empty are different
+  // outcomes with different copy. Unresolved (undefined) keeps skeletons;
+  // an empty list with UNKNOWN visibility (friends request failed — see
+  // getCloseFriendsJson) renders no claim at all, just the header, rather
+  // than falsely stating the profile has no friends.
+  const renderEmptyState = () => {
+    if (
+      friendsVisibility !== 'private' &&
+      friendsVisibility !== 'empty'
+    ) {
+      return null;
+    }
+    if (friendsVisibility === 'private') {
+      return (
+        <div
+          data-testid="friends-private-empty-state"
+          className="mt-8 rounded-xl border border-gray-700 bg-gray-800/60 p-6 text-left"
+        >
+          <p className="text-lg font-semibold text-gray-100">
+            {translator('friendsPrivateTitle')}
+          </p>
+          <p className="mt-2 text-sm text-gray-300">
+            {translator('friendsPrivateDescription')}
+          </p>
+          <p className="mt-2 text-sm text-gray-400">
+            {translator('friendsPrivateStillWorks')}
+          </p>
+        </div>
+      );
+    }
+    return (
+      <div
+        data-testid="friends-empty-empty-state"
+        className="mt-8 rounded-xl border border-gray-700 bg-gray-800/60 p-6 text-left"
+      >
+        <p className="text-lg font-semibold text-gray-100">
+          {translator('friendsEmptyTitle')}
+        </p>
+        <p className="mt-2 text-sm text-gray-300">
+          {translator('friendsEmptyDescription')}
+        </p>
+      </div>
+    );
+  };
 
   // Never collapse to zero height while the friend list is unresolved.
   // Rendering `null` during the `!data && !isLoading` gap (before the fetch
@@ -53,6 +109,7 @@ function FriendsSection({ closeFriendsJson }: FriendsSectionProps) {
         : skeletonUUIDs.map((uuid) => (
             <UserCardSkeleton itsTargetUser={false} key={uuid} />
           ))}
+      {closeFriendsJson && closeFriendsJson.length === 0 && renderEmptyState()}
     </div>
   );
 }

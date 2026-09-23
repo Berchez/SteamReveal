@@ -3,6 +3,7 @@
  * the Turso DAL (db.ts), the migration scripts, and the Vercel API routes
  * all share a single source of truth for the SearchRecord contract.
  */
+import type { FriendsVisibility } from './friendsVisibility';
 
 export interface FriendRecord {
   steamId: string;
@@ -65,11 +66,22 @@ export interface GameSnapshotEntry {
   playtimeHours: number;
 }
 
+/**
+ * Visibility of the searched profile's friends list at search time.
+ * Single source of truth lives in ./friendsVisibility (dependency-free so
+ * the DAL, the route parser and the migration scripts can all share it);
+ * re-exported here so existing `@/lib/analytics/types` imports keep
+ * working.
+ */
+export type { FriendsVisibility };
+
 export interface SearchRecord {
   id: string;
   searchedAt: string;
   profile: ProfileRecord;
   friends: FriendRecord[];
+  /** How the friends list resolved (search_meta.friends_visibility). Null for legacy rows. */
+  friendsVisibility?: FriendsVisibility | null;
   gamesSnapshot?: GameSnapshotEntry[] | null;
   isCSActive?: boolean | null;
 

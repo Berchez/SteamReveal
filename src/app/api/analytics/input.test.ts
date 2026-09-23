@@ -117,6 +117,32 @@ describe('parseRecordBody', () => {
     expect(input?.locationGuess).toHaveLength(10);
   });
 
+  it('parses friendsVisibility and degrades unknown values to null', () => {
+    expect(
+      parseRecordBody({
+        profile: { steamId: '76561198000000000' },
+        friendsVisibility: 'private',
+      })?.friendsVisibility,
+    ).toBe('private');
+    expect(
+      parseRecordBody({
+        profile: { steamId: '76561198000000000' },
+        friendsVisibility: 'empty',
+      })?.friendsVisibility,
+    ).toBe('empty');
+    expect(
+      parseRecordBody({
+        profile: { steamId: '76561198000000000' },
+      })?.friendsVisibility,
+    ).toBeNull();
+    expect(
+      parseRecordBody({
+        profile: { steamId: '76561198000000000' },
+        friendsVisibility: 'bogus',
+      })?.friendsVisibility,
+    ).toBeNull();
+  });
+
   it('drops friends with wrong-typed optional fields', () => {
     const input = parseRecordBody({
       profile: { steamId: '76561198000000000' },

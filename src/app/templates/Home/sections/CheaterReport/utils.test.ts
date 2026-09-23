@@ -41,6 +41,83 @@ const noBan = {
   gamersClub: { banned: false, reason: null, classification: null },
 };
 
+describe('analyzeCheaterData - friends / level / age display honesty', () => {
+  it('suppresses the "clean friends" claim when nobody was analyzed', () => {
+    // Private/empty list scores 0 by construction — a 0/0 circle carries
+    // no evidence, so neither the clean nor the banned message may render
+    // (the report-level no-friends banner covers the missing signal).
+    const result = analyzeCheaterData(
+      makeData(
+        makeFeatureObject({ bannedFriendsScore: 0, analyzedFriendsCount: 0 }),
+      ),
+      makeTranslator() as never,
+    );
+
+    expect(result.innocenceReasons).not.toContain('cleanFriends');
+    expect(result.suspicionReasons).not.toContain('bannedFriends');
+  });
+
+  it('still claims clean friends when a non-empty circle was analyzed', () => {
+    const result = analyzeCheaterData(
+      makeData(
+        makeFeatureObject({ bannedFriendsScore: 0, analyzedFriendsCount: 5 }),
+      ),
+      makeTranslator() as never,
+    );
+
+    expect(result.innocenceReasons).toContain('cleanFriends');
+  });
+
+  it('calls level 10+ high and level 3- low', () => {
+    const high = analyzeCheaterData(
+      makeData(makeFeatureObject({ userLevel: 10 })),
+      makeTranslator() as never,
+    );
+    expect(high.innocenceReasons).toContain('highSteamLevel');
+
+    const low = analyzeCheaterData(
+      makeData(makeFeatureObject({ userLevel: 3 })),
+      makeTranslator() as never,
+    );
+    expect(low.suspicionReasons).toContain('lowSteamLevel');
+  });
+
+  it('renders months instead of "0 years old" for sub-one-year accounts', () => {
+    const result = analyzeCheaterData(
+      makeData(makeFeatureObject({ accountAge: 0, accountAgeMonths: 4 })),
+      makeTranslator() as never,
+    );
+
+    expect(result.suspicionReasons).toContain('newAccountMonths');
+    expect(result.suspicionReasons).not.toContain('newAccount');
+    expect(result.suspicionReasons).not.toContain('newAccountLessThanYear');
+  });
+
+  it('falls back to "less than a year" when the month count is missing', () => {
+    const result = analyzeCheaterData(
+      makeData(makeFeatureObject({ accountAge: 0 })),
+      makeTranslator() as never,
+    );
+
+    expect(result.suspicionReasons).toContain('newAccountLessThanYear');
+    expect(result.suspicionReasons).not.toContain('newAccount');
+  });
+
+  it('keeps the year-count wording for accounts aged 1+ and 7+ years', () => {
+    const recent = analyzeCheaterData(
+      makeData(makeFeatureObject({ accountAge: 1 })),
+      makeTranslator() as never,
+    );
+    expect(recent.suspicionReasons).toContain('newAccount');
+
+    const veteran = analyzeCheaterData(
+      makeData(makeFeatureObject({ accountAge: 10 })),
+      makeTranslator() as never,
+    );
+    expect(veteran.innocenceReasons).toContain('oldAccount');
+  });
+});
+
 describe('analyzeCheaterData - platform ban', () => {
   it('does not add a platform-ban reason when not banned anywhere', () => {
     const result = analyzeCheaterData(

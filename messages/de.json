@@ -19,10 +19,12 @@
   },
   "LocationCard": {
     "providedByUser": "Vom Benutzer angegeben:",
-    "noLocationEstimate": "Anhand der verfügbaren Daten konnte kein Standort geschätzt werden."
+    "noLocationEstimate": "Anhand der verfügbaren Daten konnte kein Standort geschätzt werden.",
+    "triangulationUnavailable": "Die Standort-Triangulation braucht eine öffentliche Freundesliste — nur der selbst angegebene Standort wird gezeigt."
   },
   "ServerMessages": {
     "friendsNotPublic": "Die Freundesliste dieses Spielers ist nicht öffentlich. Versuche ein anderes Profil!",
+    "friendsLoadFailed": "Die Freunde dieses Spielers konnten gerade nicht geladen werden. Versuche es gleich erneut!",
     "invalidPlayer": "Dies ist keine gültige Steam-ID, Profil-URL oder benutzerdefinierte Steam-URL"
   },
   "Index": {
@@ -31,6 +33,11 @@
     "userInfo": "Spielerinfo",
     "userPossibleLocation": "Möglicher Standort des Spielers",
     "friendsIRL": "Freunde im echten Leben",
+    "friendsPrivateTitle": "Private Freundesliste",
+    "friendsPrivateDescription": "Dieser Spieler hat seine Freundesliste verborgen, daher sind enge Freunde und Standort-Triangulation für diese Suche nicht verfügbar.",
+    "friendsPrivateStillWorks": "Weiterhin verfügbar: Profilkarte, selbst angegebener Standort und der manuelle CS2-Anticheat-Review (ohne Freunde weniger zuverlässig).",
+    "friendsEmptyTitle": "Nichts anzuzeigen",
+    "friendsEmptyDescription": "Die Freundesliste dieses Profils ist öffentlich, aber leer — es gibt nichts zu triangulieren.",
     "csAnticheatReview": "CS2-Anticheat-Review – mit KI",
     "footer": {
       "rights": "Alle Rechte vorbehalten.",
@@ -82,11 +89,15 @@
     "highlySuspectDescription": "Kritische Warnung: Mehrere Hochrisikofaktoren erkannt:",
     "oldAccount": "Veteranen-Account ({age} Jahre alt)",
     "newAccount": "Neuer Account ({age} Jahre alt, typisch für Smurfs/Cheater)",
+    "newAccountLessThanYear": "Neuer Account (weniger als ein Jahr alt, typisch für Smurfs/Cheater)",
+    "newAccountMonths": "Neuer Account ({months} Monate alt, typisch für Smurfs/Cheater)",
     "highSteamLevel": "Hoher Steam-Level (Level {level}, Zeichen für Investition)",
     "lowSteamLevel": "Niedriger Steam-Level (Level {level}, typisch für wegwerfbare Accounts)",
     "manyGames": "Große Bibliothek ({count} Spiele im Besitz)",
     "fewGames": "Kleine Bibliothek ({count} Spiele, möglicher Zweitaccount)",
     "reportFailedToLoad": "Die Cheater-Wahrscheinlichkeit konnte gerade nicht berechnet werden. Bitte erneut versuchen.",
+    "noFriendsWarningPrivate": "Hinweis: Die Freundesliste dieses Profils ist privat, daher fehlt das Signal gesperrter Freunde und dieser Score ist weniger zuverlässig.",
+    "noFriendsWarningEmpty": "Hinweis: Dieses Profil hat keine Freunde, daher fehlt das Signal gesperrter Freunde und dieser Score ist weniger zuverlässig.",
     "retry": "Erneut versuchen"
   },
   "SupportedFormatsSection": {

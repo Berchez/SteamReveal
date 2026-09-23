@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 export type ApiErrorCode =
   | 'INVALID_REQUEST'
+  | 'FRIENDS_LIST_PRIVATE'
   | 'NOT_FOUND'
   | 'UPSTREAM_ERROR'
   | 'RATE_LIMITED'

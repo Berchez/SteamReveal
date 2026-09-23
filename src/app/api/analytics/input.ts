@@ -6,6 +6,10 @@ import type {
   NewSearchInput,
 } from '@/lib/analytics/types';
 import {
+  normalizeFriendsVisibility,
+  type FriendsVisibility,
+} from '@/lib/analytics/friendsVisibility';
+import {
   MAX_FRIENDS,
   MAX_GAMES_SNAPSHOT,
   MAX_LOCATION_GUESSES,
@@ -118,6 +122,9 @@ const isValidLocationGuess = (value: unknown): value is LocationGuess => {
   );
 };
 
+const parseFriendsVisibility = (value: unknown): FriendsVisibility | null =>
+  normalizeFriendsVisibility(value);
+
 export const parseRecordBody = (body: unknown): NewSearchInput | null => {
   if (!isRecord(body)) return null;
 
@@ -145,6 +152,7 @@ export const parseRecordBody = (body: unknown): NewSearchInput | null => {
     friends: Array.isArray(friends)
       ? friends.filter(isValidFriend).slice(0, MAX_FRIENDS)
       : [],
+    friendsVisibility: parseFriendsVisibility(body.friendsVisibility),
     gamesSnapshot: Array.isArray(gamesSnapshot)
       ? gamesSnapshot.filter(isValidGame).slice(0, MAX_GAMES_SNAPSHOT)
       : null,

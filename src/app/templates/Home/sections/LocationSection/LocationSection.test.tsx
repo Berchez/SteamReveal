@@ -23,6 +23,11 @@ const { default: LocationSection } = require('./LocationSection');
 
 const messages = {
   Index: { userPossibleLocation: 'User possible location' },
+  LocationCard: {
+    providedByUser: 'Provided by user:',
+    noLocationEstimate: 'Could not estimate a location.',
+    triangulationUnavailable: 'Triangulation unavailable notice',
+  },
 };
 
 const renderWithIntl = (ui: React.ReactElement) =>
@@ -110,5 +115,93 @@ describe('LocationSection', () => {
     expect(
       container.querySelector('[data-testid="location-skeleton-provided"]'),
     ).toBeInTheDocument();
+  });
+
+  it('shows the triangulation notice for private lists already over the skeleton (no CLS on resolve)', () => {
+    // CLS: friendsVisibility is known before possibleLocationJson resolves,
+    // so the identical notice renders in both branches — the skeleton→card
+    // swap then adds/removes nothing.
+    const skeletonRender = renderWithIntl(
+      <LocationSection
+        possibleLocationJson={undefined}
+        targetInfoJson={{
+          profileInfo: { steamID: 'player-private' } as UserSummary,
+          targetLocationInfo: {
+            country: { code: 'CN', name: 'China' },
+          },
+        }}
+        friendsVisibility="private"
+      />,
+    );
+    expect(
+      skeletonRender.queryByTestId('location-triangulation-notice'),
+    ).toBeInTheDocument();
+    skeletonRender.unmount();
+  });
+
+  it('hides the triangulation notice when the profile declared no location', () => {
+    // The notice claims "showing only the self-declared location" — with
+    // nothing declared the card renders the no-estimate empty state and
+    // the notice would be wrong, so it must not render in either branch.
+    const targetInfoJson = {
+      profileInfo: { steamID: 'player-private' } as UserSummary,
+      targetLocationInfo: {},
+    };
+    const { queryByTestId, rerender } = renderWithIntl(
+      <LocationSection
+        possibleLocationJson={undefined}
+        targetInfoJson={targetInfoJson}
+        friendsVisibility="private"
+      />,
+    );
+    expect(
+      queryByTestId('location-triangulation-notice'),
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <LocationSection
+          possibleLocationJson={[]}
+          targetInfoJson={targetInfoJson}
+          friendsVisibility="private"
+        />
+      </NextIntlClientProvider>,
+    );
+    expect(
+      queryByTestId('location-triangulation-notice'),
+    ).not.toBeInTheDocument();
+    expect(queryByTestId('location-empty-state')).toBeInTheDocument();
+  });
+
+  it('shows the triangulation notice for private lists once locations resolve', () => {
+    const targetInfoJson = {
+      profileInfo: { steamID: 'player-private' } as UserSummary,
+      targetLocationInfo: {
+        country: { code: 'CN', name: 'China' },
+      },
+    };
+    const { queryByTestId, rerender } = renderWithIntl(
+      <LocationSection
+        possibleLocationJson={[]}
+        targetInfoJson={targetInfoJson}
+        friendsVisibility="private"
+      />,
+    );
+
+    expect(queryByTestId('location-triangulation-notice')).toBeInTheDocument();
+
+    rerender(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <LocationSection
+          possibleLocationJson={[]}
+          targetInfoJson={targetInfoJson}
+          friendsVisibility="public"
+        />
+      </NextIntlClientProvider>,
+    );
+
+    expect(
+      queryByTestId('location-triangulation-notice'),
+    ).not.toBeInTheDocument();
   });
 });

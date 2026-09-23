@@ -17,6 +17,7 @@ import targetInfoJsonType, {
 } from '@/@types/targetInfoJsonType';
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { isLoadingType } from '@/@types/isLoadingType';
+import type { FriendsVisibility } from '@/lib/analytics/types';
 
 import {
   computeCloseFriendsProbability,
@@ -45,6 +46,10 @@ import {
   postFriendGcNames,
   scheduleSyncAttempts,
 } from '../../shared/analytics/friendGcNamesSync';
+import {
+  isPrivateFriendsError,
+  visibilityFromCloseFriends,
+} from '../../shared/friends/friendsVisibility';
 
 import type { RunGuard } from '../run-guard/useRunGuard';
 
@@ -177,6 +182,15 @@ const useHomeSearch = ({
   const [closeFriendsJson, setCloseFriendsJson] =
     useState<CloseFriendsJsonState>(initialCache?.closeFriendsJson);
 
+  const [friendsVisibility, setFriendsVisibility] = useState<
+    FriendsVisibility | undefined
+  >(
+    initialCache?.friendsVisibility ??
+      (initialCache
+        ? visibilityFromCloseFriends(initialCache.closeFriendsJson)
+        : undefined),
+  );
+
   const [possibleLocationJson, setPossibleLocationJson] =
     useState<PossibleLocationJsonState>(initialCache?.possibleLocationJson);
 
@@ -293,6 +307,12 @@ const useHomeSearch = ({
     closeFriendsOfTheTarget: closeFriendsDataIWant[],
     runId: number,
   ) => {
+    // NOTE: no early-return for empty inputs — getCitiesNames([]) performs
+    // zero lookups (Promise.all([])) and computeCityScores([]) is pure CPU,
+    // so there is no wasted I/O to skip; and the staged timing (friends
+    // resolve → location still loading → location resolves) is pinned by
+    // useHomeSearch.locationLoading.test.ts and must keep flowing through
+    // this pipeline even for empty lists.
     const citiesScored = sortCitiesByScore(
       computeCityScores(closeFriendsOfTheTarget),
     );
@@ -394,22 +414,52 @@ const useHomeSearch = ({
       return { profileInfo, targetLocationInfo: {} };
     }
   };
-  const getCloseFriendsJson = async (value: string, runId: number) => {
+  const getCloseFriendsJson = async (
+    value: string,
+    runId: number,
+  ): Promise<{
+    friends: closeFriendsDataIWant[];
+    visibility: FriendsVisibility;
+  }> => {
     try {
       setIsLoading((prev) => ({ ...prev, friendsCards: true }));
       const closeFriendsWithProbability = await getCloseFriendsCore(value);
+      const visibility = visibilityFromCloseFriends(
+        closeFriendsWithProbability,
+      );
       if (isCurrentRun(runId)) {
         setCloseFriendsJson(closeFriendsWithProbability);
+        setFriendsVisibility(visibility);
       }
-      return closeFriendsWithProbability;
+      return { friends: closeFriendsWithProbability, visibility };
     } catch (e) {
       if (isCurrentRun(runId)) {
-        toast.error(translator('friendsNotPublic'));
+        // Private list: degraded mode, NOT an abort. The friends section
+        // settles on its empty-but-explained state (visibility drives the
+        // empty-state copy), while location (self-declared only),
+        // analytics (flagged), searchId and cache still run below — so
+        // return instead of throwing. Every other failure keeps the old
+        // abort contract (both lists to [], throw, pipeline stops).
+        if (isPrivateFriendsError(e)) {
+          toast.error(translator('friendsNotPublic'));
+          setCloseFriendsJson([]);
+          setFriendsVisibility('private');
+          return { friends: [], visibility: 'private' };
+        }
+        // Non-private failure (timeout/500/...): keep the abort contract,
+        // with an honest toast — the old friendsNotPublic copy lied here by
+        // blaming a network error on the player's privacy settings.
+        toast.error(translator('friendsLoadFailed'));
         // Resolve both lists to empty: the target profile already rendered,
         // so LocationSection/FriendsSection stay mounted and render
         // `data ? content : skeleton` — leaving these `undefined` would show
         // skeletons forever with no error signal. `[]` is truthy, so the
-        // sections settle on their (empty) real state instead.
+        // sections settle instead.
+        // Deliberately NOT setting friendsVisibility: the request failed,
+        // so the list state is unknown — marking it 'empty' would falsely
+        // claim "this profile has no friends" in FriendsSection and in the
+        // cheater-report warning. With visibility unset the friends section
+        // renders just its header (no claim either way) plus the toast.
         setCloseFriendsJson([]);
         setPossibleLocationJson([]);
       }
@@ -428,6 +478,7 @@ const useHomeSearch = ({
     cancelFriendGcNameSync();
     friendGcNameSentRef.current = new Set();
     setCloseFriendsJson(undefined);
+    setFriendsVisibility(undefined);
     setPossibleLocationJson(undefined);
     setTargetInfoJson(preserveProfile);
     setCheaterData(undefined);
@@ -462,6 +513,10 @@ const useHomeSearch = ({
       handleShowSupportMe(1);
       setTargetInfoJson(cached.targetInfoJson);
       setCloseFriendsJson(cached.closeFriendsJson);
+      setFriendsVisibility(
+        cached.friendsVisibility ??
+          visibilityFromCloseFriends(cached.closeFriendsJson),
+      );
       setPossibleLocationJson(cached.possibleLocationJson);
       setCheaterData(cached.cheaterData);
       setSearchId(cached.searchId ?? null);
@@ -485,6 +540,7 @@ const useHomeSearch = ({
       // effect above) — only reset the heavier/secondary data, and keep
       // myCard's loading flag as the layout effect left it (false).
       setCloseFriendsJson(undefined);
+      setFriendsVisibility(undefined);
       setPossibleLocationJson(undefined);
       setCheaterData(undefined);
       setSearchId(null);
@@ -505,7 +561,8 @@ const useHomeSearch = ({
       if (!isCurrentRun(runId)) {
         return;
       }
-      const closeFriends = await getCloseFriendsJson(value, runId);
+      const { friends: closeFriends, visibility: resolvedVisibility } =
+        await getCloseFriendsJson(value, runId);
       if (!isCurrentRun(runId)) {
         return;
       }
@@ -517,6 +574,7 @@ const useHomeSearch = ({
           closeFriendsJson: closeFriends,
           possibleLocationJson: possibleLocation ?? [],
           searchId: resolvedSearchId,
+          friendsVisibility: resolvedVisibility,
         });
       };
       try {
@@ -562,6 +620,7 @@ const useHomeSearch = ({
             antiLoopToken: antiLoopTokenSentRef.current
               ? undefined
               : antiLoopToken,
+            friendsVisibility: resolvedVisibility,
           },
         );
         // First record attempted: the token (if any) has now been offered
@@ -629,6 +688,7 @@ const useHomeSearch = ({
   return {
     onChangeTarget,
     closeFriendsJson,
+    friendsVisibility,
     targetValue,
     possibleLocationJson,
     targetInfoJson,

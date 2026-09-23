@@ -19,16 +19,23 @@
   },
   "LocationCard": {
     "providedByUser": "Fornecido pelo usuário:",
-    "noLocationEstimate": "Não foi possível estimar a localização a partir dos dados disponíveis."
+    "noLocationEstimate": "Não foi possível estimar a localização a partir dos dados disponíveis.",
+    "triangulationUnavailable": "A triangulação de localização precisa de uma lista de amigos pública — mostrando apenas a localização declarada."
   },
   "ServerMessages": {
     "friendsNotPublic": "A lista de amigos deste jogador não é pública. Tente outro diferente!",
+    "friendsLoadFailed": "Não foi possível carregar os amigos deste jogador agora. Tente novamente em instantes!",
     "invalidPlayer": "Isto não é um ID do Steam / Link de perfil do Steam / URL personalizado do Steam válido"
   },
   "Index": {
     "searchTitle": "Procure por um jogador Steam",
     "inputSearchPlaceholder": "Procure um jogador (ID do Steam / Link do perfil do Steam / URL personalizado do Steam)",
     "friendsIRL": "Amigos na vida real",
+    "friendsPrivateTitle": "Lista de amigos privada",
+    "friendsPrivateDescription": "Este jogador ocultou a lista de amigos, então amigos próximos e triangulação de localização estão indisponíveis nesta busca.",
+    "friendsPrivateStillWorks": "Ainda disponível: cartão de perfil, localização declarada e a análise manual CS2 anticheat (menos confiável sem amigos).",
+    "friendsEmptyTitle": "Nada a mostrar",
+    "friendsEmptyDescription": "A lista de amigos deste perfil é pública, mas está vazia, então não há nada para triangular.",
     "userPossibleLocation": "Possível localização do usuário",
     "userInfo": "Informações do usuário",
     "csAnticheatReview": "Análise CS2 Anticheat - com IA",
@@ -82,11 +89,15 @@
     "highlySuspectDescription": "Aviso crítico: Múltiplos fatores de alto risco detectados:",
     "oldAccount": "Conta veterana ({age} anos de idade)",
     "newAccount": "Conta recente ({age} anos de idade, comum em smurfs/cheaters)",
+    "newAccountLessThanYear": "Conta nova (menos de um ano de idade, comum em smurfs/cheaters)",
+    "newAccountMonths": "Conta recente ({months} meses de idade, comum em smurfs/cheaters)",
     "highSteamLevel": "Nível Steam alto (Nível {level}, sinal de investimento)",
     "lowSteamLevel": "Nível Steam baixo (Nível {level}, típico de contas descartáveis)",
     "manyGames": "Biblioteca extensa ({count} jogos na conta)",
     "fewGames": "Biblioteca pequena ({count} jogos, possível conta secundária)",
     "reportFailedToLoad": "Não foi possível calcular a probabilidade de cheater agora. Tente novamente.",
+    "noFriendsWarningPrivate": "Atenção: a lista de amigos deste perfil é privada, então o sinal de amigos banidos está ausente e esta pontuação é menos confiável.",
+    "noFriendsWarningEmpty": "Atenção: este perfil não tem amigos, então o sinal de amigos banidos está ausente e esta pontuação é menos confiável.",
     "retry": "Tentar novamente"
   },
   "SupportedFormatsSection": {

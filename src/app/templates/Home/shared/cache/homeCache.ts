@@ -1,5 +1,6 @@
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
+import type { FriendsVisibility } from '@/lib/analytics/types';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import targetInfoJsonType from '@/@types/targetInfoJsonType';
 
@@ -9,6 +10,7 @@ type CachedSearch = {
   possibleLocationJson: locationDataIWant[];
   cheaterData?: CheaterDataType;
   searchId?: string | null;
+  friendsVisibility?: FriendsVisibility;
 };
 
 // Simple cap so a long session doesn't grow this Map forever. Not a real

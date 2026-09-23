@@ -455,6 +455,37 @@ describe('recordAnalytics', () => {
     expect(payload.isCSActive).toBe(false);
   });
 
+  it('forwards friendsVisibility (private-list flag) and defaults it to null', async () => {
+    mockedAxios.post.mockImplementation((url: string) => {
+      if (url === '/api/getGamersClubName') {
+        return Promise.resolve({ data: { gcName: null } });
+      }
+      return Promise.resolve({ data: { id: 'search-id' } });
+    });
+
+    await recordAnalytics(makeTargetInfo(), [], [], {
+      ...meta,
+      friendsVisibility: 'private',
+    });
+    const privateCall = mockedAxios.post.mock.calls.find(
+      ([url]) => url === '/api/recordAnalytics',
+    );
+    expect((privateCall?.[1] as any).friendsVisibility).toBe('private');
+
+    jest.clearAllMocks();
+    mockedAxios.post.mockImplementation((url: string) => {
+      if (url === '/api/getGamersClubName') {
+        return Promise.resolve({ data: { gcName: null } });
+      }
+      return Promise.resolve({ data: { id: 'search-id' } });
+    });
+    await recordAnalytics(makeTargetInfo(), [], [], meta);
+    const defaultCall = mockedAxios.post.mock.calls.find(
+      ([url]) => url === '/api/recordAnalytics',
+    );
+    expect((defaultCall?.[1] as any).friendsVisibility).toBeNull();
+  });
+
   it('returns null when the server reports the record was skipped', async () => {
     mockedAxios.post.mockImplementation((url: string) => {
       if (url === '/api/getGamersClubName') {

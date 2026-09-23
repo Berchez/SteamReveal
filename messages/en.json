@@ -19,10 +19,12 @@
   },
   "LocationCard": {
     "providedByUser": "Provided by user:",
-    "noLocationEstimate": "Could not estimate a location from the available data."
+    "noLocationEstimate": "Could not estimate a location from the available data.",
+    "triangulationUnavailable": "Location triangulation needs a public friends list — showing only the self-declared location."
   },
   "ServerMessages": {
     "friendsNotPublic": "The friend list of this player is not public. Try a different one!",
+    "friendsLoadFailed": "Could not load this player's friends right now. Try again in a moment!",
     "invalidPlayer": "This is not a valid (Steam ID / Steam Profile Link / Custom Steam URL)"
   },
   "Index": {
@@ -31,6 +33,11 @@
     "userInfo": "User info",
     "userPossibleLocation": "User possible location",
     "friendsIRL": "Friends IRL",
+    "friendsPrivateTitle": "Friends list is private",
+    "friendsPrivateDescription": "This player hid their friends list, so close friends and location triangulation are unavailable for this search.",
+    "friendsPrivateStillWorks": "Still available: profile card, self-declared location, and the manual CS2 anticheat review (less reliable without friends).",
+    "friendsEmptyTitle": "No friends to show",
+    "friendsEmptyDescription": "This profile's friends list is public but empty, so there is nothing to triangulate.",
     "csAnticheatReview": "CS2 Anticheat Review - with AI",
     "footer": {
       "rights": "All rights reserved.",
@@ -82,11 +89,15 @@
     "highlySuspectDescription": "Critical warning: Multiple high-risk factors detected:",
     "oldAccount": "Veteran account ({age} years old)",
     "newAccount": "Recent account ({age} years old, common for smurfs/cheaters)",
+    "newAccountLessThanYear": "New account (less than a year old, common for smurfs/cheaters)",
+    "newAccountMonths": "Recent account ({months} months old, common for smurfs/cheaters)",
     "highSteamLevel": "High Steam level (Level {level}, sign of investment)",
     "lowSteamLevel": "Low Steam level (Level {level}, typical of disposable accounts)",
     "manyGames": "Large library ({count} games owned)",
     "fewGames": "Small library ({count} games, possible secondary account)",
     "reportFailedToLoad": "We couldn't calculate the cheater probability right now. Please try again.",
+    "noFriendsWarningPrivate": "Note: this profile's friends list is private, so the banned-friends signal is missing and this score is less reliable.",
+    "noFriendsWarningEmpty": "Note: this profile has no friends, so the banned-friends signal is missing and this score is less reliable.",
     "retry": "Try again"
   },
   "SupportedFormatsSection": {

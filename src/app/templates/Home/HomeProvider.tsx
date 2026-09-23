@@ -11,6 +11,7 @@ export default function HomeProvider({
 }) {
   const {
     closeFriendsJson,
+    friendsVisibility,
     targetValue,
     possibleLocationJson,
     targetInfoJson,
@@ -35,6 +36,7 @@ export default function HomeProvider({
   const dataValue = useMemo(
     () => ({
       closeFriendsJson,
+      friendsVisibility,
       targetValue,
       possibleLocationJson,
       targetInfoJson,
@@ -48,6 +50,7 @@ export default function HomeProvider({
     }),
     [
       closeFriendsJson,
+      friendsVisibility,
       targetValue,
       possibleLocationJson,
       targetInfoJson,

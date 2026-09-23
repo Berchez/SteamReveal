@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { hasSelfDeclaredLocation } from './LocationCard';
 
 // Render the number of skeleton rows that matches the typical final state.
 // Analytics data shows the mean number of candidate-location rows per
@@ -49,9 +50,10 @@ function LocationCardSkeleton({
   // user" line: a smaller shift, but the same class of bug.
   const [{ hasProvidedLocation, willShowMap, lockedProvided }] = useState(
     () => ({
-      hasProvidedLocation: Boolean(
-        providedLocation?.stateName && providedLocation?.countryCode,
-      ),
+      // Same rule as LocationCard (shared helper): a country-only profile
+      // must lock the provided shape here too, or the skeleton and the
+      // final card would disagree (self-inflicted layout shift).
+      hasProvidedLocation: hasSelfDeclaredLocation(providedLocation),
       willShowMap: Boolean(providedLocation?.cityName),
       lockedProvided: { ...(providedLocation ?? {}) },
     }),
@@ -65,13 +67,15 @@ function LocationCardSkeleton({
         >
           Provided by user
           <div className="flex items-center gap-x-2 flex-wrap">
-            <img
-              src={`https://flagcdn.com/w20/${lockedProvided.countryCode!.toLowerCase()}.png`}
-              className="w-max h-max"
-              alt={`${lockedProvided.countryCode}'s flag`}
-              width={20}
-              height={14}
-            />
+            {lockedProvided.countryCode && (
+              <img
+                src={`https://flagcdn.com/w20/${lockedProvided.countryCode.toLowerCase()}.png`}
+                className="w-max h-max"
+                alt={`${lockedProvided.countryCode}'s flag`}
+                width={20}
+                height={14}
+              />
+            )}
             {lockedProvided.cityName && <p>{lockedProvided.cityName},</p>}
             {lockedProvided.stateName && <p>{lockedProvided.stateName},</p>}
             {lockedProvided.countryName && <p>{lockedProvided.countryName}</p>}

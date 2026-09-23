@@ -19,10 +19,12 @@
   },
   "LocationCard": {
     "providedByUser": "Proporcionado por el usuario:",
-    "noLocationEstimate": "No se pudo estimar una ubicación a partir de los datos disponibles."
+    "noLocationEstimate": "No se pudo estimar una ubicación a partir de los datos disponibles.",
+    "triangulationUnavailable": "La triangulación de ubicación necesita una lista de amigos pública — mostrando solo la ubicación declarada."
   },
   "ServerMessages": {
     "friendsNotPublic": "La lista de amigos de este jugador no es pública. ¡Intenta con otro!",
+    "friendsLoadFailed": "No se pudieron cargar los amigos de este jugador ahora mismo. ¡Inténtalo en un momento!",
     "invalidPlayer": "Esta no es una ID de Steam, enlace de perfil o URL de Steam personalizada válida"
   },
   "Index": {
@@ -31,6 +33,11 @@
     "userInfo": "Información del jugador",
     "userPossibleLocation": "Ubicación posible del jugador",
     "friendsIRL": "Amigos en la vida real",
+    "friendsPrivateTitle": "Lista de amigos privada",
+    "friendsPrivateDescription": "Este jugador ocultó su lista de amigos, por lo que los amigos cercanos y la triangulación de ubicación no están disponibles en esta búsqueda.",
+    "friendsPrivateStillWorks": "Sigue disponible: tarjeta de perfil, ubicación declarada y la revisión manual antitrampas de CS2 (menos fiable sin amigos).",
+    "friendsEmptyTitle": "Nada que mostrar",
+    "friendsEmptyDescription": "La lista de amigos de este perfil es pública pero está vacía, así que no hay nada que triangular.",
     "csAnticheatReview": "Revisión antitrampas de CS2 - con IA",
     "footer": {
       "rights": "Todos los derechos reservados.",
@@ -82,11 +89,15 @@
     "highlySuspectDescription": "Advertencia crítica: Se detectaron múltiples factores de alto riesgo:",
     "oldAccount": "Cuenta veterana ({age} años)",
     "newAccount": "Cuenta reciente ({age} años, común para smurfs/tramposos)",
+    "newAccountLessThanYear": "Cuenta nueva (menos de un año, común para smurfs/tramposos)",
+    "newAccountMonths": "Cuenta reciente ({months} meses, común para smurfs/tramposos)",
     "highSteamLevel": "Nivel de Steam alto (Nivel {level}, signo de inversión)",
     "lowSteamLevel": "Nivel de Steam bajo (Nivel {level}, típico de cuentas desechables)",
     "manyGames": "Biblioteca grande ({count} juegos poseídos)",
     "fewGames": "Biblioteca pequeña ({count} juegos, posible cuenta secundaria)",
     "reportFailedToLoad": "No pudimos calcular la probabilidad de trampa ahora mismo. Inténtalo de nuevo.",
+    "noFriendsWarningPrivate": "Nota: la lista de amigos de este perfil es privada, por lo que falta la señal de amigos baneados y esta puntuación es menos fiable.",
+    "noFriendsWarningEmpty": "Nota: este perfil no tiene amigos, por lo que falta la señal de amigos baneados y esta puntuación es menos fiable.",
     "retry": "Reintentar"
   },
   "SupportedFormatsSection": {

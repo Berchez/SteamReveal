@@ -3,6 +3,7 @@ import { createContext } from 'react';
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { isLoadingType } from '@/@types/isLoadingType';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
+import type { FriendsVisibility } from '@/lib/analytics/types';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import targetInfoJsonType, {
   EnrichedUserSummary,
@@ -15,6 +16,8 @@ import targetInfoJsonType, {
 
 interface HomeDataContextType {
   closeFriendsJson: closeFriendsDataIWant[] | undefined;
+  /** How the friends list resolved (undefined while loading). */
+  friendsVisibility: FriendsVisibility | undefined;
   targetValue: MutableRefObject<string | null | undefined>;
   possibleLocationJson: locationDataIWant[] | undefined;
   targetInfoJson: targetInfoJsonType | undefined;

@@ -144,4 +144,73 @@ describe('CheaterReport — error state + retry', () => {
       screen.queryByRole('button', { name: 'retry' }),
     ).not.toBeInTheDocument();
   });
+
+  it('shows the private-list warning when the list is private', () => {
+    const data = {
+      cheaterProbability: 0.42,
+      featureObject: {},
+    } as any;
+    render(
+      <CheaterReport
+        cheaterData={data}
+        cheaterError={false}
+        nickname="player4"
+        onRetry={jest.fn()}
+        friendsVisibility="private"
+      />,
+    );
+    expect(
+      screen.getByTestId('cheater-no-friends-warning'),
+    ).toHaveTextContent('noFriendsWarningPrivate');
+  });
+
+  it('shows the friendless warning when the list is empty', () => {
+    const data = {
+      cheaterProbability: 0.42,
+      featureObject: {},
+    } as any;
+    render(
+      <CheaterReport
+        cheaterData={data}
+        cheaterError={false}
+        nickname="player4"
+        onRetry={jest.fn()}
+        friendsVisibility="empty"
+      />,
+    );
+    expect(
+      screen.getByTestId('cheater-no-friends-warning'),
+    ).toHaveTextContent('noFriendsWarningEmpty');
+  });
+
+  it('hides the no-friends warning for public lists and when visibility is unknown', () => {
+    const data = {
+      cheaterProbability: 0.42,
+      featureObject: {},
+    } as any;
+    const { rerender } = render(
+      <CheaterReport
+        cheaterData={data}
+        cheaterError={false}
+        nickname="player4"
+        onRetry={jest.fn()}
+        friendsVisibility="public"
+      />,
+    );
+    expect(
+      screen.queryByTestId('cheater-no-friends-warning'),
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <CheaterReport
+        cheaterData={data}
+        cheaterError={false}
+        nickname="player4"
+        onRetry={jest.fn()}
+      />,
+    );
+    expect(
+      screen.queryByTestId('cheater-no-friends-warning'),
+    ).not.toBeInTheDocument();
+  });
 });
