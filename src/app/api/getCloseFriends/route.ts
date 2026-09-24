@@ -101,6 +101,16 @@ const getCloseFriends = async (target: string) => {
 
   const steamIDs = closestFriends.map((friend) => friend.steamID);
 
+  // A public-but-empty friends list must settle as `[]` (client visibility
+  // 'empty'), not blow up: steamapi's getUserSummary([]) calls the API with
+  // an empty `steamids` param (assertID passes vacuously), gets `players:
+  // []` back, and throws 'No players found' — which the POST catch-all
+  // would turn into a 500, aborting a perfectly valid search. Skipping the
+  // call also saves one rate-limited Steam request.
+  if (steamIDs.length === 0) {
+    return [];
+  }
+
   const summaries = await withTimeout(
     steam.getUserSummary(steamIDs),
     'getCloseFriends: steam.getUserSummary(closestFriends)',

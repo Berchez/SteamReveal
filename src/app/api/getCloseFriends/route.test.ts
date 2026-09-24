@@ -91,6 +91,54 @@ describe('POST /api/getCloseFriends — mutual connection counting', () => {
   });
 });
 
+describe('POST /api/getCloseFriends — empty friends list', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockResolve.mockResolvedValue('76561198000000000');
+  });
+
+  it('returns 200 with [] without calling getUserSummary when the target has no friends', async () => {
+    // Public profile, zero friends: steamapi's getUserSummary([]) would
+    // throw 'No players found' (empty `steamids` → empty `players`), so
+    // the route must short-circuit before calling it — this is the client
+    // 'empty' visibility path, not an error.
+    mockGetUserFriends.mockResolvedValue([]);
+
+    const res = await POST(makeRequest({ target: 'somevanityurl' }));
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.closeFriends).toEqual([]);
+    expect(mockGetUserSummary).not.toHaveBeenCalled();
+  });
+
+  it('keeps the 500 for a non-empty list whose summaries all fail to resolve (partial-case regression)', async () => {
+    // Deliberate contrast with the test above: when the target HAS friends
+    // but Steam resolves none of their summaries, that is "unknown" — not
+    // "empty" — and must NOT be silently reclassified as []. Pinning the
+    // current 500 so a future refactor can't quietly mislabel it.
+    mockGetUserFriends.mockImplementation((id: string) => {
+      if (id === '76561198000000000') {
+        return Promise.resolve([
+          {
+            steamID: '76561198000000001',
+            friendedTimestamp: 1,
+            relationship: 'friend',
+          },
+        ]);
+      }
+      return Promise.resolve([]); // friends-of-friends lookups
+    });
+    mockGetUserSummary.mockRejectedValueOnce(new Error('No players found'));
+
+    const res = await POST(makeRequest({ target: 'somevanityurl' }));
+    const data = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(data.error.code).toBe('INTERNAL_ERROR');
+  });
+});
+
 describe('POST /api/getCloseFriends — dropping unresolvable friends', () => {
   beforeEach(() => {
     jest.clearAllMocks();
