@@ -58,6 +58,13 @@
  * buildAnalyticsHtml() joins the parts around the two serialized payloads.
  */
 
+import { CHEATER_OUTCOME_THRESHOLDS_PERCENT } from '@/lib/cheaterOutcomeBands';
+
+// Build-time alias so the interpolated template below reads cleanly. The
+// values land in the served <script> as plain numbers — no runtime import
+// exists in the browser, the numbers are baked into the string.
+const BANDS = CHEATER_OUTCOME_THRESHOLDS_PERCENT;
+
 export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -178,7 +185,7 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
 
   .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 
-  input#filter {
+  input#filter, input#cheater-filter {
     flex: 1 1 240px;
     padding: 8px 10px;
     background: #0f1115;
@@ -203,6 +210,15 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
   th { color: var(--muted); font-weight: 500; font-size: 12px; white-space: nowrap; }
   tr:hover td { background: #1c2029; }
+
+  /* Long tables scroll instead of stretching the page; the header sticks
+     so the column meaning stays visible while scrolling. */
+  .table-scroll { max-height: 480px; overflow: auto; }
+  .table-scroll thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
+  th.sortable { cursor: pointer; user-select: none; }
+  th.sortable:hover { color: var(--text); }
+  th.sort-asc::after { content: ' \\25B2'; font-size: 10px; }
+  th.sort-desc::after { content: ' \\25BC'; font-size: 10px; }
 
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
@@ -304,6 +320,32 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   </div>
 </div>
 
+<div class="panel">
+  <h2>Cheater reports</h2>
+  <p class="panel-note">Every computed report, highest score first</p>
+  <div class="toolbar">
+    <input id="cheater-filter" type="text" placeholder="Filter by nickname, SteamID, outcome, country..." />
+  </div>
+  <div class="table-scroll">
+  <table id="cheater-table">
+    <thead>
+      <tr>
+        <th data-sort="date" data-sort-dir="desc">Date</th>
+        <th data-sort="profile" data-sort-dir="asc">Profile</th>
+        <th>SteamID</th>
+        <th data-sort="score" data-sort-dir="desc">Score</th>
+        <th data-sort="outcome" data-sort-dir="desc">Outcome</th>
+        <th data-sort="banned" data-sort-dir="desc">Banned friends</th>
+        <th data-sort="friends" data-sort-dir="desc">Friends analyzed</th>
+        <th data-sort="computed" data-sort-dir="desc">Computed at</th>
+      </tr>
+    </thead>
+    <tbody id="cheater-body"></tbody>
+  </table>
+  </div>
+  <div class="empty" id="cheater-empty-msg" style="display:none;">No cheater reports computed yet.</div>
+</div>
+
 <div class="charts-grid">
   <div class="panel">
     <h2>Active Counter-Strike</h2>
@@ -359,21 +401,23 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
     <input id="filter" type="text" placeholder="Filter by nickname, SteamID, GC name, country, language..." />
     <button class="btn" id="export-csv">⬇ Export CSV</button>
   </div>
+  <div class="table-scroll">
   <table id="searches-table">
     <thead>
       <tr>
-        <th>Date</th>
-        <th>Searched profile</th>
+        <th data-sort="date" data-sort-dir="desc">Date</th>
+        <th data-sort="profile" data-sort-dir="asc">Searched profile</th>
         <th>GC name</th>
-        <th>Friends</th>
-        <th>Predicted location</th>
-        <th>Cheater</th>
+        <th data-sort="friends" data-sort-dir="desc">Friends</th>
+        <th data-sort="location" data-sort-dir="asc">Predicted location</th>
+        <th data-sort="cheater" data-sort-dir="desc">Cheater</th>
         <th>Origin</th>
-        <th>Duration</th>
+        <th data-sort="duration" data-sort-dir="desc">Duration</th>
       </tr>
     </thead>
     <tbody id="searches-body"></tbody>
   </table>
+  </div>
   <div class="empty" id="empty-msg" style="display:none;">No searches recorded yet.</div>
 </div>
 
@@ -460,9 +504,17 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     }
   }
 
+  // Risk badge for a normalized 0-100 cheater score. The color derives from
+  // cheaterBandIndex (same single source of truth as the Outcome column and
+  // the chart buckets): bands 0-1 (Very trusted/Innocent) read low/green,
+  // band 2 (Inconclusive) mid/amber, bands 3-4 (Suspect/Highly suspect)
+  // high/red — so the badge can never drift from the outcome label the way
+  // fixed 60/30 cuts would. (cheaterBandIndex is declared further below but
+  // hoisted, and every call happens after the full script evaluates.)
   function riskBadge(score) {
     if (typeof score !== 'number') return '<span class="badge">—</span>';
-    var cls = score >= 60 ? 'risk-high' : score >= 30 ? 'risk-mid' : 'risk-low';
+    var idx = cheaterBandIndex(score);
+    var cls = idx >= 3 ? 'risk-high' : idx === 2 ? 'risk-mid' : 'risk-low';
     return '<span class="badge ' + cls + '">' + score.toFixed(0) + '%</span>';
   }
 
@@ -833,21 +885,45 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   renderCountryChart();
 
   // ---- Cheater probability distribution ----
-  // Bucketed by the report outcome bands (same cuts as CheaterReport:
-  // VERY_TRUSTED <35, INNOCENT 35-45, INCONCLUSIVE 45-55, SUSPECT 55-65,
-  // HIGHLY >=65), not by flat 10% bins — so the chart reads as "how many
-  // profiles landed in each verdict" instead of hiding the cluster.
+  // Bucketed by the report outcome bands. The cuts come from
+  // @/lib/cheaterOutcomeBands (interpolated at build time via the
+  // CHEATER_OUTCOME_THRESHOLDS_PERCENT import) — the single source of truth
+  // shared with CheaterReport/utils.ts, so the dashboard and the report
+  // can never drift apart.
+  //
+  // The strictness of each cut (> vs >=) mirrors classifyCheaterOutcome
+  // exactly, and lives in ONE place — cheaterBandIndex() below. The chart
+  // buckets, the table labels (cheaterOutcome), and the sort key
+  // (cheaterOutcomeRank) all derive from it, so editing a boundary can
+  // never desync the three silently.
+  //
+  // NaN parity note: every comparison below is false for NaN, so an
+  // invalid score falls to band 0 ("Very trusted") — exactly like the
+  // server-side classifyCheaterOutcome, whose guards all fail for NaN and
+  // return VERY_TRUSTED. The old per-band test()s excluded NaN from the
+  // chart while the report still labeled it Very trusted; now both agree.
+  // Unreachable in practice (scores arrive via JSON, which has no NaN —
+  // non-numbers are filtered by withCheater above), documented so nobody
+  // "fixes" the fallthrough back into a divergence.
+  var CHEATER_BAND_LABELS = ['Very trusted', 'Innocent', 'Inconclusive', 'Suspect', 'Highly suspect'];
+  function cheaterBandIndex(score) {
+    if (score > ${BANDS.HIGHLY_SUSPECT_MIN}) return 4;
+    if (score > ${BANDS.SUSPECT_MIN}) return 3;
+    if (score >= ${BANDS.INCONCLUSIVE_MIN}) return 2;
+    if (score > ${BANDS.VERY_TRUSTED_MAX}) return 1;
+    return 0;
+  }
   var cheaterBands = [
-    { label: 'Very trusted (<35%)', color: '#7ee081', test: function (v) { return v < 35; } },
-    { label: 'Innocent (35-45%)', color: '#b5e48c', test: function (v) { return v >= 35 && v < 45; } },
-    { label: 'Inconclusive (45-55%)', color: '#ffb454', test: function (v) { return v >= 45 && v < 55; } },
-    { label: 'Suspect (55-65%)', color: '#ff9f43', test: function (v) { return v >= 55 && v < 65; } },
-    { label: 'Highly suspect (>=65%)', color: '#ff6b6b', test: function (v) { return v >= 65; } },
+    { label: 'Very trusted (<=${BANDS.VERY_TRUSTED_MAX}%)', color: '#7ee081' },
+    { label: 'Innocent (${BANDS.VERY_TRUSTED_MAX}-${BANDS.INCONCLUSIVE_MIN}%)', color: '#b5e48c' },
+    { label: 'Inconclusive (${BANDS.INCONCLUSIVE_MIN}-${BANDS.SUSPECT_MIN}%)', color: '#ffb454' },
+    { label: 'Suspect (${BANDS.SUSPECT_MIN}-${BANDS.HIGHLY_SUSPECT_MIN}%)', color: '#ff9f43' },
+    { label: 'Highly suspect (>${BANDS.HIGHLY_SUSPECT_MIN}%)', color: '#ff6b6b' },
   ];
-  var cheaterData = cheaterBands.map(function (band) {
+  var cheaterData = cheaterBands.map(function (band, idx) {
     var count = 0;
     withCheater.forEach(function (e) {
-      if (band.test(normalizeScore(e.cheater.score))) count += 1;
+      if (cheaterBandIndex(normalizeScore(e.cheater.score)) === idx) count += 1;
     });
     return { label: band.label, value: count, color: band.color };
   });
@@ -858,6 +934,86 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
       : '<div class="empty">No cheater reports computed yet.</div>';
   }
   renderCheaterChart();
+
+  // ---- Cheater reports detail table ----
+  // Outcome labels share the report bands via the build-time interpolated
+  // thresholds (same module as the chart above). Scores here are 0-100
+  // (normalizeScore); the report works in 0-1 — the module keeps both
+  // scales in sync.
+  function cheaterOutcome(score) {
+    return CHEATER_BAND_LABELS[cheaterBandIndex(score)];
+  }
+  var cheaterState = { q: '', key: 'score', dir: -1 };
+
+  function cheaterOutcomeRank(score) {
+    return cheaterBandIndex(score);
+  }
+
+  function cheaterKeyFn(key) {
+    if (key === 'profile') return function (e) { return ((e.profile.nickname || e.profile.steamId) || ''); };
+    if (key === 'score') return function (e) { return normalizeScore(e.cheater.score); };
+    if (key === 'outcome') return function (e) { return cheaterOutcomeRank(normalizeScore(e.cheater.score)); };
+    if (key === 'banned') return function (e) { return (typeof e.cheater.bannedFriendsCount === 'number') ? e.cheater.bannedFriendsCount : null; };
+    if (key === 'friends') return function (e) { return (e.friends || []).length; };
+    if (key === 'computed') return function (e) {
+      var ms = e.cheater.computedAt ? Date.parse(e.cheater.computedAt) : NaN;
+      return isFinite(ms) ? ms : null;
+    };
+    return function (e) {
+      var ms = Date.parse(e.searchedAt);
+      return isFinite(ms) ? ms : null;
+    };
+  }
+
+  function renderCheaterTable() {
+    var body = document.getElementById('cheater-body');
+    var emptyMsg = document.getElementById('cheater-empty-msg');
+    var q = cheaterState.q;
+    var list = !q ? withCheater : withCheater.filter(function (e) {
+      var haystack = [
+        e.profile.steamId, e.profile.nickname,
+        e.profile.countryCode, cheaterOutcome(normalizeScore(e.cheater.score)),
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.indexOf(q) !== -1;
+    });
+    var rows = sortList(list, cheaterKeyFn(cheaterState.key), cheaterState.dir);
+    if (!rows.length) {
+      body.innerHTML = '';
+      emptyMsg.style.display = 'block';
+      return;
+    }
+    emptyMsg.style.display = 'none';
+    body.innerHTML = rows.map(function (e) {
+      var score = normalizeScore(e.cheater.score);
+      var profileLabel = escapeHtml(e.profile.nickname || e.profile.steamId);
+      var flag = flagEmoji(e.profile.countryCode);
+      var profileLink = safeProfileLink(e.profile.steamUrl, (flag ? flag + ' ' : '') + profileLabel);
+      var banned = e.cheater.bannedFriendsCount;
+      return '<tr>' +
+        '<td>' + escapeHtml(formatDate(e.searchedAt)) + '</td>' +
+        '<td>' + profileLink + '</td>' +
+        '<td><span class="muted-small">' + escapeHtml(e.profile.steamId) + '</span></td>' +
+        '<td>' + riskBadge(score) + '</td>' +
+        '<td>' + escapeHtml(cheaterOutcome(score)) + '</td>' +
+        '<td>' + (typeof banned === 'number' ? banned : '<span class="muted-small">—</span>') + '</td>' +
+        '<td>' + (e.friends || []).length + '</td>' +
+        '<td>' + (e.cheater.computedAt ? escapeHtml(formatDate(e.cheater.computedAt)) : '<span class="muted-small">—</span>') + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  attachThSort('cheater-table', 'score', -1, function (key, dir) {
+    cheaterState.key = key;
+    cheaterState.dir = dir;
+    renderCheaterTable();
+  });
+  markInitialSort('cheater-table', 'score', -1);
+  renderCheaterTable();
+
+  document.getElementById('cheater-filter').addEventListener('input', function (ev) {
+    cheaterState.q = ev.target.value.trim().toLowerCase();
+    renderCheaterTable();
+  });
 
   // ---- Most predicted locations ----
   var locationCounts = {};
@@ -1192,6 +1348,65 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   });
 
   // ---------------------------------------------------------------------
+  // Sortable tables (search history + cheater reports)
+  // ---------------------------------------------------------------------
+
+  // Nulls always sort last, in either direction; numbers numerically,
+  // anything else case-insensitively as text.
+  function cmpCell(a, b, dir) {
+    var aNull = (a === null || a === undefined);
+    var bNull = (b === null || b === undefined);
+    if (aNull && bNull) return 0;
+    if (aNull) return 1;
+    if (bNull) return -1;
+    if (typeof a === 'number' && typeof b === 'number') return (a - b) * dir;
+    return String(a).toLowerCase().localeCompare(String(b).toLowerCase()) * dir;
+  }
+
+  function sortList(list, keyFn, dir) {
+    return list.slice().sort(function (x, y) {
+      return cmpCell(keyFn(x), keyFn(y), dir);
+    });
+  }
+
+  // Turns th[data-sort] into sort toggles. First click on a new column
+  // uses that column's data-sort-dir default, repeat clicks (including on
+  // the initially-sorted column) flip. Calls onSort(key, dir) and moves
+  // the arrow indicator. initialKey/initialDir must match the caller's
+  // starting sort, otherwise the first click re-applies instead of
+  // flipping. Returns nothing (state lives in the caller).
+  function attachThSort(tableId, initialKey, initialDir, onSort) {
+    var state = { key: initialKey, dir: initialDir };
+    var ths = document.querySelectorAll('#' + tableId + ' th[data-sort]');
+    Array.prototype.forEach.call(ths, function (th) {
+      th.classList.add('sortable');
+      th.addEventListener('click', function () {
+        var key = th.getAttribute('data-sort');
+        if (state.key === key) {
+          state.dir = -state.dir;
+        } else {
+          state.key = key;
+          state.dir = th.getAttribute('data-sort-dir') === 'asc' ? 1 : -1;
+        }
+        Array.prototype.forEach.call(ths, function (o) {
+          o.classList.remove('sort-asc', 'sort-desc');
+        });
+        th.classList.add(state.dir === 1 ? 'sort-asc' : 'sort-desc');
+        onSort(state.key, state.dir);
+      });
+    });
+    return state;
+  }
+
+  function markInitialSort(tableId, key, dir) {
+    var th = document.querySelector('#' + tableId + ' th[data-sort="' + key + '"]');
+    if (th) {
+      th.classList.add('sortable');
+      th.classList.add(dir === 1 ? 'sort-asc' : 'sort-desc');
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // History table
   // ---------------------------------------------------------------------
 
@@ -1205,7 +1420,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
       return;
     }
     emptyMsg.style.display = 'none';
-    body.innerHTML = list.slice().reverse().map(function (e) {
+    body.innerHTML = list.map(function (e) {
       var friends = e.friends || [];
       var friendsList = friends.map(function (f) {
         var prob = typeof f.probability === 'number' ? ' (' + f.probability.toFixed(0) + '%)' : '';
@@ -1252,12 +1467,28 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     }).join('');
   }
 
-  renderRows(entries);
+  var historyState = { q: '', key: 'date', dir: -1 };
 
-  document.getElementById('filter').addEventListener('input', function (ev) {
-    var q = ev.target.value.trim().toLowerCase();
-    if (!q) return renderRows(entries);
-    var filtered = entries.filter(function (e) {
+  function historyKeyFn(key) {
+    if (key === 'profile') return function (e) { return ((e.profile.nickname || e.profile.steamId) || ''); };
+    if (key === 'friends') return function (e) { return (e.friends || []).length; };
+    if (key === 'location') return function (e) {
+      var g = e.locationGuess && e.locationGuess[0];
+      return (g && g.location) ? formatLocation(g.location) : null;
+    };
+    if (key === 'cheater') return function (e) {
+      return (e.cheater && typeof e.cheater.score === 'number') ? normalizeScore(e.cheater.score) : null;
+    };
+    if (key === 'duration') return function (e) { return (typeof e.durationMs === 'number') ? e.durationMs : null; };
+    return function (e) {
+      var ms = Date.parse(e.searchedAt);
+      return isFinite(ms) ? ms : null;
+    };
+  }
+
+  function renderHistory() {
+    var q = historyState.q;
+    var list = !q ? entries : entries.filter(function (e) {
       var haystack = [
         e.profile.steamId, e.profile.nickname, e.profile.gcName,
         e.requesterLocale, e.requesterCountry, e.device,
@@ -1266,7 +1497,20 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
         .filter(Boolean).join(' ').toLowerCase();
       return haystack.indexOf(q) !== -1;
     });
-    renderRows(filtered);
+    renderRows(sortList(list, historyKeyFn(historyState.key), historyState.dir));
+  }
+
+  attachThSort('searches-table', 'date', -1, function (key, dir) {
+    historyState.key = key;
+    historyState.dir = dir;
+    renderHistory();
+  });
+  markInitialSort('searches-table', 'date', -1);
+  renderHistory();
+
+  document.getElementById('filter').addEventListener('input', function (ev) {
+    historyState.q = ev.target.value.trim().toLowerCase();
+    renderHistory();
   });
 
   // ---- Export CSV ----
@@ -1283,7 +1527,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
         e.requesterCountry || '',
         e.device || '',
         typeof e.durationMs === 'number' ? (e.durationMs / 1000).toFixed(1) : '',
-        e.cheater && typeof e.cheater.score === 'number' ? e.cheater.score.toFixed(1) : '',
+        e.cheater && typeof e.cheater.score === 'number' ? normalizeScore(e.cheater.score).toFixed(1) : '',
         (e.locationGuess && e.locationGuess[0] && e.locationGuess[0].location) || '',
         (e.friends || []).length,
       ]);

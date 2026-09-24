@@ -21,6 +21,13 @@ export type PlatformBanDetails = {
     classification: BanClassification | null;
     /** Total CS2 matches played on FACEIT (best-effort activity signal). */
     matches?: number | null;
+    /**
+     * Whether the FACEIT lookup completed. Same semantics as
+     * gamersClub.checked — false means "never verified" (missing key,
+     * timeout, /bans rejection); a 404 ("no account") IS verified (true).
+     * Optional: legacy shapes without it stay cacheable.
+     */
+    checked?: boolean;
   };
   gamersClub: {
     banned: boolean;
@@ -28,6 +35,14 @@ export type PlatformBanDetails = {
     classification: BanClassification | null;
     /** Matches/sessions played on GamersClub (best-effort activity signal). */
     matches?: number | null;
+    /**
+     * Whether the GamersClub lookup completed. False means "never
+     * verified" (proxy down/timeout/misconfigured) — NOT "clean". The
+     * client uses it to avoid caching an unverified verdict. Optional so
+     * legacy/test shapes without it keep compiling (absent reads as
+     * cacheable, the pre-flag behavior); the producer always sets it.
+     */
+    checked?: boolean;
   };
 };
 

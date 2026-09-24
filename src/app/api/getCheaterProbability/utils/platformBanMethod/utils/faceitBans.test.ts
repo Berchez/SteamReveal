@@ -32,6 +32,7 @@ describe('getFaceitBanStatus', () => {
       playerId: null,
       classification: null,
       matches: null,
+      checked: false,
     });
     expect(mockedAxiosGet).not.toHaveBeenCalled();
   });
@@ -44,6 +45,7 @@ describe('getFaceitBanStatus', () => {
       playerId: null,
       classification: null,
       matches: null,
+      checked: false,
     });
     expect(mockedAxiosGet).not.toHaveBeenCalled();
   });
@@ -51,12 +53,31 @@ describe('getFaceitBanStatus', () => {
   it('returns not-banned when there is no FACEIT account for the Steam ID (404)', async () => {
     mockedAxiosGet.mockResolvedValueOnce({ status: 404, data: {} } as never);
     const res = await getFaceitBanStatus('76561198000000000');
+    // A 404 IS a verified answer — checked stays true.
     expect(res).toEqual({
       banned: false,
       reason: null,
       playerId: null,
       classification: null,
       matches: null,
+      checked: true,
+    });
+  });
+
+  it('treats any other non-200 player status as unchecked (never a verified clean)', async () => {
+    // validateStatus currently only resolves 200/404, so this path is
+    // unreachable via the real transport — but a 429/403 is throttling or
+    // denial, not proof of a clean record, and must never be cached as one.
+    mockedAxiosGet.mockResolvedValueOnce({ status: 429, data: {} } as never);
+    const res = await getFaceitBanStatus('76561198000000000');
+    expect(mockedAxiosGet).toHaveBeenCalledTimes(1);
+    expect(res).toEqual({
+      banned: false,
+      reason: null,
+      playerId: null,
+      classification: null,
+      matches: null,
+      checked: false,
     });
   });
 
@@ -84,6 +105,7 @@ describe('getFaceitBanStatus', () => {
       playerId: 'player-123',
       classification: null,
       matches: 120,
+      checked: true,
     });
   });
 
@@ -112,6 +134,7 @@ describe('getFaceitBanStatus', () => {
       playerId: 'player-123',
       classification: 'cheat',
       matches: 45,
+      checked: true,
     });
   });
 
@@ -140,6 +163,7 @@ describe('getFaceitBanStatus', () => {
       playerId: 'player-123',
       classification: 'other',
       matches: null,
+      checked: true,
     });
   });
 
@@ -152,6 +176,7 @@ describe('getFaceitBanStatus', () => {
       playerId: null,
       classification: null,
       matches: null,
+      checked: false,
     });
   });
 
@@ -185,6 +210,7 @@ describe('getFaceitBanStatus', () => {
       playerId: 'player-123',
       classification: 'cheat',
       matches: 300,
+      checked: true,
     });
   });
 
@@ -247,6 +273,7 @@ describe('getFaceitBanStatus', () => {
       playerId: 'player-123',
       classification: null,
       matches: 150,
+      checked: false,
     });
     // The failure is logged, not silently swallowed.
     expect(errorSpy).toHaveBeenCalledWith(
@@ -254,6 +281,29 @@ describe('getFaceitBanStatus', () => {
       expect.any(Error),
     );
     errorSpy.mockRestore();
+  });
+
+  it('treats a /bans 200 without an items array as unchecked (ban status unknown)', async () => {
+    // A 200 that carries no verdict list is "unknown", not "verified clean" —
+    // the client must not cache it. The goodwill matches signal still
+    // resolves (here: no usable stats → null).
+    mockedAxiosGet
+      .mockResolvedValueOnce({
+        status: 200,
+        data: { player_id: 'player-123' },
+      } as never)
+      .mockResolvedValueOnce({ status: 200, data: {} } as never)
+      .mockResolvedValueOnce({ status: 200, data: { segments: [] } } as never)
+      .mockResolvedValueOnce({ status: 200, data: { segments: [] } } as never);
+    const res = await getFaceitBanStatus('76561198000000000');
+    expect(res).toEqual({
+      banned: false,
+      reason: null,
+      playerId: 'player-123',
+      classification: null,
+      matches: null,
+      checked: false,
+    });
   });
 
   it('parses string match counts from the segments payload', async () => {

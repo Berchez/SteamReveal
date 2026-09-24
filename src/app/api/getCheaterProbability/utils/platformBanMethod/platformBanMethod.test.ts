@@ -1,7 +1,10 @@
-import getPlatformBanScore from './index';
+import getPlatformBanScore, { BAN_TIMEOUT_MS } from './index';
 import getFaceitBanStatus from './utils/faceitBans';
-import getGamersClubBanStatus from './utils/gamersClubBan';
+import getGamersClubBanStatus, {
+  GAMERSCLUB_WORST_CASE_BUDGET_MS,
+} from './utils/gamersClubBan';
 import { SteamCallTimeoutError } from '@/lib/withTimeout';
+import { FACEIT_TIMEOUT_MS } from './utils/faceitBans';
 
 jest.mock('./utils/faceitBans');
 jest.mock('./utils/gamersClubBan');
@@ -15,6 +18,7 @@ const faceitOk = (over: Record<string, unknown> = {}) => ({
   playerId: null,
   classification: null,
   matches: null,
+  checked: true,
   ...over,
 });
 
@@ -24,6 +28,7 @@ const gcOk = (over: Record<string, unknown> = {}) => ({
   name: null,
   classification: null,
   matches: null,
+  checked: true,
   ...over,
 });
 
@@ -63,6 +68,7 @@ describe('getPlatformBanScore', () => {
       reason: 'Cheating',
       classification: 'cheat',
       matches: null,
+      checked: true,
     });
   });
 
@@ -161,12 +167,14 @@ describe('getPlatformBanScore', () => {
         reason: null,
         classification: null,
         matches: null,
+        checked: false,
       },
       gamersClub: {
         banned: true,
         reason: 'cheating',
         classification: 'cheat',
         matches: null,
+        checked: true,
       },
     });
     // No activity discount from the timed-out FACEIT side.
@@ -239,5 +247,17 @@ describe('getPlatformBanScore', () => {
     expect(res.activityDiscount).toBe(0);
     expect(res.faceitActive).toBe(false);
     expect(res.gcActive).toBe(false);
+  });
+
+  it('keeps the outer timeout above every lane worst case plus margin', () => {
+    // Regression guard for the coupling: if someone raises a lane timeout,
+    // retry count, or retry delay without moving the wrapper, this fails
+    // loudly instead of silently discarding slow-but-successful lookups.
+    expect(BAN_TIMEOUT_MS).toBeGreaterThanOrEqual(
+      FACEIT_TIMEOUT_MS * 2 + 2000,
+    );
+    expect(BAN_TIMEOUT_MS).toBeGreaterThanOrEqual(
+      GAMERSCLUB_WORST_CASE_BUDGET_MS + 2000,
+    );
   });
 });

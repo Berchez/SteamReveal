@@ -1,5 +1,6 @@
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { ReportOutcomeKey, ReportOutcomes } from '@/@types/cheaterReportTypes';
+import { classifyCheaterOutcome } from '@/lib/cheaterOutcomeBands';
 import { clearStat } from '@/app/api/getCheaterProbability/utils/utils';
 import { useTranslations } from 'next-intl';
 
@@ -7,10 +8,19 @@ type PlatformBanKind = 'cheat' | 'smurf';
 
 const PLATFORM_BAN_KEYS: Record<
   PlatformBanKind,
-  { faceit: 'platformBannedFaceit' | 'platformSmurfedFaceit'; gamersClub: 'platformBannedGamersClub' | 'platformSmurfedGamersClub' }
+  {
+    faceit: 'platformBannedFaceit' | 'platformSmurfedFaceit';
+    gamersClub: 'platformBannedGamersClub' | 'platformSmurfedGamersClub';
+  }
 > = {
-  cheat: { faceit: 'platformBannedFaceit', gamersClub: 'platformBannedGamersClub' },
-  smurf: { faceit: 'platformSmurfedFaceit', gamersClub: 'platformSmurfedGamersClub' },
+  cheat: {
+    faceit: 'platformBannedFaceit',
+    gamersClub: 'platformBannedGamersClub',
+  },
+  smurf: {
+    faceit: 'platformSmurfedFaceit',
+    gamersClub: 'platformSmurfedGamersClub',
+  },
 };
 
 /**
@@ -150,11 +160,8 @@ const analyzeCheaterData = (
   });
 
   // Banned on an external platform (Faceit / GamersClub)
-  const {
-    platformBanScore,
-    platformBanCheatCount,
-    platformBanSmurfCount,
-  } = featureObject;
+  const { platformBanScore, platformBanCheatCount, platformBanSmurfCount } =
+    featureObject;
 
   if (platformBanScore !== undefined) {
     const cheatCount = platformBanCheatCount ?? 0;
@@ -323,19 +330,11 @@ const analyzeCheaterData = (
     }
   }
 
-  // Final classification
-  let outcome: ReportOutcomeKey;
-  if (cheaterProbability > 0.8) {
-    outcome = ReportOutcomes.HIGHLY_SUSPECT;
-  } else if (cheaterProbability > 0.6) {
-    outcome = ReportOutcomes.SUSPECT;
-  } else if (cheaterProbability >= 0.4) {
-    outcome = ReportOutcomes.INCONCLUSIVE;
-  } else if (cheaterProbability > 0.2) {
-    outcome = ReportOutcomes.INNOCENT;
-  } else {
-    outcome = ReportOutcomes.VERY_TRUSTED;
-  }
+  // Final classification — single source of truth for the cuts lives in
+  // @/lib/cheaterOutcomeBands (shared with the analytics dashboard), so
+  // the two can never drift.
+  const outcome: ReportOutcomeKey =
+    classifyCheaterOutcome(cheaterProbability);
 
   const finalInnocenceReasons =
     outcome === ReportOutcomes.HIGHLY_SUSPECT ? [] : innocenceReasons;

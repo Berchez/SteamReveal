@@ -25,12 +25,23 @@ export type FaceitBanStatus = {
    * invasive anti-cheat.
    */
   matches: number | null;
+  /**
+   * Whether the lookup actually completed. False on every failure path
+   * (missing key, invalid id, network/timeout, /bans rejection — or a
+   * /bans 200 whose payload carries no `items` array) — the
+   * client uses it to avoid caching a "clean" verdict that was never
+   * verified. True for a verified-clean profile AND for a 404 (FACEIT
+   * answered "no account for this Steam ID" — that IS a verified answer).
+   */
+  checked: boolean;
 };
 
 /**
  * Shared "no data / not banned" value (single source of truth for the empty
  * fallback). Imported by `platformBanMethod/index.ts` for the timeout path so
  * the wrapper and call sites don't each hand-maintain a duplicate shape.
+ * `checked: false` by default — the timeout/misconfigured paths are "never
+ * verified"; call sites that DID get a verified answer override it.
  */
 export const faceitNotBannedStatus: FaceitBanStatus = {
   banned: false,
@@ -38,11 +49,16 @@ export const faceitNotBannedStatus: FaceitBanStatus = {
   playerId: null,
   classification: null,
   matches: null,
+  checked: false,
 };
 
-const notBanned = (playerId: string | null): FaceitBanStatus => ({
+const notBanned = (
+  playerId: string | null,
+  checked: boolean,
+): FaceitBanStatus => ({
   ...faceitNotBannedStatus,
   playerId,
+  checked,
 });
 
 /**
@@ -135,6 +151,13 @@ const getPlayerMatches = async (
  * This is deliberately best-effort: any failure (missing key, 404 for a player
  * without a FACEIT account, timeout, network error) resolves to `banned: false`
  * so a ban lookup never blocks or breaks the cheater-probability calculation.
+ *
+ * Deliberately NO retry here, unlike gamersClubBan.ts: FACEIT is an official
+ * rate-limited API (a retry on 429/5xx just spends quota to re-hit a throttled
+ * endpoint), while GamersClub goes through our own local scrape proxy where a
+ * single retry heals transient tunnel/blip failures. A FACEIT failure still
+ * resolves to `checked: false` so the client won't cache the unverified
+ * verdict — the next visit simply tries again.
  */
 const getFaceitBanStatus = async (
   steamId: string,
@@ -142,11 +165,11 @@ const getFaceitBanStatus = async (
   const { FACEIT_API_KEY } = process.env;
 
   if (!FACEIT_API_KEY) {
-    return notBanned(null);
+    return notBanned(null, false);
   }
 
   if (!STEAM64_ID_REGEX.test(steamId)) {
-    return notBanned(null);
+    return notBanned(null, false);
   }
 
   try {
@@ -159,15 +182,29 @@ const getFaceitBanStatus = async (
       },
     );
 
-    if (playerResponse.status !== 200) {
+    if (playerResponse.status === 404) {
       // No FACEIT account linked to this Steam ID -> no ban/match data.
-      return notBanned(null);
+      // A 404 IS a verified answer ("this player doesn't exist here"),
+      // so checked stays true — distinct from a network failure.
+      return notBanned(null, true);
+    }
+
+    if (playerResponse.status !== 200) {
+      // Defense in depth: validateStatus above only resolves 200/404, so
+      // any other status is unreachable via the real transport — but it
+      // must never read as a verified answer. A 429/403 is throttling or
+      // denial, not proof of a clean record, so it resolves unchecked
+      // (the client won't cache it) exactly like a timeout would.
+      return notBanned(null, false);
     }
 
     const playerId = playerResponse.data?.player_id as string | undefined;
 
     if (!playerId) {
-      return notBanned(null);
+      // 200 but malformed payload: FACEIT responded, but without a usable
+      // player_id we cannot check the bans endpoint — the ban status is
+      // unknown, not verified-clean.
+      return notBanned(null, false);
     }
 
     // Use allSettled so a failure on `/bans` (e.g. an unexpected status that
@@ -192,6 +229,12 @@ const getFaceitBanStatus = async (
             | undefined)
         : undefined;
 
+    // A fulfilled /bans call only counts as verified when the payload
+    // actually carries the verdict list — a 200 with a missing/misshapen
+    // `items` field means "ban status unknown", not "clean".
+    const bansVerified =
+      bansResult.status === 'fulfilled' && Array.isArray(bannedItems);
+
     if (bansResult.status === 'rejected') {
       // Log without propagating: a /bans failure must not cost us the good
       // `matches` signal (that's why it's allSettled), but it MUST stay visible
@@ -210,7 +253,7 @@ const getFaceitBanStatus = async (
     const matches =
       matchesResult.status === 'fulfilled' ? matchesResult.value : null;
 
-    if (bannedItems && bannedItems.length > 0) {
+    if (Array.isArray(bannedItems) && bannedItems.length > 0) {
       // A player can hold several bans; the strongest signal should win.
       // Prefer cheat > smurf > other, so an older "other" ban on index 0 can't
       // hide a later "Cheating" ban.
@@ -240,13 +283,24 @@ const getFaceitBanStatus = async (
         playerId,
         classification: strongest.classification,
         matches,
+        checked: true,
       };
     }
 
-    return { banned: false, reason: null, playerId, classification: null, matches };
+    // checked mirrors whether /bans actually delivered the verdict list: a
+    // fulfilled call with an `items` array is a verified clean; a rejection
+    // — or a 200 without the array — means "ban status unknown".
+    return {
+      banned: false,
+      reason: null,
+      playerId,
+      classification: null,
+      matches,
+      checked: bansVerified,
+    };
   } catch (error) {
     console.error(`getFaceitBanStatus - error for steamId ${steamId}:`, error);
-    return notBanned(null);
+    return notBanned(null, false);
   }
 };
 

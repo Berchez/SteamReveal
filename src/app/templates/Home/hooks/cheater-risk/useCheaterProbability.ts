@@ -167,7 +167,18 @@ const useCheaterProbability = ({
 
         setCheaterData(cheaterProbability);
 
-        if (target) {
+        // Don't freeze an unverified verdict into the session cache: when
+        // either platform lookup failed (checked === false), that ban
+        // signal is "unknown", not "clean". Skipping the write means
+        // revisiting the profile refetches (new attempt, possibly
+        // recovered) instead of re-serving the incomplete result. Absent
+        // flag (legacy shapes) stays cacheable — only an explicit false
+        // opts out.
+        const platformBanDetails =
+          cheaterProbability.featureObject?.platformBanDetails;
+        const faceitChecked = platformBanDetails?.faceit?.checked !== false;
+        const gcChecked = platformBanDetails?.gamersClub?.checked !== false;
+        if (target && faceitChecked && gcChecked) {
           updateCachedSearchById(target, {
             cheaterData: cheaterProbability,
           });

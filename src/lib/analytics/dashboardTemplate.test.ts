@@ -49,13 +49,43 @@ describe('inline dashboard script', () => {
     ]);
     var html = buildAnalyticsHtml(entries, 'null');
     var script = extractInlineScript(html);
-    expect(script).toContain('Very trusted (<35%)');
-    expect(script).toContain('Innocent (35-45%)');
-    expect(script).toContain('Inconclusive (45-55%)');
-    expect(script).toContain('Suspect (55-65%)');
-    expect(script).toContain('Highly suspect (>=65%)');
+    expect(script).toContain('Very trusted (<=20%)');
+    expect(script).toContain('Innocent (20-45%)');
+    expect(script).toContain('Inconclusive (45-58%)');
+    expect(script).toContain('Suspect (58-65%)');
+    expect(script).toContain('Highly suspect (>65%)');
     expect(script).toContain('Median cheater probability');
     expect(script).toContain('Average cheater probability');
+  });
+
+  it('renders the granular cheater-reports table shell', () => {
+    var html = buildAnalyticsHtml('[]', 'null');
+    expect(html).toContain('<h2>Cheater reports</h2>');
+    expect(html).toContain('<tbody id="cheater-body"></tbody>');
+    expect(html).toContain('>Outcome</th>');
+    expect(html).toContain('>Banned friends</th>');
+    expect(html).toContain('>Friends analyzed</th>');
+    expect(html).toContain('>Computed at</th>');
+  });
+
+  it('renders sortable, scrollable tables with a cheater filter', () => {
+    var html = buildAnalyticsHtml('[]', 'null');
+    expect(html).toContain('id="cheater-filter"');
+    expect(html).toContain('class="table-scroll"');
+    expect(html).toContain('data-sort="score"');
+    expect(html).toContain('data-sort="outcome"');
+    expect(html).toContain('data-sort="cheater"');
+    expect(html).toContain('data-sort="duration"');
+    var script = extractInlineScript(html);
+    expect(script).toContain('attachThSort');
+    expect(script).toContain('cheater-filter');
+    // Load-bearing escapes (same rationale as the safeProfileLink/csvSafeCell
+    // pins above): the sort-direction arrows are Unicode escapes inside the
+    // CSS content property (in the <style> block, not the <script>). A
+    // lone backslash dropped by the template-literal parser would turn
+    // \\25B2 into "25B2" as literal text instead of the ▲ glyph.
+    expect(html).toContain('\\25B2');
+    expect(html).toContain('\\25BC');
   });
 
   it('embeds a null watch block by default', () => {

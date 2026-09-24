@@ -173,7 +173,7 @@ test.describe('Cheater Report', () => {
     });
     await page.getByRole('button', { name: ANTICHEAT_BUTTON_NAME }).click();
 
-    // cheaterProbability > 0.8 -> ReportOutcomes.HIGHLY_SUSPECT -> color
+    // cheaterProbability > 0.65 -> ReportOutcomes.HIGHLY_SUSPECT -> color
     // 'red' -> borderColorClasses.red = 'border-red-500'.
     await expect(
       page.locator('.bg-purple-900.border-2.border-red-500'),
@@ -202,6 +202,7 @@ test.describe('Cheater Report', () => {
 
     // cheaterProbability <= 0.2 -> ReportOutcomes.VERY_TRUSTED -> color
     // 'dark-green' -> borderColorClasses['dark-green'] = 'border-emerald-600'.
+    // (Unchanged by the band recalibration: the VERY_TRUSTED cut stayed.)
     await expect(
       page.locator('.bg-purple-900.border-2.border-emerald-600'),
     ).toBeVisible({ timeout: 15000 });
@@ -227,7 +228,7 @@ test.describe('Cheater Report', () => {
     });
     await page.getByRole('button', { name: ANTICHEAT_BUTTON_NAME }).click();
 
-    // 0.4 <= cheaterProbability <= 0.6 -> ReportOutcomes.INCONCLUSIVE ->
+    // 0.45 <= cheaterProbability <= 0.58 -> ReportOutcomes.INCONCLUSIVE ->
     // color 'yellow' -> borderColorClasses.yellow = 'border-yellow-500'.
     await expect(
       page.locator('.bg-purple-900.border-2.border-yellow-500'),

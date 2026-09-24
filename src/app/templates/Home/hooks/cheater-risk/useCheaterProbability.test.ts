@@ -365,6 +365,100 @@ describe('useCheaterProbability', () => {
       );
     });
 
+    it('skips the session-cache write when the GamersClub lookup was never verified', async () => {
+      // checked === false means "unknown", not "clean": freezing it into
+      // the cache would re-serve an incomplete verdict on revisit instead
+      // of refetching. State still updates (the report must render).
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          cheaterProbability: 0.42,
+          featureObject: {
+            platformBanDetails: {
+              faceit: { banned: false, checked: true },
+              gamersClub: { banned: false, checked: false },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useHarness());
+
+      act(() => {
+        result.current.setTargetInfoJson(makeTarget('PROFILE_A'));
+      });
+
+      await act(async () => {
+        await result.current.prefetchCheaterReport();
+      });
+
+      expect(result.current.setCheaterDataMock).toHaveBeenCalledWith(
+        expect.objectContaining({ cheaterProbability: 0.42 }),
+      );
+      expect(updateCachedSearchById).not.toHaveBeenCalled();
+    });
+
+    it('skips the session-cache write when the FACEIT lookup was never verified', async () => {
+      // Symmetry: the same gate applies to FACEIT — a /bans rejection
+      // (checked === false) must not freeze an unverified verdict either.
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          cheaterProbability: 0.42,
+          featureObject: {
+            platformBanDetails: {
+              faceit: { banned: false, checked: false },
+              gamersClub: { banned: false, checked: true },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useHarness());
+
+      act(() => {
+        result.current.setTargetInfoJson(makeTarget('PROFILE_A'));
+      });
+
+      await act(async () => {
+        await result.current.prefetchCheaterReport();
+      });
+
+      expect(result.current.setCheaterDataMock).toHaveBeenCalledWith(
+        expect.objectContaining({ cheaterProbability: 0.42 }),
+      );
+      expect(updateCachedSearchById).not.toHaveBeenCalled();
+    });
+
+    it('writes the session cache when both platform lookups were verified', async () => {
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          cheaterProbability: 0.42,
+          featureObject: {
+            platformBanDetails: {
+              faceit: { banned: false, checked: true },
+              gamersClub: { banned: false, checked: true },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useHarness());
+
+      act(() => {
+        result.current.setTargetInfoJson(makeTarget('PROFILE_A'));
+      });
+
+      await act(async () => {
+        await result.current.prefetchCheaterReport();
+      });
+
+      expect(updateCachedSearchById).toHaveBeenCalledWith(
+        'PROFILE_A',
+        expect.objectContaining({
+          cheaterData: expect.objectContaining({ cheaterProbability: 0.42 }),
+        }),
+      );
+    });
+
     it('clears a stale error via resetCheaterError without starting a fetch (player-switch path)', async () => {
       mockedAxios.post.mockRejectedValue(new Error('down'));
 

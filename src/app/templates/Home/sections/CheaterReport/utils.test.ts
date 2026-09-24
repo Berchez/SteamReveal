@@ -17,7 +17,10 @@ const makeFeatureObject = (
 
 const makeData = (
   featureObject: CheaterDataType['featureObject'],
-  cheaterProbability = 0.7,
+  // 0.5 sits in INCONCLUSIVE under the production bands, which keeps BOTH
+  // reason lists visible — what the routing tests below need. (0.7 would
+  // land in HIGHLY_SUSPECT and suppress all innocence reasons.)
+  cheaterProbability = 0.5,
 ): CheaterDataType => ({
   cheaterProbability,
   featureObject,
@@ -115,6 +118,49 @@ describe('analyzeCheaterData - friends / level / age display honesty', () => {
       makeTranslator() as never,
     );
     expect(veteran.innocenceReasons).toContain('oldAccount');
+  });
+});
+
+describe('analyzeCheaterData - outcome bands (production cuts)', () => {
+  const outcomeOf = (cheaterProbability: number) =>
+    analyzeCheaterData(
+      makeData(makeFeatureObject(), cheaterProbability),
+      makeTranslator() as never,
+    ).outcome;
+
+  it('maps <= 0.2 to VERY_TRUSTED and hides suspicion reasons', () => {
+    const result = analyzeCheaterData(
+      makeData(makeFeatureObject(), 0.2),
+      makeTranslator() as never,
+    );
+    expect(result.outcome).toBe('veryTrusted');
+    expect(result.suspicionReasons).toHaveLength(0);
+  });
+
+  it('maps 0.21-0.44 to INNOCENT', () => {
+    expect(outcomeOf(0.21)).toBe('innocent');
+    expect(outcomeOf(0.44)).toBe('innocent');
+  });
+
+  it('maps 0.45-0.58 to INCONCLUSIVE', () => {
+    expect(outcomeOf(0.45)).toBe('inconclusive');
+    expect(outcomeOf(0.5)).toBe('inconclusive');
+    expect(outcomeOf(0.58)).toBe('inconclusive');
+  });
+
+  it('maps 0.59-0.65 to SUSPECT', () => {
+    expect(outcomeOf(0.59)).toBe('suspect');
+    expect(outcomeOf(0.65)).toBe('suspect');
+  });
+
+  it('maps > 0.65 to HIGHLY_SUSPECT and hides innocence reasons', () => {
+    const result = analyzeCheaterData(
+      makeData(makeFeatureObject(), 0.66),
+      makeTranslator() as never,
+    );
+    expect(result.outcome).toBe('highlySuspect');
+    expect(result.innocenceReasons).toHaveLength(0);
+    expect(outcomeOf(0.74)).toBe('highlySuspect');
   });
 });
 

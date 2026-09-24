@@ -7,6 +7,7 @@ import getFaceitBanStatus, {
 } from './utils/faceitBans';
 import getGamersClubBanStatus, {
   gamersClubNotBannedStatus,
+  GAMERSCLUB_WORST_CASE_BUDGET_MS,
 } from './utils/gamersClubBan';
 import activityTier from './utils/activityTier';
 
@@ -37,16 +38,22 @@ export type PlatformBanResult = {
 };
 
 // Wall-clock budget that the wrapper grants each platform's entire lookup
-// (not per http call). FACEIT's `getFaceitBanStatus` is SEQUENTIAL in two
-// stages — resolve the player (up to FACEIT_TIMEOUT_MS) and then, in
-// parallel, hits /bans + stats/cs2 + stats/csgo — so its true worst case is
-// roughly 2 × FACEIT_TIMEOUT_MS. The wrapper must grant at least that, or a
-// merely-slow-but-successful lookup gets discarded by the outer timeout even
-// though none of its individual calls timed out. Derived from
-// FACEIT_TIMEOUT_MS so the two stay coupled if one is retuned. The route runs
-// this method in parallel with the other (historically slower) branches, so
-// the extra budget doesn't push overall TTFB.
-const BAN_TIMEOUT_MS = FACEIT_TIMEOUT_MS * 2 + 2000;
+// (not per http call). Derived explicitly as the max of both lanes plus
+// scheduling margin — NOT a magic number — so retuning either lane's
+// timeout/retry/delay automatically moves this wrapper instead of silently
+// breaking it:
+// - FACEIT: two sequential stages (resolve, then bans+stats in parallel),
+//   each up to FACEIT_TIMEOUT_MS → FACEIT_TIMEOUT_MS * 2 + margin.
+// - GamersClub: GAMERSCLUB_WORST_CASE_BUDGET_MS (attempts × timeout +
+//   inter-attempt delays, exported by gamersClubBan.ts).
+// The route runs this method in parallel with the other (historically
+// slower) branches, so the extra budget doesn't push overall TTFB.
+// Exported for tests pinning the invariant BAN_TIMEOUT_MS > every lane.
+export const BAN_TIMEOUT_MS =
+  Math.max(
+    FACEIT_TIMEOUT_MS * 2 + 2000,
+    GAMERSCLUB_WORST_CASE_BUDGET_MS + 2000,
+  );
 
 // The individual ban lookups never reject (they swallow their own errors and
 // resolve to "not banned"), so the only way `withTimeout` rejects is a real
@@ -103,12 +110,14 @@ const getPlatformBanScore = async (
       reason: faceit.reason,
       classification: faceit.classification,
       matches: faceit.matches,
+      checked: faceit.checked,
     },
     gamersClub: {
       banned: gamersClub.banned,
       reason: gamersClub.reason,
       classification: gamersClub.classification,
       matches: gamersClub.matches,
+      checked: gamersClub.checked,
     },
   };
 
