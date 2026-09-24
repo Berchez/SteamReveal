@@ -1,5 +1,9 @@
 import { buildAnalyticsHtml } from './dashboardTemplate';
-import type { SearchRecord, WatchDashboardData } from './types';
+import type {
+  LoginFunnelStats,
+  SearchRecord,
+  WatchDashboardData,
+} from './types';
 
 /**
  * Serializes SearchRecord[] for embedding into the dashboard shell.
@@ -22,9 +26,23 @@ export const serializeWatchStats = (
   watch: WatchDashboardData | null,
 ): string => JSON.stringify(watch, null, 2).replace(/</g, '\\u003c');
 
+/**
+ * Same embed escaping as serializeEntries (funnel aggregates are counts
+ * and a rate — no free text at all — but the rule is uniform: anything
+ * embedded into a <script> block gets it).
+ */
+export const serializeLoginFunnel = (
+  funnel: LoginFunnelStats | null,
+): string => JSON.stringify(funnel, null, 2).replace(/</g, '\\u003c');
+
 /** Renders a full dashboard HTML document from the given records. */
 export const renderDashboard = (
   entries: SearchRecord[],
   watch: WatchDashboardData | null = null,
+  funnel: LoginFunnelStats | null = null,
 ): string =>
-  buildAnalyticsHtml(serializeEntries(entries), serializeWatchStats(watch));
+  buildAnalyticsHtml(
+    serializeEntries(entries),
+    serializeWatchStats(watch),
+    serializeLoginFunnel(funnel),
+  );

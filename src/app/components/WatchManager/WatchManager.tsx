@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname } from '@/navigation';
 import resolveLoginNext from '@/lib/watch/loginNext';
+import { recordLoginCta } from '@/app/templates/Home/shared/analytics/loginFunnel';
 
 import { useWatchStatus } from '@/app/templates/Home/hooks/watch/useWatchStatus';
 import {
@@ -150,6 +151,9 @@ function WatchManager({
         <div>
           <a
             href={`/api/auth/steam/login?next=${encodeURIComponent(loginNext)}`}
+            onClick={() => {
+              recordLoginCta();
+            }}
             className="inline-block h-12 px-6 rounded-full bg-purple-600 hover:bg-purple-700/90 text-white font-semibold text-sm leading-[3rem]"
           >
             {translator('watchLoginButton')}

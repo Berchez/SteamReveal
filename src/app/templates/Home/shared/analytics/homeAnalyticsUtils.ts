@@ -3,6 +3,9 @@ import { UserSummary } from 'steamapi';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
 import { locationDataIWant } from '@/@types/locationDataIWant';
 import type { FriendsVisibility } from '@/lib/analytics/types';
+// Local binding for recordAnalytics below; the re-export keeps the other
+// importers' paths working.
+import getAnalyticsSkipHeaders from '@/lib/analytics/skipHeaders';
 
 // ---- Analytics helpers ---------------------------------------------------
 
@@ -206,25 +209,11 @@ export const isCounterStrikeActive = (
   return false;
 };
 
-const ANALYTICS_SKIP_PASSWORD_KEY = 'analytics_skip_password';
-
-export const getAnalyticsSkipHeaders = ():
-  | Record<string, string>
-  | undefined => {
-  if (typeof window === 'undefined') {
-    return undefined;
-  }
-
-  try {
-    const skipPassword = localStorage.getItem(ANALYTICS_SKIP_PASSWORD_KEY);
-
-    return skipPassword
-      ? { 'x-analytics-skip-password': skipPassword }
-      : undefined;
-  } catch (e) {
-    return undefined;
-  }
-};
+// Moved to the dependency-free leaf @/lib/analytics/skipHeaders (the
+// login-funnel beacon imports it from there — this module's axios/steamapi
+// imports must never leak into the global-nav chunk). Re-exported here so
+// the existing importers (friendGcNamesSync, useHome) keep their paths.
+export { default as getAnalyticsSkipHeaders } from '@/lib/analytics/skipHeaders';
 
 export type AnalyticsMeta = {
   requesterLocale: string | null;

@@ -134,6 +134,14 @@ export async function routeApiMocks(page: Page) {
     });
   });
 
+  await page.route('**/api/recordAnalyticsLogin', async (route) => {
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true }),
+    });
+  });
+
   await page.route('**/api/getGamersClubName', async (route) => {
     const req = route.request();
     const post = await req.postData();

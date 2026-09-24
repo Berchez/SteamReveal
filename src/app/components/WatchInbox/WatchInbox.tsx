@@ -17,6 +17,7 @@ import {
   watchProfileUrl,
 } from '@/lib/watch/notificationText';
 import { isWatchTokenShape } from '@/lib/watch/tokens';
+import { recordLoginCta } from '@/app/templates/Home/shared/analytics/loginFunnel';
 import { isSteamId64 } from '@/lib/steamId';
 import { WATCH_INBOX_DEFAULT_LIMIT } from '@/lib/watch/limits';
 import resolveLoginNext from '@/lib/watch/loginNext';
@@ -630,6 +631,9 @@ function WatchInbox({ steamId }: { steamId: string }) {
           </p>
           <a
             href={`/api/auth/steam/login?next=${encodeURIComponent(resolveLoginNext(pathname, locale))}`}
+            onClick={() => {
+              recordLoginCta();
+            }}
             className="inline-block h-9 rounded-full border border-gray-500 px-4 text-sm leading-9 text-gray-200 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           >
             {translator('watchLoginButton')}

@@ -80,6 +80,11 @@ const FRIENDS_VISIBILITY_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const LOGIN_FUNNEL_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '015_login_funnel_events.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -116,6 +121,8 @@ type DbApi = {
   listProfileSearches: typeof import('./db').listProfileSearches;
   isWithinCooldown: typeof import('./db').isWithinCooldown;
   recordLogin: typeof import('./db').recordLogin;
+  recordLoginFunnelEvent: typeof import('./db').recordLoginFunnelEvent;
+  getLoginFunnelStats: typeof import('./db').getLoginFunnelStats;
   ensureActiveWatch: typeof import('./db').ensureActiveWatch;
   hashConfirmToken: typeof import('./db').hashConfirmToken;
   createAccount: typeof import('./db').createAccount;
@@ -224,6 +231,10 @@ describe('analytics db integration against real libSQL', () => {
     )) {
       await db.executeForTests(statement);
     }
+    // 015 carries login_funnel_events (Steam sign-in instrumentation).
+    for (const statement of splitSqlStatements(LOGIN_FUNNEL_MIGRATION_SQL)) {
+      await db.executeForTests(statement);
+    }
   });
 
   beforeEach(async () => {
@@ -235,6 +246,8 @@ describe('analytics db integration against real libSQL', () => {
     await db.executeForTests('DELETE FROM watched_profiles');
     await db.executeForTests('DELETE FROM accounts');
     await db.executeForTests('DELETE FROM bot_heartbeat');
+    // Funnel table is append-only with no FKs — own wipe like the watch set.
+    await db.executeForTests('DELETE FROM login_funnel_events');
   });
 
   afterAll(async () => {
@@ -1755,6 +1768,96 @@ describe('analytics db integration against real libSQL', () => {
 
     it('returns null before the first beat (fail-open upstream)', async () => {
       await expect(db.getBotHeartbeat()).resolves.toBeNull();
+    });
+  });
+
+  describe('login funnel instrumentation (015)', () => {
+    it('recordLoginFunnelEvent → getLoginFunnelStats round-trips per-session conversion on real SQL', async () => {
+      // Session A clicks twice, completes once; session B clicks once,
+      // never completes; one completion arrives cookieless (NULL session).
+      await db.recordLoginFunnelEvent({
+        event: 'login_cta_clicked',
+        sessionId: 'session-a',
+        searchId: 'search-1',
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_cta_clicked',
+        sessionId: 'session-a',
+        searchId: null,
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_cta_clicked',
+        sessionId: 'session-b',
+        searchId: null,
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_completed',
+        sessionId: 'session-a',
+        searchId: 'search-1',
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_completed',
+        sessionId: null,
+        searchId: null,
+      });
+
+      const stats = await db.getLoginFunnelStats();
+
+      // Raw counts move with repeats; sessions deduplicate.
+      expect(stats.ctaEvents).toBe(3);
+      expect(stats.ctaSessions).toBe(2);
+      expect(stats.completions).toBe(2);
+      expect(stats.completedSessions).toBe(1);
+      // The NULL-session completion is unattributed (cookie never read or
+      // click row lost) — counted for the health card, excluded from the rate.
+      expect(stats.unattributedCompletions).toBe(1);
+      // 1 of 2 clicking sessions converted (NULL completion excluded).
+      expect(stats.conversionRate).toBe(50);
+      expect(typeof stats.generatedAt).toBe('string');
+    });
+
+    it('reports a null conversion rate on an empty funnel (no data, not zero)', async () => {
+      const stats = await db.getLoginFunnelStats();
+
+      expect(stats.ctaEvents).toBe(0);
+      expect(stats.completions).toBe(0);
+      expect(stats.unattributedCompletions).toBe(0);
+      expect(stats.conversionRate).toBeNull();
+    });
+
+    it('a completion whose CTA beacon was lost never pushes the rate past 100%', async () => {
+      // The exact failure mode the intersection guards: the ctx cookie is
+      // written client-side even when the beacon POST fails (ad-blockers
+      // on /recordAnalyticsLogin, keepalive raced by the navigation), so
+      // the completion hook records a session that never clicked. Without
+      // the intersection this reads as 2/1 = 200% conversion.
+      await db.recordLoginFunnelEvent({
+        event: 'login_cta_clicked',
+        sessionId: 'session-a',
+        searchId: null,
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_completed',
+        sessionId: 'session-a',
+        searchId: null,
+      });
+      // Beacon lost: completed, but no click row ever landed.
+      await db.recordLoginFunnelEvent({
+        event: 'login_completed',
+        sessionId: 'session-lost',
+        searchId: null,
+      });
+
+      const stats = await db.getLoginFunnelStats();
+
+      // Raw completion total keeps the unattributable one (observable
+      // beacon loss), but the rate intersects: 1/1, never 200.
+      expect(stats.completions).toBe(2);
+      expect(stats.ctaSessions).toBe(1);
+      expect(stats.completedSessions).toBe(1);
+      // Health signal: the beacon-lost completion is visible on the panel.
+      expect(stats.unattributedCompletions).toBe(1);
+      expect(stats.conversionRate).toBe(100);
     });
   });
 });

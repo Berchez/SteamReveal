@@ -6,6 +6,7 @@ import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import withTimeout from '@/lib/withTimeout';
 import {
+  getLoginFunnelStats,
   getSearchRecords,
   getWatchDashboardData,
 } from '@/lib/analytics/db';
@@ -16,25 +17,28 @@ const RATE_LIMIT_MAX = 30;
 const dashboardRateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
 
 /**
- * Budget for the additive Watch half of the dashboard. allSettled alone only
- * covers *errors* — without this, a slow/hung watch query (watch_events
- * grows one row per bot delivery, no retention) would hold the whole page,
- * including the primary searches section, until the platform 504s.
- * Promise.race doesn't cancel the driver query, it just frees the response
- * (accepted limitation, same as every other withTimeout call site).
+ * Budget for the additive halves of the dashboard (Watch + login funnel).
+ * allSettled alone only covers *errors* — without this, a slow/hung query
+ * in either half (watch_events grows one row per bot delivery, no
+ * retention) would hold the whole page, including the primary searches
+ * section, until the platform 504s. Promise.race doesn't cancel the driver
+ * query, it just frees the response (accepted limitation, same as every
+ * other withTimeout call site).
  *
  * Module-scoped (NOT exported: Next.js route files may only export
  * route-related names — an extra export breaks the generated route types).
  */
-const WATCH_READ_TIMEOUT_MS = 4_000;
+const ADDITIVE_READ_TIMEOUT_MS = 4_000;
 
 /**
  * Serves the analytics dashboard as live HTML, rebuilt on every request
  * from the current Turso data (searches via getSearchRecords + the additive
- * Watch section via getWatchDashboardData).
+ * Watch section via getWatchDashboardData + the additive login-funnel
+ * section via getLoginFunnelStats).
  *
- * The Watch half is fail-open (error AND latency): a throw or a timeout
- * degrades it to null instead of 500ing/delaying the primary searches page.
+ * The Watch AND funnel halves are fail-open (error AND latency): a throw
+ * or a timeout degrades that half to null instead of 500ing/delaying the
+ * primary searches page.
  *
  * This replaces the old local analytics.html file, which only lived on the
  * machine running the proxy. The markup/styling/JS shell is
@@ -123,34 +127,46 @@ export async function GET(req: Request) {
 
   try {
     // Reads run together (one Turso round trip each, no shared snapshot
-    // needed across the two domains). The Watch half is fail-open: if it
-    // throws OR exceeds WATCH_READ_TIMEOUT_MS, the dashboard still renders
-    // searches with an "unavailable" Watch section (null) instead of 500ing
+    // needed across the domains). The Watch and funnel halves are fail-open:
+    // if either throws OR exceeds ADDITIVE_READ_TIMEOUT_MS, the dashboard still
+    // renders searches with an "unavailable" section (null) instead of 500ing
     // or stalling the whole page — the search history is the primary
-    // content, Watch stats are additive.
-    const [entriesResult, watchResult] = await Promise.allSettled([
+    // content, Watch/funnel stats are additive.
+    const [entriesResult, watchResult, funnelResult] = await Promise.allSettled([
       getSearchRecords(),
       withTimeout(
         getWatchDashboardData(),
         'watch dashboard',
-        WATCH_READ_TIMEOUT_MS,
+        ADDITIVE_READ_TIMEOUT_MS,
+      ),
+      withTimeout(
+        getLoginFunnelStats(),
+        'login funnel dashboard',
+        ADDITIVE_READ_TIMEOUT_MS,
       ),
     ]);
-    // Log the watch failure FIRST so a simultaneous entries failure (which
-    // throws below) cannot swallow it — in a real incident both halves
-    // failing at once is exactly when each reason matters. Separate tag so
-    // a missing 010/011 migration (watch-only) doesn't read as a searches
-    // outage in the logs.
+    // Log each additive-half failure FIRST so a simultaneous entries failure
+    // (which throws below) cannot swallow it — in a real incident several
+    // halves failing at once is exactly when each reason matters. Separate
+    // tags so a missing 015 migration (funnel-only) doesn't read as a
+    // searches outage in the logs.
     if (watchResult.status === 'rejected') {
       logRouteError(
         'analytics/dashboard:watch',
         sanitizeError(watchResult.reason),
       );
     }
+    if (funnelResult.status === 'rejected') {
+      logRouteError(
+        'analytics/dashboard:loginFunnel',
+        sanitizeError(funnelResult.reason),
+      );
+    }
     if (entriesResult.status === 'rejected') throw entriesResult.reason;
     const html = renderDashboard(
       entriesResult.value,
       watchResult.status === 'fulfilled' ? watchResult.value : null,
+      funnelResult.status === 'fulfilled' ? funnelResult.value : null,
     );
 
     return new NextResponse(html, {

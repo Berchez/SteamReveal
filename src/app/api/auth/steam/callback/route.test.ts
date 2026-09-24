@@ -107,6 +107,15 @@ describe('GET /api/auth/steam/callback', () => {
   });
 
   it('verifies state, gates on friendship, and completes via the shared helper', async () => {
+    // Pin the store identity: the completion (and its login-funnel ctx
+    // read) must receive the REQUEST cookie store — the exact object
+    // cookies() hands out — never a response store or a copy, or the CTA
+    // cookie planted before the OpenID redirect would be unreadable.
+    const requestStore = {
+      get: (name: string) =>
+        name === 'steamreveal_oauth_state' ? { value: STATE } : undefined,
+    };
+    cookies.mockReturnValue(requestStore);
     const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
 
     expect(res.status).toBe(302);
@@ -118,7 +127,7 @@ describe('GET /api/auth/steam/callback', () => {
     // ensure/record/welcome/seal — asserted in completeLogin.test.ts).
     expect(completeProvenLogin).toHaveBeenCalledTimes(1);
     expect(completeProvenLogin).toHaveBeenCalledWith(
-      expect.anything(),
+      requestStore,
       STEAM,
       '/pt/watch',
       'steamCallback',

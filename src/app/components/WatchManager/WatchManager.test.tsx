@@ -4,6 +4,19 @@ import '@testing-library/jest-dom';
 import WatchManager from './WatchManager';
 import { clearWatchStatusPrefetch } from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
 
+// Login-funnel beacon is mocked (not fetch-mocked like SiteNavSignIn's
+// dedicated test): here we only pin THAT the gate's login link fires it.
+jest.mock(
+  '@/app/templates/Home/shared/analytics/loginFunnel',
+  () => ({
+    recordLoginCta: jest.fn(),
+  }),
+);
+
+const { recordLoginCta } = jest.requireMock(
+  '@/app/templates/Home/shared/analytics/loginFunnel',
+) as { recordLoginCta: jest.Mock };
+
 jest.mock('react-toastify', () => ({
   toast: { error: jest.fn(), success: jest.fn() },
 }));
@@ -189,6 +202,23 @@ describe('WatchManager', () => {
       'href',
       '/api/auth/steam/login?next=%2Fpt%2Fplayer%2Fplayer-c',
     );
+  });
+
+  it('fires the login-CTA beacon when the gate link is clicked (funnel parity with the navbar)', async () => {
+    fetchByUrl((url) => {
+      if (url.includes('/api/auth/signup')) return postOk();
+      return { ok: false, status: 401 } as Response;
+    });
+
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(2);
+
+    // Every entry to /api/auth/steam/login must record the CTA click, or
+    // the conversion rate counts completions without clicks (>100%).
+    fireEvent.click(screen.getByText('watchLoginButton').closest('a')!);
+    await settle();
+
+    expect(recordLoginCta).toHaveBeenCalledTimes(1);
   });
 
   it('shows a plain error for unexpected hook failures (never blank)', async () => {

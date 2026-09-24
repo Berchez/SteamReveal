@@ -2460,3 +2460,123 @@ describe('getWatchDashboardData', () => {
     ]);
   });
 });
+
+describe('login funnel DAL (Steam sign-in instrumentation)', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    mockCreateClient.mockReset();
+    mockExecute.mockReset();
+    mockBatch.mockReset();
+    mockClose.mockReset();
+    buildMockClient();
+    mockExecute.mockResolvedValue({ rows: [] });
+    process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
+    process.env.DATABASE_TOKEN = 'secret-token';
+  });
+
+  it('recordLoginFunnelEvent inserts one row with event/session/search (NULLs preserved)', async () => {
+    const { recordLoginFunnelEvent } = require('./db');
+
+    await recordLoginFunnelEvent({
+      event: 'login_cta_clicked',
+      sessionId: 'session-1',
+      searchId: 'search-1',
+    });
+
+    // Call 0 is getClient's PRAGMA foreign_keys = ON (cold-start connect);
+    // the INSERT lands second.
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    const call = mockExecute.mock.calls[1][0] as {
+      sql: string;
+      args: unknown[];
+    };
+    expect(call.sql).toContain('INSERT INTO login_funnel_events');
+    expect(call.args[0]).toBe('login_cta_clicked');
+    expect(call.args[1]).toBe('session-1');
+    expect(call.args[2]).toBe('search-1');
+    expect(typeof call.args[3]).toBe('string');
+
+    await recordLoginFunnelEvent({
+      event: 'login_completed',
+      sessionId: null,
+      searchId: null,
+    });
+    const nullCall = mockExecute.mock.calls[2][0] as {
+      sql: string;
+      args: unknown[];
+    };
+    expect(nullCall.args[1]).toBeNull();
+    expect(nullCall.args[2]).toBeNull();
+  });
+
+  it('getLoginFunnelStats aggregates per-session conversion in one query', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          cta_events: 5,
+          cta_sessions: 3,
+          completions: 2,
+          completed_sessions: 2,
+          unattributed_completions: 0,
+        },
+      ],
+    });
+    const { getLoginFunnelStats } = require('./db');
+
+    const stats = await getLoginFunnelStats();
+
+    // Call 0 is the cold-start PRAGMA; the aggregation lands second — one
+    // single-row query for the whole panel (single snapshot, like Watch).
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    expect(mockExecute.mock.calls[1][0].sql).toContain(
+      'FROM login_funnel_events',
+    );
+    // The intersection guard: completed_sessions is only ever counted
+    // within the set of sessions that clicked (rate can't exceed 100%).
+    expect(mockExecute.mock.calls[1][0].sql).toMatch(
+      /session_id IN \(\s*SELECT session_id FROM login_funnel_events/,
+    );
+    // And the health signal: unattributed completions counted in SQL too.
+    expect(mockExecute.mock.calls[1][0].sql).toContain(
+      'AS unattributed_completions',
+    );
+    expect(stats).toEqual({
+      ctaEvents: 5,
+      ctaSessions: 3,
+      completions: 2,
+      completedSessions: 2,
+      unattributedCompletions: 0,
+      conversionRate: (2 / 3) * 100,
+      generatedAt: expect.any(String),
+    });
+  });
+
+  it('getLoginFunnelStats reports a null rate (not 0%) with no CTA sessions yet', async () => {
+    // Empty table: SUMs come back NULL, COUNTs 0 — all coalesce to 0 and
+    // the rate stays null ("no data", not "zero").
+    mockExecute.mockResolvedValueOnce({ rows: [{}] });
+    const { getLoginFunnelStats } = require('./db');
+
+    const stats = await getLoginFunnelStats();
+
+    expect(stats.ctaEvents).toBe(0);
+    expect(stats.ctaSessions).toBe(0);
+    expect(stats.completions).toBe(0);
+    expect(stats.completedSessions).toBe(0);
+    expect(stats.unattributedCompletions).toBe(0);
+    expect(stats.conversionRate).toBeNull();
+  });
+
+  it('getLoginFunnelStats hints db:migrate when the funnel table is missing', async () => {
+    // First execute is the cold-start PRAGMA (must succeed); the GROUP BY
+    // is what hits the missing table.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(
+      new Error('no such table: login_funnel_events'),
+    );
+    const { getLoginFunnelStats } = require('./db');
+
+    await expect(getLoginFunnelStats()).rejects.toThrow(/db:migrate/);
+  });
+});

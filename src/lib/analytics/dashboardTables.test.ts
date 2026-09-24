@@ -48,6 +48,37 @@ function loadDashboard(entriesJson: string = SAMPLE) {
   eval(inner[1]);
 }
 
+/**
+ * Executes the dashboard script with a populated login-funnel block so the
+ * funnel panel's DATA path (5 cards, number formatting, rate text) actually
+ * runs — the default 'null' block only ever exercises the "unavailable"
+ * early return, and substring tests can't catch a runtime throw here.
+ */
+function loadDashboardWithFunnel(
+  funnel: Record<string, unknown>,
+  entriesJson: string = SAMPLE,
+) {
+  const html = buildAnalyticsHtml(entriesJson, 'null', JSON.stringify(funnel));
+  document.body.innerHTML = html;
+  const inner = /<script>([\s\S]*?)<\/script>/.exec(html);
+  if (!inner) throw new Error('inline <script> has no captured body');
+  // eslint-disable-next-line no-eval
+  eval(inner[1]);
+}
+
+function funnelCardTexts(): string[] {
+  return Array.prototype.map.call(
+    document.querySelectorAll('#login-funnel-stats .stat-card'),
+    function (card) {
+      // textContent concatenates the value/label divs WITHOUT whitespace —
+      // read them separately and join, so assertions read "300 Sign-in clicks".
+      const value = card.querySelector('.value')?.textContent || '';
+      const label = card.querySelector('.label')?.textContent || '';
+      return `${value} ${label}`.trim();
+    },
+  ) as string[];
+}
+
 function cheaterOutcomes(): string[] {
   return Array.prototype.map.call(
     document.querySelectorAll('#cheater-body tr td:nth-child(5)'),
@@ -177,6 +208,45 @@ describe('dashboard interactive tables', () => {
     if (!input) throw new Error('missing #filter');
     fireEvent.input(input, { target: { value: 'bob' } });
     expect(historyNicknames()).toEqual(['Bob']);
+  });
+
+  it('executes the funnel panel data path: 5 cards, numbers, rate text', () => {
+    // Also proves escapeHtml is safe on NUMBER values (String() internally)
+    // — a throw here would abort the whole IIFE and fail the table tests.
+    loadDashboardWithFunnel({
+      ctaEvents: 300,
+      ctaSessions: 250,
+      completions: 3,
+      completedSessions: 2,
+      unattributedCompletions: 1,
+      conversionRate: 0.8,
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+
+    expect(funnelCardTexts()).toEqual([
+      '300 Sign-in clicks',
+      '250 Clicking sessions',
+      '2 Logged-in sessions',
+      '1 Unattributed logins',
+      '0.8% Click → login conversion',
+    ]);
+
+    // The rest of the dashboard still rendered after the funnel section.
+    expect(historyNicknames()).toEqual(['Carol', 'Bob', 'Alice']);
+  });
+
+  it('renders the funnel panel with a null rate (—, never 0.0% or NaN)', () => {
+    loadDashboardWithFunnel({
+      ctaEvents: 0,
+      ctaSessions: 0,
+      completions: 0,
+      completedSessions: 0,
+      unattributedCompletions: 0,
+      conversionRate: null,
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+
+    expect(funnelCardTexts()).toContain('— Click → login conversion');
   });
 
   it('keeps histogram bins, band legend, outcome labels and outcome sort consistent at band boundaries', () => {

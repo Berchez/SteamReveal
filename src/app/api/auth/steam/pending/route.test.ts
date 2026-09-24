@@ -164,6 +164,12 @@ describe('GET /api/auth/steam/pending', () => {
   });
 
   it('completes the login (seals, clears, redirects) once friendship is proven', async () => {
+    // Store identity pinned like in the callback test: the completion
+    // (and its login-funnel ctx read) must get the REQUEST cookie store —
+    // the exact object cookies() returns — so the CTA cookie planted
+    // before the wait is still readable when the poll completes.
+    const requestStore = { get: jest.fn(), set: jest.fn() };
+    cookies.mockReturnValue(requestStore);
     const res = await GET(new Request(PENDING));
 
     expect(res.status).toBe(200);
@@ -176,7 +182,7 @@ describe('GET /api/auth/steam/pending', () => {
     // completeLogin.test.ts) — the route just passes through + clears.
     expect(completeProvenLogin).toHaveBeenCalledTimes(1);
     expect(completeProvenLogin).toHaveBeenCalledWith(
-      expect.anything(),
+      requestStore,
       STEAM,
       '/pt/player/player-c',
       'steamPending',

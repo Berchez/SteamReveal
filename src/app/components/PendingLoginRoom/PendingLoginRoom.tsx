@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { usePathname } from '@/navigation';
 import resolveLoginNext from '@/lib/watch/loginNext';
 import { pendingPollDelay } from '@/lib/watch/pendingPolicy';
+import { recordLoginCta } from '@/app/templates/Home/shared/analytics/loginFunnel';
 
 /**
  * Waiting room for the login-first flow (`?login=waiting`): the OpenID
@@ -197,6 +198,12 @@ function PendingLoginRoom() {
             <div className="mt-6">
               <a
                 href={`/api/auth/steam/login?next=${encodeURIComponent(loginNext)}`}
+                onClick={() => {
+                  // Retry after an expired wait starts a FRESH OpenID dance
+                  // that can produce its own completion — beacon it too, or
+                  // the conversion rate counts completions without clicks.
+                  recordLoginCta();
+                }}
                 className="inline-block h-12 px-6 rounded-full bg-purple-600 hover:bg-purple-700/90 text-white font-semibold text-sm leading-[3rem]"
               >
                 {t('watchWaitRetry')}

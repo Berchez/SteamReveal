@@ -4,11 +4,9 @@ import { sanitizeError } from '../src/lib/sanitizeError';
 import { isTransportFailure } from '../src/lib/analytics/db';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const {
-  withTimeout,
-  fetchWithTimeout,
-  isTimeoutError,
-} = require('./smoke-timeout.cjs');
+const smokeTimeout = require('./smoke-timeout.cjs');
+
+const { withTimeout, fetchWithTimeout, isTimeoutError } = smokeTimeout;
 
 // Every network wait below is bounded: an unbounded fetch/client.execute
 // once hung `git push` FOREVER (Node fetch and the hrana transport have no
@@ -171,6 +169,48 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       throw new Error('cheater_score row missing/incorrect in Turso');
     }
 
+    // 3.5 Login-funnel leg (same gate discipline as the search/cheater legs
+    //     above): a CTA beacon through the real route, the row verified in
+    //     Turso, and the dashboard panel checked live. Catches a forgotten
+    //     migration 015 here instead of as per-request error logs in prod.
+    //     MARKER doubles as the anon session id (unique per run, ≤64 chars);
+    //     the completion event is deliberately NOT simulated — it is
+    //     server-side-only by design (client completions must 400).
+    const cta = await fetchWithTimeout(
+      `${BASE}/api/recordAnalyticsLogin`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          event: 'login_cta_clicked',
+          sessionId: MARKER,
+          searchId: id,
+        }),
+      },
+      FETCH_TIMEOUT_MS,
+    );
+    if (!cta.ok) {
+      const ctaBody = await cta.text();
+      throw new Error(`loginFunnel: HTTP ${cta.status} ${ctaBody}`);
+    }
+
+    const funnelRow = await withTimeout(
+      client.execute({
+        sql: "SELECT event, session_id FROM login_funnel_events WHERE session_id = ? AND event = 'login_cta_clicked'",
+        args: [MARKER],
+      }),
+      DB_TIMEOUT_MS,
+      'turso verify login_funnel_events row',
+    );
+    if (
+      funnelRow.rows.length !== 1 ||
+      String(funnelRow.rows[0].event) !== 'login_cta_clicked'
+    ) {
+      throw new Error(
+        `login_funnel_events row missing/incorrect in Turso: ${JSON.stringify(funnelRow.rows)}`,
+      );
+    }
+
     // 4. The dashboard (live-rendered from Turso) must show the record.
     //    Authentication goes through the x-analytics-key header (never a URL
     //    query string — a ?key= would leak the secret into access logs) when
@@ -189,6 +229,15 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const dashHtml = await dash.text();
     if (!dash.ok || !dashHtml.includes(MARKER)) {
       throw new Error(`dashboard: HTTP ${dash.status}, marker not rendered`);
+    }
+    // Funnel half of the dashboard: the panel shell + its JSON block must
+    // render (values are aggregates over live traffic — marker-scoping the
+    // counts themselves is meaningless, so only the structure is asserted).
+    if (
+      !dashHtml.includes('Steam login funnel') ||
+      !dashHtml.includes('<script type="application/json" id="login-funnel-db">')
+    ) {
+      throw new Error('dashboard: login-funnel panel missing from render');
     }
 
     // eslint-disable-next-line no-console
@@ -218,6 +267,25 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     console.error('ANALYTICS SMOKE FAIL:', sanitizeError(error));
     exitCode = 1;
   } finally {
+    // Funnel rows are session-keyed (no FK to searches by design), so they
+    // get their own marker-scoped delete — children-first ordering below
+    // doesn't cover them. Unconditional: even if the beacon's response
+    // timed out after the server already wrote the row (funnelBeaconOk
+    // never set), the marker-scoped DELETE is a no-op on zero rows and
+    // the orphan probe below still verifies it.
+    try {
+      await withTimeout(
+        client.execute({
+          sql: 'DELETE FROM login_funnel_events WHERE session_id = ?',
+          args: [MARKER],
+        }),
+        DB_TIMEOUT_MS,
+        'turso cleanup login_funnel_events',
+      );
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`cleanup login_funnel_events failed: ${sanitizeError(err)}`);
+    }
     // Tear the smoke row down. Marker-scoped checks only (no global count
     // deltas) so concurrent real traffic on a shared DB can't cause false
     // negatives. Children first — SQLite foreign keys are enforced by the
@@ -315,6 +383,28 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         }
       }
       p += 1;
+    }
+    // Funnel probe (session-keyed, so it can't ride the id-keyed loop
+    // above): the smoke must prove its OWN beacon row left with it. Runs
+    // before the probeIncomplete warning so a stall here is reported too.
+    try {
+      const funnelProbe = await withTimeout(
+        client.execute({
+          sql: 'SELECT COUNT(*) AS n FROM login_funnel_events WHERE session_id = ?',
+          args: [MARKER],
+        }),
+        PROBE_TIMEOUT_MS,
+        'turso cleanup probe login_funnel_events',
+      );
+      orphanedRows += Number(funnelProbe.rows[0].n);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`cleanup probe login_funnel_events failed: ${sanitizeError(error)}`);
+      if (isTimeoutError(error)) {
+        probeIncomplete = true;
+      } else {
+        orphanedRows += 1;
+      }
     }
     if (probeIncomplete) {
       // eslint-disable-next-line no-console

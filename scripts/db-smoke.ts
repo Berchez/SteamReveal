@@ -36,6 +36,11 @@ const client = createClient({
   authToken: process.env.DATABASE_TOKEN || undefined,
 });
 
+// The core 1:1 search tables plus the login-funnel table (015): a deploy
+// that skipped `pnpm run db:migrate` must fail THIS gate loudly (the write
+// routes would degrade to per-request error logs otherwise), which is the
+// exact scenario db:smoke exists to catch pre-push. The watch tables
+// (002-011) predate this check and stay out of scope here.
 const EXPECTED_TABLES = [
   'searches',
   'profiles',
@@ -44,6 +49,7 @@ const EXPECTED_TABLES = [
   'games_snapshot',
   'location_guesses',
   'cheater_results',
+  'login_funnel_events',
 ];
 
 (async () => {

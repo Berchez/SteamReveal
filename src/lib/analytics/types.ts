@@ -319,3 +319,44 @@ export interface WatchDashboardData {
   liveness: WatchDashboardLiveness | null;
   generatedAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Steam-login funnel (CTA click -> completed login). Aggregate-only DTO: the
+// dashboard never sees session ids, only counts plus the per-session
+// conversion rate. Null (not {}) when the reads fail — same fail-open
+// contract as the Watch section above.
+// ---------------------------------------------------------------------------
+
+/** The two instrumented funnel steps (mirrors the login_funnel_events CHECK). */
+export type LoginFunnelEventKind = 'login_cta_clicked' | 'login_completed';
+
+/** Funnel aggregates for the analytics dashboard. */
+export interface LoginFunnelStats {
+  /** Raw login_cta_clicked rows (every click, including repeats). */
+  ctaEvents: number;
+  /** Distinct anon sessions that clicked at least once. */
+  ctaSessions: number;
+  /** Raw login_completed rows (every completion, incl. beacon-loss ones). */
+  completions: number;
+  /**
+   * Distinct anon sessions that completed AND have a recorded CTA click
+   * (intersection — see getLoginFunnelStats): completions whose CTA beacon
+   * was lost (ad-blockers, navigation raced the keepalive) stay in the raw
+   * `completions` total but never enter the rate, keeping it honest.
+   */
+  completedSessions: number;
+  /**
+   * Completions with a NULL/unknown session — the correlation-pipeline
+   * health signal. Growing while the rate sits at 0% means the ctx-cookie
+   * read broke on the server (a bug), not that users stopped converting.
+   */
+  unattributedCompletions: number;
+  /**
+   * completedSessions / ctaSessions * 100. Null while no CTA session exists
+   * yet (renders as "—", never 0% or NaN). Distinct-session based so
+   * re-clicks/re-logins can't inflate it, and intersection-based so lost
+   * beacons can't push it past 100% — both by SQL construction.
+   */
+  conversionRate: number | null;
+  generatedAt: string;
+}

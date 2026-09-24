@@ -7,6 +7,7 @@ import { completeProvenLogin } from './completeLogin';
 jest.mock('@/lib/analytics/db', () => ({
   ensureActiveWatch: jest.fn(),
   recordLogin: jest.fn(),
+  recordLoginFunnelEvent: jest.fn(),
   enqueueEvent: jest.fn(),
 }));
 
@@ -14,13 +15,13 @@ jest.mock('@/lib/watch/session', () => ({
   saveWatchSession: jest.fn(),
 }));
 
-const { ensureActiveWatch, recordLogin, enqueueEvent } = jest.requireMock(
-  '@/lib/analytics/db',
-) as {
-  ensureActiveWatch: jest.Mock;
-  recordLogin: jest.Mock;
-  enqueueEvent: jest.Mock;
-};
+const { ensureActiveWatch, recordLogin, recordLoginFunnelEvent, enqueueEvent } =
+  jest.requireMock('@/lib/analytics/db') as {
+    ensureActiveWatch: jest.Mock;
+    recordLogin: jest.Mock;
+    recordLoginFunnelEvent: jest.Mock;
+    enqueueEvent: jest.Mock;
+  };
 const { saveWatchSession } = jest.requireMock('@/lib/watch/session') as {
   saveWatchSession: jest.Mock;
 };
@@ -40,6 +41,7 @@ describe('completeProvenLogin (shared callback + pending completion)', () => {
       activated: false,
     });
     recordLogin.mockResolvedValue({});
+    recordLoginFunnelEvent.mockResolvedValue(undefined);
     enqueueEvent.mockResolvedValue({ eventId: 1, duplicate: false });
     saveWatchSession.mockResolvedValue(undefined);
   });
@@ -140,5 +142,68 @@ describe('completeProvenLogin (shared callback + pending completion)', () => {
       completeProvenLogin(makeStore(), STEAM, '/pt/', 'x'),
     ).rejects.toThrow('cookie store down');
     expect(enqueueEvent).not.toHaveBeenCalled();
+  });
+
+  it('records login_completed with the CTA cookie ctx after the seal (both login paths funnel here)', async () => {
+    const ctx = encodeURIComponent(
+      JSON.stringify({ sid: 'session-9', searchId: 'search-9' }),
+    );
+    const store = makeStore();
+    store.get.mockReturnValue({ value: ctx });
+
+    await completeProvenLogin(store, STEAM, '/pt/', 'steamCallback');
+
+    expect(recordLoginFunnelEvent).toHaveBeenCalledTimes(1);
+    expect(recordLoginFunnelEvent).toHaveBeenCalledWith({
+      event: 'login_completed',
+      sessionId: 'session-9',
+      searchId: 'search-9',
+    });
+    expect(store.get).toHaveBeenCalledWith('sr_login_ctx');
+  });
+
+  it('records NULL ctx when the CTA cookie is absent (volume counts, excluded from conversion)', async () => {
+    await completeProvenLogin(makeStore(), STEAM, '/pt/', 'steamPending');
+
+    expect(recordLoginFunnelEvent).toHaveBeenCalledWith({
+      event: 'login_completed',
+      sessionId: null,
+      searchId: null,
+    });
+  });
+
+  it('a failed funnel write never costs the completion (instrumentation is non-fatal)', async () => {
+    recordLoginFunnelEvent.mockRejectedValueOnce(new Error('funnel down'));
+
+    const result = await completeProvenLogin(makeStore(), STEAM, '/pt/', 'x');
+
+    expect(result.activated).toBe(false);
+    expect(saveWatchSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('bounds a STALLED funnel write: the completion never waits past the cap', async () => {
+    // A hung Turso connection is worse than a rejected one — without the
+    // withTimeout wrapper the login redirect would wait on it forever.
+    // Fake timers race a never-settling write against the 4s cap.
+    jest.useFakeTimers();
+    try {
+      recordLoginFunnelEvent.mockImplementationOnce(
+        () => new Promise<void>(() => {}),
+      );
+
+      const completion = completeProvenLogin(makeStore(), STEAM, '/pt/', 'x');
+      // Let the mocked awaits settle up to the funnel write.
+      await Promise.resolve();
+      await jest.advanceTimersByTimeAsync(4000);
+
+      const result = await completion;
+
+      // The timeout rejection was caught (logged, non-fatal) and the
+      // login completed anyway.
+      expect(result.activated).toBe(false);
+      expect(saveWatchSession).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

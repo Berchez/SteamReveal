@@ -1,9 +1,22 @@
 import fs from 'fs';
 import path from 'path';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import PendingLoginRoom from './PendingLoginRoom';
+
+// Login-funnel beacon is mocked (fetch-mocking would collide with the
+// poll-lane fetch mocks): we only pin that the retry link fires it.
+jest.mock(
+  '@/app/templates/Home/shared/analytics/loginFunnel',
+  () => ({
+    recordLoginCta: jest.fn(),
+  }),
+);
+
+const { recordLoginCta } = jest.requireMock(
+  '@/app/templates/Home/shared/analytics/loginFunnel',
+) as { recordLoginCta: jest.Mock };
 
 jest.mock('next-intl', () => ({
   useLocale: () => 'en',
@@ -140,6 +153,23 @@ describe('PendingLoginRoom', () => {
       await jest.advanceTimersByTimeAsync(60_000);
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires the login-CTA beacon when the expired retry link is clicked', async () => {
+    // The retry starts a FRESH OpenID dance that can produce its own
+    // completion — it must record a click like every other entry, or the
+    // conversion rate counts completions without clicks (>100%).
+    setLocation('?login=waiting');
+    fetchMock.mockResolvedValue({
+      json: async () => ({ done: false, expired: true, botProfileUrl: null }),
+    });
+
+    render(<PendingLoginRoom />);
+    await flush();
+
+    fireEvent.click(screen.getByRole('link', { name: 'watchWaitRetry' }));
+
+    expect(recordLoginCta).toHaveBeenCalledTimes(1);
   });
 
   it('references only keys that exist in the real locale files', () => {

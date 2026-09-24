@@ -51,11 +51,12 @@
  *      diffing the runtime string against the source you started from --
  *      not just eyeballing it -- before committing.
  *
- * Split in three around the data blocks: HEAD ends right after the
+ * Split in four around the data blocks: HEAD ends right after the
  * `<script id="db">` opening tag, the entries array follows, then WATCH_MID
  * closes it and opens `<script id="watch-db">`, then the watch JSON, then
- * TAIL (which starts at the watch block's closing tag).
- * buildAnalyticsHtml() joins the parts around the two serialized payloads.
+ * FUNNEL_DB_MID opens `<script id="login-funnel-db">`, then the funnel
+ * JSON, then TAIL (which starts at the funnel block's closing tag).
+ * buildAnalyticsHtml() joins the parts around the three serialized payloads.
  */
 
 import { CHEATER_OUTCOME_THRESHOLDS_PERCENT } from '@/lib/cheaterOutcomeBands';
@@ -395,6 +396,11 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   </div>
 </div>
 
+<h1 style="margin-top: 8px;">Steam login funnel</h1>
+<p class="subtitle">Navbar sign-in clicks vs completed logins, per anonymous session (no user ids)</p>
+
+<div class="stats" id="login-funnel-stats"></div>
+
 <div class="panel">
   <h2>Search history</h2>
   <div class="toolbar">
@@ -434,6 +440,8 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   The second block below (<script id="watch-db">, inserted by
   buildAnalyticsHtml between this block's closing tag and TAIL) carries
   the Watch aggregates (or null when those reads failed) — same rules.
+  The third block (<script id="login-funnel-db">, after the watch block)
+  carries the login-funnel aggregates (or null) — same rules.
 -->
 <script type="application/json" id="db">`;
 
@@ -1344,6 +1352,50 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
       '<li><span>' + escapeHtml(liveLine) + '</span><span class="count">now</span></li>';
   })();
 
+  // ---------------------------------------------------------------------
+  // Steam login funnel (navbar sign-in clicks -> completed logins). Reads
+  // the #login-funnel-db JSON block (null when the reads failed — the
+  // panel degrades to an explicit empty state instead of breaking the
+  // page, same fail-open contract as the Watch section above).
+  // ---------------------------------------------------------------------
+
+  var loginFunnel = null;
+  try {
+    loginFunnel = JSON.parse(document.getElementById('login-funnel-db').textContent);
+  } catch (e) {
+    console.error('Failed to read the login-funnel data block', e);
+  }
+
+  (function renderLoginFunnelSection() {
+    var statsEl = document.getElementById('login-funnel-stats');
+    if (!loginFunnel) {
+      statsEl.innerHTML = '<div class="stat-card"><div class="value">—</div><div class="label">Login funnel unavailable</div></div>';
+      return;
+    }
+    var num = function (v) { return (typeof v === 'number' && isFinite(v)) ? v : 0; };
+    // Rate invariant (server-side, by SQL construction — see
+    // getLoginFunnelStats): completedSessions is the INTERSECTION with
+    // clicking sessions, so a completion whose CTA beacon was lost
+    // (ad-blockers on /recordAnalyticsLogin, keepalive raced by the
+    // navigation) counts in the raw totals but never inflates the rate
+    // past 100%. The server sends null (not 0) while no CTA session
+    // exists yet — "no data", not "zero".
+    var rate = loginFunnel.conversionRate;
+    var rateText = (typeof rate === 'number' && isFinite(rate)) ? rate.toFixed(1) + '%' : '—';
+    statsEl.innerHTML = [
+      { value: num(loginFunnel.ctaEvents), label: 'Sign-in clicks' },
+      { value: num(loginFunnel.ctaSessions), label: 'Clicking sessions' },
+      { value: num(loginFunnel.completedSessions), label: 'Logged-in sessions' },
+      // Health signal, not a funnel step: completions with a NULL/unknown
+      // session. Growing while the rate sits at 0% means the ctx-cookie
+      // read broke server-side (a bug), not that users stopped converting.
+      { value: num(loginFunnel.unattributedCompletions), label: 'Unattributed logins' },
+      { value: rateText, label: 'Click → login conversion' },
+    ].map(function (s) {
+      return '<div class="stat-card"><div class="value">' + escapeHtml(s.value) + '</div><div class="label">' + escapeHtml(s.label) + '</div></div>';
+    }).join('');
+  })();
+
   // ---- Ranking: most searched profiles / most frequent friends ----
   function topRankHtml(counts, labelFn) {
     var arr = Object.keys(counts).map(function (k) { return { key: k, count: counts[k].count, meta: counts[k].meta }; });
@@ -1594,11 +1646,16 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
 const WATCH_DB_MID = `</script>
 <script type="application/json" id="watch-db">`;
 
+/** Closes the watch block and opens the login-funnel block (joined by buildAnalyticsHtml). */
+const FUNNEL_DB_MID = `</script>
+<script type="application/json" id="login-funnel-db">`;
+
 /**
  * Assembles a full analytics.html from the dashboard shell (HEAD/TAIL,
- * above) around two already-serialized JSON strings: the searches array
- * for the <script id="db"> block and the Watch aggregates (or 'null' when
- * those reads failed) for the <script id="watch-db"> block.
+ * above) around three already-serialized JSON strings: the searches array
+ * for the <script id="db"> block, the Watch aggregates (or 'null' when
+ * those reads failed) for the <script id="watch-db"> block, and the login
+ * funnel aggregates (or 'null') for the <script id="login-funnel-db"> block.
  *
  * Deliberately takes pre-serialized strings rather than SearchRecord[]:
  * this file only knows about markup/styling/behavior, not about what a
@@ -1612,8 +1669,9 @@ const WATCH_DB_MID = `</script>
 export const buildAnalyticsHtml = (
   serializedEntriesJson: string,
   serializedWatchJson: string = 'null',
+  serializedFunnelJson: string = 'null',
 ): string =>
-  `${ANALYTICS_DASHBOARD_HEAD}\n${serializedEntriesJson}\n${WATCH_DB_MID}\n${serializedWatchJson}\n${ANALYTICS_DASHBOARD_TAIL}`;
+  `${ANALYTICS_DASHBOARD_HEAD}\n${serializedEntriesJson}\n${WATCH_DB_MID}\n${serializedWatchJson}\n${FUNNEL_DB_MID}\n${serializedFunnelJson}\n${ANALYTICS_DASHBOARD_TAIL}`;
 
 /**
  * Convenience wrapper for an empty-history dashboard — used by tests and by

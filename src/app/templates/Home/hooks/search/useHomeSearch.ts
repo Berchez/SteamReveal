@@ -39,6 +39,7 @@ import {
   getRequesterCountry,
   getRequesterBrowserLanguage,
 } from '../../shared/analytics/homeAnalyticsUtils';
+import { setActiveLoginSearchId } from '../../shared/analytics/loginFunnel';
 
 import {
   FRIEND_GC_NAME_SYNC_DELAYS_MS,
@@ -176,6 +177,23 @@ const useHomeSearch = ({
   const [searchId, setSearchId] = useState<string | null>(
     initialCache?.searchId ?? null,
   );
+
+  // Login-CTA correlation mirror: the module-scoped store that the navbar
+  // sign-in reads on click (it lives outside this context BY DESIGN — see
+  // loginFunnel.ts) must track this state everywhere it changes. ONE
+  // effect is the single sync point, so a future reset/cached/set site
+  // cannot silently forget the store and correlate a login click to a
+  // stale search — the fragility the manual per-call-site sync had.
+  // Cleanup is belt-and-braces: the provider tree (which renders every
+  // reader of the store) unmounts only at page teardown anyway, but an
+  // explicit null keeps the singleton's lifecycle honest if that ever
+  // changes.
+  useEffect(() => {
+    setActiveLoginSearchId(searchId);
+    return () => {
+      setActiveLoginSearchId(null);
+    };
+  }, [searchId]);
 
   const targetValue = useRef<string | null>(null);
 
@@ -636,6 +654,8 @@ const useHomeSearch = ({
         return;
       }
       setSearchId(resolvedSearchId);
+      // The mirror effect publishes this to the login-CTA correlation
+      // store (see the effect at the top) — no manual sync here.
       cacheSearch();
       if (resolvedSearchId && closeFriends?.length) {
         scheduleFriendGcNameSync(resolvedSearchId, closeFriends, runId);

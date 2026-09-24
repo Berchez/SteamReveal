@@ -34,6 +34,8 @@ import type {
   WatchDashboardWatched,
   WatchDashboardEvent,
   WatchDashboardData,
+  LoginFunnelEventKind,
+  LoginFunnelStats,
   ExpiredConfirmCandidate,
   BanWatchSubscription,
   BanWatchTarget,
@@ -1873,6 +1875,128 @@ export const recordLogin = async (
   }
 
   return toWatchAccount(row.rows[0] as Record<string, unknown>);
+};
+
+// ---------------------------------------------------------------------------
+// Steam-login funnel instrumentation (login_cta_clicked -> login_completed).
+// One row per event; conversion is derived per anonymous session at read
+// time (getLoginFunnelStats), never stored. Both writers are best-effort:
+// the CTA beacon is fire-and-forget client-side, and the completion hook in
+// completeProvenLogin catches (a failed funnel write costs a log line,
+// never the login — same contract as the recordLogin audit above).
+// ---------------------------------------------------------------------------
+
+/** Row written by recordLoginFunnelEvent (mirrors 015 CHECK + nullables). */
+export type LoginFunnelEventInput = {
+  event: LoginFunnelEventKind;
+  /** Anon browser UUID; null when the CTA cookie was absent/unreadable. */
+  sessionId: string | null;
+  /** Active search at click time; null outside a search. */
+  searchId: string | null;
+};
+
+/**
+ * Appends one funnel event. Single INSERT (no batch — one row, nothing to
+ * make atomic with). Throws on transport failure so routes can log loudly;
+ * every caller treats it as non-fatal.
+ */
+export const recordLoginFunnelEvent = async (
+  input: LoginFunnelEventInput,
+): Promise<void> => {
+  const db = await getClient();
+  await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO login_funnel_events (event, session_id, search_id, created_at)
+            VALUES (?, ?, ?, ?)`,
+      args: [
+        input.event,
+        input.sessionId,
+        input.searchId,
+        new Date().toISOString(),
+      ],
+    }),
+  );
+};
+
+/**
+ * Read-only funnel aggregates for the analytics dashboard. One conditional-
+ * aggregation query (single row, single snapshot); the rate is derived in
+ * JS. Throws when the table is missing (migration not run) — the dashboard
+ * route treats that as fail-open null, same as the Watch half.
+ *
+ * completedSessions is an INTERSECTION, not an independent DISTINCT: a
+ * session only counts as "converted" when it ALSO has a recorded CTA click.
+ * The CTA beacon is best-effort (ad-blockers on the /recordAnalyticsLogin
+ * URL pattern, keepalive lost to the navigation, network blip) while the
+ * completion hook is server-side and reliable — so completions whose click
+ * row was lost DO appear in the raw `completions` total but never in the
+ * rate. Without the intersection the rate could exceed 100% exactly when
+ * beacons fail most (privacy extensions), lying about the funnel in the
+ * direction that matters. Repeat clicks / re-logins also move only the raw
+ * counts: the per-session DISTINCT keeps them out of both sides.
+ *
+ * unattributedCompletions exists as the cookie-failure signal: completions
+ * with a NULL/unknown session (ctx cookie not sent, unreadable store, or
+ * the click row itself lost). If that number grows while the rate sits at
+ * 0%, the correlation pipeline is broken — a bug, not product friction —
+ * and the panel makes it visible instead of failing silently as a
+ * plausible-looking "0.0%".
+ *
+ * No retention by design (accepted debt, same standing decision as
+ * watch_events): one row per click/login — tiny versus the searches
+ * tables. If it ever dominates the page cost, aggregate in SQL with a
+ * time window instead of scanning, or add a purge lane.
+ */
+export const getLoginFunnelStats = async (): Promise<LoginFunnelStats> => {
+  const db = await getClient();
+  const result = await withSchemaHint(
+    db.execute({
+      sql: `SELECT
+              COALESCE(SUM(CASE WHEN event = 'login_cta_clicked' THEN 1 ELSE 0 END), 0) AS cta_events,
+              COUNT(DISTINCT CASE WHEN event = 'login_cta_clicked' THEN session_id END) AS cta_sessions,
+              COALESCE(SUM(CASE WHEN event = 'login_completed' THEN 1 ELSE 0 END), 0) AS completions,
+              COUNT(DISTINCT CASE
+                WHEN event = 'login_completed'
+                  AND session_id IN (
+                    SELECT session_id FROM login_funnel_events
+                    WHERE event = 'login_cta_clicked' AND session_id IS NOT NULL
+                  )
+                THEN session_id
+              END) AS completed_sessions,
+              COALESCE(SUM(CASE
+                WHEN event = 'login_completed'
+                  AND (session_id IS NULL OR session_id NOT IN (
+                    SELECT session_id FROM login_funnel_events
+                    WHERE event = 'login_cta_clicked' AND session_id IS NOT NULL
+                  ))
+                THEN 1 ELSE 0
+              END), 0) AS unattributed_completions
+            FROM login_funnel_events`,
+    }),
+  );
+
+  // Empty table → SUMs are NULL (coalesced above) and COUNTs are 0; any
+  // other impossible shape degrades to 0 rather than poisoning the panel.
+  const toCount = (value: unknown): number =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  const row = (result.rows[0] ?? {}) as Record<string, unknown>;
+
+  const ctaEvents = toCount(row.cta_events);
+  const ctaSessions = toCount(row.cta_sessions);
+  const completions = toCount(row.completions);
+  const completedSessions = toCount(row.completed_sessions);
+  const unattributedCompletions = toCount(row.unattributed_completions);
+
+  return {
+    ctaEvents,
+    ctaSessions,
+    completions,
+    completedSessions,
+    unattributedCompletions,
+    conversionRate:
+      ctaSessions > 0 ? (completedSessions / ctaSessions) * 100 : null,
+    generatedAt: new Date().toISOString(),
+  };
 };
 
 /**

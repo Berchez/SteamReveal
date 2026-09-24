@@ -1,9 +1,14 @@
 import {
   serializeEntries,
+  serializeLoginFunnel,
   serializeWatchStats,
   renderDashboard,
 } from './dashboardRender';
-import type { SearchRecord, WatchDashboardData } from './types';
+import type {
+  LoginFunnelStats,
+  SearchRecord,
+  WatchDashboardData,
+} from './types';
 
 const makeRecord = (nickname: string): SearchRecord => ({
   id: '1788564056404-tzx2nt',
@@ -47,6 +52,53 @@ describe('renderDashboard', () => {
     expect(html).toMatch(/id="watch-db">\s*null\s*<\/script>/);
     expect(html).toContain('Watcher locales');
     expect(html).toContain('Bot deliveries per day');
+  });
+
+  it('embeds an empty login-funnel block by default (panel renders unavailable)', () => {
+    const html = renderDashboard([]);
+    expect(html).toContain('<script type="application/json" id="login-funnel-db">');
+    expect(html).toMatch(/id="login-funnel-db">\s*null\s*<\/script>/);
+    expect(html).toContain('Steam login funnel');
+  });
+
+  it('embeds funnel stats when provided', () => {
+    const html = renderDashboard(
+      [],
+      null,
+      {
+        ctaEvents: 300,
+        ctaSessions: 250,
+        completions: 1,
+        completedSessions: 1,
+        unattributedCompletions: 0,
+        conversionRate: 0.4,
+        generatedAt: '2026-09-24T00:00:00.000Z',
+      },
+    );
+    expect(html).toContain('"ctaEvents": 300');
+    expect(html).toContain('Click → login conversion');
+  });
+});
+
+describe('serializeLoginFunnel', () => {
+  const funnel: LoginFunnelStats = {
+    ctaEvents: 300,
+    ctaSessions: 250,
+    completions: 1,
+    completedSessions: 1,
+    unattributedCompletions: 0,
+    conversionRate: 0.4,
+    generatedAt: '2026-09-24T00:00:00.000Z',
+  };
+
+  it('serializes stats without breaking the script block', () => {
+    const out = serializeLoginFunnel(funnel);
+    expect(out).not.toContain('</script>');
+    expect(out).toContain('"conversionRate": 0.4');
+  });
+
+  it('serializes null (failed reads degrade to the unavailable panel)', () => {
+    expect(serializeLoginFunnel(null)).toBe('null');
   });
 });
 

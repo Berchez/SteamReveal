@@ -7,6 +7,7 @@ import { GET } from './route';
 jest.mock('@/lib/analytics/db', () => ({
   getSearchRecords: jest.fn(),
   getWatchDashboardData: jest.fn(),
+  getLoginFunnelStats: jest.fn(),
 }));
 
 jest.mock('@/lib/logRouteError', () => ({
@@ -28,12 +29,12 @@ jest.mock('@/lib/rateLimit', () => {
   };
 });
 
-const { getSearchRecords, getWatchDashboardData } = jest.requireMock(
-  '@/lib/analytics/db',
-) as {
-  getSearchRecords: jest.Mock;
-  getWatchDashboardData: jest.Mock;
-};
+const { getSearchRecords, getWatchDashboardData, getLoginFunnelStats } =
+  jest.requireMock('@/lib/analytics/db') as {
+    getSearchRecords: jest.Mock;
+    getWatchDashboardData: jest.Mock;
+    getLoginFunnelStats: jest.Mock;
+  };
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
   __testIsRateLimited: jest.Mock;
@@ -74,6 +75,15 @@ describe('GET /api/analytics/dashboard', () => {
       events: [],
       liveness: null,
       generatedAt: '2026-09-19T00:00:00.000Z',
+    });
+    getLoginFunnelStats.mockResolvedValue({
+      ctaEvents: 0,
+      ctaSessions: 0,
+      completions: 0,
+      completedSessions: 0,
+      unattributedCompletions: 0,
+      conversionRate: null,
+      generatedAt: '2026-09-24T00:00:00.000Z',
     });
     originalDbUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
@@ -279,6 +289,45 @@ describe('GET /api/analytics/dashboard', () => {
     );
     expect(logRouteErrorMock).toHaveBeenCalledWith(
       'analytics/dashboard',
+      expect.anything(),
+    );
+  });
+
+  it('embeds the login-funnel aggregates in a third JSON block', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    getLoginFunnelStats.mockResolvedValue({
+      ctaEvents: 300,
+      ctaSessions: 250,
+      completions: 1,
+      completedSessions: 1,
+      unattributedCompletions: 0,
+      conversionRate: 0.4,
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+    const html = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(html).toContain('<script type="application/json" id="login-funnel-db">');
+    expect(html).toContain('"ctaEvents": 300');
+    expect(html).toContain('Steam login funnel');
+    expect(getLoginFunnelStats).toHaveBeenCalledTimes(1);
+  });
+
+  it('still renders searches when the funnel reads fail (fail-open section)', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    getLoginFunnelStats.mockRejectedValue(new Error('funnel table down'));
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+    const html = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(html).toContain('76561198000000000');
+    expect(html).toContain('<script type="application/json" id="login-funnel-db">');
+    expect(html).toMatch(/id="login-funnel-db">\s*null\s*<\/script>/);
+    expect(logRouteErrorMock).toHaveBeenCalledWith(
+      'analytics/dashboard:loginFunnel',
       expect.anything(),
     );
   });

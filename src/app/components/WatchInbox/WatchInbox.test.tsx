@@ -5,6 +5,19 @@ import type { ReactNode } from 'react';
 import WatchInbox from './WatchInbox';
 import { WATCH_SEEN_KEY_PREFIX } from '@/app/templates/Home/hooks/watch/watchReadState';
 
+// Login-funnel beacon is mocked (fetch-mocking it here would collide with
+// the lane's own fetch mocks): we only pin that the login gate fires it.
+jest.mock(
+  '@/app/templates/Home/shared/analytics/loginFunnel',
+  () => ({
+    recordLoginCta: jest.fn(),
+  }),
+);
+
+const { recordLoginCta } = jest.requireMock(
+  '@/app/templates/Home/shared/analytics/loginFunnel',
+) as { recordLoginCta: jest.Mock };
+
 // Interpolation-aware (unlike the key-echo mock in WatchManager tests):
 // the bell aria-label carries {count}, which these tests must observe.
 const mockTranslate = (key: string, values?: Record<string, unknown>) =>
@@ -531,6 +544,21 @@ describe('WatchInbox', () => {
       'aria-label',
       'watchInboxBellLabel:{"count":0}',
     );
+  });
+
+  it('fires the login-CTA beacon when the gate link is clicked (funnel parity with the navbar)', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 401 });
+
+    render(<WatchInbox steamId={STEAM_A} />);
+    await settle();
+    await openInbox();
+
+    // Every entry to /api/auth/steam/login must record the CTA click, or
+    // the conversion rate counts completions without clicks (>100%).
+    fireEvent.click(screen.getByText('watchLoginButton').closest('a')!);
+    await settle();
+
+    expect(recordLoginCta).toHaveBeenCalledTimes(1);
   });
 
   it('clears stale rows and count when the session dies after content loaded', async () => {

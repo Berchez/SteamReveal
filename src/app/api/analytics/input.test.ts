@@ -2,6 +2,7 @@ import {
   parseRecordBody,
   parseCheaterBody,
   parseFriendGcNamesBody,
+  parseLoginFunnelBody,
 } from './input';
 
 describe('parseRecordBody', () => {
@@ -340,5 +341,55 @@ describe('parseFriendGcNamesBody', () => {
     expect(
       parseFriendGcNamesBody({ searchId: 'x', gcNames })?.gcNames,
     ).toHaveLength(1000);
+  });
+});
+
+describe('parseLoginFunnelBody', () => {
+  it('parses a valid CTA beacon (searchId optional)', () => {
+    expect(
+      parseLoginFunnelBody({
+        event: 'login_cta_clicked',
+        sessionId: '550e8400-e29b-41d4-a716-446655440000',
+        searchId: '1788564056404-tzx2nt',
+      }),
+    ).toEqual({
+      event: 'login_cta_clicked',
+      sessionId: '550e8400-e29b-41d4-a716-446655440000',
+      searchId: '1788564056404-tzx2nt',
+    });
+    expect(
+      parseLoginFunnelBody({ event: 'login_cta_clicked', sessionId: 's1' }),
+    ).toEqual({ event: 'login_cta_clicked', sessionId: 's1', searchId: null });
+  });
+
+  it('rejects forged completions (only the server records those, via DAL)', () => {
+    expect(
+      parseLoginFunnelBody({
+        event: 'login_completed',
+        sessionId: 's1',
+        searchId: 'x',
+      }),
+    ).toBeNull();
+  });
+
+  it('rejects missing/oversized ids and non-records', () => {
+    expect(parseLoginFunnelBody(null)).toBeNull();
+    expect(
+      parseLoginFunnelBody({ event: 'login_cta_clicked' }),
+    ).toBeNull();
+    expect(
+      parseLoginFunnelBody({
+        event: 'login_cta_clicked',
+        sessionId: 'x'.repeat(65),
+        searchId: 'ok',
+      }),
+    ).toBeNull();
+    expect(
+      parseLoginFunnelBody({
+        event: 'login_cta_clicked',
+        sessionId: 's1',
+        searchId: 'x'.repeat(65),
+      }),
+    ).toBeNull();
   });
 });

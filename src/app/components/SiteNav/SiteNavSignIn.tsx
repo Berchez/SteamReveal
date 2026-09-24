@@ -4,6 +4,7 @@ import React from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname } from '@/navigation';
 import resolveLoginNext from '@/lib/watch/loginNext';
+import { recordLoginCta } from '@/app/templates/Home/shared/analytics/loginFunnel';
 
 /**
  * Logged-out navbar sign-in entry (login-first model): a single Steam
@@ -24,6 +25,12 @@ import resolveLoginNext from '@/lib/watch/loginNext';
  * complete. Absence is deliberate — no disabled pill, no copy, no raised
  * expectation. The cluster is fixed-position, so disappearing causes zero
  * CLS.
+ *
+ * Funnel instrumentation: onClick fires the fire-and-forget
+ * `login_cta_clicked` beacon (anon session + active search correlation)
+ * and plants the ctx cookie the completion hook reads back. Deliberately
+ * NOT awaited and NOT preventDefaulted — analytics must never delay or
+ * break the navigation to Steam.
  */
 function SiteNavSignIn({ botOnline }: { botOnline: boolean }) {
   const t = useTranslations('Watch');
@@ -37,6 +44,9 @@ function SiteNavSignIn({ botOnline }: { botOnline: boolean }) {
     <div className="flex items-center gap-2">
       <a
         href={`/api/auth/steam/login?next=${encodeURIComponent(next)}`}
+        onClick={() => {
+          recordLoginCta();
+        }}
         className="inline-block h-11 px-4 rounded-full bg-purple-700 hover:bg-purple-600/90 text-white font-semibold text-sm leading-[2.75rem]"
       >
         {t('watchNavSignIn')}

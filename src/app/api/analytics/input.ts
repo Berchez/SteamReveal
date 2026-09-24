@@ -239,3 +239,48 @@ export const parseFriendGcNamesBody = (
 
   return { searchId: body.searchId, gcNames: gcNames.slice(0, MAX_FRIENDS) };
 };
+
+export interface ParsedLoginFunnelInput {
+  event: 'login_cta_clicked';
+  sessionId: string;
+  searchId: string | null;
+}
+
+/**
+ * Body parsing for the login-funnel CTA beacon (POST
+ * /api/recordAnalyticsLogin).
+ *
+ * ONLY the client-reportable step is accepted here: a forged
+ * `login_completed` from the browser would let anyone fake conversions, so
+ * completions enter exclusively server-side (completeProvenLogin → DAL).
+ * sessionId is required (1–64 chars — generated UUIDs are 36; the client
+ * always sends one, falling back to an ephemeral id when storage is
+ * blocked, because a missing sid would drop the click row entirely and
+ * undercount the funnel's denominator). A NULL sid from a hostile client
+ * is rejected outright — it can't join the per-session funnel.
+ * searchId is optional (clicks happen outside searches too) and, when
+ * present, only length-checked: it is deliberately NOT validated against
+ * the searches table (best-effort correlation, same philosophy as the
+ * friend-GC-name backfill; the column has no FK by schema design), so a
+ * plausible-but-fake string from a hostile client can land there. It only
+ * ever feeds aggregate correlation — nothing reads it back per-row.
+ */
+export const parseLoginFunnelBody = (
+  body: unknown,
+): ParsedLoginFunnelInput | null => {
+  if (!isRecord(body)) return null;
+  if (body.event !== 'login_cta_clicked') return null;
+  if (
+    typeof body.sessionId !== 'string' ||
+    body.sessionId.length === 0 ||
+    body.sessionId.length > 64
+  ) {
+    return null;
+  }
+  const searchId =
+    typeof body.searchId === 'string' && body.searchId.length > 0
+      ? body.searchId
+      : null;
+  if (searchId !== null && searchId.length > 64) return null;
+  return { event: 'login_cta_clicked', sessionId: body.sessionId, searchId };
+};

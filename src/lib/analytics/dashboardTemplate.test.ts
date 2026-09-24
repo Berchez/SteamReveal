@@ -97,4 +97,13 @@ describe('inline dashboard script', () => {
     expect(html).toContain('<script type="application/json" id="watch-db">');
     expect(html).toMatch(/id="watch-db">\s*null\s*<\/script>/);
   });
+
+  it('embeds a null login-funnel block by default and renders its panel shell', () => {
+    const html = buildAnalyticsHtml('[]');
+    expect(html).toContain('<script type="application/json" id="login-funnel-db">');
+    expect(html).toMatch(/id="login-funnel-db">\s*null\s*<\/script>/);
+    expect(html).toContain('Steam login funnel');
+    expect(html).toContain('id="login-funnel-stats"');
+    expect(html).toContain('Click → login conversion');
+  });
 });
