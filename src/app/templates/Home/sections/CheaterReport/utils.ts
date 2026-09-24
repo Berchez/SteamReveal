@@ -7,19 +7,10 @@ type PlatformBanKind = 'cheat' | 'smurf';
 
 const PLATFORM_BAN_KEYS: Record<
   PlatformBanKind,
-  {
-    faceit: 'platformBannedFaceit' | 'platformSmurfedFaceit';
-    gamersClub: 'platformBannedGamersClub' | 'platformSmurfedGamersClub';
-  }
+  { faceit: 'platformBannedFaceit' | 'platformSmurfedFaceit'; gamersClub: 'platformBannedGamersClub' | 'platformSmurfedGamersClub' }
 > = {
-  cheat: {
-    faceit: 'platformBannedFaceit',
-    gamersClub: 'platformBannedGamersClub',
-  },
-  smurf: {
-    faceit: 'platformSmurfedFaceit',
-    gamersClub: 'platformSmurfedGamersClub',
-  },
+  cheat: { faceit: 'platformBannedFaceit', gamersClub: 'platformBannedGamersClub' },
+  smurf: { faceit: 'platformSmurfedFaceit', gamersClub: 'platformSmurfedGamersClub' },
 };
 
 /**
@@ -159,8 +150,11 @@ const analyzeCheaterData = (
   });
 
   // Banned on an external platform (Faceit / GamersClub)
-  const { platformBanScore, platformBanCheatCount, platformBanSmurfCount } =
-    featureObject;
+  const {
+    platformBanScore,
+    platformBanCheatCount,
+    platformBanSmurfCount,
+  } = featureObject;
 
   if (platformBanScore !== undefined) {
     const cheatCount = platformBanCheatCount ?? 0;
@@ -329,26 +323,15 @@ const analyzeCheaterData = (
     }
   }
 
-  // Final classification. Bands calibrated on the observed production
-  // distribution (cheater_results, n=191 on 2026-09-24: min 0.04, p25 0.46,
-  // median 0.50, p75 0.57, max 0.74 — 72% of all scores sat in 0.40-0.60).
-  // The old bands (>0.8/>0.6) left HIGHLY_SUSPECT unreachable (nothing ever
-  // scored above 0.74) and parked nearly everything in INCONCLUSIVE. These
-  // cut at the distribution's natural breaks instead: lone low tail (<0.35,
-  // ~10%), lower shoulder (0.35-0.45), mound core (0.45-0.55), upper
-  // shoulder (0.55-0.65, ~30% SUSPECT), top tail (>=0.65, ~3% HIGHLY).
-  // Aggressive by design (recall over precision for an OSINT tool): with
-  // these bands the historical split is ~10/9/48/30/3 instead of 3/15/72/15/0.
-  // Revisit if the model is ever retrained/calibrated — these bands assume
-  // the current uncalibrated ~50-centered output.
+  // Final classification
   let outcome: ReportOutcomeKey;
-  if (cheaterProbability >= 0.65) {
+  if (cheaterProbability > 0.8) {
     outcome = ReportOutcomes.HIGHLY_SUSPECT;
-  } else if (cheaterProbability >= 0.55) {
+  } else if (cheaterProbability > 0.6) {
     outcome = ReportOutcomes.SUSPECT;
-  } else if (cheaterProbability >= 0.45) {
+  } else if (cheaterProbability >= 0.4) {
     outcome = ReportOutcomes.INCONCLUSIVE;
-  } else if (cheaterProbability >= 0.35) {
+  } else if (cheaterProbability > 0.2) {
     outcome = ReportOutcomes.INNOCENT;
   } else {
     outcome = ReportOutcomes.VERY_TRUSTED;

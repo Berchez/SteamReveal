@@ -17,10 +17,7 @@ const makeFeatureObject = (
 
 const makeData = (
   featureObject: CheaterDataType['featureObject'],
-  // 0.5 sits in INCONCLUSIVE under the calibrated bands, which keeps BOTH
-  // reason lists visible — what the routing tests below need. (0.7 would
-  // land in HIGHLY_SUSPECT and suppress all innocence reasons.)
-  cheaterProbability = 0.5,
+  cheaterProbability = 0.7,
 ): CheaterDataType => ({
   cheaterProbability,
   featureObject,
@@ -118,49 +115,6 @@ describe('analyzeCheaterData - friends / level / age display honesty', () => {
       makeTranslator() as never,
     );
     expect(veteran.innocenceReasons).toContain('oldAccount');
-  });
-});
-
-describe('analyzeCheaterData - outcome bands (calibrated on observed n=191 distribution)', () => {
-  const outcomeOf = (cheaterProbability: number) =>
-    analyzeCheaterData(
-      makeData(makeFeatureObject(), cheaterProbability),
-      makeTranslator() as never,
-    ).outcome;
-
-  it('maps the lone low tail to VERY_TRUSTED and hides suspicion reasons', () => {
-    const result = analyzeCheaterData(
-      makeData(makeFeatureObject(), 0.34),
-      makeTranslator() as never,
-    );
-    expect(result.outcome).toBe('veryTrusted');
-    expect(result.suspicionReasons).toHaveLength(0);
-  });
-
-  it('maps 0.35-0.44 to INNOCENT', () => {
-    expect(outcomeOf(0.35)).toBe('innocent');
-    expect(outcomeOf(0.44)).toBe('innocent');
-  });
-
-  it('maps the mound core 0.45-0.54 to INCONCLUSIVE', () => {
-    expect(outcomeOf(0.45)).toBe('inconclusive');
-    expect(outcomeOf(0.5)).toBe('inconclusive');
-    expect(outcomeOf(0.54)).toBe('inconclusive');
-  });
-
-  it('maps the upper shoulder 0.55-0.64 to SUSPECT', () => {
-    expect(outcomeOf(0.55)).toBe('suspect');
-    expect(outcomeOf(0.64)).toBe('suspect');
-  });
-
-  it('maps the top tail >= 0.65 to HIGHLY_SUSPECT and hides innocence reasons', () => {
-    const result = analyzeCheaterData(
-      makeData(makeFeatureObject(), 0.65),
-      makeTranslator() as never,
-    );
-    expect(result.outcome).toBe('highlySuspect');
-    expect(result.innocenceReasons).toHaveLength(0);
-    expect(outcomeOf(0.74)).toBe('highlySuspect');
   });
 });
 
