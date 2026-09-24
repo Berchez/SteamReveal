@@ -41,6 +41,23 @@ describe('inline dashboard script', () => {
     expect(script).not.toContain('</script>');
   });
 
+  it('buckets the cheater chart by outcome bands and reports mean + median', () => {
+    var entries = JSON.stringify([
+      { searchedAt: '2026-09-01T00:00:00.000Z', cheater: { score: 0.2 } },
+      { searchedAt: '2026-09-02T00:00:00.000Z', cheater: { score: 0.5 } },
+      { searchedAt: '2026-09-03T00:00:00.000Z', cheater: { score: 0.7 } },
+    ]);
+    var html = buildAnalyticsHtml(entries, 'null');
+    var script = extractInlineScript(html);
+    expect(script).toContain('Very trusted (<35%)');
+    expect(script).toContain('Innocent (35-45%)');
+    expect(script).toContain('Inconclusive (45-55%)');
+    expect(script).toContain('Suspect (55-65%)');
+    expect(script).toContain('Highly suspect (>=65%)');
+    expect(script).toContain('Median cheater probability');
+    expect(script).toContain('Average cheater probability');
+  });
+
   it('embeds a null watch block by default', () => {
     const html = buildAnalyticsHtml('[]');
     expect(html).toContain('<script type="application/json" id="watch-db">');

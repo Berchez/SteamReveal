@@ -281,7 +281,7 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
 
   <div class="panel">
     <h2>Cheater probability</h2>
-    <p class="panel-note">Distribution of computed reports</p>
+    <p class="panel-note">Computed reports per outcome band</p>
     <div id="chart-cheater"></div>
   </div>
 
@@ -714,8 +714,18 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   var privateListSearches = entries.filter(function (e) { return e.friendsVisibility === 'private'; }).length;
 
   var withCheater = entries.filter(function (e) { return e.cheater && typeof e.cheater.score === 'number'; });
+  var cheaterScores = withCheater.map(function (e) { return normalizeScore(e.cheater.score); }).sort(function (a, b) { return a - b; });
   var avgCheater = withCheater.length
-    ? (withCheater.reduce(function (s, e) { return s + normalizeScore(e.cheater.score); }, 0) / withCheater.length).toFixed(1) + '%'
+    ? (cheaterScores.reduce(function (s, v) { return s + v; }, 0) / cheaterScores.length).toFixed(1) + '%'
+    : '—';
+  // Median next to the mean: with scores clustered ~50, the pair tells
+  // whether the average is pulled by a tail (mean != median) or the whole
+  // distribution sits in one band (mean ~= median, the current disease).
+  var medianCheater = withCheater.length
+    ? (cheaterScores.length % 2
+      ? cheaterScores[(cheaterScores.length - 1) / 2]
+      : (cheaterScores[cheaterScores.length / 2 - 1] + cheaterScores[cheaterScores.length / 2]) / 2
+      ).toFixed(1) + '%'
     : '—';
 
   var withDuration = entries.filter(function (e) { return typeof e.durationMs === 'number'; });
@@ -742,6 +752,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     { value: searchesThisWeek, label: 'Searches in the last 7 days' },
     { value: avgDuration, label: 'Average search duration' },
     { value: avgCheater, label: 'Average cheater probability' },
+    { value: medianCheater, label: 'Median cheater probability' },
   ];
   statsEl.innerHTML = stats.map(function (s) {
     return '<div class="stat-card"><div class="value">' + escapeHtml(s.value) + '</div><div class="label">' + escapeHtml(s.label) + '</div></div>';
@@ -822,15 +833,23 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   renderCountryChart();
 
   // ---- Cheater probability distribution ----
-  var cheaterBins = new Array(10).fill(0);
-  withCheater.forEach(function (e) {
-    var normalized = normalizeScore(e.cheater.score);
-    var idx = Math.min(9, Math.max(0, Math.floor(normalized / 10)));
-    cheaterBins[idx] += 1;
-  });
-  var riskColors = ['#7ee081', '#7ee081', '#7ee081', '#ffb454', '#ffb454', '#ffb454', '#ff6b6b', '#ff6b6b', '#ff6b6b', '#ff6b6b'];
-  var cheaterData = cheaterBins.map(function (v, i) {
-    return { label: (i * 10) + '-' + (i * 10 + 10) + '%', value: v, color: riskColors[i] };
+  // Bucketed by the report outcome bands (same cuts as CheaterReport:
+  // VERY_TRUSTED <35, INNOCENT 35-45, INCONCLUSIVE 45-55, SUSPECT 55-65,
+  // HIGHLY >=65), not by flat 10% bins — so the chart reads as "how many
+  // profiles landed in each verdict" instead of hiding the cluster.
+  var cheaterBands = [
+    { label: 'Very trusted (<35%)', color: '#7ee081', test: function (v) { return v < 35; } },
+    { label: 'Innocent (35-45%)', color: '#b5e48c', test: function (v) { return v >= 35 && v < 45; } },
+    { label: 'Inconclusive (45-55%)', color: '#ffb454', test: function (v) { return v >= 45 && v < 55; } },
+    { label: 'Suspect (55-65%)', color: '#ff9f43', test: function (v) { return v >= 55 && v < 65; } },
+    { label: 'Highly suspect (>=65%)', color: '#ff6b6b', test: function (v) { return v >= 65; } },
+  ];
+  var cheaterData = cheaterBands.map(function (band) {
+    var count = 0;
+    withCheater.forEach(function (e) {
+      if (band.test(normalizeScore(e.cheater.score))) count += 1;
+    });
+    return { label: band.label, value: count, color: band.color };
   });
   function renderCheaterChart() {
     var el = document.getElementById('chart-cheater');
