@@ -41,7 +41,7 @@ describe('inline dashboard script', () => {
     expect(script).not.toContain('</script>');
   });
 
-  it('buckets the cheater chart by outcome bands and reports mean + median', () => {
+  it('renders the cheater histogram with a band-total legend and reports mean + median', () => {
     var entries = JSON.stringify([
       { searchedAt: '2026-09-01T00:00:00.000Z', cheater: { score: 0.2 } },
       { searchedAt: '2026-09-02T00:00:00.000Z', cheater: { score: 0.5 } },
@@ -49,6 +49,10 @@ describe('inline dashboard script', () => {
     ]);
     var html = buildAnalyticsHtml(entries, 'null');
     var script = extractInlineScript(html);
+    // Histogram bins (built at runtime from CHEATER_HISTOGRAM_BIN_WIDTH).
+    expect(script).toContain('CHEATER_HISTOGRAM_BIN_WIDTH');
+    expect(script).toContain('cheaterBinOf');
+    // Band-total legend keeps the five outcome-band labels.
     expect(script).toContain('Very trusted (<=20%)');
     expect(script).toContain('Innocent (20-45%)');
     expect(script).toContain('Inconclusive (45-58%)');

@@ -297,7 +297,7 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
 
   <div class="panel">
     <h2>Cheater probability</h2>
-    <p class="panel-note">Computed reports per outcome band</p>
+    <p class="panel-note">Score histogram, colored by outcome band (band totals below)</p>
     <div id="chart-cheater"></div>
   </div>
 
@@ -885,27 +885,31 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   renderCountryChart();
 
   // ---- Cheater probability distribution ----
-  // Bucketed by the report outcome bands. The cuts come from
+  // Histogram over the report outcome bands. The cuts come from
   // @/lib/cheaterOutcomeBands (interpolated at build time via the
   // CHEATER_OUTCOME_THRESHOLDS_PERCENT import) — the single source of truth
   // shared with CheaterReport/utils.ts, so the dashboard and the report
   // can never drift apart.
   //
   // The strictness of each cut (> vs >=) mirrors classifyCheaterOutcome
-  // exactly, and lives in ONE place — cheaterBandIndex() below. The chart
-  // buckets, the table labels (cheaterOutcome), and the sort key
-  // (cheaterOutcomeRank) all derive from it, so editing a boundary can
-  // never desync the three silently.
+  // exactly, and lives in ONE place — cheaterBandIndex() below. The table
+  // labels (cheaterOutcome), the sort key (cheaterOutcomeRank), the bar
+  // COLORS (via each bin's midpoint) and the band totals in the legend all
+  // derive from it, so editing a boundary can never desync them silently.
+  // A bin straddling a cut (e.g. 40-50% over the 45 cut) takes the color of
+  // the band its midpoint falls in — documented approximation, pinned by
+  // the cross-consistency test.
   //
   // NaN parity note: every comparison below is false for NaN, so an
   // invalid score falls to band 0 ("Very trusted") — exactly like the
   // server-side classifyCheaterOutcome, whose guards all fail for NaN and
-  // return VERY_TRUSTED. The old per-band test()s excluded NaN from the
-  // chart while the report still labeled it Very trusted; now both agree.
-  // Unreachable in practice (scores arrive via JSON, which has no NaN —
-  // non-numbers are filtered by withCheater above), documented so nobody
-  // "fixes" the fallthrough back into a divergence.
+  // return VERY_TRUSTED. cheaterBinOf routes NaN to the first bin for the
+  // same reason, so chart and table can never disagree on it. Unreachable
+  // in practice (scores arrive via JSON, which has no NaN — non-numbers
+  // are filtered by withCheater above), documented so nobody "fixes" the
+  // fallthrough back into a divergence.
   var CHEATER_BAND_LABELS = ['Very trusted', 'Innocent', 'Inconclusive', 'Suspect', 'Highly suspect'];
+  var CHEATER_BAND_COLORS = ['#7ee081', '#b5e48c', '#ffb454', '#ff9f43', '#ff6b6b'];
   function cheaterBandIndex(score) {
     if (score > ${BANDS.HIGHLY_SUSPECT_MIN}) return 4;
     if (score > ${BANDS.SUSPECT_MIN}) return 3;
@@ -913,14 +917,43 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     if (score > ${BANDS.VERY_TRUSTED_MAX}) return 1;
     return 0;
   }
+  // Histogram granularity, in percentage points per bar. Bump to 5 for a
+  // finer shape once n is large enough that most bins stay non-empty.
+  var CHEATER_HISTOGRAM_BIN_WIDTH = 10;
+  var CHEATER_HISTOGRAM_BIN_COUNT = Math.ceil(100 / CHEATER_HISTOGRAM_BIN_WIDTH);
+  // Bins are half-open [lo, hi): score 20 lands in 20-30%, never 10-20%.
+  // Out-of-range scores clamp to the edge bins; 100 lands in the last bin.
+  function cheaterBinOf(score) {
+    if (typeof score !== 'number' || isNaN(score)) return 0;
+    var idx = Math.floor(score / CHEATER_HISTOGRAM_BIN_WIDTH);
+    if (idx < 0) return 0;
+    if (idx >= CHEATER_HISTOGRAM_BIN_COUNT) return CHEATER_HISTOGRAM_BIN_COUNT - 1;
+    return idx;
+  }
   var cheaterBands = [
-    { label: 'Very trusted (<=${BANDS.VERY_TRUSTED_MAX}%)', color: '#7ee081' },
-    { label: 'Innocent (${BANDS.VERY_TRUSTED_MAX}-${BANDS.INCONCLUSIVE_MIN}%)', color: '#b5e48c' },
-    { label: 'Inconclusive (${BANDS.INCONCLUSIVE_MIN}-${BANDS.SUSPECT_MIN}%)', color: '#ffb454' },
-    { label: 'Suspect (${BANDS.SUSPECT_MIN}-${BANDS.HIGHLY_SUSPECT_MIN}%)', color: '#ff9f43' },
-    { label: 'Highly suspect (>${BANDS.HIGHLY_SUSPECT_MIN}%)', color: '#ff6b6b' },
+    { label: 'Very trusted (<=${BANDS.VERY_TRUSTED_MAX}%)', color: CHEATER_BAND_COLORS[0] },
+    { label: 'Innocent (${BANDS.VERY_TRUSTED_MAX}-${BANDS.INCONCLUSIVE_MIN}%)', color: CHEATER_BAND_COLORS[1] },
+    { label: 'Inconclusive (${BANDS.INCONCLUSIVE_MIN}-${BANDS.SUSPECT_MIN}%)', color: CHEATER_BAND_COLORS[2] },
+    { label: 'Suspect (${BANDS.SUSPECT_MIN}-${BANDS.HIGHLY_SUSPECT_MIN}%)', color: CHEATER_BAND_COLORS[3] },
+    { label: 'Highly suspect (>${BANDS.HIGHLY_SUSPECT_MIN}%)', color: CHEATER_BAND_COLORS[4] },
   ];
-  var cheaterData = cheaterBands.map(function (band, idx) {
+  var cheaterData = [];
+  for (var cheaterBin = 0; cheaterBin < CHEATER_HISTOGRAM_BIN_COUNT; cheaterBin += 1) {
+    var binLo = cheaterBin * CHEATER_HISTOGRAM_BIN_WIDTH;
+    var binHi = binLo + CHEATER_HISTOGRAM_BIN_WIDTH;
+    var binMid = (binLo + binHi) / 2;
+    cheaterData.push({
+      label: binLo + '-' + binHi + '%',
+      value: 0,
+      color: CHEATER_BAND_COLORS[cheaterBandIndex(binMid)],
+    });
+  }
+  withCheater.forEach(function (e) {
+    cheaterData[cheaterBinOf(normalizeScore(e.cheater.score))].value += 1;
+  });
+  // Band totals for the legend (same single-source cuts as the table, so
+  // the legend and the Outcome column always agree by construction).
+  var cheaterBandLegend = cheaterBands.map(function (band, idx) {
     var count = 0;
     withCheater.forEach(function (e) {
       if (cheaterBandIndex(normalizeScore(e.cheater.score)) === idx) count += 1;
@@ -930,7 +963,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   function renderCheaterChart() {
     var el = document.getElementById('chart-cheater');
     el.innerHTML = withCheater.length
-      ? svgBarChart(cheaterData, { width: containerWidth(el) })
+      ? svgBarChart(cheaterData, { width: containerWidth(el) }) + barLegendHtml(cheaterBandLegend)
       : '<div class="empty">No cheater reports computed yet.</div>';
   }
   renderCheaterChart();

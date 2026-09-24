@@ -78,6 +78,29 @@ function cheaterBadgeClasses(): string[] {
   ) as string[];
 }
 
+function cheaterLegendCounts(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  Array.prototype.forEach.call(
+    document.querySelectorAll('#chart-cheater .bar-legend li'),
+    function (li) {
+      const label = (
+        li.querySelector('.bar-legend-label')?.textContent || ''
+      ).trim();
+      counts[label] = Number(
+        li.querySelector('.bar-legend-value')?.textContent,
+      );
+    },
+  );
+  return counts;
+}
+
+function cheaterBarFill(dataLabel: string): string | null {
+  const rect = document.querySelector(
+    '#chart-cheater .bar-rect[data-label="' + dataLabel + '"]',
+  );
+  return rect ? rect.getAttribute('fill') : null;
+}
+
 function cheaterNicknames(): string[] {
   return Array.prototype.map.call(
     document.querySelectorAll('#cheater-body tr td:nth-child(2)'),
@@ -156,11 +179,12 @@ describe('dashboard interactive tables', () => {
     expect(historyNicknames()).toEqual(['Bob']);
   });
 
-  it('keeps chart buckets, outcome labels and outcome sort consistent at band boundaries', () => {
-    // Cross-consistency guard for the three consumers of cheaterBandIndex
-    // (chart buckets, cheaterOutcome labels, cheaterOutcomeRank sort key):
-    // a boundary edit that touched only one of them would fail here.
-    // Scores sit exactly on the cuts (0-1 fractions, normalized ×100).
+  it('keeps histogram bins, band legend, outcome labels and outcome sort consistent at band boundaries', () => {
+    // Cross-consistency guard for every consumer of cheaterBandIndex (the
+    // histogram bins/colors, the band-total legend, cheaterOutcome labels,
+    // cheaterOutcomeRank sort key): a boundary edit that touched only some
+    // of them would fail here. Scores sit exactly on the cuts (0-1
+    // fractions, normalized ×100).
     const boundaryEntries = JSON.stringify(
       [
         { nick: 'VT20', score: 0.2 },
@@ -209,8 +233,31 @@ describe('dashboard interactive tables', () => {
       'Very trusted',
     ]);
 
-    // 2. Chart buckets count the same boundaries into the same bands.
+    // 2. Histogram bins count the same boundaries into 10% buckets
+    // (half-open [lo, hi): 20 lands in 20-30%, 65 in 60-70%).
     expect(cheaterChartCounts()).toEqual({
+      '0-10%': 0,
+      '10-20%': 0,
+      '20-30%': 2,
+      '30-40%': 0,
+      '40-50%': 1,
+      '50-60%': 2,
+      '60-70%': 2,
+      '70-80%': 0,
+      '80-90%': 0,
+      '90-100%': 0,
+    });
+
+    // 2b. Bin colors follow the band of each bin's midpoint (documented
+    // approximation for the bins straddling a cut): mid 25 → Innocent
+    // green, mid 45 → Inconclusive amber.
+    expect(cheaterBarFill('20-30%')).toBe('#b5e48c');
+    expect(cheaterBarFill('40-50%')).toBe('#ffb454');
+    expect(cheaterBarFill('60-70%')).toBe('#ff9f43');
+
+    // 2c. The band-total legend still aggregates the same boundaries into
+    // the five outcome bands (1/1/2/2/1), agreeing with the table labels.
+    expect(cheaterLegendCounts()).toEqual({
       'Very trusted (<=20%)': 1,
       'Innocent (20-45%)': 1,
       'Inconclusive (45-58%)': 2,
