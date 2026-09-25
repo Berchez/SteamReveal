@@ -82,7 +82,7 @@ describe('WatchInbox with real next-intl messages', () => {
     window.localStorage.clear();
   });
 
-  it.each(['en', 'pt', 'es', 'de', 'ru'])(
+  it.each(['en', 'pt', 'es', 'de', 'ru', 'fr', 'uk', 'pl'])(
     'renders the searcher flag inside the sentence (%s)',
     async (locale) => {
       fetchMock.mockResolvedValue(

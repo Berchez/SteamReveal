@@ -35,6 +35,9 @@ const FLAG_CODES: Record<string, string> = {
   Русский: 'ru',
   Deutsch: 'de',
   Español: 'es',
+  Français: 'fr',
+  Українська: 'ua',
+  Polski: 'pl',
 };
 
 describe('LanguageSwitcher', () => {
@@ -71,7 +74,7 @@ describe('LanguageSwitcher', () => {
     );
 
     const items = screen.getAllByRole('menuitem');
-    expect(items).toHaveLength(5);
+    expect(items).toHaveLength(8);
     for (const [name, code] of Object.entries(FLAG_CODES)) {
       const item = items.find((li) =>
         li.textContent?.includes(name),

@@ -7,7 +7,7 @@ import {
 
 describe('getWelcomeMessage', () => {
   it('returns the template for each supported locale', () => {
-    for (const locale of ['pt', 'en', 'es', 'de', 'ru']) {
+    for (const locale of ['pt', 'en', 'es', 'de', 'ru', 'fr', 'uk', 'pl']) {
       const message = getWelcomeMessage(locale);
       expect(typeof message).toBe('string');
       expect(message.length).toBeGreaterThan(20);
@@ -29,7 +29,7 @@ describe('getWelcomeMessage', () => {
 
   it('every template explains how to leave and has no BBCode-bracket chars', () => {
     // steam-user escapes `[` as BBCode — a bracket would render mangled.
-    for (const locale of ['pt', 'en', 'es', 'de', 'ru', null]) {
+    for (const locale of ['pt', 'en', 'es', 'de', 'ru', 'fr', 'uk', 'pl', null]) {
       expect(getWelcomeMessage(locale)).not.toContain('[');
     }
   });

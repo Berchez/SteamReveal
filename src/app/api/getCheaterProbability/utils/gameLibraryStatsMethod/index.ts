@@ -1,6 +1,6 @@
 import getSteamApiKey from '@/lib/getSteamApiKey';
 import SteamAPI from 'steamapi';
-import isBenignOwnedGamesError from '@/lib/isBenignOwnedGamesError';
+import { isPrivateLibraryShapeError } from '@/lib/isBenignOwnedGamesError';
 import { getAccountAge } from '@/app/api/getCheaterProbability/utils/utils';
 
 const steam = new SteamAPI(getSteamApiKey() ?? '');
@@ -64,13 +64,21 @@ const getGameLibraryStats = async (target: string) => {
       totalGamesCount: allGamesArr.length,
     };
   } catch (err) {
-    // Benign data-unavailability shapes (private library — steamapi's
-    // TypeError on `games.map`; bogus/gone profile) are routine: warn so
-    // they never read like an outage. Genuine failures stay loud.
-    if (isBenignOwnedGamesError(err)) {
+    // Deliberately NARROWER than isBenignOwnedGamesError: this function
+    // makes no sibling Steam call, so the string shapes (Unauthorized /
+    // Forbidden / Bad Request — identical for "private profile" and "dead
+    // API key") cannot be told apart here. Only steamapi's own TypeError
+    // on `games.map` qualifies as benign: a dead key yields HTTP 401,
+    // never the 200-with-no-`games` shape, so this branch provably cannot
+    // hide a key outage. Everything else stays loud. (Backstop, not
+    // assumption: the sole production caller — getCheaterProbability —
+    // awaits summary/level/bans with the same key in the same request and
+    // 500s loudly on any of them, so a dead key is always visible at
+    // request level regardless of this line's level.)
+    if (isPrivateLibraryShapeError(err)) {
       // eslint-disable-next-line no-console
       console.warn(
-        'Owned-games stats unavailable (private library or unresolvable profile):',
+        'Owned-games stats unavailable (private/empty library):',
         err instanceof Error ? err.message : err,
       );
     } else {

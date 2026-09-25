@@ -67,4 +67,34 @@ export const CONFIRM_PAGE_TEXT: Record<WatchMessageLocale, ConfirmPageText> = {
       'Ссылки подтверждения действуют 24 часа. Открой SteamReveal, войди и создай новую на панели наблюдения.',
     homeLink: 'Открыть SteamReveal',
   },
+  fr: {
+    lang: 'fr',
+    title: 'Confirmez votre surveillance',
+    body: 'En confirmant, vous prouvez que c\'est bien vous. Cela active la surveillance SteamReveal de votre profil et vous connecte sur ce navigateur — vous recevrez un message dans le chat Steam chaque fois que votre profil surveillé sera recherché.',
+    button: 'Confirmer et activer',
+    expiredTitle: 'Ce lien a expiré',
+    expiredBody:
+      'Les liens de confirmation durent 24 heures. Ouvrez SteamReveal, connectez-vous et générez-en un nouveau depuis le panneau de surveillance.',
+    homeLink: 'Ouvrir SteamReveal',
+  },
+  uk: {
+    lang: 'uk',
+    title: 'Підтвердь спостереження',
+    body: 'Підтверджуючи, ти доводиш, що це ти. Це активує спостереження SteamReveal за твоїм профілем і входить у цьому браузері — ти отримуватимеш повідомлення в чаті Steam щоразу, коли профіль під наглядом шукатимуть.',
+    button: 'Підтвердити й активувати',
+    expiredTitle: 'Це посилання прострочене',
+    expiredBody:
+      'Посилання-підтвердження діють 24 години. Відкрий SteamReveal, увійди й згенеруй нове на панелі спостереження.',
+    homeLink: 'Відкрити SteamReveal',
+  },
+  pl: {
+    lang: 'pl',
+    title: 'Potwierdź obserwowanie',
+    body: 'Potwierdzając, udowadniasz, że to Ty. To aktywuje obserwowanie SteamReveal Twojego profilu i loguje Cię w tej przeglądarce — otrzymasz wiadomość na czacie Steam za każdym razem, gdy Twój obserwowany profil będzie wyszukiwany.',
+    button: 'Potwierdź i aktywuj',
+    expiredTitle: 'Ten link wygasł',
+    expiredBody:
+      'Linki potwierdzające są ważne 24 godziny. Otwórz SteamReveal, zaloguj się i wygeneruj nowy w panelu obserwowania.',
+    homeLink: 'Otwórz SteamReveal',
+  },
 };

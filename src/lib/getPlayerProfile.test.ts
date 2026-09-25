@@ -170,6 +170,66 @@ describe('getPlayerProfile — SSR isCSActive enrichment', () => {
     consoleWarnSpy.mockRestore();
   });
 
+  it('logs genuine seed failures loudly (the SSR-critical path must not go silent)', async () => {
+    // A dead key / network outage / timeout on resolve or summary: the
+    // outer catch used to swallow these with zero logs.
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    setOwnedGames(async () => []);
+
+    const proto = (SteamAPI as unknown as { prototype: { getUserSummary: unknown } })
+      .prototype;
+    const originalSummary = proto.getUserSummary;
+    proto.getUserSummary = jest.fn(async () => {
+      throw new Error('socket hang up');
+    });
+
+    try {
+      const result = await getPlayerProfile('76561198000000001');
+
+      expect(result).toBeUndefined();
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      proto.getUserSummary = originalSummary;
+      consoleErrorSpy.mockRestore();
+    }
+  });
+
+  it('stays silent on client-input seed failures (typos already have honest handling)', async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    setOwnedGames(async () => []);
+    const proto = (SteamAPI as unknown as {
+      prototype: { getUserSummary: unknown; resolve: unknown };
+    }).prototype;
+    const originalSummary = proto.getUserSummary;
+    const originalResolve = proto.resolve;
+
+    try {
+      // Nonexistent profile: same invalidPlayer outcome as the API 400s,
+      // without reintroducing typo-noise in the error logs.
+      proto.getUserSummary = jest.fn(async () => {
+        throw new Error('No players found');
+      });
+      expect(await getPlayerProfile('76561198000000001')).toBeUndefined();
+
+      // Unparseable vanity: resolve's own TypeError, also user input.
+      proto.getUserSummary = originalSummary;
+      proto.resolve = jest.fn(async () => {
+        throw new TypeError('Invalid format');
+      });
+      expect(await getPlayerProfile('lixo_invalido')).toBeUndefined();
+
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+    } finally {
+      proto.getUserSummary = originalSummary;
+      proto.resolve = originalResolve;
+      consoleErrorSpy.mockRestore();
+    }
+  });
+
   it('keeps a genuine enrichment failure at error level (incident stays loud)', async () => {
     const consoleErrorSpy = jest
       .spyOn(console, 'error')

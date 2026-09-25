@@ -85,9 +85,10 @@ const NOTIFICATIONS_LIMIT = WATCH_INBOX_DEFAULT_LIMIT;
  * line live below the text.
  *
  * Word-order note: body + anchor + trailing render as three fixed
- * segments, which holds for all 5 supported locales (all SVO) — that is
- * why the body itself is ALREADY rich text (a single <flag> slot holding
- * the locale preposition plus the searcher-country flag image), so a
+ * segments, which holds for all 8 supported locales (all SVO — fr/uk/pl
+ * included) — that is why the body itself is ALREADY rich text (a single
+ * <flag> slot holding the locale preposition plus the searcher-country
+ * flag image), so a
  * future non-SVO locale only moves the slot. The slot replaces the
  * country NAME, so no locale ever needs a gendered article/preposition
  * ("do Brasil" vs "da Argentina"); the bare name also renders visibly

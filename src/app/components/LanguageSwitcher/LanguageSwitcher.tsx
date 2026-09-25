@@ -13,6 +13,9 @@ const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
   ru: 'Русский',
   de: 'Deutsch',
   es: 'Español',
+  fr: 'Français',
+  uk: 'Українська',
+  pl: 'Polski',
 };
 
 const LANGUAGE_FLAG_CODES: Record<SupportedLocale, string> = {
@@ -21,6 +24,9 @@ const LANGUAGE_FLAG_CODES: Record<SupportedLocale, string> = {
   ru: 'ru',
   de: 'de',
   es: 'es',
+  fr: 'fr',
+  uk: 'ua',
+  pl: 'pl',
 };
 
 // Decorative (label=""): the button carries the language name in its

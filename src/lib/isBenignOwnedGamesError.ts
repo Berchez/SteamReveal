@@ -24,12 +24,17 @@
  * every call site above pairs owned-games with a sibling call on that
  * same key whose failure path this PR does not touch — getUserInfo and
  * the cheater route 500 loudly, getPlayerProfile renders its not-found
- * state. The benign bucket only ever quiets the owned-games DUPLICATE;
- * it cannot turn a key outage into a successful response. (No metrics
- * infra exists to count warn spikes — the warn lines stay greppable via
- * "owned-games" + "unavailable", the repo's monitoring model.) A lone
- * owned-games call with no sibling verification must NOT use this
- * classifier.
+ * state (and now logs genuine failures — see its catch). The benign
+ * bucket only ever quiets the owned-games DUPLICATE; it cannot turn a key
+ * outage into a successful response. (No metrics infra exists to count
+ * warn spikes — the warn lines stay greppable via "owned-games" +
+ * "unavailable", the repo's monitoring model.)
+ *
+ * Sibling-verified call sites ONLY: gameLibraryStatsMethod has no local
+ * sibling (its only Steam call is owned-games), so it must NOT use this
+ * classifier — it uses isPrivateLibraryShapeError below instead, which a
+ * dead key provably cannot produce (a dead key yields HTTP 401, never a
+ * 200 with a missing `games` key).
  *
  * FRAGILE BY CONSTRUCTION: this matches on steamapi's thrown message
  * strings ("Bad Request", "No players found", the TypeError wording),
@@ -39,9 +44,22 @@
  * strings (and isBenignOwnedGamesError.test.ts) on ANY steamapi bump or
  * removal — see patches/steamapi+3.0.8.patch if the lib is touched.
  */
+/**
+ * The unambiguous subset of the benign shapes above: steamapi's own
+ * TypeError on a QUOTED 'map' (private/empty library answering 200 with
+ * no `games` key — both V8 phrasings). Unlike the string shapes, this one
+ * is PROVABLY unreachable from a dead API key (which yields HTTP 401,
+ * never a 200), so call sites WITHOUT a local sibling verification
+ * (gameLibraryStatsMethod) gate on this alone and keep everything else
+ * loud. Same FRAGILE note as above re: steamapi bumps.
+ */
+export function isPrivateLibraryShapeError(error: unknown): boolean {
+  return error instanceof TypeError && /['"]map['"]/.test(error.message);
+}
+
 export default function isBenignOwnedGamesError(error: unknown): boolean {
   if (error instanceof TypeError) {
-    return /['"]map['"]/.test(error.message);
+    return isPrivateLibraryShapeError(error);
   }
   return (
     error instanceof Error &&

@@ -3,7 +3,7 @@ import { WATCH_LOCALES } from '@/lib/watch/notificationText';
 import { CONFIRM_PAGE_TEXT } from './confirmText';
 
 describe('CONFIRM_PAGE_TEXT locale parity', () => {
-  it('covers exactly the 5 supported locales', () => {
+  it('covers exactly the 8 supported locales', () => {
     expect(Object.keys(CONFIRM_PAGE_TEXT).sort()).toEqual(
       [...WATCH_LOCALES].sort(),
     );

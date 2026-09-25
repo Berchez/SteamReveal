@@ -1,7 +1,7 @@
 /**
  * Locale parity for the Watch namespace (WB-15).
  *
- * Every user-facing Watch string must exist in all 5 locales — a missing
+ * Every user-facing Watch string must exist in all 8 locales — a missing
  * key renders as a raw key (or crashes, depending on the next-intl
  * setting) for that language. This test fails loudly on any drift,
  * including the inbox keys added by the Epic 7 UI.
@@ -64,7 +64,7 @@ const loadMessages = (locale: string): Record<string, unknown> => {
 };
 
 describe('Watch locale parity (WB-15)', () => {
-  it('parses all 5 locale files', () => {
+  it('parses all 8 locale files', () => {
     for (const locale of LOCALES) {
       expect(() => loadMessages(locale)).not.toThrow();
     }

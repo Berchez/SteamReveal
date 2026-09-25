@@ -4,6 +4,8 @@ import type { UserSummary } from 'steamapi';
 import getSteamApiKey from '@/lib/getSteamApiKey';
 import { isOutOfSpanNumericId } from '@/lib/steamId';
 import isBenignOwnedGamesError from '@/lib/isBenignOwnedGamesError';
+import isSteamProfileNotFoundError from '@/lib/isSteamProfileNotFoundError';
+import isSteamResolveFormatError from '@/lib/isSteamResolveFormatError';
 import withTimeout from '@/lib/withTimeout';
 import { EnrichedUserSummary } from '@/@types/targetInfoJsonType';
 import {
@@ -122,7 +124,25 @@ const getPlayerProfile = cache(
       }
 
       return plain;
-    } catch {
+    } catch (error) {
+      // Genuine failures (network, timeouts, dead key, bugs) must not
+      // vanish: this seed path is SSR-critical and the catch below is the
+      // only place they surface. Client-input shapes stay silent — they
+      // already have honest handling upstream (isValidTargetParam's 400 on
+      // the API routes, not-found render here), and logging them would
+      // reintroduce the exact typo-noise this file's guards were built to
+      // kill. (Deliberate asymmetry with getUserInfo's loud resolve-format
+      // branch: inherited, pre-existing, out of scope here.)
+      if (
+        !isSteamProfileNotFoundError(error) &&
+        !isSteamResolveFormatError(error)
+      ) {
+        // eslint-disable-next-line no-console
+        console.error(
+          `getPlayerProfile: failed to resolve profile for target ${target}:`,
+          error,
+        );
+      }
       return undefined;
     }
   },

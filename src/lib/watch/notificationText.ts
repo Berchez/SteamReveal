@@ -19,14 +19,14 @@
  * pinned by tests, so neither can silently change meaning.
  *
  * Rules for every template (enforced by tests):
- * - 5 locales, same arity: getWelcomeText(locale),
+ * - 8 locales, same arity: getWelcomeText(locale),
  *   getNotifyText(locale, steamId) and getNotifyTeaserText(locale,
  *   steamId) never throw and never return empty.
  * - No `[` characters: steam-user escapes them as BBCode and they would
  *   render mangled in Steam chat.
  */
 
-export const WATCH_LOCALES = ['en', 'pt', 'es', 'de', 'ru'] as const;
+export const WATCH_LOCALES = ['en', 'pt', 'es', 'de', 'ru', 'fr', 'uk', 'pl'] as const;
 
 export type WatchMessageLocale = (typeof WATCH_LOCALES)[number];
 
@@ -82,6 +82,9 @@ const WELCOME_TEXT: Record<WatchMessageLocale, string> = {
   es: 'La vigilancia de SteamReveal para tu perfil está activa. Recibirás un mensaje aquí en Steam cada vez que alguien lo consulte. Para detenerlos, solo elimina a este bot de tus amigos.',
   de: 'Die SteamReveal-Beobachtung deines Profils ist aktiv. Du erhältst hier auf Steam eine Nachricht, sobald es jemand abruft. Zum Abbestellen entferne diesen Bot einfach aus deiner Freundesliste.',
   ru: 'Наблюдение SteamReveal за вашим профилем активно. Вы будете получать сообщение здесь в Steam каждый раз, когда его будут просматривать. Чтобы отписаться, просто удалите этого бота из друзей.',
+  fr: 'La surveillance SteamReveal de votre profil est active. Vous recevrez un message ici sur Steam chaque fois que quelqu\'un le consultera. Pour arrêter, retirez simplement ce bot de vos amis.',
+  uk: 'Спостереження SteamReveal за вашим профілем активне. Ви отримуватимете повідомлення тут у Steam щоразу, коли його переглядатимуть. Щоб відписатися, просто видаліть цього бота з друзів.',
+  pl: 'Obserwowanie Twojego profilu przez SteamReveal jest aktywne. Otrzymasz tu wiadomość na Steam za każdym razem, gdy ktoś go wyszuka. Aby zatrzymać, po prostu usuń tego bota ze znajomych.',
 };
 
 /** Activation text (WB-11): what the watch does + how to leave. */
@@ -103,6 +106,12 @@ const NOTIFY_TEXT: Record<WatchMessageLocale, (content: NotifyContent) => string
     `Heads-up! Jemand hat gerade dein Steam-Profil${nickname ? ` (${nickname})` : ''} auf SteamReveal abgerufen — sieh dir an, was andere über dich sehen können:\n${link}`,
   ru: ({ nickname, link }) =>
     `Внимание! Ваш профиль Steam${nickname ? ` (${nickname})` : ''} только что искали на SteamReveal — посмотрите, что увидели:\n${link}`,
+  fr: ({ nickname, link }) =>
+    `Attention ! Quelqu'un vient de vérifier votre profil Steam${nickname ? ` (${nickname})` : ''} sur SteamReveal — voyez ce qu'ils ont vu :\n${link}`,
+  uk: ({ nickname, link }) =>
+    `Увага! Ваш профіль Steam${nickname ? ` (${nickname})` : ''} щойно шукали на SteamReveal — подивіться, що побачили:\n${link}`,
+  pl: ({ nickname, link }) =>
+    `Uwaga! Ktoś właśnie wyszukał Twój profil Steam${nickname ? ` (${nickname})` : ''} na SteamReveal — zobacz, co zobaczyli:\n${link}`,
 };
 
 const NOTIFY_TEASER_TEXT: Record<WatchMessageLocale, (content: NotifyContent) => string> = {
@@ -120,6 +129,12 @@ const NOTIFY_TEASER_TEXT: Record<WatchMessageLocale, (content: NotifyContent) =>
     `Jemand hat gerade dein Steam-Profil${nickname ? ` (${nickname})` : ''} auf SteamReveal abgerufen — hier der Überblick:\n${link}`,
   ru: ({ nickname, link }) =>
     `Ваш профиль Steam${nickname ? ` (${nickname})` : ''} только что искали на SteamReveal — подробности здесь:\n${link}`,
+  fr: ({ nickname, link }) =>
+    `Quelqu'un vient de consulter votre profil Steam${nickname ? ` (${nickname})` : ''} sur SteamReveal — vérifiez ici :\n${link}`,
+  uk: ({ nickname, link }) =>
+    `Ваш профіль Steam${nickname ? ` (${nickname})` : ''} щойно шукали на SteamReveal — деталі тут:\n${link}`,
+  pl: ({ nickname, link }) =>
+    `Ktoś właśnie wyszukał Twój profil Steam${nickname ? ` (${nickname})` : ''} na SteamReveal — szczegóły tutaj:\n${link}`,
 };
 
 export interface NotifyTextOptions {
@@ -203,6 +218,12 @@ const CONFIRM_TEXT: Record<WatchMessageLocale, (url: string) => string> = {
     `Deine SteamReveal-Beobachtung ist fast aktiv: Öffne diesen Link, um zu bestätigen, dass du es bist:\n${url}\nNach der Bestätigung erhältst du hier auf Steam eine Nachricht, sobald dein beobachtetes Profil abgerufen wird.`,
   ru: (url: string) =>
     `До активации наблюдения SteamReveal остался один шаг: откройте эту ссылку, чтобы подтвердить, что это вы:\n${url}\nПосле подтверждения вы будете получать сообщение здесь в Steam каждый раз, когда наблюдаемый профиль будут просматривать.`,
+  fr: (url: string) =>
+    `Plus qu'une étape pour activer votre surveillance SteamReveal : ouvrez ce lien pour confirmer que c'est bien vous :\n${url}\nUne fois confirmé, vous recevrez un message ici sur Steam chaque fois que votre profil surveillé sera recherché.`,
+  uk: (url: string) =>
+    `До активації спостереження SteamReveal залишився один крок: відкрийте це посилання, щоб підтвердити, що це ви:\n${url}\nПісля підтвердження ви отримуватимете повідомлення тут у Steam щоразу, коли профіль під наглядом шукатимуть.`,
+  pl: (url: string) =>
+    `Został Ci jeden krok do aktywacji obserwowania SteamReveal: otwórz ten link, aby potwierdzić, że to Ty:\n${url}\nPo potwierdzeniu otrzymasz tu wiadomość na Steam za każdym razem, gdy Twój obserwowany profil będzie wyszukiwany.`,
 };
 
 /**
@@ -259,11 +280,14 @@ const CONFIRM_EXPIRED_TEXT: Record<WatchMessageLocale, string> = {
   es: 'Tu enlace de confirmación caducó. Abre SteamReveal, inicia sesión y genera uno nuevo en el panel de vigilancia.',
   de: 'Dein Bestätigungslink ist abgelaufen. Öffne SteamReveal, melde dich an und erstelle im Watch-Bereich einen neuen.',
   ru: 'Ссылка подтверждения истекла. Откройте SteamReveal, войдите и создайте новую на панели наблюдения.',
+  fr: 'Votre lien de confirmation a expiré. Ouvrez SteamReveal, connectez-vous et générez-en un nouveau depuis le panneau de surveillance.',
+  uk: 'Посилання-підтвердження прострочене. Відкрийте SteamReveal, увійдіть і згенеруйте нове на панелі спостереження.',
+  pl: 'Twój link potwierdzający wygasł. Otwórz SteamReveal, zaloguj się i wygeneruj nowy w panelu obserwowania.',
 };
 
 /**
  * Expiry-notice text (click-to-activate flow): sent ONCE per token
- * generation when the link dies unclicked. Same 5-locale, never-throw,
+ * generation when the link dies unclicked. Same 8-locale, never-throw,
  * never-empty contract as every template above.
  */
 export const getConfirmExpiredText = (
@@ -275,13 +299,16 @@ const BAN_ALERT_TEXT: Record<WatchMessageLocale, string> = {
   // profile, nickname, or any identifying detail. The subscriber learns
   // WHICH profile only by opening the notifications tab and clicking
   // through the reveal (instrumented server-side). Same contract as every
-  // template above: 5 locales, never throws, never empty, no `[`
+  // template above: 8 locales, never throws, never empty, no `[`
   // (Steam BBCode mangling), no rich-text tags (bot prints verbatim).
   en: 'A profile you reviewed was flagged as banned. Open your notifications tab to see which.',
   pt: 'Um perfil que você analisou foi sinalizado como banido. Abra sua aba de notificações para ver qual.',
   es: 'Un perfil que revisaste fue marcado como baneado. Abre tu pestaña de notificaciones aquí para ver cuál.',
   de: 'Ein von dir geprüftes Profil wurde als gesperrt markiert. Öffne deinen Benachrichtigungs-Tab, um zu sehen, welches.',
   ru: 'Профиль, который вы проверяли, отмечен как забаненный. Откройте вкладку уведомлений, чтобы узнать какой.',
+  fr: 'Un profil que vous avez examiné a été signalé comme banni. Ouvrez votre onglet de notifications pour voir lequel.',
+  uk: 'Профіль, який ви переглядали, позначено як забанений. Відкрийте вкладку сповіщень, щоб дізнатися який.',
+  pl: 'Profil, który przeglądałeś, został oznaczony jako zbanowany. Otwórz kartę powiadomień, aby zobaczyć który.',
 };
 
 /**

@@ -1,4 +1,4 @@
-export const SUPPORTED_LOCALES = ['en', 'pt', 'ru', 'de', 'es'] as const;
+export const SUPPORTED_LOCALES = ['en', 'pt', 'ru', 'de', 'es', 'fr', 'uk', 'pl'] as const;
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
@@ -12,4 +12,7 @@ export const LOCALE_PATHS: Record<SupportedLocale, string> = {
   ru: '/ru',
   de: '/de',
   es: '/es',
+  fr: '/fr',
+  uk: '/uk',
+  pl: '/pl',
 };

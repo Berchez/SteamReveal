@@ -11,6 +11,7 @@ import {
   WATCH_LOCALES,
   watchProfileUrl,
 } from './notificationText';
+import { SUPPORTED_LOCALES } from '@/locales';
 
 const STEAM = '76561198000000001';
 const CONFIRM_URL = 'https://steam-reveal.vercel.app/api/watch/confirm?token=abc123';
@@ -21,6 +22,10 @@ describe('resolveWatchLocale', () => {
     expect(resolveWatchLocale('pt-BR')).toBe('pt');
     expect(resolveWatchLocale('PT-br')).toBe('pt');
     expect(resolveWatchLocale('de')).toBe('de');
+    expect(resolveWatchLocale('fr')).toBe('fr');
+    expect(resolveWatchLocale('fr-FR')).toBe('fr');
+    expect(resolveWatchLocale('uk')).toBe('uk');
+    expect(resolveWatchLocale('pl')).toBe('pl');
   });
 
   it('falls back to English for unknown, empty, or absent locales', () => {
@@ -32,10 +37,21 @@ describe('resolveWatchLocale', () => {
 });
 
 describe('shared watch message base', () => {
-  it('covers exactly the 5 supported locales', () => {
+  it('covers exactly the 8 supported locales', () => {
     expect([...WATCH_LOCALES].sort()).toEqual(
-      ['de', 'en', 'es', 'pt', 'ru'].sort(),
+      ['de', 'en', 'es', 'fr', 'pl', 'pt', 'ru', 'uk'].sort(),
     );
+  });
+
+  it('stays in lockstep with the site locales (no silent English bot fallback)', () => {
+    // WATCH_LOCALES (bot chat) and SUPPORTED_LOCALES (site) are separate
+    // lists by design (the bot could one day cover a subset), but TODAY
+    // the policy is full parity: a site locale missing here would silently
+    // receive English bot messages with no test failing. resolveWatchLocale
+    // already falls back to English, so this test pins the DELIBERATE
+    // choice — removing a locale from WATCH_LOCALES on purpose means
+    // updating this expectation, not discovering it in production.
+    expect(new Set(WATCH_LOCALES)).toEqual(new Set(SUPPORTED_LOCALES));
   });
 
   it.each([...WATCH_LOCALES])('welcome text is non-empty in %s', (locale) => {
@@ -181,16 +197,25 @@ describe('shared watch message base', () => {
     expect(getNotifyText('pt', STEAM)).toMatch(/[ãç]/);
     expect(getNotifyText('es', STEAM)).toMatch(/[óí]/);
     expect(getNotifyText('de', STEAM)).toMatch(/[äöüÄÖÜß]/);
+    expect(getNotifyText('fr', STEAM)).toMatch(/[éèêàç]/);
+    expect(getNotifyText('uk', STEAM)).toMatch(/[іїєґІЇЄҐ]/);
+    expect(getNotifyText('pl', STEAM)).toMatch(/[ąćęłńóśźż]/);
     expect(getWelcomeText('ru')).toMatch(/[Ѐ-џ]/);
     expect(getConfirmText('ru', CONFIRM_URL)).toMatch(/[Ѐ-џ]/);
     expect(getConfirmExpiredText('ru')).toMatch(/[Ѐ-џ]/);
     expect(getConfirmExpiredText('pt')).toMatch(/[ãç]/);
     expect(getConfirmExpiredText('es')).toMatch(/[óí]/);
     expect(getConfirmExpiredText('de')).toMatch(/[äöüÄÖÜß]/);
+    expect(getConfirmExpiredText('fr')).toMatch(/[éèêàç]/);
+    expect(getConfirmExpiredText('uk')).toMatch(/[іїєґІЇЄҐ]/);
+    expect(getConfirmExpiredText('pl')).toMatch(/[ąćęłńóśźż]/);
     expect(getNotifyTeaserText('ru', STEAM)).toMatch(/[Ѐ-џ]/);
     expect(getNotifyTeaserText('pt', STEAM)).toMatch(/[ãç]/);
     expect(getNotifyTeaserText('es', STEAM)).toMatch(/[óí]/);
     expect(getNotifyTeaserText('de', STEAM)).toMatch(/[äöüÄÖÜß]/);
+    expect(getNotifyTeaserText('fr', STEAM)).toMatch(/[éèêàç]/);
+    expect(getNotifyTeaserText('uk', STEAM)).toMatch(/[іїєґІЇЄҐ]/);
+    expect(getNotifyTeaserText('pl', STEAM)).toMatch(/[ąćęłńóśźż]/);
     for (const locale of WATCH_LOCALES) {
       expect(getWelcomeText(locale)).not.toContain('�');
       expect(getNotifyText(locale, STEAM)).not.toContain('�');
@@ -228,7 +253,13 @@ describe('shared watch message base', () => {
       'einfach',
     ];
     const EN_MARKERS = [' your ', ' the ', 'will ', 'unfriend', 'Steam message'];
+    const FR_MARKERS = ['votre', 'Quelqu', 'surveillance'];
+    const PL_MARKERS = ['Twojego', 'bota', 'obserwowan'];
+    // No word markers for uk: Russian shares most vocabulary ('ваш' lives
+    // in both). Ukrainian-only letters (absent from Russian) separate the
+    // two instead — see UKRAINIAN_RE below.
     const CYRILLIC_RE = /[Ѐ-џ]/;
+    const UKRAINIAN_RE = /[іїєґІЇЄҐ]/;
     const templatesFor = (locale: string): string[] => [
       getWelcomeText(locale),
       getNotifyText(locale, STEAM),
@@ -246,13 +277,18 @@ describe('shared watch message base', () => {
     for (const marker of ES_MARKERS) expect(combined.es).toContain(marker);
     for (const marker of DE_MARKERS) expect(combined.de).toContain(marker);
     for (const marker of EN_MARKERS) expect(combined.en).toContain(marker);
+    for (const marker of FR_MARKERS) expect(combined.fr).toContain(marker);
+    for (const marker of PL_MARKERS) expect(combined.pl).toContain(marker);
     // Negative: no marker leaks into any other locale's templates.
     const forbidden: Record<string, string[]> = {
-      en: [...PT_MARKERS, ...ES_MARKERS, ...DE_MARKERS],
-      pt: [...ES_MARKERS, ...DE_MARKERS, ...EN_MARKERS],
-      es: [...PT_MARKERS, ...DE_MARKERS, ...EN_MARKERS],
-      de: [...PT_MARKERS, ...ES_MARKERS, ...EN_MARKERS],
-      ru: [...PT_MARKERS, ...ES_MARKERS, ...DE_MARKERS, ...EN_MARKERS],
+      en: [...PT_MARKERS, ...ES_MARKERS, ...DE_MARKERS, ...FR_MARKERS, ...PL_MARKERS],
+      pt: [...ES_MARKERS, ...DE_MARKERS, ...EN_MARKERS, ...FR_MARKERS, ...PL_MARKERS],
+      es: [...PT_MARKERS, ...DE_MARKERS, ...EN_MARKERS, ...FR_MARKERS, ...PL_MARKERS],
+      de: [...PT_MARKERS, ...ES_MARKERS, ...EN_MARKERS, ...FR_MARKERS, ...PL_MARKERS],
+      fr: [...PT_MARKERS, ...ES_MARKERS, ...DE_MARKERS, ...EN_MARKERS, ...PL_MARKERS],
+      pl: [...PT_MARKERS, ...ES_MARKERS, ...DE_MARKERS, ...EN_MARKERS, ...FR_MARKERS],
+      ru: [...PT_MARKERS, ...ES_MARKERS, ...DE_MARKERS, ...EN_MARKERS, ...FR_MARKERS, ...PL_MARKERS],
+      uk: [...PT_MARKERS, ...ES_MARKERS, ...DE_MARKERS, ...EN_MARKERS, ...FR_MARKERS, ...PL_MARKERS],
     };
     for (const locale of WATCH_LOCALES) {
       for (const marker of forbidden[locale]) {
@@ -260,14 +296,22 @@ describe('shared watch message base', () => {
           expect(text).not.toContain(marker);
         }
       }
-      // Cyrillic lives exclusively in ru templates (and in every one).
+      // Cyrillic lives only in ru + uk templates (and in every one of
+      // theirs); Ukrainian-only letters separate uk from ru, whose
+      // vocabularies otherwise overlap.
       for (const text of templatesFor(locale)) {
-        if (locale === 'ru') {
+        if (locale === 'ru' || locale === 'uk') {
           expect(text).toMatch(CYRILLIC_RE);
         } else {
           expect(text).not.toMatch(CYRILLIC_RE);
         }
       }
+    }
+    for (const text of templatesFor('uk')) {
+      expect(text).toMatch(UKRAINIAN_RE);
+    }
+    for (const text of templatesFor('ru')) {
+      expect(text).not.toMatch(UKRAINIAN_RE);
     }
   });
 });

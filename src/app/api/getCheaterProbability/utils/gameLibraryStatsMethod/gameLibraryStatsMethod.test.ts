@@ -55,10 +55,12 @@ describe('getGameLibraryStats', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('warns (never errors) when the failure is data-unavailability, not an incident', async () => {
-    // The production shapes: private library (steamapi's TypeError on
-    // `games.map`) and bogus/gone profile (Bad Request) used to land as
-    // console.error and read like outages in the ops log.
+  it('warns (never errors) ONLY on steamapi\'s private-library TypeError', async () => {
+    // This file has no sibling Steam call, so the message-string shapes
+    // (Unauthorized/Forbidden/Bad Request — identical for "private
+    // profile" and "dead API key") stay LOUD here by design; only the
+    // unambiguous lib-bug shape (a dead key yields 401, never a 200 with
+    // no `games` key) is benign.
     const consoleErrorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => {});
@@ -73,6 +75,20 @@ describe('getGameLibraryStats', () => {
       playTime: -1,
       totalGamesCount: -1,
     });
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('keeps string-shaped failures loud here (no local sibling to rule out a dead key)', async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
 
     mockGetUserOwnedGames.mockRejectedValueOnce(new Error('Bad Request'));
     await expect(getGameLibraryStats('123456789')).resolves.toEqual({
@@ -80,8 +96,14 @@ describe('getGameLibraryStats', () => {
       totalGamesCount: -1,
     });
 
-    expect(consoleWarnSpy).toHaveBeenCalledTimes(2);
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    mockGetUserOwnedGames.mockRejectedValueOnce(new Error('Unauthorized'));
+    await expect(getGameLibraryStats('123456789')).resolves.toEqual({
+      playTime: -1,
+      totalGamesCount: -1,
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
     consoleErrorSpy.mockRestore();
     consoleWarnSpy.mockRestore();
   });

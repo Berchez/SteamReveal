@@ -1,0 +1,228 @@
+{
+  "General": {
+    "search": "Rechercher"
+  },
+  "LanguageSwitcher": {
+    "toggleMenu": "Changer de langue",
+    "selectLanguage": "Choisir la langue"
+  },
+  "Default": {
+    "websiteDescription": "SteamReveal est une plateforme de renseignement complète conçue pour la communauté gaming. Notre plateforme offre une suite d'outils et de fonctionnalités conçus pour aider les joueurs à collecter, analyser et exploiter le renseignement provenant de diverses sources sur le web, le tout au même endroit."
+  },
+  "UserCard": {
+    "nickname": "Pseudo",
+    "realName": "Nom réel",
+    "probability": "Probabilité",
+    "url": "URL",
+    "reliability": "Fiabilité",
+    "searchFriend": "Rechercher"
+  },
+  "LocationCard": {
+    "providedByUser": "Fourni par l'utilisateur :",
+    "noLocationEstimate": "Impossible d'estimer une localisation à partir des données disponibles.",
+    "triangulationUnavailable": "La triangulation de localisation nécessite une liste d'amis publique — seule la localisation déclarée est affichée."
+  },
+  "ServerMessages": {
+    "friendsNotPublic": "La liste d'amis de ce joueur n'est pas publique. Essayez-en un autre !",
+    "friendsLoadFailed": "Impossible de charger les amis de ce joueur pour le moment. Réessayez dans un instant !",
+    "invalidPlayer": "Ceci n'est pas un joueur valide (ID Steam / Lien de profil Steam / URL Steam personnalisée)"
+  },
+  "Index": {
+    "searchTitle": "Rechercher un joueur Steam",
+    "inputSearchPlaceholder": "Rechercher un joueur (ID Steam / Lien de profil Steam / URL Steam personnalisée)",
+    "userInfo": "Infos utilisateur",
+    "userPossibleLocation": "Localisation possible de l'utilisateur",
+    "friendsIRL": "Amis IRL",
+    "friendsPrivateTitle": "Liste d'amis privée",
+    "friendsPrivateDescription": "Ce joueur a masqué sa liste d'amis, donc les amis proches et la triangulation de localisation sont indisponibles pour cette recherche.",
+    "friendsPrivateStillWorks": "Toujours disponible : fiche de profil, localisation déclarée et revue anticheat CS2 manuelle (moins fiable sans amis).",
+    "friendsEmptyTitle": "Aucun ami à afficher",
+    "friendsEmptyDescription": "La liste d'amis de ce profil est publique mais vide, il n'y a donc rien à trianguler.",
+    "csAnticheatReview": "Revue Anticheat CS2 - avec IA",
+    "footer": {
+      "rights": "Tous droits réservés.",
+      "madeWith": "Fait avec ❤️ par"
+    }
+  },
+  "WelcomeText": {
+    "welcomeTo": "Bienvenue sur"
+  },
+  "SponsorMe": {
+    "enjoying": "Vous aimez le site ?",
+    "ifYouLikeIt": "Si vous l'aimez, pensez à laisser une étoile sur notre dépôt GitHub !",
+    "giveStar": "Donnez-nous une étoile !",
+    "dontAskAgain": "Ne plus me demander !"
+  },
+  "CheaterReport": {
+    "lowPlaytime": "Faible temps de jeu ({hours} heures, signe de peu d'expérience)",
+    "highPlaytime": "Temps de jeu élevé ({hours} heures, expérience accumulée)",
+    "lowInventory": "Inventaire de faible valeur (objets de peu de valeur)",
+    "valuableInventory": "Inventaire de valeur (signe d'un joueur établi)",
+    "bannedFriends": "A des amis bannis sur Steam (signal suspect)",
+    "cleanFriends": "Aucun ami banni (les {count} amis analysés sont sains)",
+    "platformBannedFaceit": "Banni sur FACEIT — fort signal de triche",
+    "platformBannedGamersClub": "Banni sur Gamers Club — fort signal de triche",
+    "platformSmurfedFaceit": "Banni par FACEIT pour smurf — indique un haut niveau, pas de la triche.",
+    "platformSmurfedGamersClub": "Banni par GamersClub pour smurf — indique un haut niveau, pas de la triche.",
+    "activeOnFaceit": "Actif sur FACEIT ({matches} matchs sous un système anticheat robuste)",
+    "activeOnGamersClub": "Actif sur GamersClub ({matches} matchs sous un système anticheat robuste)",
+    "badComments": "A reçu des commentaires négatifs (retours de la communauté)",
+    "noBadComments": "Aucun commentaire négatif (bonne réputation)",
+    "highWinrate": "Taux de victoire supérieur à {winrate} % (haute performance)",
+    "normalWinrate": "Taux de victoire normal",
+    "highKillsPerRound": "Beaucoup de kills par round (indique un haut niveau)",
+    "highHeadAccuracy": "Haute précision aux headshots (indique une visée bien entraînée)",
+    "suspectTitle": "Triche suspectée !",
+    "suspectDescription": "D'après les données analysées, ce joueur présente des facteurs suspects :",
+    "inconclusiveTitle": "Résultat non concluant",
+    "inconclusiveDescription": "L'analyse n'est pas définitive. Certains facteurs pointent vers la suspicion, d'autres vers l'innocence :",
+    "positiveFactors": "Facteurs positifs :",
+    "negativeFactors": "Facteurs suspects :",
+    "innocentTitle": "Semble innocent",
+    "innocentDescription": "Ce joueur présente des signes de profil normaux/standards :",
+    "isUserCheaterCS2": "{nickname} triche-t-il sur CS2 ?",
+    "normalKD": "Ratio K/D normal ({kd})",
+    "highKD": "Ratio K/D élevé ({kd}, performance inhabituellement forte)",
+    "veryTrustedTitle": "Profil très fiable",
+    "veryTrustedDescription": "Ce profil montre des signes exceptionnels de légitimité et d'investissement :",
+    "highlySuspectTitle": "Hautement suspect !",
+    "highlySuspectDescription": "Avertissement critique : plusieurs facteurs à haut risque détectés :",
+    "oldAccount": "Compte vétéran ({age} ans d'ancienneté)",
+    "newAccount": "Compte récent ({age} ans d'ancienneté, fréquent chez les smurfs/tricheurs)",
+    "newAccountLessThanYear": "Nouveau compte (moins d'un an, fréquent chez les smurfs/tricheurs)",
+    "newAccountMonths": "Compte récent ({months} mois d'ancienneté, fréquent chez les smurfs/tricheurs)",
+    "highSteamLevel": "Niveau Steam élevé (niveau {level}, signe d'investissement)",
+    "lowSteamLevel": "Niveau Steam bas (niveau {level}, typique des comptes jetables)",
+    "manyGames": "Grande bibliothèque ({count} jeux possédés)",
+    "fewGames": "Petite bibliothèque ({count} jeux, possible compte secondaire)",
+    "reportFailedToLoad": "Impossible de calculer la probabilité de triche pour le moment. Veuillez réessayer.",
+    "noFriendsWarningPrivate": "Note : la liste d'amis de ce profil est privée, donc le signal des amis bannis est manquant et ce score est moins fiable.",
+    "noFriendsWarningEmpty": "Note : ce profil n'a pas d'amis, donc le signal des amis bannis est manquant et ce score est moins fiable.",
+    "retry": "Réessayer"
+  },
+  "SupportedFormatsSection": {
+    "steamID64Desc": "ID Steam 64 bits unique.",
+    "customLabel": "URL de profil (personnalisée)",
+    "customDesc": "Lien de profil Steam personnalisé.",
+    "steamID64UrlLabel": "URL de profil (Steam64ID)",
+    "steamID64UrlDesc": "Lien direct avec Steam64ID.",
+    "supportedFormats": "Formats pris en charge",
+    "copied": "Copié !"
+  },
+  "SupportMe": {
+    "supportTitle": "Merci d'utiliser le site ! 💖",
+    "supportText": "Si le projet vous aide, vous pouvez le soutenir pour que je continue à améliorer le site.",
+    "copied": "Copié !",
+    "copy": "Copier",
+    "myPixKey": "Ma clé PIX (Brésil uniquement)",
+    "openStripe": "Ouvrir Stripe",
+    "dontAskAgain": "Ne plus afficher",
+    "sendSkin": "Envoyer une offre de skin",
+    "tradeLink": "Lien d'échange"
+  },
+  "feedback": {
+    "openButton": "Envoyer un retour",
+    "close": "Fermer",
+    "title": "Partagez votre retour",
+    "description": "Un bug ou une idée ? Dites-le-moi.",
+    "placeholder": "Écrivez votre retour ici…",
+    "cancel": "Annuler",
+    "send": "Envoyer",
+    "sending": "Envoi…",
+    "success": "Retour envoyé. Merci !",
+    "types": {
+      "suggestion": "Suggestion",
+      "bug": "Bug",
+      "other": "Autre"
+    },
+    "errors": {
+      "generic": "Quelque chose s'est mal passé. Veuillez réessayer plus tard.",
+      "rateLimit": "Trop de requêtes. Patientez un instant et réessayez."
+    }
+  },
+  "PostHeroSections": {
+    "whyUse": {
+      "title": "Pourquoi utiliser SteamReveal ?",
+      "cards": {
+        "investigate": {
+          "title": "Enquêtez sur n'importe quel profil",
+          "text": "Analysez les profils Steam et découvrez leurs meilleurs amis, connexions et localisation probable en quelques secondes — sans connexion requise."
+        },
+        "suspicious": {
+          "title": "Détectez les comportements suspects",
+          "text": "SteamReveal analyse les schémas et estime la probabilité qu'un joueur triche en combinant statistiques, connexions et données publiques."
+        },
+        "intelligence": {
+          "title": "Du renseignement pour les joueurs",
+          "text": "Un outil OSINT conçu pour la communauté gaming — explorez, découvrez et comprenez ce qui se cache derrière chaque profil, en toute confidentialité."
+        }
+      }
+    },
+    "numbers": {
+      "title": "Nos chiffres",
+      "visitors": "Visiteurs",
+      "views": "Vues",
+      "playersSearched": "Joueurs recherchés"
+    },
+    "feedback": {
+      "title": "Des questions ou suggestions ?",
+      "description": "Envoyez votre retour pour aider à améliorer SteamReveal !",
+      "button": "Envoyer un retour"
+    }
+  },
+  "Metadata": {
+    "Player": {
+      "title": "Analyser le profil Steam de {nickname}",
+      "description": "Voir les données Steam publiques de {nickname}, sa localisation possible et l'analyse de ses amis sur SteamReveal.",
+      "fallbackTitle": "SteamReveal - Analyser les profils Steam",
+      "fallbackDescription": "SteamReveal est un outil OSINT conçu pour la communauté Steam. Analysez les profils Steam, découvrez les vrais amis et localisez les joueurs grâce aux données publiques."
+    }
+  },
+  "Watch": {
+    "watchWelcome": "Surveillance active ! Le bot vous enverra un message sur Steam quand ce profil sera recherché.",
+    "watchTitle": "Surveiller un profil Steam",
+    "watchDescription": "Recevez un message Steam de notre bot chaque fois que ce profil est recherché. Cliquez ci-dessous, acceptez la demande d'ami du bot sur Steam, et c'est réglé.",
+    "watchSubmit": "Surveiller votre profil",
+    "watchSignupSteps": "Comment ça marche : cliquez sur le bouton ci-dessous pour commencer, acceptez la demande d'ami du bot sur Steam, puis cliquez sur le lien de confirmation que le bot vous envoie dans le chat Steam.",
+    "watchConfirmOk": "Surveillance confirmée ! Le bot vous enverra un message sur Steam chaque fois que votre profil sera recherché.",
+    "watchConfirmError": "Ce lien de confirmation est invalide ou expiré. Générez-en un nouveau depuis le panneau de surveillance.",
+    "watchLoginButton": "Se connecter avec Steam",
+    "watchNavSignIn": "Se connecter",
+    "watchWaitTitle": "Terminez votre connexion",
+    "watchWaitBody": "Pour terminer votre connexion, ajoutez le bot SteamReveal comme ami sur Steam :",
+    "watchWaitAddBot": "Ajouter le bot SteamReveal",
+    "watchWaitWaiting": "Vérification automatique… si vous venez d'ajouter le bot, patientez — on s'occupe du reste.",
+    "watchWaitExpired": "Cette tentative de connexion a expiré.",
+    "watchWaitRetry": "Se reconnecter",
+    "watchWaitNoScript": "Pour terminer votre connexion, veuillez activer JavaScript et vous reconnecter.",
+    "watchAvatarAlt": "Photo de profil de {nickname}",
+    "watchLoginError": "Échec de la connexion Steam. Réessayez dans un instant.",
+    "watchLogout": "Se déconnecter",
+    "watchPendingTitle": "Invitation envoyée",
+    "watchPendingHint": "Acceptez la demande d'ami du bot SteamReveal sur Steam pour activer les notifications.",
+    "watchLinkExpired": "Votre lien de confirmation a expiré. Générez-en un nouveau ci-dessous — le bot vous l'enverra ici sur Steam.",
+    "watchResendSubmit": "Générer un nouveau lien",
+    "watchResendSent": "Nouveau lien en route — vérifiez votre chat Steam.",
+    "watchLinkSentHint": "Vérifiez votre chat Steam pour le lien de confirmation.",
+    "watchActiveTitle": "Surveillance en cours",
+    "watchActiveHint": "Tout est prêt — le bot vous enverra un message sur Steam chaque fois que ce profil sera recherché. Pour arrêter, retirez simplement le bot de vos amis ; rien d'autre n'est nécessaire.",
+    "watchErrorFailed": "Impossible de démarrer la surveillance. Réessayez dans un instant.",
+    "watchInboxTitle": "Notifications",
+    "watchInboxBellLabel": "Notifications de surveillance, {count} non lues",
+    "watchInboxEmpty": "Aucune notification pour le moment. Vous verrez un message ici chaque fois que votre profil surveillé sera recherché.",
+    "watchInboxLoading": "Chargement des notifications…",
+    "watchInboxError": "Impossible de charger les notifications.",
+    "watchInboxRetry": "Réessayer",
+    "watchInboxMonthlyBadge": "{count} recherches ce mois-ci",
+    "watchInboxItemCheckedBody": "Quelqu'un <flag>de</flag> a consulté votre profil le {date} à {time} et a vérifié si vous trichiez.",
+    "watchInboxItemPlainBody": "Quelqu'un <flag>de</flag> a consulté votre profil le {date} à {time}.",
+    "watchInboxItemViewHere": "Voir ce qu'ils ont vu",
+    "watchInboxItemTrailing": "dans cette recherche",
+    "watchInboxCheaterChecked": "Rapport anticheat ouvert",
+    "watchBanAlertBody": "Un profil que vous avez examiné a été signalé comme banni.",
+    "watchBanAlertReveal": "Révéler le profil",
+    "watchBanAlertLoading": "Révélation…",
+    "watchBanAlertError": "Révélation impossible. Réessayez.",
+    "watchBanAlertOpen": "Ouvrir le profil"
+  }
+}

@@ -1,4 +1,42 @@
-import isBenignOwnedGamesError from './isBenignOwnedGamesError';
+import isBenignOwnedGamesError, {
+  isPrivateLibraryShapeError,
+} from './isBenignOwnedGamesError';
+
+describe('isPrivateLibraryShapeError (unambiguous lib-bug subset)', () => {
+  it('matches ONLY the quoted-map TypeError in both V8 phrasings', () => {
+    expect(
+      isPrivateLibraryShapeError(
+        new TypeError("Cannot read properties of undefined (reading 'map')"),
+      ),
+    ).toBe(true);
+    expect(
+      isPrivateLibraryShapeError(
+        new TypeError("Cannot read property 'map' of undefined"),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects everything a dead key can produce (the whole point: unmaskable by key outage)', () => {
+    // A revoked key yields these same strings via HTTP 401/403/400 — if
+    // any of them passed here, gameLibraryStatsMethod could hide a key
+    // outage behind warn-level logs.
+    for (const message of [
+      'Unauthorized',
+      'Forbidden',
+      'Bad Request',
+      'No players found',
+    ]) {
+      expect(isPrivateLibraryShapeError(new Error(message))).toBe(false);
+    }
+    expect(
+      isPrivateLibraryShapeError(new TypeError('e.map is not a function')),
+    ).toBe(false);
+    expect(isPrivateLibraryShapeError(new Error('socket hang up'))).toBe(
+      false,
+    );
+    expect(isPrivateLibraryShapeError(undefined)).toBe(false);
+  });
+});
 
 describe('isBenignOwnedGamesError (data-unavailability vs incident)', () => {
   it('classifies every privacy/data shape the Steam API answers with', () => {

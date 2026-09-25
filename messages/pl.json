@@ -1,0 +1,228 @@
+{
+  "General": {
+    "search": "Szukaj"
+  },
+  "LanguageSwitcher": {
+    "toggleMenu": "Zmień język",
+    "selectLanguage": "Wybierz język"
+  },
+  "Default": {
+    "websiteDescription": "SteamReveal to kompleksowa platforma wywiadowcza stworzona dla społeczności graczy. Nasza platforma oferuje zestaw narzędzi i funkcji, które pomagają graczom zbierać, analizować i wykorzystywać informacje z różnych źródeł w sieci — wszystko w jednym wygodnym miejscu."
+  },
+  "UserCard": {
+    "nickname": "Pseudonim",
+    "realName": "Prawdziwe imię",
+    "probability": "Prawdopodobieństwo",
+    "url": "URL",
+    "reliability": "Wiarygodność",
+    "searchFriend": "Szukaj"
+  },
+  "LocationCard": {
+    "providedByUser": "Podane przez użytkownika:",
+    "noLocationEstimate": "Nie udało się oszacować lokalizacji na podstawie dostępnych danych.",
+    "triangulationUnavailable": "Triangulacja lokalizacji wymaga publicznej listy znajomych — wyświetlana jest tylko lokalizacja zadeklarowana."
+  },
+  "ServerMessages": {
+    "friendsNotPublic": "Lista znajomych tego gracza nie jest publiczna. Spróbuj innego!",
+    "friendsLoadFailed": "Nie udało się teraz wczytać znajomych tego gracza. Spróbuj za chwilę!",
+    "invalidPlayer": "To nie jest prawidłowy gracz (ID Steam / link do profilu Steam / własny URL Steam)"
+  },
+  "Index": {
+    "searchTitle": "Znajdź gracza Steam",
+    "inputSearchPlaceholder": "Znajdź gracza (ID Steam / link do profilu Steam / własny URL Steam)",
+    "userInfo": "Informacje o użytkowniku",
+    "userPossibleLocation": "Możliwa lokalizacja użytkownika",
+    "friendsIRL": "Znajomi IRL",
+    "friendsPrivateTitle": "Lista znajomych jest prywatna",
+    "friendsPrivateDescription": "Ten gracz ukrył swoją listę znajomych, więc bliscy znajomi i triangulacja lokalizacji są niedostępne w tym wyszukiwaniu.",
+    "friendsPrivateStillWorks": "Nadal dostępne: karta profilu, zadeklarowana lokalizacja oraz ręczna recenzja antycheat CS2 (mniej wiarygodna bez znajomych).",
+    "friendsEmptyTitle": "Brak znajomych do wyświetlenia",
+    "friendsEmptyDescription": "Lista znajomych tego profilu jest publiczna, ale pusta, więc nie ma czego triangulować.",
+    "csAnticheatReview": "Recenzja antycheat CS2 - z AI",
+    "footer": {
+      "rights": "Wszelkie prawa zastrzeżone.",
+      "madeWith": "Stworzone z ❤️ przez"
+    }
+  },
+  "WelcomeText": {
+    "welcomeTo": "Witaj w"
+  },
+  "SponsorMe": {
+    "enjoying": "Podoba Ci się strona?",
+    "ifYouLikeIt": "Jeśli Ci się podoba, rozważ zostawienie gwiazdki w naszym repozytorium GitHub!",
+    "giveStar": "Daj nam gwiazdkę!",
+    "dontAskAgain": "Nie pytaj ponownie!"
+  },
+  "CheaterReport": {
+    "lowPlaytime": "Mało godzin gry ({hours} godzin, oznaka małego doświadczenia)",
+    "highPlaytime": "Dużo godzin gry ({hours} godzin, zgromadzone doświadczenie)",
+    "lowInventory": "Ekwipunek o niskiej wartości (przedmioty o obniżonej wartości)",
+    "valuableInventory": "Wartościowy ekwipunek (oznaka ugruntowanego gracza)",
+    "bannedFriends": "Ma zbanowanych znajomych na Steam (podejrzany sygnał)",
+    "cleanFriends": "Brak zbanowanych znajomych (wszyscy spośród {count} przeanalizowanych znajomych są czyści)",
+    "platformBannedFaceit": "Zbanowany na FACEIT — silny sygnał cheatowania",
+    "platformBannedGamersClub": "Zbanowany na Gamers Club — silny sygnał cheatowania",
+    "platformSmurfedFaceit": "Zbanowany przez FACEIT za smurfowanie — oznacza wysokie umiejętności, nie cheatowanie.",
+    "platformSmurfedGamersClub": "Zbanowany przez GamersClub za smurfowanie — oznacza wysokie umiejętności, nie cheatowanie.",
+    "activeOnFaceit": "Aktywny na FACEIT ({matches} meczów w solidnym systemie antycheat)",
+    "activeOnGamersClub": "Aktywny na GamersClub ({matches} meczów w solidnym systemie antycheat)",
+    "badComments": "Otrzymane negatywne komentarze (opinie społeczności)",
+    "noBadComments": "Brak negatywnych komentarzy (dobra reputacja)",
+    "highWinrate": "Współczynnik wygranych powyżej {winrate}% (wysoka skuteczność)",
+    "normalWinrate": "Normalny współczynnik wygranych",
+    "highKillsPerRound": "Dużo zabójstw na rundę (oznaka wysokich umiejętności)",
+    "highHeadAccuracy": "Wysoka celność headshotów (oznaka dobrze wytrenowanego celowania)",
+    "suspectTitle": "Podejrzenie cheatowania!",
+    "suspectDescription": "Na podstawie przeanalizowanych danych ten gracz wykazuje podejrzane czynniki:",
+    "inconclusiveTitle": "Wynik niejednoznaczny",
+    "inconclusiveDescription": "Analiza nie jest rozstrzygająca. Część czynników wskazuje na podejrzenia, a część na niewinność:",
+    "positiveFactors": "Czynniki pozytywne:",
+    "negativeFactors": "Czynniki podejrzane:",
+    "innocentTitle": "Wygląda na niewinnego",
+    "innocentDescription": "Ten gracz wykazuje normalne/standardowe oznaki profilu:",
+    "isUserCheaterCS2": "Czy {nickname} cheatuje w CS2?",
+    "normalKD": "Normalny stosunek K/D ({kd})",
+    "highKD": "Wysoki stosunek K/D ({kd}, niezwykle mocna gra)",
+    "veryTrustedTitle": "Bardzo zaufany profil",
+    "veryTrustedDescription": "Ten profil wykazuje wyjątkowe oznaki legalności i zaangażowania:",
+    "highlySuspectTitle": "Wysoce podejrzany!",
+    "highlySuspectDescription": "Ostrzeżenie krytyczne: wykryto wiele czynników wysokiego ryzyka:",
+    "oldAccount": "Konto weterana ({age} lat)",
+    "newAccount": "Niedawne konto ({age} lat, typowe dla smurfów/cheaterów)",
+    "newAccountLessThanYear": "Nowe konto (młodsze niż rok, typowe dla smurfów/cheaterów)",
+    "newAccountMonths": "Niedawne konto ({months} miesięcy, typowe dla smurfów/cheaterów)",
+    "highSteamLevel": "Wysoki poziom Steam (poziom {level}, oznaka zaangażowania)",
+    "lowSteamLevel": "Niski poziom Steam (poziom {level}, typowy dla kont jednorazowych)",
+    "manyGames": "Duża biblioteka ({count} posiadanych gier)",
+    "fewGames": "Mała biblioteka ({count} gier, możliwe konto zapasowe)",
+    "reportFailedToLoad": "Nie udało się teraz obliczyć prawdopodobieństwa cheatowania. Spróbuj ponownie.",
+    "noFriendsWarningPrivate": "Uwaga: lista znajomych tego profilu jest prywatna, więc brakuje sygnału zbanowanych znajomych i ta ocena jest mniej wiarygodna.",
+    "noFriendsWarningEmpty": "Uwaga: ten profil nie ma znajomych, więc brakuje sygnału zbanowanych znajomych i ta ocena jest mniej wiarygodna.",
+    "retry": "Spróbuj ponownie"
+  },
+  "SupportedFormatsSection": {
+    "steamID64Desc": "Unikalny 64-bitowy identyfikator Steam.",
+    "customLabel": "URL profilu (własny)",
+    "customDesc": "Własny link do profilu Steam.",
+    "steamID64UrlLabel": "URL profilu (Steam64ID)",
+    "steamID64UrlDesc": "Bezpośredni link ze Steam64ID.",
+    "supportedFormats": "Obsługiwane formaty",
+    "copied": "Skopiowano!"
+  },
+  "SupportMe": {
+    "supportTitle": "Dzięki za korzystanie ze strony! 💖",
+    "supportText": "Jeśli projekt Ci pomaga, możesz go wesprzeć, abym mógł dalej ulepszać stronę.",
+    "copied": "Skopiowano!",
+    "copy": "Kopiuj",
+    "myPixKey": "Mój klucz PIX (tylko Brazylia)",
+    "openStripe": "Otwórz Stripe",
+    "dontAskAgain": "Nie pokazuj ponownie",
+    "sendSkin": "Wyślij ofertę skina",
+    "tradeLink": "Link do wymiany"
+  },
+  "feedback": {
+    "openButton": "Wyślij opinię",
+    "close": "Zamknij",
+    "title": "Podziel się opinią",
+    "description": "Znalazłeś błąd lub masz pomysł? Daj znać.",
+    "placeholder": "Napisz swoją opinię tutaj…",
+    "cancel": "Anuluj",
+    "send": "Wyślij",
+    "sending": "Wysyłanie…",
+    "success": "Opinia wysłana. Dzięki!",
+    "types": {
+      "suggestion": "Sugestia",
+      "bug": "Błąd",
+      "other": "Inne"
+    },
+    "errors": {
+      "generic": "Coś poszło nie tak. Spróbuj ponownie później.",
+      "rateLimit": "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie."
+    }
+  },
+  "PostHeroSections": {
+    "whyUse": {
+      "title": "Dlaczego SteamReveal?",
+      "cards": {
+        "investigate": {
+          "title": "Zbadaj dowolny profil",
+          "text": "Analizuj profile Steam i odkrywaj najlepszych znajomych, powiązania oraz prawdopodobną lokalizację w kilka sekund — bez logowania."
+        },
+        "suspicious": {
+          "title": "Wykrywaj podejrzane zachowania",
+          "text": "SteamReveal analizuje wzorce i szacuje szansę, że gracz cheatuje, łącząc statystyki, powiązania i dane publiczne."
+        },
+        "intelligence": {
+          "title": "Wywiad dla graczy",
+          "text": "Narzędzie OSINT zbudowane dla społeczności graczy — eksploruj, odkrywaj i rozumiej, co kryje się za każdym profilem, z pełną prywatnością."
+        }
+      }
+    },
+    "numbers": {
+      "title": "Nasze liczby",
+      "visitors": "Odwiedzający",
+      "views": "Wyświetlenia",
+      "playersSearched": "Wyszukanych graczy"
+    },
+    "feedback": {
+      "title": "Pytania lub sugestie?",
+      "description": "Wyślij opinię, aby pomóc ulepszyć SteamReveal!",
+      "button": "Wyślij opinię"
+    }
+  },
+  "Metadata": {
+    "Player": {
+      "title": "Analiza profilu Steam gracza {nickname}",
+      "description": "Zobacz publiczne dane Steam gracza {nickname}, możliwą lokalizację i analizę znajomych na SteamReveal.",
+      "fallbackTitle": "SteamReveal - Analiza profili Steam",
+      "fallbackDescription": "SteamReveal to narzędzie OSINT stworzone dla społeczności Steam. Analizuj profile Steam, odkrywaj prawdziwych znajomych i lokalizuj graczy na podstawie publicznych danych."
+    }
+  },
+  "Watch": {
+    "watchWelcome": "Obserwowanie aktywne! Bot napisze do Ciebie na Steam, gdy ten profil będzie wyszukiwany.",
+    "watchTitle": "Obserwuj profil Steam",
+    "watchDescription": "Otrzymuj wiadomość Steam od naszego bota za każdym razem, gdy ten profil jest wyszukiwany. Kliknij poniżej, zaakceptuj zaproszenie do znajomych od bota na Steam i gotowe.",
+    "watchSubmit": "Obserwuj swój profil",
+    "watchSignupSteps": "Jak to działa: kliknij poniższy przycisk, aby zacząć, zaakceptuj zaproszenie do znajomych od bota na Steam, a następnie kliknij link potwierdzający, który bot wyśle Ci na czacie Steam.",
+    "watchConfirmOk": "Obserwowanie potwierdzone! Bot napisze do Ciebie na Steam za każdym razem, gdy Twój profil będzie wyszukiwany.",
+    "watchConfirmError": "Ten link potwierdzający jest nieprawidłowy lub wygasł. Wygeneruj nowy z panelu obserwowania.",
+    "watchLoginButton": "Zaloguj przez Steam",
+    "watchNavSignIn": "Zaloguj",
+    "watchWaitTitle": "Dokończ logowanie",
+    "watchWaitBody": "Aby dokończyć logowanie, dodaj bota SteamReveal do znajomych na Steam:",
+    "watchWaitAddBot": "Dodaj bota SteamReveal",
+    "watchWaitWaiting": "Sprawdzanie automatyczne… jeśli właśnie dodałeś bota, chwilkę — zajmiemy się resztą.",
+    "watchWaitExpired": "Ta próba logowania wygasła.",
+    "watchWaitRetry": "Zaloguj ponownie",
+    "watchWaitNoScript": "Aby dokończyć logowanie, włącz JavaScript i zaloguj się ponownie.",
+    "watchAvatarAlt": "Zdjęcie profilowe użytkownika {nickname}",
+    "watchLoginError": "Logowanie Steam nie powiodło się. Spróbuj za chwilę.",
+    "watchLogout": "Wyloguj",
+    "watchPendingTitle": "Zaproszenie wysłane",
+    "watchPendingHint": "Zaakceptuj zaproszenie do znajomych od bota SteamReveal na Steam, aby włączyć powiadomienia.",
+    "watchLinkExpired": "Twój link potwierdzający wygasł. Wygeneruj nowy poniżej — bot wyśle Ci go tutaj na Steam.",
+    "watchResendSubmit": "Generuj nowy link",
+    "watchResendSent": "Nowy link w drodze — sprawdź swój czat Steam.",
+    "watchLinkSentHint": "Sprawdź swój czat Steam — tam jest link potwierdzający.",
+    "watchActiveTitle": "Obserwowanie",
+    "watchActiveHint": "Wszystko gotowe — bot napisze do Ciebie na Steam za każdym razem, gdy ten profil będzie wyszukiwany. Aby zatrzymać, po prostu usuń bota ze znajomych; nic więcej nie jest potrzebne.",
+    "watchErrorFailed": "Nie udało się rozpocząć obserwowania. Spróbuj za chwilę.",
+    "watchInboxTitle": "Powiadomienia",
+    "watchInboxBellLabel": "Powiadomienia obserwowania, nieprzeczytane: {count}",
+    "watchInboxEmpty": "Brak powiadomień. Zobaczysz tu wiadomość za każdym razem, gdy Twój obserwowany profil będzie wyszukiwany.",
+    "watchInboxLoading": "Ładowanie powiadomień…",
+    "watchInboxError": "Nie udało się wczytać powiadomień.",
+    "watchInboxRetry": "Spróbuj ponownie",
+    "watchInboxMonthlyBadge": "{count} wyszukiwań w tym miesiącu",
+    "watchInboxItemCheckedBody": "Ktoś <flag>z</flag> wyświetlił Twój profil {date} o {time} i sprawdził, czy cheatujesz.",
+    "watchInboxItemPlainBody": "Ktoś <flag>z</flag> wyświetlił Twój profil {date} o {time}.",
+    "watchInboxItemViewHere": "Zobacz, co zobaczyli",
+    "watchInboxItemTrailing": "w tym wyszukiwaniu",
+    "watchInboxCheaterChecked": "Otwarto raport antycheat",
+    "watchBanAlertBody": "Profil, który przeglądałeś, został oznaczony jako zbanowany.",
+    "watchBanAlertReveal": "Pokaż profil",
+    "watchBanAlertLoading": "Pokazywanie…",
+    "watchBanAlertError": "Nie udało się pokazać. Spróbuj ponownie.",
+    "watchBanAlertOpen": "Otwórz profil"
+  }
+}

@@ -47,7 +47,7 @@ const mockFetchJson = (json: unknown, ok = true) => {
 };
 
 describe('getNotifyMessage', () => {
-  it.each(['en', 'pt', 'es', 'de', 'ru'])(
+  it.each(['en', 'pt', 'es', 'de', 'ru', 'fr', 'uk', 'pl'])(
     'renders a non-empty %s message naming the watched profile',
     (locale) => {
       const text = getNotifyMessage(locale, STEAM);
@@ -93,7 +93,10 @@ describe('getNotifyMessage', () => {
     expect(getNotifyMessage('pt', STEAM)).toMatch(/[ãç]/);
     expect(getNotifyMessage('es', STEAM)).toMatch(/[óí]/);
     expect(getNotifyMessage('de', STEAM)).toMatch(/[äöüÄÖÜß]/);
-    for (const locale of ['en', 'pt', 'es', 'de', 'ru']) {
+    expect(getNotifyMessage('fr', STEAM)).toMatch(/[éèêàç]/);
+    expect(getNotifyMessage('uk', STEAM)).toMatch(/[іїєґІЇЄҐ]/);
+    expect(getNotifyMessage('pl', STEAM)).toMatch(/[ąćęłńóśźż]/);
+    for (const locale of ['en', 'pt', 'es', 'de', 'ru', 'fr', 'uk', 'pl']) {
       // U+FFFD only appears when bytes are decoded with the wrong codec.
       expect(getNotifyMessage(locale, STEAM)).not.toContain('�');
     }
@@ -248,7 +251,7 @@ describe('sendConfirmMessage', () => {
 });
 
 describe('sendConfirmExpiredMessage', () => {
-  it.each(['en', 'pt', 'es', 'de', 'ru'])(
+  it.each(['en', 'pt', 'es', 'de', 'ru', 'fr', 'uk', 'pl'])(
     'sends the non-empty expiry notice in %s (never a link)',
     async (locale) => {
       const sendFriendMessage = jest.fn(async () => ({ ordinal: 1 }));
