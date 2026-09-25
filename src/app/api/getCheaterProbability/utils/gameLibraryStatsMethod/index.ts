@@ -1,5 +1,6 @@
 import getSteamApiKey from '@/lib/getSteamApiKey';
 import SteamAPI from 'steamapi';
+import isBenignOwnedGamesError from '@/lib/isBenignOwnedGamesError';
 import { getAccountAge } from '@/app/api/getCheaterProbability/utils/utils';
 
 const steam = new SteamAPI(getSteamApiKey() ?? '');
@@ -63,7 +64,19 @@ const getGameLibraryStats = async (target: string) => {
       totalGamesCount: allGamesArr.length,
     };
   } catch (err) {
-    console.error('Error getting game library stats:', err);
+    // Benign data-unavailability shapes (private library — steamapi's
+    // TypeError on `games.map`; bogus/gone profile) are routine: warn so
+    // they never read like an outage. Genuine failures stay loud.
+    if (isBenignOwnedGamesError(err)) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        'Owned-games stats unavailable (private library or unresolvable profile):',
+        err instanceof Error ? err.message : err,
+      );
+    } else {
+      // eslint-disable-next-line no-console
+      console.error('Error getting game library stats:', err);
+    }
     return { playTime: -1, totalGamesCount: -1 };
   }
 };

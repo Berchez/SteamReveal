@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import SteamAPI from 'steamapi';
 import isValidTargetParam from '@/lib/isValidTargetParam';
 import { errorResponse } from '@/lib/apiError';
+import isBenignOwnedGamesError from '@/lib/isBenignOwnedGamesError';
+import isSteamProfileNotFoundError from '@/lib/isSteamProfileNotFoundError';
 import withTimeout, { SteamCallTimeoutError } from '@/lib/withTimeout';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import logRouteError from '@/lib/logRouteError';
@@ -107,11 +109,22 @@ export async function POST(req: Request) {
       ).catch((error) => {
         // Best effort: a failure here must never fail the profile fetch. It
         // only leaves isCSActive/gamesSnapshot off the response (the prefetch
-        // gate treats unknown as "don't spend"). Still log it so rate-limit /
-        // provider issues on the enrichment are observable rather than silent.
-        logRouteError('getUserInfo: steam.getUserOwnedGames', error, {
-          targetSteamId,
-        });
+        // gate treats unknown as "don't spend"). Data-unavailability shapes
+        // (private library, bogus/gone profile — see
+        // isBenignOwnedGamesError) log at warn: they are user-triggerable
+        // and routine, not incidents. Everything else stays loud so
+        // rate-limit/provider issues remain observable.
+        if (isBenignOwnedGamesError(error)) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `getUserInfo: owned-games lookup unavailable for ${targetSteamId} (private library or unresolvable profile):`,
+            error instanceof Error ? error.message : error,
+          );
+        } else {
+          logRouteError('getUserInfo: steam.getUserOwnedGames', error, {
+            targetSteamId,
+          });
+        }
         return null;
       });
     }
@@ -156,6 +169,15 @@ export async function POST(req: Request) {
     if (isSteamResolveFormatError(error)) {
       logRouteError('getUserInfo', error, { target: req.url });
       return errorResponse('Invalid target format.', 400, 'INVALID_REQUEST');
+    }
+
+    if (isSteamProfileNotFoundError(error)) {
+      // In-range ID that Steam says doesn't exist: same client outcome as
+      // any invalid target (invalidPlayer toast), but an honest 400
+      // instead of a 500 that reads like an incident in the ops log.
+      // Client input, not a server failure — stays unlogged, like the
+      // other invalid-target 400s above.
+      return errorResponse('Invalid target.', 400, 'INVALID_REQUEST');
     }
 
     logRouteError('getUserInfo', error, { body });

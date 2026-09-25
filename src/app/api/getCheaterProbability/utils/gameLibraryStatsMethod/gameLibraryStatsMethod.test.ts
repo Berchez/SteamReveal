@@ -48,11 +48,42 @@ describe('getGameLibraryStats', () => {
     const consoleErrorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => {});
-    mockGetUserOwnedGames.mockRejectedValue(new Error('API error'));
+    mockGetUserOwnedGames.mockRejectedValue(new Error('steam down'));
     const result = await getGameLibraryStats('123456789');
     expect(result).toEqual({ playTime: -1, totalGamesCount: -1 });
     expect(consoleErrorSpy).toHaveBeenCalled();
     consoleErrorSpy.mockRestore();
+  });
+
+  it('warns (never errors) when the failure is data-unavailability, not an incident', async () => {
+    // The production shapes: private library (steamapi's TypeError on
+    // `games.map`) and bogus/gone profile (Bad Request) used to land as
+    // console.error and read like outages in the ops log.
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
+
+    mockGetUserOwnedGames.mockRejectedValueOnce(
+      new TypeError("Cannot read properties of undefined (reading 'map')"),
+    );
+    await expect(getGameLibraryStats('123456789')).resolves.toEqual({
+      playTime: -1,
+      totalGamesCount: -1,
+    });
+
+    mockGetUserOwnedGames.mockRejectedValueOnce(new Error('Bad Request'));
+    await expect(getGameLibraryStats('123456789')).resolves.toEqual({
+      playTime: -1,
+      totalGamesCount: -1,
+    });
+
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(2);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
   });
 
   it('treats library-wide zero playtime on a non-fresh account as masked (-1)', async () => {

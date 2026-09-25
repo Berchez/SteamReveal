@@ -117,4 +117,72 @@ describe('getPlayerProfile — SSR isCSActive enrichment', () => {
     expect(result?.isCSActive).toBeUndefined();
     expect(result?.gamesSnapshot).toBeUndefined();
   });
+
+  it('returns undefined for a 17-digit target outside the SteamID64 span, before any Steam call', async () => {
+    // The production garbage (2026-09 ops log): resolve() passes 17-digit
+    // inputs straight through, so without the guard every Steam call
+    // would fail with Bad Request/No players found as error-level logs.
+    const resolveFn = jest.fn(async (target: string) => target);
+    const proto = (SteamAPI as unknown as { prototype: { resolve: unknown } })
+      .prototype;
+    const originalResolve = proto.resolve;
+    proto.resolve = resolveFn;
+
+    try {
+      const result = await getPlayerProfile('44846128515546448');
+
+      expect(result).toBeUndefined();
+      expect(resolveFn).not.toHaveBeenCalled();
+    } finally {
+      proto.resolve = originalResolve;
+    }
+  });
+
+  it('warns (never error-logs) when the owned-games failure is data-unavailability', async () => {
+    // Private/empty library = steamapi's own TypeError on `games.map`;
+    // bogus/gone profile = Bad Request. Both are routine, user-triggerable
+    // conditions — they must not read like outages in the ops log.
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
+
+    setOwnedGames(async () => {
+      throw new TypeError("Cannot read properties of undefined (reading 'map')");
+    });
+    const privateLib = await getPlayerProfile('player-a');
+    expect(privateLib?.steamID).toBe('111');
+    expect(privateLib?.isCSActive).toBeUndefined();
+
+    setOwnedGames(async () => {
+      throw new Error('Bad Request');
+    });
+    const goneProfile = await getPlayerProfile('player-a');
+    expect(goneProfile?.steamID).toBe('111');
+    expect(goneProfile?.isCSActive).toBeUndefined();
+
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(2);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('keeps a genuine enrichment failure at error level (incident stays loud)', async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    setOwnedGames(async () => {
+      throw new Error('socket hang up');
+    });
+
+    const result = await getPlayerProfile('player-a');
+    expect(result?.steamID).toBe('111');
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+
+    consoleErrorSpy.mockRestore();
+  });
 });

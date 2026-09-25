@@ -2,6 +2,8 @@ import { cache } from 'react';
 import SteamAPI from 'steamapi';
 import type { UserSummary } from 'steamapi';
 import getSteamApiKey from '@/lib/getSteamApiKey';
+import { isOutOfSpanNumericId } from '@/lib/steamId';
+import isBenignOwnedGamesError from '@/lib/isBenignOwnedGamesError';
 import withTimeout from '@/lib/withTimeout';
 import { EnrichedUserSummary } from '@/@types/targetInfoJsonType';
 import {
@@ -37,6 +39,15 @@ const getPlayerProfile = cache(
     }
 
     try {
+      // A 17-digit param outside the valid SteamID64 span can never resolve
+      // (steamapi's resolve() passes 17-digit inputs straight through, so
+      // every Steam call below would fail with Bad Request/No players
+      // found). Skip all Steam I/O and let the caller render its not-found
+      // state — mirrors isValidTargetParam's API-route rejection.
+      if (isOutOfSpanNumericId(target)) {
+        return undefined;
+      }
+
       const steamId = await steam.resolve(target);
       // Parallelize the two Steam calls so the SSR path isn't a serial chain
       // (resolve → getUserSummary → getUserOwnedGames). The owned-games call
@@ -54,14 +65,26 @@ const getPlayerProfile = cache(
         CS_ACTIVE_ENRICHMENT_TIMEOUT_MS,
       ).catch((error) => {
         // Best-effort: a failure here only leaves isCSActive off the seeded
-        // profile (the prefetch gate treats unknown as "don't spend"). Log it
-        // so provider / rate-limit issues on the enrichment are observable
-        // rather than silent.
-        // eslint-disable-next-line no-console
-        console.error(
-          `getPlayerProfile: getUserOwnedGames failed to enrich isCSActive for steamId=${steamId}`,
-          error,
-        );
+        // profile (the prefetch gate treats unknown as "don't spend").
+        // Data-unavailability shapes (private/empty library — steamapi's
+        // own TypeError on `games.map`; bogus/gone profile — Bad Request /
+        // No players found / private game details) are routine and
+        // user-triggerable: warn, not error, so they never read like an
+        // outage in the ops log. Provider/rate-limit/genuine failures stay
+        // loud.
+        if (isBenignOwnedGamesError(error)) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `getPlayerProfile: owned-games enrichment unavailable for steamId=${steamId} (private library or unresolvable profile):`,
+            error instanceof Error ? error.message : error,
+          );
+        } else {
+          // eslint-disable-next-line no-console
+          console.error(
+            `getPlayerProfile: getUserOwnedGames failed to enrich isCSActive for steamId=${steamId}`,
+            error,
+          );
+        }
         return null;
       });
 
