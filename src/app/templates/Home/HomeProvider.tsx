@@ -6,15 +6,8 @@ import useHome from './hooks/useHome';
 
 export default function HomeProvider({
   children,
-  adsEnabled,
 }: {
   children: React.ReactNode;
-  /**
-   * Server-computed AdSense gate from the locale layout (shouldLoadAds).
-   * Required: omitting it must be a compile error, not a silent
-   * no-ads-in-prod misconfiguration.
-   */
-  adsEnabled: boolean;
 }) {
   const {
     closeFriendsJson,
@@ -54,7 +47,6 @@ export default function HomeProvider({
       cheaterError,
       showSupportMe,
       isReportOpen,
-      adsEnabled,
     }),
     [
       closeFriendsJson,
@@ -69,7 +61,6 @@ export default function HomeProvider({
       cheaterError,
       showSupportMe,
       isReportOpen,
-      adsEnabled,
     ],
   );
 

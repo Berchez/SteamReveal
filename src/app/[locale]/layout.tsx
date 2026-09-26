@@ -12,7 +12,6 @@ import SiteNav, {
   siteNavContainerClassName,
 } from '@/app/components/SiteNav/SiteNav';
 import { WATCH_SESSION_COOKIE } from '@/lib/watch/sessionCookie';
-import { AD_PUBLISHER_ID, shouldLoadAds } from '@/lib/ads';
 import { LOCALE_PATHS } from '../../locales';
 
 const shouldLoadVercelTelemetry = process.env.VERCEL_ENV === 'production';
@@ -101,16 +100,6 @@ export default function RootLayout({
 }: Readonly<RootLayoutProps>) {
   const messages = useMessages();
   const country = headers().get('x-user-country') || 'UNKNOWN';
-  // AdSense gate (see src/lib/ads.ts): the ad script + account meta render
-  // ONLY on canonical production. Preview deploys, localhost dev, e2e runs
-  // and repo clones must never fire ad requests tied to our publisher ID
-  // (invalid-traffic surface with zero revenue upside — AdSense only serves
-  // on approved domains). headers() is already read above, so this adds no
-  // new dynamic bailout.
-  const loadAds = shouldLoadAds({
-    nodeEnv: process.env.NODE_ENV,
-    host: headers().get('host'),
-  });
   // Skeleton audience split (read by the Suspense fallback below): the
   // session cookie's PRESENCE — never its value, nothing unsealed here —
   // predicts which cluster will resolve. Absent means the logged-out pill
@@ -125,19 +114,15 @@ export default function RootLayout({
   return (
     <html lang={locale} className={`${roboto.variable} ${inknut.variable}`}>
       <head>
-        {/* Google AdSense — gated to canonical prod by `loadAds` above. */}
-        {loadAds && (
-          <>
-            <Script
-              async
-              strategy="lazyOnload"
-              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${AD_PUBLISHER_ID}`}
-              crossOrigin="anonymous"
-            />
+        {/* Google AdSense */}
+        <Script
+          async
+          strategy="lazyOnload"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3301991262958911"
+          crossOrigin="anonymous"
+        />
 
-            <meta name="google-adsense-account" content={AD_PUBLISHER_ID} />
-          </>
-        )}
+        <meta name="google-adsense-account" content="ca-pub-3301991262958911" />
 
         <meta
           name="google-site-verification"
@@ -189,11 +174,7 @@ export default function RootLayout({
               that practically never paints — hence null, not a skeleton.
             */}
             <Suspense fallback={null}>
-              {/* adsEnabled threads the server-computed AdSense gate above
-                  into Home (and its AdSlots): client components must never
-                  re-derive it from window.location — that would render null
-                  on the server and shift layout on hydration (CLS). */}
-              <HomeProvider adsEnabled={loadAds}>
+              <HomeProvider>
                 {/*
                 SiteNav is async (session + Steam avatar, up to 4s on a
                 slow Steam API). Without this boundary the whole route —
