@@ -72,7 +72,10 @@ test.describe('Home & Feedback', () => {
   test('Unsupported locale route renders the app 404 fallback page', async ({
     page,
   }) => {
-    await page.goto('/fr');
+    // NOTE: this prefix must stay OUTSIDE SUPPORTED_LOCALES
+    // (src/locales.ts) — /fr played this role until French shipped and the
+    // test started hitting Home instead of not-found.tsx.
+    await page.goto('/it');
 
     await expect(page.getByText(/Something went wrong!/i)).toBeVisible({
       timeout: 15000,

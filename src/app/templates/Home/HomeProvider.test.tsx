@@ -78,7 +78,7 @@ function ContextProbe() {
 function Harness() {
   const [, forceRerender] = useState(0);
   return (
-    <HomeProvider>
+    <HomeProvider adsEnabled>
       <ContextProbe />
       <button type="button" onClick={() => forceRerender((n) => n + 1)}>
         rerender
@@ -136,6 +136,13 @@ describe('HomeProvider — Case 7: stable context reference identity', () => {
     // Actions were untouched — their memoized wrapper must remain the same
     // reference even though data changed.
     expect(actionsRefs[1]).toBe(actionsRefs[0]);
+  });
+
+  it('exposes the server-computed adsEnabled gate through data context', () => {
+    render(<Harness />);
+
+    const data = dataRefs[0] as { adsEnabled: boolean };
+    expect(data.adsEnabled).toBe(true);
   });
 
   it('produces a new actionsValue reference only when an action reference actually changes', () => {

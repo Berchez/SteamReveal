@@ -7,6 +7,19 @@ import {
 } from '@/mocks/devFixtures';
 
 export async function routeApiMocks(page: Page) {
+  // No real ad traffic from automation: the layout gates the AdSense
+  // script to canonical prod, but aborting the ad domains outright keeps
+  // e2e hermetic (and fast) even if that gate ever regresses.
+  await page.route('**/pagead2.googlesyndication.com/**', (route) =>
+    route.abort(),
+  );
+  await page.route('**/*.googlesyndication.com/**', (route) =>
+    route.abort(),
+  );
+  await page.route('**/googleads.g.doubleclick.net/**', (route) =>
+    route.abort(),
+  );
+
   await page.route('**/api/getUserInfo', async (route) => {
     const req = route.request();
     const post = await req.postData();

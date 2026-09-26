@@ -17,6 +17,12 @@ import MyUserSection from './sections/MyUserSection';
 import WelcomeText from './sections/WelcomeText';
 import SupportedFormatsSection from './sections/SupportedFormatsSection';
 
+const AdSlot = dynamic(() => import('@/app/components/AdSlot'));
+// NOTE: deliberately WITHOUT ssr:false. AdSlot is SSR-safe (no window or
+// headers() in render; the adsbygoogle push runs in useEffect), and
+// server-rendering the min-height wrapper is what keeps its mount from
+// shifting page content (CLS). ssr:false would mount an unreserved zero-
+// height hole on first paint and jump everything below it on hydration.
 const LocationSection = dynamic(() => import('./sections/LocationSection'));
 const FriendsSection = dynamic(() => import('./sections/FriendsSection'));
 const CheaterReport = dynamic(() => import('./sections/CheaterReport'));
@@ -59,6 +65,7 @@ export default function Home({
     cheaterError,
     showSupportMe,
     isReportOpen,
+    adsEnabled,
   } = data;
   const {
     onChangeTarget,
@@ -175,6 +182,18 @@ export default function Home({
             className={hasNoDataYet ? 'mt-[max(15vh,80px)] sm:mt-[25vh]' : ''}
           />
           {hasNoDataYet && <SupportedFormatsSection />}
+          {/* Manual ad unit (fresh-home, below SupportedFormats, INSIDE the
+              min-h-[70dvh] hero block): renders null until its slot ID is
+              configured — zero DOM/layout impact meanwhile. mt-8 adds to
+              the section's mb-4 (16px) for ~48px of separation above;
+              below, PostHeroSections' own mt-24 spaces it. */}
+          {hasNoDataYet && (
+            <AdSlot
+              placement="homeTop"
+              enabled={adsEnabled}
+              className="mt-8"
+            />
+          )}
         </div>
         {hasNoDataYet && <PostHeroSections />}
         {isReportOpen && (
@@ -199,12 +218,28 @@ export default function Home({
               targetInfoJson={targetInfoJson}
               friendsVisibility={friendsVisibility}
             />
+            {/* Manual ad unit (player, in-article): same null-until-configured
+                contract. -my-8 halves the parent's gap-16 (64px → 32px
+                each side): full 4rem above AND below the ad reads cavernous
+                for an in-flow unit. Negative margins offset flex gaps
+                without collapsing, and the min-h reserve is untouched. */}
+            <AdSlot
+              placement="playerInline"
+              enabled={adsEnabled}
+              className="-my-8"
+            />
             <FriendsSection
               closeFriendsJson={closeFriendsJson}
               friendsVisibility={friendsVisibility}
             />
           </div>
         )}
+        {/* Manual ad unit (above footer, both branches): null until configured.
+            mt-12 both branches: on fresh-home PostHeroSections (Send
+            Feedback) ends flush against it; on player pages the flex
+            gap-16 lives INSIDE the sections block, so FriendsSection ends
+            flush against it too. Matches the footer bar's own mt-12. */}
+        <AdSlot placement="footer" enabled={adsEnabled} className="mt-12" />
         {/* FOOTER */}
         {/* Full-bleed footer: -mx-4 md:-mx-12 cancels the parent container's
             px-4 md:p-12 horizontal padding so the bar spans edge-to-edge while

@@ -28,6 +28,14 @@ interface HomeDataContextType {
   cheaterError: boolean;
   showSupportMe: boolean;
   isReportOpen: boolean;
+  /**
+   * Server-computed AdSense gate (shouldLoadAds in the locale layout):
+   * true only on canonical production. Threaded through the provider (not
+   * read from window.location) so SSR and hydration agree — a client-side
+   * hostname check would render null on the server and shift layout on
+   * hydration.
+   */
+  adsEnabled: boolean;
 }
 
 interface HomeActionsContextType {
