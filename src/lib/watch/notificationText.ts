@@ -301,20 +301,39 @@ const BAN_ALERT_TEXT: Record<WatchMessageLocale, string> = {
   // through the reveal (instrumented server-side). Same contract as every
   // template above: 8 locales, never throws, never empty, no `[`
   // (Steam BBCode mangling), no rich-text tags (bot prints verbatim).
-  en: 'A profile you reviewed was flagged as banned. Open your notifications tab to see which.',
-  pt: 'Um perfil que você analisou foi sinalizado como banido. Abra sua aba de notificações para ver qual.',
-  es: 'Un perfil que revisaste fue marcado como baneado. Abre tu pestaña de notificaciones aquí para ver cuál.',
-  de: 'Ein von dir geprüftes Profil wurde als gesperrt markiert. Öffne deinen Benachrichtigungs-Tab, um zu sehen, welches.',
-  ru: 'Профиль, который вы проверяли, отмечен как забаненный. Откройте вкладку уведомлений, чтобы узнать какой.',
-  fr: 'Un profil que vous avez examiné a été signalé comme banni. Ouvrez votre onglet de notifications pour voir lequel.',
-  uk: 'Профіль, який ви переглядали, позначено як забанений. Відкрийте вкладку сповіщень, щоб дізнатися який.',
-  pl: 'Profil, który przeglądałeś, został oznaczony jako zbanowany. Otwórz kartę powiadomień, aby zobaczyć który.',
+  // The site link (appended by getBanAlertText when the caller knows the
+  // base URL — the bot does via config) points at the locale HOME, never
+  // at a /player/<target> page: the target identity is disclosed only via
+  // the reveal click, so the chat ping stays as generic as the inbox row.
+  // Own line, never glued to punctuation (chat linkifiers swallow a
+  // trailing "." into the URL — proven live on the confirm link).
+  en: 'A profile you reviewed was flagged as banned. Open SteamReveal and check your notifications tab to see which.',
+  pt: 'Um perfil que você analisou foi sinalizado como banido. Acesse o SteamReveal e abra sua aba de notificações para ver qual.',
+  es: 'Un perfil que revisaste fue marcado como baneado. Abre SteamReveal y revisa tu pestaña de notificaciones ahí para ver cuál.',
+  de: 'Ein von dir geprüftes Profil wurde als gesperrt markiert. Öffne SteamReveal und sieh in deinem Benachrichtigungs-Tab nach, welches.',
+  ru: 'Профиль, который вы проверяли, отмечен как забаненный. Откройте SteamReveal и проверьте вкладку уведомлений, чтобы узнать какой.',
+  fr: 'Un profil que vous avez examiné a été signalé comme banni. Ouvrez SteamReveal et consultez votre onglet de notifications pour voir lequel.',
+  uk: 'Профіль, який ви переглядали, позначено як забанений. Відкрийте SteamReveal і перевірте вкладку сповіщень, щоб дізнатися який.',
+  pl: 'Profil, który przeglądałeś, został oznaczony jako zbanowany. Otwórz SteamReveal i sprawdź kartę powiadomień, aby zobaczyć który.',
 };
 
 /**
  * Ban-alert text (Ban Reveal Phase 1): generic by design — the profile is
- * revealed only after the instrumented reveal click, never in chat.
+ * revealed only after the instrumented reveal click, never in chat. The
+ * optional siteUrl (bot config) appends the locale home URL on its own
+ * line; absent (tests, exotic setups) degrades to the bare sentence —
+ * never to a Steam-profile or player-page link, which would name the
+ * target outside the gated reveal.
  */
 export const getBanAlertText = (
   locale: string | null | undefined,
-): string => BAN_ALERT_TEXT[resolveWatchLocale(locale)];
+  siteUrl?: string | null,
+): string => {
+  const resolved = resolveWatchLocale(locale);
+  const sentence = BAN_ALERT_TEXT[resolved];
+  const home =
+    typeof siteUrl === 'string' && siteUrl !== ''
+      ? `${siteUrl.replace(/\/+$/, '')}/${resolved}`
+      : null;
+  return home === null ? sentence : `${sentence}\n${home}`;
+};

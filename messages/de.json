@@ -220,9 +220,8 @@
     "watchInboxItemTrailing": "bei dieser Suche",
     "watchInboxCheaterChecked": "Cheater-Bericht geöffnet",
     "watchBanAlertBody": "Ein von dir geprüftes Profil wurde als gesperrt markiert.",
-    "watchBanAlertReveal": "Profil aufdecken",
+    "watchBanAlertReveal": "Gesperrtes Profil ansehen",
     "watchBanAlertLoading": "Wird aufgedeckt…",
-    "watchBanAlertError": "Konnte nicht aufgedeckt werden. Versuche es erneut.",
-    "watchBanAlertOpen": "Profil öffnen"
+    "watchBanAlertError": "Konnte nicht aufgedeckt werden. Versuche es erneut."
   }
 }

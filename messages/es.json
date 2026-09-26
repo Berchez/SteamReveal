@@ -220,9 +220,8 @@
     "watchInboxItemTrailing": "en esa búsqueda",
     "watchInboxCheaterChecked": "Informe de cheater abierto",
     "watchBanAlertBody": "Un perfil que revisaste fue marcado como baneado.",
-    "watchBanAlertReveal": "Revelar perfil",
+    "watchBanAlertReveal": "Ver perfil baneado",
     "watchBanAlertLoading": "Revelando…",
-    "watchBanAlertError": "No se pudo revelar. Inténtalo de nuevo.",
-    "watchBanAlertOpen": "Abrir perfil"
+    "watchBanAlertError": "No se pudo revelar. Inténtalo de nuevo."
   }
 }

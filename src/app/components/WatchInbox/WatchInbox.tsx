@@ -231,9 +231,8 @@ function WatchInbox({ steamId }: { steamId: string }) {
   // searched_at cursor), same bell.
   const [banAlerts, setBanAlerts] = useState<InboxBanAlert[]>([]);
   const [banUnread, setBanUnread] = useState(0);
-  // Revealed targets by subscription id (target steamId only lands here
-  // AFTER the instrumented POST — the list payload never names it).
-  const [revealed, setRevealed] = useState<Record<number, string>>({});
+  // Per-row reveal flight (POST /api/watch/ban-reveal below): one
+  // in-flight request per row; failures show a per-row retry.
   const [revealing, setRevealing] = useState<Record<number, boolean>>({});
   const [revealError, setRevealError] = useState<Record<number, boolean>>({});
   // Server-minted loop guard for this open (null = slot busy or mint
@@ -500,7 +499,6 @@ function WatchInbox({ steamId }: { steamId: string }) {
     setUnreadCount(0);
     setBanAlerts([]);
     setBanUnread(0);
-    setRevealed({});
     setRevealing({});
     setRevealError({});
     setMonthlyCount(null);
@@ -516,38 +514,47 @@ function WatchInbox({ steamId }: { steamId: string }) {
   }, []);
 
   // Ban reveal click: POSTs the opaque subscription id (never a target
-  // steamId), logs server-side, and stores the disclosed target for the
-  // link. One in-flight request per row; failures show a per-row retry,
-  // never a panel-wide error.
-  const handleReveal = useCallback(async (subscriptionId: number) => {
-    setRevealing((prev) => ({ ...prev, [subscriptionId]: true }));
-    setRevealError((prev) => ({ ...prev, [subscriptionId]: false }));
-    try {
-      const res = await fetch('/api/watch/ban-reveal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscriptionId }),
-      });
-      if (!res.ok) throw new Error(`ban reveal: ${res.status}`);
-      const body = (await res.json().catch(() => null)) as {
-        targetSteamId?: unknown;
-      } | null;
-      if (
-        typeof body?.targetSteamId !== 'string' ||
-        body.targetSteamId.length === 0
-      ) {
-        throw new Error('ban reveal: malformed response');
+  // steamId), logs server-side, then navigates same-tab to the disclosed
+  // profile. Single click by product decision (no separate open step):
+  // full navigation — not window.open (trips popup blockers after an
+  // async POST) and not router.push (keeps the post-reveal landing a
+  // plain hard nav, same precedent as PendingLoginRoom's post-login
+  // redirect). A malformed target fails closed to the per-row error
+  // (never a crafted path); failures show a per-row retry, never
+  // a panel-wide error.
+  const handleReveal = useCallback(
+    async (subscriptionId: number) => {
+      setRevealing((prev) => ({ ...prev, [subscriptionId]: true }));
+      setRevealError((prev) => ({ ...prev, [subscriptionId]: false }));
+      try {
+        const res = await fetch('/api/watch/ban-reveal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscriptionId }),
+        });
+        if (!res.ok) throw new Error(`ban reveal: ${res.status}`);
+        const body = (await res.json().catch(() => null)) as {
+          targetSteamId?: unknown;
+        } | null;
+        // Defense in depth (mirrors the backend's assertSteamId64): the
+        // disclosed id comes from our own API, but it is interpolated
+        // into a navigation — a malformed value fails closed to the
+        // error row instead of a crafted path. Unreachable in practice.
+        if (
+          typeof body?.targetSteamId !== 'string' ||
+          !isSteamId64(body.targetSteamId)
+        ) {
+          throw new Error('ban reveal: malformed response');
+        }
+        window.location.href = `/${locale}/player/${body.targetSteamId}`;
+      } catch {
+        setRevealError((prev) => ({ ...prev, [subscriptionId]: true }));
+      } finally {
+        setRevealing((prev) => ({ ...prev, [subscriptionId]: false }));
       }
-      setRevealed((prev) => ({
-        ...prev,
-        [subscriptionId]: body.targetSteamId as string,
-      }));
-    } catch {
-      setRevealError((prev) => ({ ...prev, [subscriptionId]: true }));
-    } finally {
-      setRevealing((prev) => ({ ...prev, [subscriptionId]: false }));
-    }
-  }, []);
+    },
+    [locale],
+  );
 
   // Refetch on every open: cheap, and the only refresh path (no interval
   // polling by design). Visible rows mark as seen via the fetch itself.
@@ -672,16 +679,8 @@ function WatchInbox({ steamId }: { steamId: string }) {
       banAlerts.length === 0 ? null : (
         <ul className="mb-3 flex flex-col gap-3">
           {banAlerts.map((alert) => {
-            const target = revealed[alert.id] ?? null;
-            // Defense in depth (mirrors the backend's assertSteamId64): the
-            // revealed id comes from our own API, but it is interpolated
-            // into an href — a malformed value fails closed to the error
-            // row instead of a crafted path. Unreachable in practice.
-            const safeTarget =
-              target !== null && isSteamId64(target) ? target : null;
             const busy = revealing[alert.id] === true;
-            const failed =
-              revealError[alert.id] === true || (target !== null && safeTarget === null);
+            const failed = revealError[alert.id] === true;
             return (
               <li
                 key={`ban-${alert.id}`}
@@ -696,28 +695,17 @@ function WatchInbox({ steamId }: { steamId: string }) {
                 >
                   {formatSearchedAt(alert.notifiedAt)}
                 </time>
-                {safeTarget === null ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => handleReveal(alert.id)}
-                    className="mt-2 h-8 rounded-full border border-red-400/60 px-3 text-sm text-red-200 hover:border-red-300 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
-                  >
-                    {busy
-                      ? translator('watchBanAlertLoading')
-                      : translator('watchBanAlertReveal')}
-                  </button>
-                ) : (
-                  <a
-                    href={`/${locale}/player/${safeTarget}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 inline-block h-8 rounded-full border border-red-400/60 px-3 text-sm leading-8 text-red-200 hover:border-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                  >
-                    {translator('watchBanAlertOpen')}
-                  </a>
-                )}
-                {failed && safeTarget === null && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => handleReveal(alert.id)}
+                  className="mt-2 h-8 rounded-full border border-red-400/60 px-3 text-sm text-red-200 hover:border-red-300 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                >
+                  {busy
+                    ? translator('watchBanAlertLoading')
+                    : translator('watchBanAlertReveal')}
+                </button>
+                {failed && (
                   <p role="alert" className="mt-1 text-xs text-red-400">
                     {translator('watchBanAlertError')}
                   </p>

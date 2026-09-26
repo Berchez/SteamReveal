@@ -220,9 +220,8 @@
     "watchInboxItemTrailing": "in that search",
     "watchInboxCheaterChecked": "Cheater report opened",
     "watchBanAlertBody": "A profile you reviewed was flagged as banned.",
-    "watchBanAlertReveal": "Reveal profile",
+    "watchBanAlertReveal": "View banned profile",
     "watchBanAlertLoading": "Revealing…",
-    "watchBanAlertError": "Could not reveal. Try again.",
-    "watchBanAlertOpen": "Open profile"
+    "watchBanAlertError": "Could not reveal. Try again."
   }
 }

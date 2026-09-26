@@ -19,7 +19,8 @@ export const DEFAULT_BAN_ALERT_LOCALE = DEFAULT_WATCH_LOCALE;
 /** Resolves the generic alert text for a subscriber locale. */
 export const getBanAlertMessage = (
   locale: string | null | undefined,
-): string => getBanAlertText(locale);
+  siteUrl?: string | null,
+): string => getBanAlertText(locale, siteUrl);
 
 /**
  * Minimal structural surface of the Steam chat sender (same untyped
@@ -35,11 +36,12 @@ export const sendBanAlertMessage = async (
   chat: BanAlertChatClient,
   steamId: string,
   locale: string | null | undefined,
+  siteUrl: string | null = null,
 ): Promise<void> => {
   if (typeof chat?.sendFriendMessage !== 'function') {
     throw new Error(
       'Steam chat sender unavailable: sendFriendMessage is not a function',
     );
   }
-  await chat.sendFriendMessage(steamId, getBanAlertMessage(locale));
+  await chat.sendFriendMessage(steamId, getBanAlertMessage(locale, siteUrl));
 };

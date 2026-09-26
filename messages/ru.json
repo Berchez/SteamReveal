@@ -220,9 +220,8 @@
     "watchInboxItemTrailing": "в этом поиске",
     "watchInboxCheaterChecked": "Отчёт о читере открыт",
     "watchBanAlertBody": "Профиль, который вы проверяли, отмечен как забаненный.",
-    "watchBanAlertReveal": "Показать профиль",
+    "watchBanAlertReveal": "Посмотреть забаненный профиль",
     "watchBanAlertLoading": "Открываем…",
-    "watchBanAlertError": "Не удалось показать. Повторите попытку.",
-    "watchBanAlertOpen": "Открыть профиль"
+    "watchBanAlertError": "Не удалось показать. Повторите попытку."
   }
 }

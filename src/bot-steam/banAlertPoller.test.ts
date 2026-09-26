@@ -73,6 +73,32 @@ describe('pollBanAlertQueueOnce', () => {
     expect(dal.markEventSent).toHaveBeenCalledWith(2);
   });
 
+  it('threads siteUrl through so alerts link the locale home', async () => {
+    const dal = makeDal();
+    const chat = makeChat();
+    dal.claimNextQueuedEvents.mockResolvedValue([{ id: 1, steamId: STEAM_A }]);
+    dal.getBanSubscriptionForAlert.mockResolvedValueOnce({ locale: 'pt' });
+
+    const report = await pollBanAlertQueueOnce({
+      chat,
+      dal,
+      logger: silentLogger,
+      isFriend: () => true,
+      siteUrl: 'https://steam-reveal.vercel.app',
+    });
+
+    expect(report).toMatchObject({ claimed: 1, sent: 1, errors: [] });
+    expect(chat.sendFriendMessage).toHaveBeenCalledWith(
+      STEAM_A,
+      getBanAlertMessage('pt', 'https://steam-reveal.vercel.app'),
+    );
+    const sent = String(chat.sendFriendMessage.mock.calls[0][1]);
+    expect(sent).toContain('https://steam-reveal.vercel.app/pt');
+    // Home only: the chat ping never names the target profile.
+    expect(sent).not.toContain('/player/');
+    expect(sent).not.toContain(STEAM_A);
+  });
+
   it('drops events whose subscription row is gone (never messages)', async () => {
     const dal = makeDal();
     const chat = makeChat();

@@ -413,4 +413,34 @@ describe('getBanAlertText (Ban Reveal Phase 1)', () => {
     expect(getBanAlertText('es')).toMatch(/[óí]/);
     expect(getBanAlertText('de')).toMatch(/[äöüÄÖÜß]/);
   });
+
+  it('appends the locale home link on its own line when siteUrl is known', () => {
+    expect(getBanAlertText('pt', 'https://steam-reveal.vercel.app')).toBe(
+      'Um perfil que você analisou foi sinalizado como banido. Acesse o SteamReveal e abra sua aba de notificações para ver qual.\nhttps://steam-reveal.vercel.app/pt',
+    );
+  });
+
+  it('keeps the link generic (home only, never a player/target page)', () => {
+    for (const locale of WATCH_LOCALES) {
+      const text = getBanAlertText(locale, 'https://steam-reveal.vercel.app/');
+      expect(text).toContain(`https://steam-reveal.vercel.app/${locale}`);
+      expect(text).not.toContain('/player/');
+      expect(text).not.toContain('steamcommunity.com');
+      expect(text).not.toContain(STEAM);
+      // Own line, never glued to sentence punctuation (chat linkifiers
+      // swallow a trailing "." into the URL).
+      expect(text).toMatch(/\nhttps:\/\/steam-reveal\.vercel\.app\/[a-z]{2}$/);
+      expect(text).not.toContain('[');
+    }
+  });
+
+  it('degrades to the bare sentence without siteUrl (no link at all)', () => {
+    for (const locale of WATCH_LOCALES) {
+      for (const missing of [undefined, null, ''] as const) {
+        const text = getBanAlertText(locale, missing);
+        expect(text).not.toContain('http');
+        expect(text).toBe(getBanAlertText(locale));
+      }
+    }
+  });
 });

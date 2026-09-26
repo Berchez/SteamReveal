@@ -503,6 +503,7 @@ const main = (): void => {
     batchLimit: config.banAlertBatchLimit,
     maxAttempts: config.banAlertMaxAttempts,
     sendTimeoutMs: config.banAlertSendTimeoutMs,
+    siteUrl: config.siteUrl,
     logger,
     isConnected: () => bot.isConnected(),
     isFriend,

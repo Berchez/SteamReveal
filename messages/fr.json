@@ -220,9 +220,8 @@
     "watchInboxItemTrailing": "dans cette recherche",
     "watchInboxCheaterChecked": "Rapport anticheat ouvert",
     "watchBanAlertBody": "Un profil que vous avez examiné a été signalé comme banni.",
-    "watchBanAlertReveal": "Révéler le profil",
+    "watchBanAlertReveal": "Voir le profil banni",
     "watchBanAlertLoading": "Révélation…",
-    "watchBanAlertError": "Révélation impossible. Réessayez.",
-    "watchBanAlertOpen": "Ouvrir le profil"
+    "watchBanAlertError": "Révélation impossible. Réessayez."
   }
 }

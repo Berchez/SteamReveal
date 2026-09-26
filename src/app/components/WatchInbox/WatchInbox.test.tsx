@@ -807,4 +807,174 @@ describe('WatchInbox', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
+
+  it('reveals and navigates to the banned profile in a single click', async () => {
+    // Single-click reveal (no separate open step): the opaque subscription
+    // id POSTs for auth + instrumentation, then same-tab navigation lands
+    // on the disclosed profile (window.open after async POST trips popup
+    // blockers, hence location.href).
+    const TARGET = '76561198000000009';
+    const banRow = {
+      id: 7,
+      subscribedAt: '2026-09-20T00:00:00.000Z',
+      notifiedAt: '2026-09-26T00:00:00.000Z',
+    };
+    fetchMock.mockImplementation((url: unknown, init?: { method?: string }) => {
+      if (String(url).includes('/api/watch/ban-reveal')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ targetSteamId: TARGET }),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          steamId: STEAM_A,
+          notifications: [],
+          unreadCount: 0,
+          banAlerts: [banRow],
+        }),
+      } as Response);
+    });
+
+    const originalLocation = window.location;
+    const navigatedTo: { href: string } = { href: 'http://localhost/' };
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: navigatedTo,
+    });
+    try {
+      render(<WatchInbox steamId={STEAM_A} />);
+      await settle();
+      await openInbox();
+
+      expect(screen.getByText('watchBanAlertBody')).toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole('button', { name: 'watchBanAlertReveal' }),
+      );
+      await settle();
+
+      // Opaque id POSTs (never the target); auth + reveal click logged
+      // server-side by that route.
+      const revealCall = fetchMock.mock.calls.find((call) =>
+        String(call[0]).includes('/api/watch/ban-reveal'),
+      );
+      expect(revealCall).toBeDefined();
+      expect(revealCall?.[1]).toMatchObject({ method: 'POST' });
+      expect(JSON.parse(String(revealCall?.[1]?.body))).toEqual({
+        subscriptionId: 7,
+      });
+      // …then lands on the profile, same tab. No second button exists.
+      expect(navigatedTo.href).toBe(`/en/player/${TARGET}`);
+      expect(screen.queryByText('watchBanAlertOpen')).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    }
+  });
+
+  it('shows a per-row retry and stays put when the reveal POST fails', async () => {
+    const banRow = {
+      id: 7,
+      subscribedAt: '2026-09-20T00:00:00.000Z',
+      notifiedAt: '2026-09-26T00:00:00.000Z',
+    };
+    fetchMock.mockImplementation((url: unknown) => {
+      if (String(url).includes('/api/watch/ban-reveal')) {
+        return Promise.resolve({ ok: false, status: 404 });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          steamId: STEAM_A,
+          notifications: [],
+          unreadCount: 0,
+          banAlerts: [banRow],
+        }),
+      } as Response);
+    });
+
+    const originalLocation = window.location;
+    const navigatedTo: { href: string } = { href: 'http://localhost/' };
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: navigatedTo,
+    });
+    try {
+      render(<WatchInbox steamId={STEAM_A} />);
+      await settle();
+      await openInbox();
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'watchBanAlertReveal' }),
+      );
+      await settle();
+
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'watchBanAlertError',
+      );
+      expect(navigatedTo.href).toBe('http://localhost/');
+    } finally {
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    }
+  });
+
+  it('fails closed on a malformed reveal target (no navigation)', async () => {
+    const banRow = {
+      id: 7,
+      subscribedAt: '2026-09-20T00:00:00.000Z',
+      notifiedAt: '2026-09-26T00:00:00.000Z',
+    };
+    fetchMock.mockImplementation((url: unknown) => {
+      if (String(url).includes('/api/watch/ban-reveal')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ targetSteamId: 'not-an-id' }),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          steamId: STEAM_A,
+          notifications: [],
+          unreadCount: 0,
+          banAlerts: [banRow],
+        }),
+      } as Response);
+    });
+
+    const originalLocation = window.location;
+    const navigatedTo: { href: string } = { href: 'http://localhost/' };
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: navigatedTo,
+    });
+    try {
+      render(<WatchInbox steamId={STEAM_A} />);
+      await settle();
+      await openInbox();
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'watchBanAlertReveal' }),
+      );
+      await settle();
+
+      // Malformed id from our own API still degrades to the error row,
+      // never a crafted navigation.
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'watchBanAlertError',
+      );
+      expect(navigatedTo.href).toBe('http://localhost/');
+    } finally {
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    }
+  });
 });

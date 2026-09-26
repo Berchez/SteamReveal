@@ -77,6 +77,13 @@ export interface PollBanAlertQueueOptions {
   /** Watchdog for a single sendFriendMessage call (a hang must fail visibly). */
   sendTimeoutMs?: number;
   /**
+   * Site base URL for the locale-home link appended to the alert (no
+   * trailing slash). Null (tests, exotic setups) degrades to the bare
+   * sentence — never to a player-page link, which would name the target
+   * outside the gated reveal.
+   */
+  siteUrl?: string | null;
+  /**
    * Liveness gate: when provided and false, the pass is skipped without
    * touching Steam or the DAL (no attempts burned).
    */
@@ -118,6 +125,7 @@ export const pollBanAlertQueueOnce = async (
     batchLimit = DEFAULT_BATCH_LIMIT,
     maxAttempts = DEFAULT_MAX_ATTEMPTS,
     sendTimeoutMs = DEFAULT_SEND_TIMEOUT_MS,
+    siteUrl = null,
     isConnected,
     isFriend,
   } = options;
@@ -231,7 +239,7 @@ export const pollBanAlertQueueOnce = async (
     let messageSent = false;
     try {
       await withTimeout(
-        sendBanAlertMessage(chat, event.steamId, locale),
+        sendBanAlertMessage(chat, event.steamId, locale, siteUrl),
         `banAlertPoller: sendFriendMessage(${event.steamId})`,
         sendTimeoutMs,
       );

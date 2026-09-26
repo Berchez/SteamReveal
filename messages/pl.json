@@ -220,9 +220,8 @@
     "watchInboxItemTrailing": "w tym wyszukiwaniu",
     "watchInboxCheaterChecked": "Otwarto raport antycheat",
     "watchBanAlertBody": "Profil, który przeglądałeś, został oznaczony jako zbanowany.",
-    "watchBanAlertReveal": "Pokaż profil",
+    "watchBanAlertReveal": "Zobacz zbanowany profil",
     "watchBanAlertLoading": "Pokazywanie…",
-    "watchBanAlertError": "Nie udało się pokazać. Spróbuj ponownie.",
-    "watchBanAlertOpen": "Otwórz profil"
+    "watchBanAlertError": "Nie udało się pokazać. Spróbuj ponownie."
   }
 }
