@@ -1,0 +1,41 @@
+-- =====================================================================
+-- Turso (SQLite) schema — profiles steam_id lookup index (SEO sitemap).
+-- Migration: 016_profiles_steam_id_index.sql
+--
+-- Idempotent via the runner AND via SQL: the CREATE INDEX below uses IF
+-- NOT EXISTS, so re-running is a safe no-op — but scripts/migrate-db.ts
+-- tracks applied files in _migrations and never replays them (that table
+-- is the idempotency mechanism here).
+-- NEVER RENAME this file after it has been applied anywhere: the runner
+-- keys on filename, so a rename replays the statement set (real incident
+-- with 007, which was applied as 006_watch_anti_loop_token.sql and then
+-- renamed). Apply with `pnpm run db:migrate`.
+--
+-- Design notes:
+-- - The programmatic player sitemap (P0 SEO) aggregates profiles per
+--   SteamID64 (GROUP BY steam_id with HAVING COUNT(*) >= threshold).
+--   Without an index that aggregation scans the whole profiles table on
+--   every sitemap regeneration.
+-- - At current volume the table is small and a scan would be negligible;
+--   this index exists so the daily sitemap build cannot become the slow
+--   query as the search base grows. Same hygiene rationale as 013.
+-- - DEPLOY ORDER: additive index only — code runs identically with or
+--   without it (slower without). Run `pnpm run db:migrate` as the first
+--   deploy step, same contract as every migration here.
+-- =====================================================================
+
+CREATE INDEX IF NOT EXISTS idx_profiles_steam_id
+  ON profiles(steam_id);
+
+-- =====================================================================
+-- ROLLBACK (manual only — READ THIS BEFORE COPYING ANYTHING OUT).
+--
+-- The migrate runner (scripts/migrate-db.ts) executes EVERY file matching
+-- NNN_*.sql as a FORWARD migration, so a down script must NEVER live in a
+-- separate file in this directory: it would be applied as a forward
+-- migration and DROP THE INDEX. The rollback lives here, commented out,
+-- as documentation for a human running it by hand (sqlite3 / Turso shell):
+--
+--   DROP INDEX IF EXISTS idx_profiles_steam_id;
+--   DELETE FROM _migrations WHERE filename = '016_profiles_steam_id_index.sql';
+-- =====================================================================

@@ -269,6 +269,24 @@ export interface BanAlertNotification {
   notifiedAt: string;
 }
 
+/**
+ * One searched profile aggregated for the programmatic player sitemap
+ * (P0 SEO): SteamID64 with demand signal (search count) and freshness
+ * (latest search). Nickname is observability only — the sitemap entry
+ * itself carries just the URL + lastModified (the page title resolves
+ * live from Steam at render/crawl time).
+ */
+export interface PopularProfile {
+  /** Resolved SteamID64 (17 digits — malformed rows never leave the DAL). */
+  steamId: string;
+  /** Latest recorded nickname, null when the search stored none. */
+  nickname: string | null;
+  /** Newest search of this profile (ISO-8601) — sitemap lastModified. */
+  lastSearchedAt: string;
+  /** Finished searches recorded for this profile (always >= minSearches). */
+  searchCount: number;
+}
+
 // ---------------------------------------------------------------------------
 // Watch dashboard (read-only aggregates for the analytics dashboard).
 // These DTOs carry NO secrets: explicit columns only — token hashes,

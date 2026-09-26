@@ -40,6 +40,7 @@ import type {
   BanWatchSubscription,
   BanWatchTarget,
   BanAlertNotification,
+  PopularProfile,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
 import { normalizeFriendsVisibility } from './friendsVisibility';
@@ -3138,4 +3139,130 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
       };
     })
     .filter((record) => record !== null);
+};
+
+// ---------------------------------------------------------------------------
+// Programmatic player sitemap (P0 SEO) — demand-ordered profile aggregates.
+//
+// The sitemap indexer feeds on finished searches (real demand), not on a
+// static list: profiles graduate into the sitemap once minSearches distinct
+// searches exist, most-searched first. Rows with malformed steam_ids are
+// skipped (a sitemap URL must resolve — one legacy row must not nuke the
+// shard), and the nickname is observability only (the page title resolves
+// live from Steam at render time). No cheater data travels here by
+// construction: the SELECT touches only profiles + searches.
+//
+// Documented debt (same pattern as getLoginFunnelStats): no time window —
+// the aggregation scans the full searches history on every daily build.
+// At current volume that scan is seconds; revisit with a rolling window
+// (e.g. trailing 12 months) if the table ever slows the build past budget.
+// ---------------------------------------------------------------------------
+
+/**
+ * Independent safety ceiling for one DAL read (not the product cap):
+ * SITEMAP_MAX_URLS (lib/seo/playerSitemap.ts) is what the sitemap passes
+ * as limit and must stay <= this — anything above is silently clamped.
+ */
+const POPULAR_PROFILES_MAX_LIMIT = 10000;
+
+const toPopularProfile = (row: Record<string, unknown>): PopularProfile | null => {
+  const steamId = row.steam_id;
+  const lastSearchedAt = row.last_searched_at;
+  // Fail-closed per row (mirrors the inbox parsers): malformed steam_ids
+  // (legacy vanity/unresolved rows) cannot form a /player/ URL, so they
+  // fall out instead of poisoning the shard.
+  if (typeof steamId !== 'string' || !isSteamId64(steamId)) return null;
+  if (typeof lastSearchedAt !== 'string' || lastSearchedAt.length === 0) {
+    return null;
+  }
+  // COUNT(*) arrives as number over hrana JSON, but the native file:
+  // transport can hand back bigint — same defensive read as
+  // toNullableNumber/getLoginFunnelStats (counts here are small, but the
+  // mapper must not NaN on either shape).
+  let searchCount = 0;
+  if (
+    typeof row.search_count === 'number' &&
+    Number.isFinite(row.search_count)
+  ) {
+    searchCount = Math.floor(row.search_count);
+  } else if (typeof row.search_count === 'bigint') {
+    searchCount = Number(row.search_count);
+  }
+  return {
+    steamId,
+    nickname: typeof row.nickname === 'string' ? row.nickname : null,
+    lastSearchedAt,
+    searchCount,
+  };
+};
+
+/**
+ * Demand-ordered profile page (one sitemap read): most-searched first,
+ * newest search breaks ties. limit is clamped to 1..10000 (the sitemap
+ * crawl-budget cap), offset floored at 0, minSearches and minDays floored
+ * at 1. Non-finite inputs throw.
+ *
+ * Anti-abuse gate (harassment-by-indexing): a profile graduates only with
+ * minSearches searches SPREAD OVER minDays distinct UTC days — three
+ * back-to-back lookups cannot force a stranger into the public sitemap
+ * (and from there into Google). A determined actor returning across days
+ * still can; full protection would need per-visitor identity signals the
+ * product deliberately never collects (no IP/session tracking), so this
+ * raises the cost from seconds to deliberate multi-day effort instead.
+ *
+ * Nickname is the LATEST recorded one per profile (correlated subquery on
+ * max searched_at — one indexed lookup per qualifying group, trivial at
+ * current volume), not MAX() (which would return the lexicographic max).
+ * Malformed steam_ids are excluded in SQL (exactly-17-digits guard) with
+ * the row-mapper skip below as backstop.
+ */
+export const listPopularProfiles = async (
+  limit = POPULAR_PROFILES_MAX_LIMIT,
+  offset = 0,
+  minSearches = 3,
+  minDays = 2,
+): Promise<PopularProfile[]> => {
+  if (
+    !Number.isFinite(limit) ||
+    !Number.isFinite(offset) ||
+    !Number.isFinite(minSearches) ||
+    !Number.isFinite(minDays)
+  ) {
+    throw new Error(
+      'Invalid pagination for popular profiles: expected finite numbers',
+    );
+  }
+  const n = Math.max(1, Math.min(POPULAR_PROFILES_MAX_LIMIT, Math.floor(limit)));
+  const start = Math.max(0, Math.floor(offset));
+  const threshold = Math.max(1, Math.floor(minSearches));
+  const days = Math.max(1, Math.floor(minDays));
+  const db = await getClient();
+  const rows = await withSchemaHint(
+    db.execute({
+      sql: `SELECT p.steam_id AS steam_id,
+                   (SELECT p2.nickname
+                    FROM profiles p2
+                    JOIN searches s2 ON s2.id = p2.search_id
+                    WHERE p2.steam_id = p.steam_id
+                    ORDER BY s2.searched_at DESC
+                    LIMIT 1) AS nickname,
+                   MAX(s.searched_at) AS last_searched_at,
+                   COUNT(*) AS search_count
+            FROM profiles p
+            JOIN searches s ON s.id = p.search_id
+            WHERE length(p.steam_id) = 17 AND p.steam_id NOT GLOB '*[^0-9]*'
+            GROUP BY p.steam_id
+            HAVING COUNT(*) >= ? AND COUNT(DISTINCT date(s.searched_at)) >= ?
+            ORDER BY search_count DESC, last_searched_at DESC
+            LIMIT ? OFFSET ?`,
+      args: [threshold, days, n, start],
+    }),
+  );
+  const out: PopularProfile[] = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const row of rows.rows) {
+    const profile = toPopularProfile(row as Record<string, unknown>);
+    if (profile !== null) out.push(profile);
+  }
+  return out;
 };
