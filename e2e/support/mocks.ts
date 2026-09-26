@@ -7,6 +7,30 @@ import {
 } from '@/mocks/devFixtures';
 
 export async function routeApiMocks(page: Page) {
+  // Hermetic ads: the layout loads the AdSense script unconditionally and
+  // its delivery flow spawns blank same-origin iframes (about:blank inherits
+  // the page origin until it navigates away). Playwright addInitScripts —
+  // including seedShowThresholds below — run in EVERY frame, so a blank ad
+  // iframe initializing mid-test writes the seed counters into the SHARED
+  // origin storage, resurrecting counter-gated modals nondeterministically
+  // (proven live: visitCount -30 -> 2 with no in-page writer, plus
+  // blank-iframe attach/detach churn). Aborting the ad/tracking domains
+  // keeps e2e deterministic (and fast) without touching product behavior:
+  // maps/avatars/fonts stay allowed (asserted by tests), only ad delivery
+  // goes dark. shouldLoadAds already keeps ad UNITS out of non-prod; this
+  // keeps the SCRIPT from even loading.
+  const adHosts = [
+    'doubleclick.net',
+    'googlesyndication.com',
+    'googleadsyndication.com',
+    'adtrafficquality.google',
+  ];
+  // Patterns never overlap, so registration order is irrelevant.
+  await Promise.all(
+    adHosts.map((host) =>
+      page.route(`**/${host}/**`, (route) => route.abort()),
+    ),
+  );
   await page.route('**/api/getUserInfo', async (route) => {
     const req = route.request();
     const post = await req.postData();
@@ -171,6 +195,21 @@ export const seedShowThresholds = async (
   seed: { visitCount?: number; supportMeVisitCount?: number },
 ) => {
   await page.addInitScript((s) => {
+    // addInitScript runs in EVERY frame (including blank same-origin ad
+    // iframes, which inherit the page origin until they navigate away) and
+    // in prerenders — all sharing the origin's localStorage with the
+    // visible page. Seeding anywhere but the visible top-level document
+    // overwrites the counters the flow under test already wrote (e.g. back
+    // to 2 right after a dismiss wrote -30), flipping counter-gated modals
+    // nondeterministically. Both guards are identity comparisons (never
+    // throw cross-origin) and no-ops for real navigations/popups, which are
+    // always top-level and non-prerendered when seeded.
+    // (`prerendering` is cast: the repo TS DOM lib predates the API, and a
+    // feature-detect keeps this working where it is absent.)
+    const doc = document as Document & { prerendering?: boolean };
+    if (doc.prerendering === true || window.top !== window) {
+      return;
+    }
     if (s.visitCount !== undefined) {
       window.localStorage.setItem('visitCount', String(s.visitCount));
     }
