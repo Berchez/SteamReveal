@@ -4,7 +4,7 @@ import timingSafeEqualStrings from '@/lib/timingSafeEqualStrings';
 import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
-import { recordLoginFunnelEvent } from '@/lib/analytics/db';
+import { recordLoginFunnelEvent, recordLoginPopupEvent } from '@/lib/analytics/db';
 import { parseLoginFunnelBody } from '@/app/api/analytics/input';
 import redactBodyForLog from '@/app/api/analytics/redactBody';
 
@@ -16,9 +16,10 @@ const writeRateLimiter = createRateLimiter(
 );
 
 /**
- * Records a Steam-login funnel CTA click (the `login_cta_clicked` step).
- * Fired by the navbar sign-in pill's onClick, before the browser leaves
- * for Steam OpenID — fire-and-forget client-side, never awaited.
+ * Records Steam-login funnel beacons: the navbar `login_cta_clicked` step
+ * plus the login-prompt popup steps (`login_popup_shown`,
+ * `login_popup_cta_clicked`). Fired fire-and-forget client-side, never
+ * awaited.
  *
  * Writes straight to Turso (DATABASE_URL/DATABASE_TOKEN), same as the
  * other recordAnalytics* routes — no proxy forward.
@@ -75,11 +76,25 @@ export async function POST(req: Request) {
       return errorResponse('Invalid request body.', 400, 'INVALID_REQUEST');
     }
 
-    await recordLoginFunnelEvent({
-      event: parsed.event,
-      sessionId: parsed.sessionId,
-      searchId: parsed.searchId,
-    });
+    // One route, two tables: the parser allowlists only client-reportable
+    // steps, and the DAL branches by event (popup steps land in
+    // login_popup_events, never in the navbar funnel table).
+    if (
+      parsed.event === 'login_popup_shown' ||
+      parsed.event === 'login_popup_cta_clicked'
+    ) {
+      await recordLoginPopupEvent({
+        event: parsed.event,
+        sessionId: parsed.sessionId,
+        searchId: parsed.searchId,
+      });
+    } else {
+      await recordLoginFunnelEvent({
+        event: parsed.event,
+        sessionId: parsed.sessionId,
+        searchId: parsed.searchId,
+      });
+    }
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {

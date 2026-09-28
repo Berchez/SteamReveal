@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { track } from '@vercel/analytics';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import useSupportMe from '@/app/components/SupportMe/useSupportMe';
+import useLoginPrompt from '@/app/components/LoginPrompt/useLoginPrompt';
 
 import { useSearchParams } from 'next/navigation';
 import { ANTI_LOOP_TOKEN_PARAM } from '@/lib/watch/notificationText';
@@ -37,6 +38,13 @@ const useHome = () => {
 
   const { showSupportMe, handleShowSupportMe, onCloseSupportMe } =
     useSupportMe();
+
+  const {
+    showLoginPrompt,
+    handleShowLoginPrompt,
+    onCloseLoginPrompt,
+    onDismissLoginPrompt,
+  } = useLoginPrompt();
 
   const searchParams = useSearchParams();
   const antiLoopToken = searchParams.get(ANTI_LOOP_TOKEN_PARAM) || undefined;
@@ -86,6 +94,7 @@ const useHome = () => {
     clearSyncedUrlPlayer,
     handleShowSponsorMe,
     handleShowSupportMe,
+    handleShowLoginPrompt,
     antiLoopToken,
   });
 
@@ -148,6 +157,7 @@ const useHome = () => {
     isReportOpenRef.current = true;
     setIsReportOpen(true);
     handleShowSupportMe(3);
+    handleShowLoginPrompt(3);
     track('cheater_probability_requested', {
       target: targetInfoJsonRef.current?.profileInfo?.steamID ?? '',
     });
@@ -162,7 +172,7 @@ const useHome = () => {
     if (!cheaterDataRef.current && !cheaterErrorRef.current) {
       prefetchCheaterReport();
     }
-  }, [handleShowSupportMe, prefetchCheaterReport]);
+  }, [handleShowSupportMe, handleShowLoginPrompt, prefetchCheaterReport]);
 
   // Close the report whenever the displayed profile changes (new search,
   // navigation back home) so a stale report never lingers across players.
@@ -257,6 +267,9 @@ const useHome = () => {
     cheaterData,
     showSupportMe,
     onCloseSupportMe,
+    showLoginPrompt,
+    onCloseLoginPrompt,
+    onDismissLoginPrompt,
     seedInitialProfile,
     isReportOpen,
     cheaterError,

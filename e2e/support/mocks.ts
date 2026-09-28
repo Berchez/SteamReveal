@@ -180,10 +180,11 @@ export async function routeApiMocks(page: Page) {
   });
 }
 
-// Seeds the SponsorMe/SupportMe localStorage counters BEFORE the app's own
-// JS runs. useSponsorMe: shows once visitCount >= 2 (3rd call to
+// Seeds the SponsorMe/SupportMe/LoginPrompt localStorage counters BEFORE the
+// app's own JS runs. useSponsorMe: shows once visitCount >= 2 (3rd call to
 // handleShowSponsorMe). useSupportMe: shows once
-// (currentCount + increment) >= 10.
+// (currentCount + increment) >= 10. useLoginPrompt: shows once
+// (currentScore + points) >= 10.
 //
 // CAUTION: addInitScript re-runs on every subsequent page.goto() in the
 // SAME test, re-seeding these values and silently overwriting whatever the
@@ -192,7 +193,11 @@ export async function routeApiMocks(page: Page) {
 // (client-side) navigation, not page.goto.
 export const seedShowThresholds = async (
   page: Page,
-  seed: { visitCount?: number; supportMeVisitCount?: number },
+  seed: {
+    visitCount?: number;
+    supportMeVisitCount?: number;
+    loginPromptScore?: number;
+  },
 ) => {
   await page.addInitScript((s) => {
     // addInitScript runs in EVERY frame (including blank same-origin ad
@@ -217,6 +222,12 @@ export const seedShowThresholds = async (
       window.localStorage.setItem(
         'supportMeVisitCount',
         String(s.supportMeVisitCount),
+      );
+    }
+    if (s.loginPromptScore !== undefined) {
+      window.localStorage.setItem(
+        'loginPromptScore',
+        String(s.loginPromptScore),
       );
     }
   }, seed);

@@ -136,3 +136,104 @@ test.describe('SupportMe', () => {
     expect(stored).toBe('5');
   });
 });
+
+// LoginPrompt mirrors the SupportMe scoring model (weighted points, same
+// +1/search and +3/cheater-report call sites) with its own counter and its
+// own 10-point threshold. The session gate below is overridden to logged-out
+// (401) so the tests don't depend on real session state; the beacon route
+// itself is covered by the shared routeApiMocks fulfill.
+test.describe('LoginPrompt', () => {
+  const mockLoggedOut = async (page: any) => {
+    await page.route('**/api/watch/status', async (route: any) =>
+      route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'no session' }),
+      }),
+    );
+  };
+
+  const loginCta = (page: any) =>
+    page.getByRole('link', { name: 'Sign in with Steam' });
+
+  test('appears once the score threshold is reached via a normal search', async ({
+    page,
+  }) => {
+    // 9 + 1 (from the search) = 10 -> shows (logged-out gate mocked).
+    await seedShowThresholds(page, { loginPromptScore: 9 });
+    await mockLoggedOut(page);
+
+    await page.goto('/en/player/player-a');
+    await expect(page.getByText('Nickname: User-player-a')).toBeVisible({
+      timeout: 15000,
+    });
+
+    await expect(loginCta(page)).toBeVisible({ timeout: 15000 });
+  });
+
+  test('CTA click fires the popup beacon (never the navbar one)', async ({
+    page,
+  }) => {
+    await seedShowThresholds(page, { loginPromptScore: 9 });
+    await mockLoggedOut(page);
+
+    await page.goto('/en/player/player-a');
+    await expect(loginCta(page)).toBeVisible({ timeout: 15000 });
+
+    const [request] = await Promise.all([
+      page.waitForRequest(
+        (req: any) =>
+          req.url().includes('/api/recordAnalyticsLogin') &&
+          req.method() === 'POST',
+      ),
+      loginCta(page).click(),
+    ]);
+    // The click navigates away to Steam right after firing: assert on the
+    // captured request only, nothing on the (departed) page.
+    expect(request.postDataJSON().event).toBe('login_popup_cta_clicked');
+  });
+
+  test('dismiss with "don\'t ask again" suppresses it on the very next visit', async ({
+    page,
+  }) => {
+    await seedShowThresholds(page, { loginPromptScore: 9 });
+    await mockLoggedOut(page);
+
+    await page.goto('/en/player/player-a');
+    await expect(loginCta(page)).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole('button', { name: "Don't ask again" }).click();
+    await expect(loginCta(page)).toHaveCount(0);
+
+    // In-app search (client-side routing) — a page.goto here would re-run
+    // addInitScript and re-seed the score, masking the -50 debt.
+    await page.getByRole('textbox').fill('player-b');
+    await page.getByRole('button', { name: /search/i }).click();
+
+    await expect(page).toHaveURL(/\/en\/player\/player-b$/);
+    await expect(loginCta(page)).toHaveCount(0);
+    // -50 debt from dismiss, +1 from the follow-up search.
+    const stored = await page.evaluate(() =>
+      localStorage.getItem('loginPromptScore'),
+    );
+    expect(stored).toBe('-49');
+  });
+
+  test('yields to the monetization modals when thresholds collide', async ({
+    page,
+  }) => {
+    // Both SupportMe (9+1) and the login prompt (9+1) cross at once: only
+    // one modal may show, and the donation flow wins over the login ask.
+    await seedShowThresholds(page, {
+      supportMeVisitCount: 9,
+      loginPromptScore: 9,
+    });
+    await mockLoggedOut(page);
+
+    await page.goto('/en/player/player-a');
+    await expect(page.getByRole('button', { name: 'STRIPE' })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(loginCta(page)).toHaveCount(0);
+  });
+});

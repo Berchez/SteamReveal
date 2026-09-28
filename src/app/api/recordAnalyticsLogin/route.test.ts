@@ -6,6 +6,7 @@ import { POST } from './route';
 
 jest.mock('@/lib/analytics/db', () => ({
   recordLoginFunnelEvent: jest.fn(),
+  recordLoginPopupEvent: jest.fn(),
 }));
 
 // Factory must not reference outer variables (TDZ: `import { POST }` runs
@@ -20,10 +21,11 @@ jest.mock('@/lib/rateLimit', () => {
   };
 });
 
-const { recordLoginFunnelEvent } = jest.requireMock(
+const { recordLoginFunnelEvent, recordLoginPopupEvent } = jest.requireMock(
   '@/lib/analytics/db',
 ) as {
   recordLoginFunnelEvent: jest.Mock;
+  recordLoginPopupEvent: jest.Mock;
 };
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
@@ -62,6 +64,7 @@ describe('POST /api/recordAnalyticsLogin', () => {
     // limiter to "open" so a persistent mockReturnValue can't leak across tests.
     __testIsRateLimited.mockReturnValue(false);
     recordLoginFunnelEvent.mockResolvedValue(undefined);
+    recordLoginPopupEvent.mockResolvedValue(undefined);
     originalDbUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
     process.env.ANALYTICS_SKIP_PASSWORD = 'test-password';
@@ -122,6 +125,46 @@ describe('POST /api/recordAnalyticsLogin', () => {
 
     expect(res.status).toBe(400);
     expect(body.error.code).toBe('INVALID_REQUEST');
+    expect(recordLoginFunnelEvent).not.toHaveBeenCalled();
+    expect(recordLoginPopupEvent).not.toHaveBeenCalled();
+  });
+
+  it('routes popup shown to the popup table (never the navbar funnel)', async () => {
+    const res = await POST(
+      makeRequest({
+        jsonBody: {
+          event: 'login_popup_shown',
+          sessionId: 's1',
+          searchId: 'search-1',
+        },
+      }),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ ok: true });
+    expect(recordLoginPopupEvent).toHaveBeenCalledTimes(1);
+    expect(recordLoginPopupEvent).toHaveBeenCalledWith({
+      event: 'login_popup_shown',
+      sessionId: 's1',
+      searchId: 'search-1',
+    });
+    expect(recordLoginFunnelEvent).not.toHaveBeenCalled();
+  });
+
+  it('routes popup CTA clicks to the popup table (navbar metric stays pure)', async () => {
+    const res = await POST(
+      makeRequest({
+        jsonBody: { event: 'login_popup_cta_clicked', sessionId: 's1' },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(recordLoginPopupEvent).toHaveBeenCalledWith({
+      event: 'login_popup_cta_clicked',
+      sessionId: 's1',
+      searchId: null,
+    });
     expect(recordLoginFunnelEvent).not.toHaveBeenCalled();
   });
 

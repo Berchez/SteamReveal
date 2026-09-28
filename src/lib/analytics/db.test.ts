@@ -2530,9 +2530,11 @@ describe('login funnel DAL (Steam sign-in instrumentation)', () => {
 
     const stats = await getLoginFunnelStats();
 
-    // Call 0 is the cold-start PRAGMA; the aggregation lands second — one
-    // single-row query for the whole panel (single snapshot, like Watch).
-    expect(mockExecute).toHaveBeenCalledTimes(2);
+    // Call 0 is the cold-start PRAGMA; the funnel aggregation lands
+    // second and the popup read third — two single-row queries for the
+    // whole panel (the popup half is isolated: a missing 016 degrades only
+    // its own cards, never the funnel above).
+    expect(mockExecute).toHaveBeenCalledTimes(3);
     expect(mockExecute.mock.calls[1][0].sql).toContain(
       'FROM login_funnel_events',
     );
@@ -2567,6 +2569,16 @@ describe('login funnel DAL (Steam sign-in instrumentation)', () => {
       completedSessions: 2,
       unattributedCompletions: 0,
       conversionRate: (2 / 3) * 100,
+      // Popup read shares the call (default mock rows → zeros here; the
+      // dedicated popup tests below pin the mapping).
+      popup: {
+        popupShown: 0,
+        popupShownSessions: 0,
+        popupClicks: 0,
+        popupClickSessions: 0,
+        popupAttributedSignins: 0,
+        popupConversionRate: null,
+      },
       generatedAt: expect.any(String),
     });
   });
@@ -2601,5 +2613,106 @@ describe('login funnel DAL (Steam sign-in instrumentation)', () => {
     const { getLoginFunnelStats } = require('./db');
 
     await expect(getLoginFunnelStats()).rejects.toThrow(/db:migrate/);
+  });
+
+  it('recordLoginPopupEvent inserts into the popup table (never the navbar funnel)', async () => {
+    const { recordLoginPopupEvent } = require('./db');
+
+    await recordLoginPopupEvent({
+      event: 'login_popup_shown',
+      sessionId: 'session-1',
+      searchId: null,
+    });
+
+    // Call 0 is the cold-start PRAGMA; the INSERT lands second.
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    const call = mockExecute.mock.calls[1][0] as {
+      sql: string;
+      args: unknown[];
+    };
+    expect(call.sql).toContain('INSERT INTO login_popup_events');
+    expect(call.sql).not.toContain('login_funnel_events');
+    expect(call.args[0]).toBe('login_popup_shown');
+    expect(call.args[1]).toBe('session-1');
+    expect(call.args[2]).toBeNull();
+    expect(typeof call.args[3]).toBe('string');
+  });
+
+  it('getLoginPopupStats maps the temporal attribution join', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          popup_shown: 10,
+          popup_shown_sessions: 7,
+          popup_clicks: 4,
+          popup_click_sessions: 3,
+          popup_attributed_signins: 1,
+        },
+      ],
+    });
+    const { getLoginPopupStats } = require('./db');
+
+    const stats = await getLoginPopupStats();
+
+    expect(mockExecute.mock.calls[1][0].sql).toContain(
+      'FROM login_popup_events p',
+    );
+    // Temporal join (not bare intersection): the completion must strictly
+    // FOLLOW the click, read from the funnel completions table.
+    expect(mockExecute.mock.calls[1][0].sql).toContain('f.created_at > p.created_at');
+    expect(mockExecute.mock.calls[1][0].sql).toContain('login_funnel_events f');
+    expect(stats).toEqual({
+      popupShown: 10,
+      popupShownSessions: 7,
+      popupClicks: 4,
+      popupClickSessions: 3,
+      popupAttributedSignins: 1,
+      popupConversionRate: (1 / 3) * 100,
+    });
+  });
+
+  it('getLoginFunnelStats degrades only the popup cards when 016 is pending (015 reads fine)', async () => {
+    // The real rollout shape: navbar table exists, popup table missing.
+    // The whole panel must NOT null out — only popup cards go to zeros.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          cta_events: 5,
+          cta_sessions: 3,
+          completions: 2,
+          completed_sessions: 2,
+          unattributed_completions: 0,
+        },
+      ],
+    });
+    mockExecute.mockRejectedValueOnce(
+      new Error('no such table: login_popup_events'),
+    );
+    const { getLoginFunnelStats } = require('./db');
+
+    const stats = await getLoginFunnelStats();
+
+    expect(stats.ctaEvents).toBe(5);
+    expect(stats.conversionRate).toBe((2 / 3) * 100);
+    expect(stats.popup).toEqual({
+      popupShown: 0,
+      popupShownSessions: 0,
+      popupClicks: 0,
+      popupClickSessions: 0,
+      popupAttributedSignins: 0,
+      popupConversionRate: null,
+    });
+  });
+
+  it('getLoginPopupStats still throws transport failures (only missing-schema degrades)', async () => {
+    // Fail-open null for the whole panel lives in the dashboard route —
+    // the DAL must not swallow a dead connection into plausible zeros.
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(new Error('socket hang up'));
+    const { getLoginPopupStats } = require('./db');
+
+    await expect(getLoginPopupStats()).rejects.toThrow('socket hang up');
   });
 });

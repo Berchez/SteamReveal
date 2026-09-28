@@ -1390,6 +1390,13 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     // are excluded from abandon, but legacy click-only sessions still read
     // as abandon, so compare leak/abandon across time, not against the
     // all-time click total.
+    // Popup-prompt half (same JSON block, no extra payload): defensive
+    // '|| {}' so a stale block without the popup object still renders the
+    // navbar cards instead of throwing mid-IIFE and killing every panel
+    // below this one.
+    var popup = loginFunnel.popup || {};
+    var popupRate = popup.popupConversionRate;
+    var popupRateText = (typeof popupRate === 'number' && isFinite(popupRate)) ? popupRate.toFixed(1) + '%' : '—';
     statsEl.innerHTML = [
       { value: num(loginFunnel.ctaEvents), label: 'Sign-in clicks' },
       { value: num(loginFunnel.ctaSessions), label: 'Clicking sessions' },
@@ -1403,6 +1410,10 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
       // read broke server-side (a bug), not that users stopped converting.
       { value: num(loginFunnel.unattributedCompletions), label: 'Unattributed logins' },
       { value: rateText, label: 'Click → login conversion' },
+      { value: num(popup.popupShown), label: 'Popup shown' },
+      { value: num(popup.popupClicks), label: 'Popup sign-in clicks' },
+      { value: num(popup.popupAttributedSignins), label: 'Popup-attributed logins' },
+      { value: popupRateText, label: 'Popup → login conversion' },
     ].map(function (s) {
       return '<div class="stat-card"><div class="value">' + escapeHtml(s.value) + '</div><div class="label">' + escapeHtml(s.label) + '</div></div>';
     }).join('');

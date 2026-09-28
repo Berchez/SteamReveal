@@ -71,6 +71,7 @@ interface UseHomeSearchParams {
   clearSyncedUrlPlayer: () => void;
   handleShowSponsorMe: () => void;
   handleShowSupportMe: (days: number) => void;
+  handleShowLoginPrompt: (points: number) => void;
   antiLoopToken?: string;
 }
 
@@ -96,6 +97,7 @@ const useHomeSearch = ({
   clearSyncedUrlPlayer,
   handleShowSponsorMe,
   handleShowSupportMe,
+  handleShowLoginPrompt,
   antiLoopToken,
 }: UseHomeSearchParams) => {
   const { reserveNewRun, isCurrentRun } = runGuard;
@@ -529,6 +531,7 @@ const useHomeSearch = ({
     if (cached) {
       handleShowSponsorMe();
       handleShowSupportMe(1);
+      handleShowLoginPrompt(1);
       setTargetInfoJson(cached.targetInfoJson);
       setCloseFriendsJson(cached.closeFriendsJson);
       setFriendsVisibility(
@@ -553,6 +556,7 @@ const useHomeSearch = ({
     }
     handleShowSponsorMe();
     handleShowSupportMe(1);
+    handleShowLoginPrompt(1);
     if (alreadySeeded) {
       // The profile card is already seeded and on screen (see layout
       // effect above) — only reset the heavier/secondary data, and keep

@@ -363,6 +363,35 @@ export type ServerLoginFunnelEvent = Exclude<
   'login_cta_clicked'
 >;
 
+/** Popup steps (mirrors the login_popup_events CHECK — separate table). */
+export type LoginPopupEventKind =
+  | 'login_popup_shown'
+  | 'login_popup_cta_clicked';
+
+/** Popup aggregates, embedded in LoginFunnelStats. */
+export interface LoginPopupStats {
+  /** Raw login_popup_shown rows (every display, including repeats). */
+  popupShown: number;
+  /** Distinct anon sessions shown the popup at least once. */
+  popupShownSessions: number;
+  /** Raw login_popup_cta_clicked rows. */
+  popupClicks: number;
+  /** Distinct anon sessions that clicked at least once. */
+  popupClickSessions: number;
+  /**
+   * Distinct anon sessions with a popup CTA click strictly BEFORE a
+   * login_completed (temporal join at read time — see getLoginFunnelStats):
+   * signins the popup gets credit for. NULL-session completions can never
+   * attribute (no session to join on).
+   */
+  popupAttributedSignins: number;
+  /**
+   * popupAttributedSignins / popupClickSessions * 100. Null while no popup
+   * click session exists yet (renders as "—", never 0% or NaN).
+   */
+  popupConversionRate: number | null;
+}
+
 /** Funnel aggregates for the analytics dashboard. */
 export interface LoginFunnelStats {
   /** Raw login_cta_clicked rows (every click, including repeats). */
@@ -421,5 +450,7 @@ export interface LoginFunnelStats {
    * beacons can't push it past 100% — both by SQL construction.
    */
   conversionRate: number | null;
+  /** Popup-prompt aggregates (own table, same read). */
+  popup: LoginPopupStats;
   generatedAt: string;
 }

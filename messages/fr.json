@@ -120,6 +120,15 @@
     "sendSkin": "Envoyer une offre de skin",
     "tradeLink": "Lien d'échange"
   },
+  "LoginPrompt": {
+    "title": "Tirez plus de SteamReveal",
+    "description": "Connectez-vous avec Steam pour débloquer les fonctions de surveillance. C'est gratuit et prend quelques secondes.",
+    "benefitWatch": "Soyez notifié quand votre profil est recherché",
+    "benefitBanAlerts": "Alertes de ban sur les profils examinés",
+    "benefitEarlyAccess": "Accès anticipé aux nouvelles fonctionnalités",
+    "signInButton": "Se connecter avec Steam",
+    "dontAskAgain": "Ne plus demander"
+  },
   "feedback": {
     "openButton": "Envoyer un retour",
     "close": "Fermer",

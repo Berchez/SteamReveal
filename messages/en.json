@@ -120,6 +120,15 @@
     "sendSkin": "Send Skin Offer",
     "tradeLink": "Trade Link"
   },
+  "LoginPrompt": {
+    "title": "Get more from SteamReveal",
+    "description": "Sign in with Steam to unlock monitoring features. It's free and takes seconds.",
+    "benefitWatch": "Get notified when your profile is searched",
+    "benefitBanAlerts": "Ban alerts on profiles you reviewed",
+    "benefitEarlyAccess": "Early access to new features, first",
+    "signInButton": "Sign in with Steam",
+    "dontAskAgain": "Don't ask again"
+  },
   "feedback": {
     "openButton": "Send feedback",
     "close": "Close",

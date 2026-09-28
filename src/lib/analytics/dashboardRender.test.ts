@@ -76,11 +76,20 @@ describe('renderDashboard', () => {
         completedSessions: 1,
         unattributedCompletions: 0,
         conversionRate: 0.4,
+        popup: {
+          popupShown: 20,
+          popupShownSessions: 15,
+          popupClicks: 5,
+          popupClickSessions: 4,
+          popupAttributedSignins: 1,
+          popupConversionRate: 25,
+        },
         generatedAt: '2026-09-24T00:00:00.000Z',
       },
     );
     expect(html).toContain('"ctaEvents": 300');
     expect(html).toContain('Click → login conversion');
+    expect(html).toContain('"popupClicks": 5');
   });
 });
 
@@ -96,6 +105,14 @@ describe('serializeLoginFunnel', () => {
     completedSessions: 1,
     unattributedCompletions: 0,
     conversionRate: 0.4,
+    popup: {
+      popupShown: 20,
+      popupShownSessions: 15,
+      popupClicks: 5,
+      popupClickSessions: 4,
+      popupAttributedSignins: 1,
+      popupConversionRate: 25,
+    },
     generatedAt: '2026-09-24T00:00:00.000Z',
   };
 

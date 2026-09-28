@@ -108,6 +108,7 @@ describe('useHomeSearch - location loading flag', () => {
         clearSyncedUrlPlayer: jest.fn(),
         handleShowSponsorMe: jest.fn(),
         handleShowSupportMe: jest.fn(),
+        handleShowLoginPrompt: jest.fn(),
       }),
     );
 

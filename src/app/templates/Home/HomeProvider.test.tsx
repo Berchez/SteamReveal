@@ -14,6 +14,8 @@ const mockUseHome = useHome as jest.Mock;
 const onChangeTarget = jest.fn();
 const onCloseSponsorMe = jest.fn();
 const onCloseSupportMe = jest.fn();
+const onCloseLoginPrompt = jest.fn();
+const onDismissLoginPrompt = jest.fn();
 const openCheaterReport = jest.fn();
 const retryCheaterReport = jest.fn();
 const navigateToPlayer = jest.fn();
@@ -51,10 +53,13 @@ function buildHookReturn() {
     cheaterData: undefined,
     cheaterError: false,
     showSupportMe: false,
+    showLoginPrompt: false,
     isReportOpen: false,
     onChangeTarget,
     onCloseSponsorMe,
     onCloseSupportMe,
+    onCloseLoginPrompt,
+    onDismissLoginPrompt,
     openCheaterReport,
     retryCheaterReport,
     navigateToPlayer,

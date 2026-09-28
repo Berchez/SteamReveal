@@ -85,6 +85,11 @@ const LOGIN_FUNNEL_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const LOGIN_POPUP_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '016_login_popup_events.sql'),
+  'utf8',
+);
+
 const LOGIN_FUNNEL_MID_STEPS_MIGRATION_SQL = fs.readFileSync(
   path.join(__dirname, 'migrations', '017_login_funnel_mid_steps.sql'),
   'utf8',
@@ -128,6 +133,8 @@ type DbApi = {
   recordLogin: typeof import('./db').recordLogin;
   recordLoginFunnelEvent: typeof import('./db').recordLoginFunnelEvent;
   getLoginFunnelStats: typeof import('./db').getLoginFunnelStats;
+  recordLoginPopupEvent: typeof import('./db').recordLoginPopupEvent;
+  getLoginPopupStats: typeof import('./db').getLoginPopupStats;
   ensureActiveWatch: typeof import('./db').ensureActiveWatch;
   hashConfirmToken: typeof import('./db').hashConfirmToken;
   createAccount: typeof import('./db').createAccount;
@@ -240,15 +247,20 @@ describe('analytics db integration against real libSQL', () => {
     for (const statement of splitSqlStatements(LOGIN_FUNNEL_MIGRATION_SQL)) {
       await db.executeForTests(statement);
     }
-    // A pre-upgrade row: 017 rebuilds the table to widen the CHECK, and
-    // production tables already hold click/completion rows — the rebuild
-    // must carry them over. Asserted right here in beforeAll (the
+    // 016 carries login_popup_events (login-prompt popup instrumentation,
+    // separate table — applied in filename order like production does).
+    for (const statement of splitSqlStatements(LOGIN_POPUP_MIGRATION_SQL)) {
+      await db.executeForTests(statement);
+    }
+    // A pre-upgrade row: 017 rebuilds the funnel table to widen the CHECK,
+    // and production tables already hold click/completion rows — the
+    // rebuild must carry them over. Asserted right here in beforeAll (the
     // per-test wipe below runs later, per test, so it can't cover this).
     await db.executeForTests(
       "INSERT INTO login_funnel_events (event, session_id, search_id, created_at) VALUES ('login_cta_clicked', 'legacy-session', NULL, '2026-01-01T00:00:00.000Z')",
     );
     // 017 widens the funnel CHECK with the mid-steps — applied exactly
-    // like production upgrades it (015 first, then the rebuild), so a
+    // like production upgrades it (015, then 016, then the rebuild), so a
     // row-dropping or syntax slip fails here, not on Turso.
     for (const statement of splitSqlStatements(
       LOGIN_FUNNEL_MID_STEPS_MIGRATION_SQL,
@@ -310,6 +322,8 @@ describe('analytics db integration against real libSQL', () => {
     await db.executeForTests('DELETE FROM bot_heartbeat');
     // Funnel table is append-only with no FKs — own wipe like the watch set.
     await db.executeForTests('DELETE FROM login_funnel_events');
+    // Popup table likewise (no FKs by design).
+    await db.executeForTests('DELETE FROM login_popup_events');
   });
 
   afterAll(async () => {
@@ -2035,6 +2049,89 @@ describe('analytics db integration against real libSQL', () => {
       // Health signal: the beacon-lost completion is visible on the panel.
       expect(stats.unattributedCompletions).toBe(1);
       expect(stats.conversionRate).toBe(100);
+    });
+  });
+
+  describe('login popup instrumentation (016)', () => {
+    it('recordLoginPopupEvent → popup stats round-trip with temporal attribution on real SQL', async () => {
+      // Session A: shown twice, clicks once, completes AFTER the click →
+      // attributed. Session B: shown + clicked, never completes. Session C:
+      // completes with NO popup click (navbar login) → unattributed here.
+      // Session D: popup click AFTER an (earlier, navbar) completion →
+      // must NOT attribute (temporal join, not bare intersection).
+      await db.recordLoginPopupEvent({
+        event: 'login_popup_shown',
+        sessionId: 'session-a',
+        searchId: null,
+      });
+      await db.recordLoginPopupEvent({
+        event: 'login_popup_shown',
+        sessionId: 'session-a',
+        searchId: null,
+      });
+      await db.recordLoginPopupEvent({
+        event: 'login_popup_shown',
+        sessionId: 'session-b',
+        searchId: 'search-1',
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_completed',
+        sessionId: 'session-c',
+        searchId: null,
+      });
+      await db.recordLoginPopupEvent({
+        event: 'login_popup_cta_clicked',
+        sessionId: 'session-a',
+        searchId: null,
+      });
+      await db.recordLoginPopupEvent({
+        event: 'login_popup_cta_clicked',
+        sessionId: 'session-b',
+        searchId: null,
+      });
+      // Completion AFTER the click. created_at has millisecond precision
+      // and the DAL stamps it internally, so back-to-back inserts could
+      // share a millisecond and flake the strict `<` join — force a clock
+      // step instead of hoping I/O spacing suffices.
+      await new Promise((resolve) => {
+        setTimeout(resolve, 1100);
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_completed',
+        sessionId: 'session-a',
+        searchId: null,
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_completed',
+        sessionId: 'session-d',
+        searchId: null,
+      });
+      await db.recordLoginPopupEvent({
+        event: 'login_popup_cta_clicked',
+        sessionId: 'session-d',
+        searchId: null,
+      });
+
+      const stats = await db.getLoginFunnelStats();
+
+      expect(stats.popup.popupShown).toBe(3);
+      expect(stats.popup.popupShownSessions).toBe(2);
+      expect(stats.popup.popupClicks).toBe(3);
+      expect(stats.popup.popupClickSessions).toBe(3);
+      // Only session-a (click strictly before completion). Session-c has
+      // no click at all; session-d clicked AFTER completing.
+      expect(stats.popup.popupAttributedSignins).toBe(1);
+      expect(stats.popup.popupConversionRate).toBe((1 / 3) * 100);
+    });
+
+    it('reports a null popup rate on an empty popup table (no data, not zero)', async () => {
+      const stats = await db.getLoginFunnelStats();
+
+      expect(stats.popup.popupShown).toBe(0);
+      expect(stats.popup.popupConversionRate).toBeNull();
+      // Navbar funnel untouched by the empty popup table.
+      expect(stats.ctaEvents).toBe(0);
+      expect(stats.conversionRate).toBeNull();
     });
   });
 });

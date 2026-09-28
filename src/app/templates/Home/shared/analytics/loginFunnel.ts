@@ -155,3 +155,45 @@ export const recordLoginCta = async (): Promise<void> => {
     // Best effort: analytics must never break or delay the login.
   }
 };
+
+const postLoginPopupBeacon = async (
+  event: 'login_popup_shown' | 'login_popup_cta_clicked',
+  plantCookie: boolean,
+): Promise<void> => {
+  try {
+    if (typeof fetch !== 'function') return;
+    const sessionId = getOrCreateAnonSessionId();
+    const searchId = getActiveLoginSearchId();
+    // The CTA click plants the SAME ctx cookie the navbar CTA uses: a
+    // later login_completed row then carries this session id, so the
+    // popup→signin attribution join works with zero auth-flow changes.
+    // Shown-beacons never plant (no login can follow a mere display).
+    if (plantCookie) writeLoginCtxCookie({ sessionId, searchId });
+    await fetch('/api/recordAnalyticsLogin', {
+      method: 'POST',
+      keepalive: true,
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAnalyticsSkipHeaders(),
+      },
+      body: JSON.stringify({ event, sessionId, searchId }),
+    });
+  } catch {
+    // Best effort: analytics must never break the popup interaction.
+  }
+};
+
+/**
+ * Fire-and-forget impression beacon (login-prompt on display). Call once
+ * per display — the component guards StrictMode double-mount.
+ */
+export const recordLoginPopupShown = async (): Promise<void> =>
+  postLoginPopupBeacon('login_popup_shown', false);
+
+/**
+ * Fire-and-forget CTA beacon (login-prompt sign-in onClick). Deliberately
+ * NOT recordLoginCta: that would pollute the navbar CTA metric the funnel
+ * panel reports. Never await — must not delay the Steam navigation.
+ */
+export const recordLoginPopupCta = async (): Promise<void> =>
+  postLoginPopupBeacon('login_popup_cta_clicked', true);

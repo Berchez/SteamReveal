@@ -87,6 +87,14 @@ describe('GET /api/analytics/dashboard', () => {
       completedSessions: 0,
       unattributedCompletions: 0,
       conversionRate: null,
+      popup: {
+        popupShown: 0,
+        popupShownSessions: 0,
+        popupClicks: 0,
+        popupClickSessions: 0,
+        popupAttributedSignins: 0,
+        popupConversionRate: null,
+      },
       generatedAt: '2026-09-24T00:00:00.000Z',
     });
     originalDbUrl = process.env.DATABASE_URL;
@@ -310,6 +318,14 @@ describe('GET /api/analytics/dashboard', () => {
       completedSessions: 1,
       unattributedCompletions: 0,
       conversionRate: 0.4,
+      popup: {
+        popupShown: 20,
+        popupShownSessions: 15,
+        popupClicks: 5,
+        popupClickSessions: 4,
+        popupAttributedSignins: 1,
+        popupConversionRate: 25,
+      },
       generatedAt: '2026-09-24T00:00:00.000Z',
     });
 
@@ -319,6 +335,7 @@ describe('GET /api/analytics/dashboard', () => {
     expect(res.status).toBe(200);
     expect(html).toContain('<script type="application/json" id="login-funnel-db">');
     expect(html).toContain('"ctaEvents": 300');
+    expect(html).toContain('"popupClicks": 5');
     expect(html).toContain('Steam login funnel');
     expect(getLoginFunnelStats).toHaveBeenCalledTimes(1);
   });

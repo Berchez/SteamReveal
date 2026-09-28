@@ -93,6 +93,7 @@ describe('useHomeSearch - anti-loop token sent once', () => {
         clearSyncedUrlPlayer: jest.fn(),
         handleShowSponsorMe: jest.fn(),
         handleShowSupportMe: jest.fn(),
+        handleShowLoginPrompt: jest.fn(),
         antiLoopToken: 'tok-123',
       }),
     );

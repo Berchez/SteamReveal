@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { useParams, useSearchParams } from 'next/navigation';
 import useSponsorMe from '@/app/components/SponsorMe/useSponsorMe';
 import useSupportMe from '@/app/components/SupportMe/useSupportMe';
+import useLoginPrompt from '@/app/components/LoginPrompt/useLoginPrompt';
 import {
   getCitiesNames,
   getLocationDetails,
@@ -71,6 +72,11 @@ jest.mock('../../../components/SupportMe/useSupportMe', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../../components/LoginPrompt/useLoginPrompt', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 jest.mock('@vercel/analytics', () => ({
   track: jest.fn(),
 }));
@@ -92,6 +98,7 @@ const mockUseParams = useParams as jest.Mock;
 const mockUseSearchParams = useSearchParams as jest.Mock;
 const mockUseSponsorMe = useSponsorMe as jest.Mock;
 const mockUseSupportMe = useSupportMe as jest.Mock;
+const mockUseLoginPrompt = useLoginPrompt as jest.Mock;
 const mockGetLocationDetails = getLocationDetails as jest.Mock;
 const mockGetCitiesNames = getCitiesNames as jest.Mock;
 const mockSortCitiesByScore = sortCitiesByScore as jest.Mock;
@@ -102,6 +109,9 @@ const handleShowSponsorMe = jest.fn();
 const onCloseSponsorMe = jest.fn();
 const handleShowSupportMe = jest.fn();
 const onCloseSupportMe = jest.fn();
+const handleShowLoginPrompt = jest.fn();
+const onCloseLoginPrompt = jest.fn();
+const onDismissLoginPrompt = jest.fn();
 
 function makeTargetInfo(steamID: string) {
   return {
@@ -164,6 +174,13 @@ describe('useHome — behavioral risk scenarios', () => {
       showSupportMe: false,
       handleShowSupportMe,
       onCloseSupportMe,
+    });
+
+    mockUseLoginPrompt.mockReturnValue({
+      showLoginPrompt: false,
+      handleShowLoginPrompt,
+      onCloseLoginPrompt,
+      onDismissLoginPrompt,
     });
 
     mockGetLocationDetails.mockResolvedValue({

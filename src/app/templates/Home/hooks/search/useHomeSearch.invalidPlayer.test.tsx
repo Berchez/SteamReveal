@@ -73,6 +73,7 @@ describe('useHomeSearch - invalid player clears loading flags', () => {
         clearSyncedUrlPlayer: jest.fn(),
         handleShowSponsorMe: jest.fn(),
         handleShowSupportMe: jest.fn(),
+        handleShowLoginPrompt: jest.fn(),
       }),
     );
 
@@ -116,6 +117,7 @@ describe('useHomeSearch - invalid player clears loading flags', () => {
         clearSyncedUrlPlayer: jest.fn(),
         handleShowSponsorMe: jest.fn(),
         handleShowSupportMe: jest.fn(),
+        handleShowLoginPrompt: jest.fn(),
       }),
     );
 
@@ -180,6 +182,7 @@ describe('useHomeSearch - invalid player clears loading flags', () => {
         clearSyncedUrlPlayer: jest.fn(),
         handleShowSponsorMe: jest.fn(),
         handleShowSupportMe: jest.fn(),
+        handleShowLoginPrompt: jest.fn(),
       }),
     );
 
@@ -246,6 +249,7 @@ describe('useHomeSearch - invalid player clears loading flags', () => {
         clearSyncedUrlPlayer: jest.fn(),
         handleShowSponsorMe: jest.fn(),
         handleShowSupportMe: jest.fn(),
+        handleShowLoginPrompt: jest.fn(),
       }),
     );
 
@@ -292,6 +296,7 @@ describe('useHomeSearch - invalid player clears loading flags', () => {
         clearSyncedUrlPlayer: jest.fn(),
         handleShowSponsorMe: jest.fn(),
         handleShowSupportMe: jest.fn(),
+        handleShowLoginPrompt: jest.fn(),
       }),
     );
 

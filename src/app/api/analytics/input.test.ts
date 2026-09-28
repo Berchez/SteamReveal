@@ -392,4 +392,31 @@ describe('parseLoginFunnelBody', () => {
       }),
     ).toBeNull();
   });
+
+  it('parses the popup steps into the same shape (DAL branches by event)', () => {
+    expect(
+      parseLoginFunnelBody({
+        event: 'login_popup_shown',
+        sessionId: 's1',
+        searchId: 'search-1',
+      }),
+    ).toEqual({
+      event: 'login_popup_shown',
+      sessionId: 's1',
+      searchId: 'search-1',
+    });
+    expect(
+      parseLoginFunnelBody({ event: 'login_popup_cta_clicked', sessionId: 's1' }),
+    ).toEqual({
+      event: 'login_popup_cta_clicked',
+      sessionId: 's1',
+      searchId: null,
+    });
+  });
+
+  it('still rejects unknown events (allowlist, not blocklist)', () => {
+    expect(
+      parseLoginFunnelBody({ event: 'login_popup_shown_extra', sessionId: 's1' }),
+    ).toBeNull();
+  });
 });

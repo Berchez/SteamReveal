@@ -120,6 +120,15 @@
     "sendSkin": "Skin-Angebot senden",
     "tradeLink": "Handelslink"
   },
+  "LoginPrompt": {
+    "title": "Hole mehr aus SteamReveal heraus",
+    "description": "Melde dich mit Steam an, um Monitoring-Funktionen freizuschalten. Kostenlos und in Sekunden erledigt.",
+    "benefitWatch": "Benachrichtigung, wenn dein Profil gesucht wird",
+    "benefitBanAlerts": "Bann-Warnungen für geprüfte Profile",
+    "benefitEarlyAccess": "Früher Zugang zu neuen Funktionen",
+    "signInButton": "Mit Steam anmelden",
+    "dontAskAgain": "Nicht mehr fragen"
+  },
   "feedback": {
     "openButton": "Feedback senden",
     "close": "Schließen",

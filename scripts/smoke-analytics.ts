@@ -211,6 +211,46 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       );
     }
 
+    // 3.6 Login-prompt popup leg (same gate discipline): a shown + a CTA
+    //     beacon through the real route, rows verified in Turso. Catches a
+    //     forgotten migration 016 the same way 3.5 catches 015.
+    for (const popupEvent of ['login_popup_shown', 'login_popup_cta_clicked']) {
+      // eslint-disable-next-line no-await-in-loop
+      const popupRes = await fetchWithTimeout(
+        `${BASE}/api/recordAnalyticsLogin`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            event: popupEvent,
+            sessionId: MARKER,
+            searchId: id,
+          }),
+        },
+        FETCH_TIMEOUT_MS,
+      );
+      if (!popupRes.ok) {
+        const popupBody = await popupRes.text();
+        throw new Error(
+          `loginPopup(${popupEvent}): HTTP ${popupRes.status} ${popupBody}`,
+        );
+      }
+    }
+
+    const popupRow = await withTimeout(
+      client.execute({
+        sql: 'SELECT COUNT(*) AS n FROM login_popup_events WHERE session_id = ?',
+        args: [MARKER],
+      }),
+      DB_TIMEOUT_MS,
+      'turso verify login_popup_events rows',
+    );
+    if (Number(popupRow.rows[0].n) !== 2) {
+      throw new Error(
+        `login_popup_events rows missing in Turso: ${JSON.stringify(popupRow.rows)}`,
+      );
+    }
+
     // 4. The dashboard (live-rendered from Turso) must show the record.
     //    Authentication goes through the x-analytics-key header (never a URL
     //    query string — a ?key= would leak the secret into access logs) when
@@ -285,6 +325,20 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(`cleanup login_funnel_events failed: ${sanitizeError(err)}`);
+    }
+    // Popup rows likewise (own table, same session marker).
+    try {
+      await withTimeout(
+        client.execute({
+          sql: 'DELETE FROM login_popup_events WHERE session_id = ?',
+          args: [MARKER],
+        }),
+        DB_TIMEOUT_MS,
+        'turso cleanup login_popup_events',
+      );
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`cleanup login_popup_events failed: ${sanitizeError(err)}`);
     }
     // Tear the smoke row down. Marker-scoped checks only (no global count
     // deltas) so concurrent real traffic on a shared DB can't cause false
@@ -387,23 +441,27 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     // Funnel probe (session-keyed, so it can't ride the id-keyed loop
     // above): the smoke must prove its OWN beacon row left with it. Runs
     // before the probeIncomplete warning so a stall here is reported too.
-    try {
-      const funnelProbe = await withTimeout(
-        client.execute({
-          sql: 'SELECT COUNT(*) AS n FROM login_funnel_events WHERE session_id = ?',
-          args: [MARKER],
-        }),
-        PROBE_TIMEOUT_MS,
-        'turso cleanup probe login_funnel_events',
-      );
-      orphanedRows += Number(funnelProbe.rows[0].n);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(`cleanup probe login_funnel_events failed: ${sanitizeError(error)}`);
-      if (isTimeoutError(error)) {
-        probeIncomplete = true;
-      } else {
-        orphanedRows += 1;
+    // Popup rows ride the same probe (own table, same session marker).
+    for (const probeTable of ['login_funnel_events', 'login_popup_events']) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const probe = await withTimeout(
+          client.execute({
+            sql: `SELECT COUNT(*) AS n FROM ${probeTable} WHERE session_id = ?`,
+            args: [MARKER],
+          }),
+          PROBE_TIMEOUT_MS,
+          `turso cleanup probe ${probeTable}`,
+        );
+        orphanedRows += Number(probe.rows[0].n);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`cleanup probe ${probeTable} failed: ${sanitizeError(error)}`);
+        if (isTimeoutError(error)) {
+          probeIncomplete = true;
+        } else {
+          orphanedRows += 1;
+        }
       }
     }
     if (probeIncomplete) {

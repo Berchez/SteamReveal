@@ -27,6 +27,7 @@ interface HomeDataContextType {
   cheaterData: CheaterDataType | undefined;
   cheaterError: boolean;
   showSupportMe: boolean;
+  showLoginPrompt: boolean;
   isReportOpen: boolean;
 }
 
@@ -34,6 +35,8 @@ interface HomeActionsContextType {
   onChangeTarget: (value: string) => void;
   onCloseSponsorMe: (days: number) => void;
   onCloseSupportMe: (days: number) => void;
+  onCloseLoginPrompt: () => void;
+  onDismissLoginPrompt: () => void;
   openCheaterReport: () => void;
   retryCheaterReport: () => void;
   navigateToPlayer: (steamId: string) => void;

@@ -241,16 +241,19 @@ export const parseFriendGcNamesBody = (
 };
 
 export interface ParsedLoginFunnelInput {
-  event: 'login_cta_clicked';
+  event: 'login_cta_clicked' | 'login_popup_shown' | 'login_popup_cta_clicked';
   sessionId: string;
   searchId: string | null;
 }
 
 /**
- * Body parsing for the login-funnel CTA beacon (POST
- * /api/recordAnalyticsLogin).
+ * Body parsing for the login-funnel beacons (POST
+ * /api/recordAnalyticsLogin): the navbar CTA plus the login-prompt popup
+ * steps. The popup shares this route (same rate-limit/skip conventions,
+ * one limiter to reason about) and the DAL branches by event into the two
+ * tables.
  *
- * ONLY the client-reportable step is accepted here: a forged
+ * ONLY client-reportable steps are accepted here: a forged
  * `login_completed` from the browser would let anyone fake conversions, so
  * completions enter exclusively server-side (completeProvenLogin → DAL).
  * sessionId is required (1–64 chars — generated UUIDs are 36; the client
@@ -269,7 +272,13 @@ export const parseLoginFunnelBody = (
   body: unknown,
 ): ParsedLoginFunnelInput | null => {
   if (!isRecord(body)) return null;
-  if (body.event !== 'login_cta_clicked') return null;
+  if (
+    body.event !== 'login_cta_clicked' &&
+    body.event !== 'login_popup_shown' &&
+    body.event !== 'login_popup_cta_clicked'
+  ) {
+    return null;
+  }
   if (
     typeof body.sessionId !== 'string' ||
     body.sessionId.length === 0 ||
@@ -282,5 +291,5 @@ export const parseLoginFunnelBody = (
       ? body.searchId
       : null;
   if (searchId !== null && searchId.length > 64) return null;
-  return { event: 'login_cta_clicked', sessionId: body.sessionId, searchId };
+  return { event: body.event, sessionId: body.sessionId, searchId };
 };

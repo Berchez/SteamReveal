@@ -50,6 +50,7 @@ const EXPECTED_TABLES = [
   'location_guesses',
   'cheater_results',
   'login_funnel_events',
+  'login_popup_events',
 ];
 
 (async () => {

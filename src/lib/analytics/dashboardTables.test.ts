@@ -50,7 +50,7 @@ function loadDashboard(entriesJson: string = SAMPLE) {
 
 /**
  * Executes the dashboard script with a populated login-funnel block so the
- * funnel panel's DATA path (9 cards, number formatting, rate text) actually
+ * funnel panel's DATA path (13 cards, number formatting, rate texts) actually
  * runs — the default 'null' block only ever exercises the "unavailable"
  * early return, and substring tests can't catch a runtime throw here.
  */
@@ -210,7 +210,7 @@ describe('dashboard interactive tables', () => {
     expect(historyNicknames()).toEqual(['Bob']);
   });
 
-  it('executes the funnel panel data path: 9 cards, numbers, rate text', () => {
+  it('executes the funnel panel data path: 13 cards, numbers, rate texts', () => {
     // Also proves escapeHtml is safe on NUMBER values (String() internally)
     // — a throw here would abort the whole IIFE and fail the table tests.
     loadDashboardWithFunnel({
@@ -224,6 +224,14 @@ describe('dashboard interactive tables', () => {
       completedSessions: 2,
       unattributedCompletions: 1,
       conversionRate: 0.8,
+      popup: {
+        popupShown: 20,
+        popupShownSessions: 15,
+        popupClicks: 5,
+        popupClickSessions: 4,
+        popupAttributedSignins: 1,
+        popupConversionRate: 25,
+      },
       generatedAt: '2026-09-24T00:00:00.000Z',
     });
 
@@ -237,6 +245,10 @@ describe('dashboard interactive tables', () => {
       '2 Logged-in sessions',
       '1 Unattributed logins',
       '0.8% Click → login conversion',
+      '20 Popup shown',
+      '5 Popup sign-in clicks',
+      '1 Popup-attributed logins',
+      '25.0% Popup → login conversion',
     ]);
 
     // The rest of the dashboard still rendered after the funnel section.
@@ -263,7 +275,9 @@ describe('dashboard interactive tables', () => {
 
   it('renders missing mid-step keys as 0 (old-shape JSON never breaks the panel)', () => {
     // The num() guard coerces anything non-numeric to 0 — pin it so a
-    // future refactor can't throw on a block shaped before 017.
+    // future refactor can't throw on a block shaped before 017. The
+    // popup half has its own '|| {}' guard, so a block without popup
+    // renders its four cards as zeros (and '—' for its rate) too.
     loadDashboardWithFunnel({
       ctaEvents: 4,
       ctaSessions: 3,
@@ -284,6 +298,10 @@ describe('dashboard interactive tables', () => {
       '1 Logged-in sessions',
       '0 Unattributed logins',
       '33.3% Click → login conversion',
+      '0 Popup shown',
+      '0 Popup sign-in clicks',
+      '0 Popup-attributed logins',
+      '— Popup → login conversion',
     ]);
   });
 

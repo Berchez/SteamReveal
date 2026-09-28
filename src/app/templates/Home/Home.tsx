@@ -29,6 +29,10 @@ const SupportMe = dynamic(() => import('@/app/components/SupportMe'), {
   ssr: false,
   loading: () => null,
 });
+const LoginPrompt = dynamic(() => import('@/app/components/LoginPrompt'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function Home({
   initialProfile,
@@ -58,12 +62,15 @@ export default function Home({
     cheaterData,
     cheaterError,
     showSupportMe,
+    showLoginPrompt,
     isReportOpen,
   } = data;
   const {
     onChangeTarget,
     onCloseSponsorMe,
     onCloseSupportMe,
+    onCloseLoginPrompt,
+    onDismissLoginPrompt,
     retryCheaterReport,
   } = actions;
   const translator = useTranslations('Index');
@@ -137,6 +144,15 @@ export default function Home({
         <SupportMe
           onClose={() => onCloseSupportMe(0)}
           dontAskAgain={() => onCloseSupportMe(-50)}
+        />
+      )}
+      {/* Login prompt yields to the monetization modals: only one modal at
+          a time, and a user mid-donation/star flow must never be
+          interrupted by a login ask. */}
+      {showLoginPrompt && !showSponsorMe && !showSupportMe && (
+        <LoginPrompt
+          onClose={onCloseLoginPrompt}
+          dontAskAgain={onDismissLoginPrompt}
         />
       )}
       {/* Mobile: the hero greeting renders NOTHING (space is tight under

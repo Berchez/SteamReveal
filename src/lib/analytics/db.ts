@@ -36,6 +36,8 @@ import type {
   WatchDashboardData,
   LoginFunnelEventKind,
   LoginFunnelStats,
+  LoginPopupEventKind,
+  LoginPopupStats,
   ExpiredConfirmCandidate,
   BanWatchSubscription,
   BanWatchTarget,
@@ -1919,6 +1921,134 @@ export const recordLoginFunnelEvent = async (
   );
 };
 
+// ---------------------------------------------------------------------------
+// Login-prompt popup funnel (shown -> CTA click -> attributed signin).
+// Same best-effort contract as the navbar funnel: writers never throw
+// into product code paths, readers degrade to zeros (never NaN).
+// Declared BEFORE getLoginFunnelStats (which reads it) to satisfy
+// no-use-before-define — narrative order, not execution order.
+// ---------------------------------------------------------------------------
+
+/** Row written by recordLoginPopupEvent (mirrors 016 CHECK + nullables). */
+export type LoginPopupEventInput = {
+  event: LoginPopupEventKind;
+  /** Anon browser UUID; null when storage/cookie unavailable. */
+  sessionId: string | null;
+  /** Active search at event time; null outside a search. */
+  searchId: string | null;
+};
+
+/**
+ * Appends one popup event. Single INSERT, same throw-to-log contract as
+ * recordLoginFunnelEvent (callers treat it as non-fatal).
+ */
+export const recordLoginPopupEvent = async (
+  input: LoginPopupEventInput,
+): Promise<void> => {
+  const db = await getClient();
+  await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO login_popup_events (event, session_id, search_id, created_at)
+            VALUES (?, ?, ?, ?)`,
+      args: [
+        input.event,
+        input.sessionId,
+        input.searchId,
+        new Date().toISOString(),
+      ],
+    }),
+  );
+};
+
+type DbClient = Awaited<ReturnType<typeof getClient>>;
+
+/**
+ * Popup aggregates, read together with the navbar funnel (shared snapshot
+ * would need a transaction across two independent domains — instead both
+ * reads are single statements back-to-back; counts this small never drift
+ * observably between them).
+ *
+ * Attribution is a TEMPORAL join, not a bare intersection: a signin counts
+ * for the popup only when its session recorded a popup CTA click strictly
+ * BEFORE the completion (ISO-8601 strings compare lexicographically, so
+ * the ordering is exact without date parsing). A completion that precedes
+ * any popup click (e.g. user logged in via navbar first, saw the popup
+ * later — impossible while logged in, but defensive) never attributes.
+ * NULL-session completions can never attribute (no session to join on).
+ */
+export const getLoginPopupStats = async (
+  db?: DbClient,
+): Promise<LoginPopupStats> => {
+  const client = db ?? (await getClient());
+  const result = await withSchemaHint(
+    client.execute({
+      sql: `SELECT
+              COALESCE(SUM(CASE WHEN event = 'login_popup_shown' THEN 1 ELSE 0 END), 0) AS popup_shown,
+              COUNT(DISTINCT CASE WHEN event = 'login_popup_shown' THEN session_id END) AS popup_shown_sessions,
+              COALESCE(SUM(CASE WHEN event = 'login_popup_cta_clicked' THEN 1 ELSE 0 END), 0) AS popup_clicks,
+              COUNT(DISTINCT CASE WHEN event = 'login_popup_cta_clicked' THEN session_id END) AS popup_click_sessions,
+              COUNT(DISTINCT CASE
+                WHEN p.event = 'login_popup_cta_clicked'
+                  AND EXISTS (
+                    SELECT 1 FROM login_funnel_events f
+                    WHERE f.event = 'login_completed'
+                      AND f.session_id = p.session_id
+                      AND f.created_at > p.created_at
+                  )
+                THEN p.session_id
+              END) AS popup_attributed_signins
+            FROM login_popup_events p`,
+    }),
+  );
+
+  const toCount = (value: unknown): number =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  const row = (result.rows[0] ?? {}) as Record<string, unknown>;
+
+  const popupClickSessions = toCount(row.popup_click_sessions);
+  const popupAttributedSignins = toCount(row.popup_attributed_signins);
+
+  return {
+    popupShown: toCount(row.popup_shown),
+    popupShownSessions: toCount(row.popup_shown_sessions),
+    popupClicks: toCount(row.popup_clicks),
+    popupClickSessions,
+    popupAttributedSignins,
+    popupConversionRate:
+      popupClickSessions > 0
+        ? (popupAttributedSignins / popupClickSessions) * 100
+        : null,
+  };
+};
+
+/**
+ * Popup read isolated from the navbar-funnel read below. The real rollout
+ * case is a DB with 015 applied but 016 pending (migrations apply in
+ * order) — a missing login_popup_events table must degrade ONLY the popup
+ * cards to zeros, never null out the whole funnel panel. Only the
+ * missing-schema shape is swallowed; transport/logic errors still throw
+ * so the route's fail-open null keeps working.
+ */
+const readPopupStatsIsolated = async (
+  db: DbClient,
+): Promise<LoginPopupStats> => {
+  try {
+    return await getLoginPopupStats(db);
+  } catch (error) {
+    if (error instanceof Error && SCHEMA_MISSING_PATTERN.test(error.message)) {
+      return {
+        popupShown: 0,
+        popupShownSessions: 0,
+        popupClicks: 0,
+        popupClickSessions: 0,
+        popupAttributedSignins: 0,
+        popupConversionRate: null,
+      };
+    }
+    throw error;
+  }
+};
+
 /**
  * Read-only funnel aggregates for the analytics dashboard. One conditional-
  * aggregation query (single row, single snapshot); the rate is derived in
@@ -2036,6 +2166,7 @@ export const getLoginFunnelStats = async (): Promise<LoginFunnelStats> => {
     unattributedCompletions,
     conversionRate:
       ctaSessions > 0 ? (completedSessions / ctaSessions) * 100 : null,
+    popup: await readPopupStatsIsolated(db),
     generatedAt: new Date().toISOString(),
   };
 };
