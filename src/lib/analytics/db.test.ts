@@ -2516,6 +2516,10 @@ describe('login funnel DAL (Steam sign-in instrumentation)', () => {
         {
           cta_events: 5,
           cta_sessions: 3,
+          callback_sessions: 2,
+          steam_abandon_sessions: 1,
+          waiting_sessions: 1,
+          waiting_leak_sessions: 0,
           completions: 2,
           completed_sessions: 2,
           unattributed_completions: 0,
@@ -2541,9 +2545,24 @@ describe('login funnel DAL (Steam sign-in instrumentation)', () => {
     expect(mockExecute.mock.calls[1][0].sql).toContain(
       'AS unattributed_completions',
     );
+    // Mid-step columns (017): returns, Steam abandon, waiting entry, leak.
+    expect(mockExecute.mock.calls[1][0].sql).toContain(
+      'AS callback_sessions',
+    );
+    expect(mockExecute.mock.calls[1][0].sql).toContain(
+      'AS steam_abandon_sessions',
+    );
+    expect(mockExecute.mock.calls[1][0].sql).toContain('AS waiting_sessions');
+    expect(mockExecute.mock.calls[1][0].sql).toContain(
+      'AS waiting_leak_sessions',
+    );
     expect(stats).toEqual({
       ctaEvents: 5,
       ctaSessions: 3,
+      callbackSessions: 2,
+      steamAbandonSessions: 1,
+      waitingSessions: 1,
+      waitingLeakSessions: 0,
       completions: 2,
       completedSessions: 2,
       unattributedCompletions: 0,
@@ -2562,6 +2581,10 @@ describe('login funnel DAL (Steam sign-in instrumentation)', () => {
 
     expect(stats.ctaEvents).toBe(0);
     expect(stats.ctaSessions).toBe(0);
+    expect(stats.callbackSessions).toBe(0);
+    expect(stats.steamAbandonSessions).toBe(0);
+    expect(stats.waitingSessions).toBe(0);
+    expect(stats.waitingLeakSessions).toBe(0);
     expect(stats.completions).toBe(0);
     expect(stats.completedSessions).toBe(0);
     expect(stats.unattributedCompletions).toBe(0);

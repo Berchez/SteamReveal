@@ -1887,7 +1887,7 @@ export const recordLogin = async (
 // never the login — same contract as the recordLogin audit above).
 // ---------------------------------------------------------------------------
 
-/** Row written by recordLoginFunnelEvent (mirrors 015 CHECK + nullables). */
+/** Row written by recordLoginFunnelEvent (mirrors the 017-widened CHECK + nullables). */
 export type LoginFunnelEventInput = {
   event: LoginFunnelEventKind;
   /** Anon browser UUID; null when the CTA cookie was absent/unreadable. */
@@ -1936,6 +1936,13 @@ export const recordLoginFunnelEvent = async (
  * direction that matters. Repeat clicks / re-logins also move only the raw
  * counts: the per-session DISTINCT keeps them out of both sides.
  *
+ * Mid-step columns (017) split the click→completion gap in two: returns
+ * vs abandon at Steam's page, and waiting-room entry vs leak. Same
+ * best-effort caveat throughout: a NULL-session mid-step row (ctx cookie
+ * absent/unreadable) counts in NO session metric, so cookie loss reads as
+ * abandon + unattributed simultaneously — read those two together before
+ * concluding users never came back.
+ *
  * unattributedCompletions exists as the cookie-failure signal: completions
  * with a NULL/unknown session (ctx cookie not sent, unreadable store, or
  * the click row itself lost). If that number grows while the rate sits at
@@ -1955,6 +1962,31 @@ export const getLoginFunnelStats = async (): Promise<LoginFunnelStats> => {
       sql: `SELECT
               COALESCE(SUM(CASE WHEN event = 'login_cta_clicked' THEN 1 ELSE 0 END), 0) AS cta_events,
               COUNT(DISTINCT CASE WHEN event = 'login_cta_clicked' THEN session_id END) AS cta_sessions,
+              COUNT(DISTINCT CASE WHEN event = 'login_callback_hit' THEN session_id END) AS callback_sessions,
+              COUNT(DISTINCT CASE
+                WHEN event = 'login_cta_clicked'
+                  AND session_id NOT IN (
+                    SELECT session_id FROM login_funnel_events
+                    WHERE event = 'login_callback_hit' AND session_id IS NOT NULL
+                  )
+                  -- Pre-mid-step completions have no callback row (the
+                  -- writer didn't exist yet): without this guard every
+                  -- legacy login reads as "left at Steam".
+                  AND session_id NOT IN (
+                    SELECT session_id FROM login_funnel_events
+                    WHERE event = 'login_completed' AND session_id IS NOT NULL
+                  )
+                THEN session_id
+              END) AS steam_abandon_sessions,
+              COUNT(DISTINCT CASE WHEN event = 'login_waiting_entered' THEN session_id END) AS waiting_sessions,
+              COUNT(DISTINCT CASE
+                WHEN event = 'login_waiting_entered'
+                  AND session_id NOT IN (
+                    SELECT session_id FROM login_funnel_events
+                    WHERE event = 'login_completed' AND session_id IS NOT NULL
+                  )
+                THEN session_id
+              END) AS waiting_leak_sessions,
               COALESCE(SUM(CASE WHEN event = 'login_completed' THEN 1 ELSE 0 END), 0) AS completions,
               COUNT(DISTINCT CASE
                 WHEN event = 'login_completed'
@@ -1984,6 +2016,10 @@ export const getLoginFunnelStats = async (): Promise<LoginFunnelStats> => {
 
   const ctaEvents = toCount(row.cta_events);
   const ctaSessions = toCount(row.cta_sessions);
+  const callbackSessions = toCount(row.callback_sessions);
+  const steamAbandonSessions = toCount(row.steam_abandon_sessions);
+  const waitingSessions = toCount(row.waiting_sessions);
+  const waitingLeakSessions = toCount(row.waiting_leak_sessions);
   const completions = toCount(row.completions);
   const completedSessions = toCount(row.completed_sessions);
   const unattributedCompletions = toCount(row.unattributed_completions);
@@ -1991,6 +2027,10 @@ export const getLoginFunnelStats = async (): Promise<LoginFunnelStats> => {
   return {
     ctaEvents,
     ctaSessions,
+    callbackSessions,
+    steamAbandonSessions,
+    waitingSessions,
+    waitingLeakSessions,
     completions,
     completedSessions,
     unattributedCompletions,

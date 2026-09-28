@@ -10,6 +10,7 @@ jest.mock('next/headers', () => ({
 
 jest.mock('@/lib/watch/completeLogin', () => ({
   completeProvenLogin: jest.fn(),
+  recordLoginFunnelStep: jest.fn(),
 }));
 
 jest.mock('@/lib/watch/pendingLogin', () => ({
@@ -57,10 +58,11 @@ const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
 const { savePendingLogin } = jest.requireMock('@/lib/watch/pendingLogin') as {
   savePendingLogin: jest.Mock;
 };
-const { completeProvenLogin } = jest.requireMock(
+const { completeProvenLogin, recordLoginFunnelStep } = jest.requireMock(
   '@/lib/watch/completeLogin',
 ) as {
   completeProvenLogin: jest.Mock;
+  recordLoginFunnelStep: jest.Mock;
 };
 const getSteamApiKey = jest.requireMock('@/lib/getSteamApiKey').default as jest.Mock;
 const { isBotFriend } = jest.requireMock('@/lib/steamFriendList') as {
@@ -215,6 +217,144 @@ describe('GET /api/auth/steam/callback', () => {
     expect(res.headers.get('set-cookie')).toContain(
       'steamreveal_oauth_state=;',
     );
+  });
+
+  // ---------------------------------------------------------------------
+  // Funnel mid-steps (017): callback_hit = proven return from Steam,
+  // waiting_entered = held non-friend. Both non-fatal analytics writes.
+  // ---------------------------------------------------------------------
+  describe('funnel mid-step writes', () => {
+    it('records callback_hit (only) on the immediate friend completion', async () => {
+      const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
+
+      expect(res.status).toBe(302);
+      expect(recordLoginFunnelStep).toHaveBeenCalledTimes(1);
+      expect(recordLoginFunnelStep).toHaveBeenCalledWith(
+        expect.anything(),
+        'login_callback_hit',
+        'steamCallback',
+      );
+    });
+
+    it('records callback_hit + waiting_entered on the non-friend hold, in order', async () => {
+      isBotFriend.mockResolvedValueOnce(false);
+
+      const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
+
+      expect(res.headers.get('location')).toBe(
+        `${BASE}/pt/watch?login=waiting`,
+      );
+      expect(recordLoginFunnelStep).toHaveBeenCalledTimes(2);
+      expect(recordLoginFunnelStep).toHaveBeenNthCalledWith(
+        1,
+        expect.anything(),
+        'login_callback_hit',
+        'steamCallback',
+      );
+      expect(recordLoginFunnelStep).toHaveBeenNthCalledWith(
+        2,
+        expect.anything(),
+        'login_waiting_entered',
+        'steamCallback',
+      );
+      expect(completeProvenLogin).not.toHaveBeenCalled();
+    });
+
+    it('records callback_hit on the fail-closed UNKNOWN path (the user did come back)', async () => {
+      isBotFriend.mockResolvedValueOnce(null);
+
+      const res = await GET(new Request(`${callbackUrl()}&state=${STATE}`));
+
+      expect(res.headers.get('location')).toBe(`${BASE}/pt/watch?auth=error`);
+      // Returned authenticated (assertion passed) but the gate couldn't
+      // decide — counts as a return, never as a waiting entry.
+      expect(recordLoginFunnelStep).toHaveBeenCalledTimes(1);
+      expect(recordLoginFunnelStep).toHaveBeenCalledWith(
+        expect.anything(),
+        'login_callback_hit',
+        'steamCallback',
+      );
+    });
+
+    it('records nothing when the gates die before a proven identity (state mismatch, rejected assertion)', async () => {
+      await GET(new Request(`${callbackUrl()}&state=wrong-nonce`));
+      expect(recordLoginFunnelStep).not.toHaveBeenCalled();
+
+      verifySteamAssertion.mockResolvedValueOnce(null);
+      await GET(new Request(`${callbackUrl()}&state=${STATE}`));
+      expect(recordLoginFunnelStep).not.toHaveBeenCalled();
+    });
+
+    it('awaits (never floats) the return signal on the misconfig early exit', async () => {
+      // Next 14.2 kills floating promises with the serverless function, so
+      // an un-awaited write on this path would silently drop exactly the
+      // rows that diagnose a misconfigured gate. A deferred write proves
+      // the 302 waits for it: the response must stay pending until the
+      // write settles.
+      let resolveHit!: () => void;
+      recordLoginFunnelStep.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveHit = resolve;
+        }),
+      );
+      getSteamApiKey.mockReturnValueOnce(undefined);
+
+      const resPromise = GET(new Request(`${callbackUrl()}&state=${STATE}`));
+      let settled = false;
+      resPromise.then(
+        () => {
+          settled = true;
+        },
+        () => {
+          settled = true;
+        },
+      );
+      for (let i = 0; i < 10; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.resolve();
+      }
+      expect(settled).toBe(false);
+
+      resolveHit();
+      const res = await resPromise;
+      expect(res.status).toBe(302);
+      expect(res.headers.get('location')).toBe(`${BASE}/pt/watch?auth=error`);
+      expect(recordLoginFunnelStep).toHaveBeenCalledWith(
+        expect.anything(),
+        'login_callback_hit',
+        'steamCallback',
+      );
+    });
+
+    it('passes one request cookie store to every write (funnel, pending, completion)', async () => {
+      const requestStore = {
+        get: (name: string) =>
+          name === 'steamreveal_oauth_state' ? { value: STATE } : undefined,
+        set: jest.fn(),
+      };
+      cookies.mockReturnValue(requestStore);
+      isBotFriend.mockResolvedValueOnce(false);
+
+      await GET(new Request(`${callbackUrl()}&state=${STATE}`));
+
+      // The CTA cookie planted before the OpenID redirect must be readable
+      // from the same store object on every write — never a copy.
+      expect(recordLoginFunnelStep).toHaveBeenCalledWith(
+        requestStore,
+        'login_callback_hit',
+        'steamCallback',
+      );
+      expect(savePendingLogin).toHaveBeenCalledWith(
+        requestStore,
+        STEAM,
+        '/pt/watch',
+      );
+      expect(recordLoginFunnelStep).toHaveBeenCalledWith(
+        requestStore,
+        'login_waiting_entered',
+        'steamCallback',
+      );
+    });
   });
 
   it('denies fail-closed when friendship is UNKNOWN (Steam API down/private list)', async () => {

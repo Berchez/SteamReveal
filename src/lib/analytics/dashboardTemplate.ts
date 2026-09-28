@@ -1382,9 +1382,21 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     // exists yet — "no data", not "zero".
     var rate = loginFunnel.conversionRate;
     var rateText = (typeof rate === 'number' && isFinite(rate)) ? rate.toFixed(1) + '%' : '—';
+    // Mid-step cards (017) split the click→login gap: returned vs left at
+    // Steam, waiting-room entry vs leak. The cards don't form an equation:
+    // already-friend logins complete with no waiting row, and fail-closed
+    // gate errors record a return with neither waiting nor completion.
+    // Pre-mid-step rows have no callback/waiting rows — legacy completions
+    // are excluded from abandon, but legacy click-only sessions still read
+    // as abandon, so compare leak/abandon across time, not against the
+    // all-time click total.
     statsEl.innerHTML = [
       { value: num(loginFunnel.ctaEvents), label: 'Sign-in clicks' },
       { value: num(loginFunnel.ctaSessions), label: 'Clicking sessions' },
+      { value: num(loginFunnel.callbackSessions), label: 'Returned from Steam' },
+      { value: num(loginFunnel.steamAbandonSessions), label: 'Left at Steam' },
+      { value: num(loginFunnel.waitingSessions), label: 'Entered waiting room' },
+      { value: num(loginFunnel.waitingLeakSessions), label: 'Waiting-room leak' },
       { value: num(loginFunnel.completedSessions), label: 'Logged-in sessions' },
       // Health signal, not a funnel step: completions with a NULL/unknown
       // session. Growing while the rate sits at 0% means the ctx-cookie

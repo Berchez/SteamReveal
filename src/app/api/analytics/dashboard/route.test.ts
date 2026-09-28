@@ -79,6 +79,10 @@ describe('GET /api/analytics/dashboard', () => {
     getLoginFunnelStats.mockResolvedValue({
       ctaEvents: 0,
       ctaSessions: 0,
+      callbackSessions: 0,
+      steamAbandonSessions: 0,
+      waitingSessions: 0,
+      waitingLeakSessions: 0,
       completions: 0,
       completedSessions: 0,
       unattributedCompletions: 0,
@@ -298,6 +302,10 @@ describe('GET /api/analytics/dashboard', () => {
     getLoginFunnelStats.mockResolvedValue({
       ctaEvents: 300,
       ctaSessions: 250,
+      callbackSessions: 200,
+      steamAbandonSessions: 50,
+      waitingSessions: 120,
+      waitingLeakSessions: 118,
       completions: 1,
       completedSessions: 1,
       unattributedCompletions: 0,

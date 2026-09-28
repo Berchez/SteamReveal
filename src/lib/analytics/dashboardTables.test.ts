@@ -50,7 +50,7 @@ function loadDashboard(entriesJson: string = SAMPLE) {
 
 /**
  * Executes the dashboard script with a populated login-funnel block so the
- * funnel panel's DATA path (5 cards, number formatting, rate text) actually
+ * funnel panel's DATA path (9 cards, number formatting, rate text) actually
  * runs — the default 'null' block only ever exercises the "unavailable"
  * early return, and substring tests can't catch a runtime throw here.
  */
@@ -210,12 +210,16 @@ describe('dashboard interactive tables', () => {
     expect(historyNicknames()).toEqual(['Bob']);
   });
 
-  it('executes the funnel panel data path: 5 cards, numbers, rate text', () => {
+  it('executes the funnel panel data path: 9 cards, numbers, rate text', () => {
     // Also proves escapeHtml is safe on NUMBER values (String() internally)
     // — a throw here would abort the whole IIFE and fail the table tests.
     loadDashboardWithFunnel({
       ctaEvents: 300,
       ctaSessions: 250,
+      callbackSessions: 200,
+      steamAbandonSessions: 50,
+      waitingSessions: 120,
+      waitingLeakSessions: 118,
       completions: 3,
       completedSessions: 2,
       unattributedCompletions: 1,
@@ -226,6 +230,10 @@ describe('dashboard interactive tables', () => {
     expect(funnelCardTexts()).toEqual([
       '300 Sign-in clicks',
       '250 Clicking sessions',
+      '200 Returned from Steam',
+      '50 Left at Steam',
+      '120 Entered waiting room',
+      '118 Waiting-room leak',
       '2 Logged-in sessions',
       '1 Unattributed logins',
       '0.8% Click → login conversion',
@@ -239,6 +247,10 @@ describe('dashboard interactive tables', () => {
     loadDashboardWithFunnel({
       ctaEvents: 0,
       ctaSessions: 0,
+      callbackSessions: 0,
+      steamAbandonSessions: 0,
+      waitingSessions: 0,
+      waitingLeakSessions: 0,
       completions: 0,
       completedSessions: 0,
       unattributedCompletions: 0,
@@ -247,6 +259,32 @@ describe('dashboard interactive tables', () => {
     });
 
     expect(funnelCardTexts()).toContain('— Click → login conversion');
+  });
+
+  it('renders missing mid-step keys as 0 (old-shape JSON never breaks the panel)', () => {
+    // The num() guard coerces anything non-numeric to 0 — pin it so a
+    // future refactor can't throw on a block shaped before 017.
+    loadDashboardWithFunnel({
+      ctaEvents: 4,
+      ctaSessions: 3,
+      completions: 1,
+      completedSessions: 1,
+      unattributedCompletions: 0,
+      conversionRate: 33.3,
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+
+    expect(funnelCardTexts()).toEqual([
+      '4 Sign-in clicks',
+      '3 Clicking sessions',
+      '0 Returned from Steam',
+      '0 Left at Steam',
+      '0 Entered waiting room',
+      '0 Waiting-room leak',
+      '1 Logged-in sessions',
+      '0 Unattributed logins',
+      '33.3% Click → login conversion',
+    ]);
   });
 
   it('keeps histogram bins, band legend, outcome labels and outcome sort consistent at band boundaries', () => {

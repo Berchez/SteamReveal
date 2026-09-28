@@ -345,8 +345,23 @@ export interface WatchDashboardData {
 // contract as the Watch section above.
 // ---------------------------------------------------------------------------
 
-/** The two instrumented funnel steps (mirrors the login_funnel_events CHECK). */
-export type LoginFunnelEventKind = 'login_cta_clicked' | 'login_completed';
+/**
+ * The instrumented funnel steps (mirrors the login_funnel_events CHECK,
+ * widened by 017). login_cta_clicked is client-beaconed; the other three
+ * are server-side only (the parser rejects them from the browser so
+ * conversions can't be forged).
+ */
+export type LoginFunnelEventKind =
+  | 'login_cta_clicked'
+  | 'login_callback_hit'
+  | 'login_waiting_entered'
+  | 'login_completed';
+
+/** Funnel steps the server is allowed to record (everything but the CTA). */
+export type ServerLoginFunnelEvent = Exclude<
+  LoginFunnelEventKind,
+  'login_cta_clicked'
+>;
 
 /** Funnel aggregates for the analytics dashboard. */
 export interface LoginFunnelStats {
@@ -354,6 +369,36 @@ export interface LoginFunnelStats {
   ctaEvents: number;
   /** Distinct anon sessions that clicked at least once. */
   ctaSessions: number;
+  /**
+   * Distinct anon sessions with a proven return from Steam (OpenID state +
+   * assertion verified — forged/random callback hits never reach the
+   * writer). ctaSessions MINUS callbackSessions is the "left at Steam"
+   * abandon, modulo the usual best-effort caveats (a return whose ctx
+   * cookie was unreadable records a NULL session and reads as abandon).
+   */
+  callbackSessions: number;
+  /**
+   * Clicking sessions with NO proven return AND no completion
+   * (set-difference in SQL, not arithmetic: a callback_hit without a click
+   * row exists when the CTA beacon was blocked but the ctx cookie survived,
+   * so `cta − returned` would mislabel it). Sessions that completed under
+   * the pre-mid-step writer (no callback row exists for them) are excluded
+   * so legacy logins never read as abandon. Same cookie caveat as above: a
+   * NULL-session return can't be joined back to its click, so heavy cookie
+   * loss inflates this alongside unattributedCompletions — read them
+   * together.
+   */
+  steamAbandonSessions: number;
+  /** Distinct anon sessions held in the waiting room (verified, not a friend yet). */
+  waitingSessions: number;
+  /**
+   * Waiting-room sessions with NO per-session completion — "logged into
+   * Steam but never added the bot" (pending expired unclicked). Users
+   * still inside their 30min pending window read as leak until they
+   * complete; the panel is cumulative with no time window (accepted debt,
+   * same as the rest of the funnel).
+   */
+  waitingLeakSessions: number;
   /** Raw login_completed rows (every completion, incl. beacon-loss ones). */
   completions: number;
   /**

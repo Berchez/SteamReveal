@@ -85,6 +85,11 @@ const LOGIN_FUNNEL_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const LOGIN_FUNNEL_MID_STEPS_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '017_login_funnel_mid_steps.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -235,6 +240,63 @@ describe('analytics db integration against real libSQL', () => {
     for (const statement of splitSqlStatements(LOGIN_FUNNEL_MIGRATION_SQL)) {
       await db.executeForTests(statement);
     }
+    // A pre-upgrade row: 017 rebuilds the table to widen the CHECK, and
+    // production tables already hold click/completion rows — the rebuild
+    // must carry them over. Asserted right here in beforeAll (the
+    // per-test wipe below runs later, per test, so it can't cover this).
+    await db.executeForTests(
+      "INSERT INTO login_funnel_events (event, session_id, search_id, created_at) VALUES ('login_cta_clicked', 'legacy-session', NULL, '2026-01-01T00:00:00.000Z')",
+    );
+    // 017 widens the funnel CHECK with the mid-steps — applied exactly
+    // like production upgrades it (015 first, then the rebuild), so a
+    // row-dropping or syntax slip fails here, not on Turso.
+    for (const statement of splitSqlStatements(
+      LOGIN_FUNNEL_MID_STEPS_MIGRATION_SQL,
+    )) {
+      await db.executeForTests(statement);
+    }
+    const legacy = await db.executeForTests(
+      "SELECT event, session_id FROM login_funnel_events WHERE session_id = 'legacy-session'",
+    );
+    expect(legacy.rows).toEqual([
+      { event: 'login_cta_clicked', session_id: 'legacy-session' },
+    ]);
+    // DROP TABLE drops the original indexes with it — both must exist on
+    // the rebuilt table (the panel's intersection subqueries rely on the
+    // (event, session_id) pair being index-assisted).
+    const rebuiltIndexes = await db.executeForTests(
+      "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'login_funnel_events'",
+    );
+    expect(rebuiltIndexes.rows.map((row) => row.name).sort()).toEqual([
+      'idx_login_funnel_event',
+      'idx_login_funnel_session',
+    ]);
+    // AUTOINCREMENT continuity: the next id follows the carried-over
+    // max(id) — a sequence reset would reuse ids against kept rows.
+    const legacyId = Number(
+      (
+        await db.executeForTests(
+          "SELECT id FROM login_funnel_events WHERE session_id = 'legacy-session'",
+        )
+      ).rows[0].id,
+    );
+    await db.executeForTests(
+      "INSERT INTO login_funnel_events (event, session_id, search_id, created_at) VALUES ('login_cta_clicked', 'post-upgrade-session', NULL, '2026-02-01T00:00:00.000Z')",
+    );
+    const freshId = Number(
+      (
+        await db.executeForTests(
+          "SELECT id FROM login_funnel_events WHERE session_id = 'post-upgrade-session'",
+        )
+      ).rows[0].id,
+    );
+    expect(freshId).toBe(legacyId + 1);
+    // The widened CHECK still rejects unknown kinds.
+    await expect(
+      db.executeForTests(
+        "INSERT INTO login_funnel_events (event, session_id, search_id, created_at) VALUES ('bogus', NULL, NULL, '2026-02-01T00:00:00.000Z')",
+      ),
+    ).rejects.toThrow();
   });
 
   beforeEach(async () => {
@@ -1771,7 +1833,7 @@ describe('analytics db integration against real libSQL', () => {
     });
   });
 
-  describe('login funnel instrumentation (015)', () => {
+  describe('login funnel instrumentation (015, mid-steps 017)', () => {
     it('recordLoginFunnelEvent → getLoginFunnelStats round-trips per-session conversion on real SQL', async () => {
       // Session A clicks twice, completes once; session B clicks once,
       // never completes; one completion arrives cookieless (NULL session).
@@ -1791,6 +1853,16 @@ describe('analytics db integration against real libSQL', () => {
         searchId: null,
       });
       await db.recordLoginFunnelEvent({
+        event: 'login_callback_hit',
+        sessionId: 'session-a',
+        searchId: 'search-1',
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_waiting_entered',
+        sessionId: 'session-a',
+        searchId: 'search-1',
+      });
+      await db.recordLoginFunnelEvent({
         event: 'login_completed',
         sessionId: 'session-a',
         searchId: 'search-1',
@@ -1806,6 +1878,13 @@ describe('analytics db integration against real libSQL', () => {
       // Raw counts move with repeats; sessions deduplicate.
       expect(stats.ctaEvents).toBe(3);
       expect(stats.ctaSessions).toBe(2);
+      // A returned (callback hit, then waited, then completed); B never
+      // came back, so it is the Steam abandon and never entered waiting.
+      expect(stats.callbackSessions).toBe(1);
+      expect(stats.steamAbandonSessions).toBe(1);
+      expect(stats.waitingSessions).toBe(1);
+      // A completed after waiting: no leak.
+      expect(stats.waitingLeakSessions).toBe(0);
       expect(stats.completions).toBe(2);
       expect(stats.completedSessions).toBe(1);
       // The NULL-session completion is unattributed (cookie never read or
@@ -1814,6 +1893,104 @@ describe('analytics db integration against real libSQL', () => {
       // 1 of 2 clicking sessions converted (NULL completion excluded).
       expect(stats.conversionRate).toBe(50);
       expect(typeof stats.generatedAt).toBe('string');
+    });
+
+    it('waiting sessions without a completion read as leak; clicks without a return read as Steam abandon', async () => {
+      // Session W: full click → return → waiting path, never completes
+      // (logged into Steam, never added the bot). Session S: clicked,
+      // never came back (left at Steam).
+      for (const event of [
+        'login_cta_clicked',
+        'login_callback_hit',
+        'login_waiting_entered',
+      ] as const) {
+        await db.recordLoginFunnelEvent({
+          event,
+          sessionId: 'session-w',
+          searchId: null,
+        });
+      }
+      await db.recordLoginFunnelEvent({
+        event: 'login_cta_clicked',
+        sessionId: 'session-s',
+        searchId: null,
+      });
+
+      const stats = await db.getLoginFunnelStats();
+
+      expect(stats.ctaSessions).toBe(2);
+      expect(stats.callbackSessions).toBe(1);
+      expect(stats.steamAbandonSessions).toBe(1);
+      expect(stats.waitingSessions).toBe(1);
+      expect(stats.waitingLeakSessions).toBe(1);
+      expect(stats.completedSessions).toBe(0);
+      expect(stats.unattributedCompletions).toBe(0);
+      expect(stats.conversionRate).toBe(0);
+    });
+
+    it('a legacy completion without a callback row is NOT Steam abandon', async () => {
+      // Pre-mid-step login: clicked + completed when no callback writer
+      // existed. Pins the NOT-completed guard in the abandon subquery —
+      // without it this session reads as "left at Steam".
+      await db.recordLoginFunnelEvent({
+        event: 'login_cta_clicked',
+        sessionId: 'session-legacy',
+        searchId: null,
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_completed',
+        sessionId: 'session-legacy',
+        searchId: null,
+      });
+
+      const stats = await db.getLoginFunnelStats();
+
+      expect(stats.ctaSessions).toBe(1);
+      expect(stats.callbackSessions).toBe(0);
+      expect(stats.completedSessions).toBe(1);
+      expect(stats.steamAbandonSessions).toBe(0);
+      expect(stats.conversionRate).toBe(100);
+    });
+
+    it('a callback_hit without a click row counts as returned, never as abandon', async () => {
+      // CTA beacon blocked client-side but the ctx cookie survived: the
+      // return is real, the click row never landed. Returned is NOT
+      // intersected with clicks (diagnostic completeness beats rate
+      // purity here — the rate keeps its own intersection).
+      await db.recordLoginFunnelEvent({
+        event: 'login_callback_hit',
+        sessionId: 'session-noclick',
+        searchId: null,
+      });
+
+      const stats = await db.getLoginFunnelStats();
+
+      expect(stats.ctaSessions).toBe(0);
+      expect(stats.callbackSessions).toBe(1);
+      expect(stats.steamAbandonSessions).toBe(0);
+      expect(stats.conversionRate).toBeNull();
+    });
+
+    it('NULL-session mid-steps count in no session metric', async () => {
+      // CTA cookie absent/unreadable at the callback: volume rows exist
+      // but join to nothing — COUNT DISTINCT skips NULLs on every card.
+      await db.recordLoginFunnelEvent({
+        event: 'login_callback_hit',
+        sessionId: null,
+        searchId: null,
+      });
+      await db.recordLoginFunnelEvent({
+        event: 'login_waiting_entered',
+        sessionId: null,
+        searchId: null,
+      });
+
+      const stats = await db.getLoginFunnelStats();
+
+      expect(stats.callbackSessions).toBe(0);
+      expect(stats.waitingSessions).toBe(0);
+      expect(stats.waitingLeakSessions).toBe(0);
+      expect(stats.unattributedCompletions).toBe(0);
     });
 
     it('reports a null conversion rate on an empty funnel (no data, not zero)', async () => {

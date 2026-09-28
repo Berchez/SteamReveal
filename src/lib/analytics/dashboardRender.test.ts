@@ -68,6 +68,10 @@ describe('renderDashboard', () => {
       {
         ctaEvents: 300,
         ctaSessions: 250,
+        callbackSessions: 200,
+        steamAbandonSessions: 50,
+        waitingSessions: 120,
+        waitingLeakSessions: 118,
         completions: 1,
         completedSessions: 1,
         unattributedCompletions: 0,
@@ -84,6 +88,10 @@ describe('serializeLoginFunnel', () => {
   const funnel: LoginFunnelStats = {
     ctaEvents: 300,
     ctaSessions: 250,
+    callbackSessions: 200,
+    steamAbandonSessions: 50,
+    waitingSessions: 120,
+    waitingLeakSessions: 118,
     completions: 1,
     completedSessions: 1,
     unattributedCompletions: 0,
@@ -95,6 +103,21 @@ describe('serializeLoginFunnel', () => {
     const out = serializeLoginFunnel(funnel);
     expect(out).not.toContain('</script>');
     expect(out).toContain('"conversionRate": 0.4');
+  });
+
+  it('carries the mid-step aggregates through to the panel JSON block', () => {
+    // The template reads these keys straight off the parsed block — a
+    // serializer that whitelisted fields would silently zero the new
+    // cards, so the keys are pinned here, not just the values.
+    const out = serializeLoginFunnel(funnel);
+    for (const key of [
+      '"callbackSessions": 200',
+      '"steamAbandonSessions": 50',
+      '"waitingSessions": 120',
+      '"waitingLeakSessions": 118',
+    ]) {
+      expect(out).toContain(key);
+    }
   });
 
   it('serializes null (failed reads degrade to the unavailable panel)', () => {

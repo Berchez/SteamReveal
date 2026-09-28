@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-import { completeProvenLogin } from './completeLogin';
+import { completeProvenLogin, recordLoginFunnelStep } from './completeLogin';
 
 jest.mock('@/lib/analytics/db', () => ({
   ensureActiveWatch: jest.fn(),
@@ -15,6 +15,11 @@ jest.mock('@/lib/watch/session', () => ({
   saveWatchSession: jest.fn(),
 }));
 
+jest.mock('@/lib/logRouteError', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const { ensureActiveWatch, recordLogin, recordLoginFunnelEvent, enqueueEvent } =
   jest.requireMock('@/lib/analytics/db') as {
     ensureActiveWatch: jest.Mock;
@@ -24,6 +29,11 @@ const { ensureActiveWatch, recordLogin, recordLoginFunnelEvent, enqueueEvent } =
   };
 const { saveWatchSession } = jest.requireMock('@/lib/watch/session') as {
   saveWatchSession: jest.Mock;
+};
+const { default: logRouteError } = jest.requireMock(
+  '@/lib/logRouteError',
+) as {
+  default: jest.Mock;
 };
 
 const STEAM = '76561198000000001';
@@ -179,6 +189,13 @@ describe('completeProvenLogin (shared callback + pending completion)', () => {
 
     expect(result.activated).toBe(false);
     expect(saveWatchSession).toHaveBeenCalledTimes(1);
+    // Scoped log with the login identity: a future refactor must not
+    // silently drop the route scope or the steamId context.
+    expect(logRouteError).toHaveBeenCalledWith(
+      'x:loginFunnel',
+      expect.anything(),
+      { steamId: STEAM },
+    );
   });
 
   it('bounds a STALLED funnel write: the completion never waits past the cap', async () => {
@@ -205,5 +222,52 @@ describe('completeProvenLogin (shared callback + pending completion)', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+});
+
+describe('recordLoginFunnelStep (shared server-side funnel writer)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    recordLoginFunnelEvent.mockResolvedValue(undefined);
+  });
+
+  it('writes the step with the CTA cookie ctx (callback + waiting paths share it)', async () => {
+    const ctx = encodeURIComponent(
+      JSON.stringify({ sid: 'session-7', searchId: 'search-7' }),
+    );
+    const store = makeStore();
+    store.get.mockReturnValue({ value: ctx });
+
+    await recordLoginFunnelStep(store, 'login_callback_hit', 'steamCallback');
+
+    expect(recordLoginFunnelEvent).toHaveBeenCalledTimes(1);
+    expect(recordLoginFunnelEvent).toHaveBeenCalledWith({
+      event: 'login_callback_hit',
+      sessionId: 'session-7',
+      searchId: 'search-7',
+    });
+    expect(store.get).toHaveBeenCalledWith('sr_login_ctx');
+  });
+
+  it('records NULL ctx when the cookie is absent (volume counts, excluded from session rates)', async () => {
+    await recordLoginFunnelStep(
+      makeStore(),
+      'login_waiting_entered',
+      'steamCallback',
+    );
+
+    expect(recordLoginFunnelEvent).toHaveBeenCalledWith({
+      event: 'login_waiting_entered',
+      sessionId: null,
+      searchId: null,
+    });
+  });
+
+  it('never throws: a failed write costs a log line, never the redirect', async () => {
+    recordLoginFunnelEvent.mockRejectedValueOnce(new Error('funnel down'));
+
+    await expect(
+      recordLoginFunnelStep(makeStore(), 'login_callback_hit', 'steamCallback'),
+    ).resolves.toBeUndefined();
   });
 });

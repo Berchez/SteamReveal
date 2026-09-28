@@ -37,6 +37,7 @@ import {
   recordLogin,
   recordLoginFunnelEvent,
 } from '@/lib/analytics/db';
+import type { ServerLoginFunnelEvent } from '@/lib/analytics/types';
 import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { readLoginCtxFromStore } from '@/lib/analytics/loginFunnelCookie';
@@ -72,6 +73,37 @@ export interface CompleteLoginResult {
   locale: string | null;
 }
 
+/**
+ * Single funnel-write implementation for every server-side step
+ * (callback_hit / waiting_entered from the callback route, completed from
+ * the completion below). Reads the CTA ctx the navbar click planted,
+ * writes with the shared cap, never throws: a missing/unreadable cookie
+ * records NULLs (volume counts, excluded from per-session rates) and a
+ * failed write costs a log line, never the login — same contract as
+ * recordLogin below. Callers stay thin: one awaited line, no try/catch.
+ */
+export const recordLoginFunnelStep = async (
+  cookieStore: CookieStore,
+  event: ServerLoginFunnelEvent,
+  routeName: string,
+  logContext?: Record<string, unknown> & { stack?: never },
+): Promise<void> => {
+  try {
+    const ctx = readLoginCtxFromStore(cookieStore);
+    await withTimeout(
+      recordLoginFunnelEvent({
+        event,
+        sessionId: ctx.sessionId,
+        searchId: ctx.searchId,
+      }),
+      `${routeName}:loginFunnel`,
+      LOGIN_FUNNEL_WRITE_TIMEOUT_MS,
+    );
+  } catch (error) {
+    logRouteError(`${routeName}:loginFunnel`, sanitizeError(error), logContext);
+  }
+};
+
 export const completeProvenLogin = async (
   cookieStore: CookieStore,
   steamId: string,
@@ -98,30 +130,12 @@ export const completeProvenLogin = async (
 
   // Login-funnel completion (analytics only, never auth logic): pairs with
   // the navbar's `login_cta_clicked` beacon via the CTA cookie the click
-  // planted. Non-fatal by the same contract as recordLogin above — a
-  // failed funnel write costs a log line, never the login. Runs on BOTH
-  // production login paths (callback + waiting-room pending) because both
-  // funnel through here; a missing/unreadable cookie records NULLs
-  // (volume counts, excluded from the per-session conversion rate).
-  // Awaited (no after() on Next 14.2 — a floating promise dies with the
-  // serverless function) but capped by LOGIN_FUNNEL_WRITE_TIMEOUT_MS so a
-  // stalled write costs at most 4s of redirect latency, never the request.
-  try {
-    const ctx = readLoginCtxFromStore(cookieStore);
-    await withTimeout(
-      recordLoginFunnelEvent({
-        event: 'login_completed',
-        sessionId: ctx.sessionId,
-        searchId: ctx.searchId,
-      }),
-      `${routeName}:loginFunnel`,
-      LOGIN_FUNNEL_WRITE_TIMEOUT_MS,
-    );
-  } catch (error) {
-    logRouteError(`${routeName}:loginFunnel`, sanitizeError(error), {
-      steamId,
-    });
-  }
+  // planted. Runs on BOTH production login paths (callback + waiting-room
+  // pending) because both funnel through here. Shared helper owns the
+  // read/cap/log contract (see recordLoginFunnelStep above).
+  await recordLoginFunnelStep(cookieStore, 'login_completed', routeName, {
+    steamId,
+  });
 
   // Welcome once: ONLY the call that actually flipped the row (fresh
   // insert or confirmed/grandfathered pending flip) enqueues it —

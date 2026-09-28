@@ -9,7 +9,10 @@ import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { isSteamId64 } from '@/lib/steamId';
 import { BOT_FRIENDSHIP_TIMEOUT_MS, isBotFriend } from '@/lib/steamFriendList';
 import withTimeout from '@/lib/withTimeout';
-import { completeProvenLogin } from '@/lib/watch/completeLogin';
+import {
+  completeProvenLogin,
+  recordLoginFunnelStep,
+} from '@/lib/watch/completeLogin';
 import { savePendingLogin } from '@/lib/watch/pendingLogin';
 import { WATCH_OAUTH_STATE_COOKIE } from '@/lib/watch/sessionCookie';
 import { isSafeNextPath, verifySteamAssertion } from '@/lib/watch/steamOpenId';
@@ -130,6 +133,28 @@ export async function GET(req: Request) {
       return fail();
     }
 
+    // Funnel mid-step (analytics only, never auth logic): state + assertion
+    // verified means a REAL user came back from Steam authenticated —
+    // forged/random hits die in the gates above and never reach this write.
+    // Started BEFORE the friendship gate and awaited after it (never
+    // awaited inline): the INSERT overlaps the GetFriendList network call,
+    // so the common case adds ~0 latency to the 302. The helper never
+    // rejects, and every await below is load-bearing on Next 14.2
+    // (no after()/waitUntil — a floating promise dies with the serverless
+    // function). Non-fatal by contract (shared helper): a failed write
+    // costs a log line, never the redirect.
+    //
+    // One request-cookie store for every write below (funnel, pending,
+    // completion): cookies() facades share the same backing jar, but a
+    // single object makes the request-store identity explicit — the CTA
+    // cookie planted before the OpenID redirect must be read back here.
+    const cookieStore = cookies();
+    const funnelHit = recordLoginFunnelStep(
+      cookieStore,
+      'login_callback_hit',
+      'steamCallback',
+    );
+
     // ---- Gate 3: single-state friendship check (fail-closed) ----
     const apiKey = getSteamApiKey();
     const botSteamId = process.env.STEAM_BOT_STEAMID;
@@ -138,6 +163,11 @@ export async function GET(req: Request) {
         'steamCallback',
         'friendship gate misconfigured: STEAM_API_KEY or STEAM_BOT_STEAMID missing/invalid — login denied fail-closed (operator action required)',
       );
+      // The return signal must not float: this early exit skips the
+      // post-gate await, and on Next 14.2 an un-awaited write dies with
+      // the function — exactly the "gate denies every login" window whose
+      // callback_hit rows diagnose the outage.
+      await funnelHit;
       return fail();
     }
     let isFriend: boolean | null;
@@ -153,12 +183,27 @@ export async function GET(req: Request) {
       });
       isFriend = null;
     }
+    // Usually already resolved (it ran alongside the gate above); awaiting
+    // here caps the added redirect latency at one funnel write instead of
+    // stacking it on top of the Steam round-trip.
+    await funnelHit;
     if (isFriend === false) {
       // Login-first flow: HOLD the verified identity instead of denying.
       // The waiting room completes the login by itself once the friendship
       // appears (pending route re-proves it server-side). Nothing is
-      // sealed and nothing is written here — the wait simply begins.
-      await savePendingLogin(cookies(), steamId, next);
+      // sealed and nothing auth-related is written here — the wait simply
+      // begins. The funnel hold-row below is analytics only (non-fatal):
+      // waiting_entered MINUS per-session completions is the "logged into
+      // Steam but never added the bot" leak. Started BEFORE the seal so
+      // the INSERT overlaps it (same ~0-latency trick as callback_hit);
+      // awaited before the redirect so the row can't float.
+      const funnelWaiting = recordLoginFunnelStep(
+        cookieStore,
+        'login_waiting_entered',
+        'steamCallback',
+      );
+      await savePendingLogin(cookieStore, steamId, next);
+      await funnelWaiting;
       return clearStateCookie(NextResponse.redirect(waitingUrl, 302));
     }
     if (isFriend !== true) {
@@ -174,7 +219,7 @@ export async function GET(req: Request) {
     // Shared completion (see completeLogin.ts — the same order the pending
     // route runs; one implementation, never two copies to drift).
     const { activated } = await completeProvenLogin(
-      cookies(),
+      cookieStore,
       steamId,
       next,
       'steamCallback',

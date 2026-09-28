@@ -125,6 +125,21 @@ describe('POST /api/recordAnalyticsLogin', () => {
     expect(recordLoginFunnelEvent).not.toHaveBeenCalled();
   });
 
+  it('rejects the mid-step events from the browser (callback_hit / waiting_entered are server-side only)', async () => {
+    // Pins the explicit allowlist: only login_cta_clicked may come from
+    // the client. If the parser is ever refactored to validate against the
+    // LoginFunnelEventKind union (or the CHECK list), forged mid-steps
+    // would pollute the funnel — this fails first.
+    for (const event of ['login_callback_hit', 'login_waiting_entered']) {
+      const res = await POST(
+        makeRequest({ jsonBody: { event, sessionId: 's1' } }),
+      );
+      expect(res.status).toBe(400);
+      expect((await res.json()).error.code).toBe('INVALID_REQUEST');
+    }
+    expect(recordLoginFunnelEvent).not.toHaveBeenCalled();
+  });
+
   it('skips if the skip header matches the password', async () => {
     const res = await POST(
       makeRequest({ skipHeader: 'test-password', jsonBody: VALID_CTA }),
