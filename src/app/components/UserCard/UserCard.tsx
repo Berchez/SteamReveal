@@ -18,6 +18,13 @@ const SIZE_CONFIG = {
   friend: { avatarSize: 60, flagWidth: 20, flagHeight: 14, flagRes: 'w20' },
 } as const;
 
+// Optional card fields treat null/undefined/"" / whitespace-only as empty,
+// so no empty row is ever rendered. The text column below keeps a stable
+// min-height with no inter-row gap: missing fields leave blank space at the
+// bottom of the card instead of shrinking it or spreading rows apart.
+const hasText = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0;
+
 function UserCard({
   friend,
   count,
@@ -98,11 +105,27 @@ function UserCard({
 
   const { city, state, country } = locationDetails;
 
-  const glassmorphism =
-    'bg-purple-900 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-20 border border-gray-100/50';
-
   const gcNameClassName =
     'font-bold bg-[linear-gradient(90deg,#ff3b30,#ff9500,#ffcc00,#34c759,#00c7be,#30b0c7,#5856d6,#af52de)] bg-[length:200%_auto] bg-clip-text text-transparent animate-gradient-spin';
+
+  const hasRealName = hasText(friend.realName);
+  const hasGcName = hasText(gcName);
+  const showRealNameRow = hasRealName || hasGcName || isLoadingGcName;
+  const showGcNameSecond = hasRealName && (hasGcName || isLoadingGcName);
+
+  let realNamePrimary: React.ReactNode = null;
+  if (hasRealName) {
+    realNamePrimary = friend.realName;
+  } else if (isLoadingGcName) {
+    realNamePrimary = (
+      <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
+    );
+  } else if (hasGcName) {
+    realNamePrimary = <span className={gcNameClassName}>{gcName}</span>;
+  }
+
+  const glassmorphism =
+    'bg-purple-900 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-20 border border-gray-100/50';
 
   return (
     <div
@@ -142,65 +165,39 @@ function UserCard({
           )}
         </div>
       )}
-      <div
-        className={`flex flex-col w-full break-words ${
-          itsTargetUser && 'gap-y-2'
-        }`}
-      >
-        {friend.nickname && (
+      <div className="flex flex-col w-full break-words self-start min-h-[9rem]">
+        {hasText(friend.nickname) && (
           <p className="font-semibold">
             {translator('nickname')}: {friend.nickname}
           </p>
         )}
-        {/*
-          Always mounted (fixed min-height) instead of conditionally
-          rendered. Since gcName resolves to null for the vast majority of
-          profiles, conditionally mounting/unmounting this <p> was pushing
-          everything below it up/down on nearly every search — the single
-          biggest contributor to this page's CLS. The inner content still
-          only renders when there's something to show; only the container's
-          reserved space is now stable.
-        */}
-        <p className="flex items-center flex-wrap gap-x-2 min-h-[1.5rem]">
-          {(friend.realName || gcName || isLoadingGcName) && (
-            <>
-              <span>
-                {translator('realName')}:{' '}
-                {friend.realName ||
-                  (isLoadingGcName ? (
-                    <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
-                  ) : (
-                    <span className={gcNameClassName}>{gcName}</span>
-                  ))}
-              </span>
+        {showRealNameRow && (
+          <p className="flex items-center flex-wrap gap-x-2">
+            <span>
+              {translator('realName')}: {realNamePrimary}
+            </span>
 
-              {friend.realName && (gcName || isLoadingGcName) && (
-                <>
-                  <span className="text-gray-400 text-sm" aria-hidden="true">
-                    |
-                  </span>
+            {showGcNameSecond && (
+              <>
+                <span className="text-gray-400 text-sm" aria-hidden="true">
+                  |
+                </span>
 
-                  {isLoadingGcName ? (
-                    <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
-                  ) : (
-                    <span className={gcNameClassName}>{gcName}</span>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </p>
+                {isLoadingGcName ? (
+                  <span className="inline-block h-4 w-16 bg-gray-500 rounded-md animate-pulse" />
+                ) : (
+                  <span className={gcNameClassName}>{gcName}</span>
+                )}
+              </>
+            )}
+          </p>
+        )}
 
-        {/* Always mounted with one text line of reserved height (same
-            technique as the realName row above): the location names resolve
-            asynchronously per card, and mounting this row only when they
-            arrive would push everything below it down on nearly every
-            search. */}
-        <div className="flex gap-x-2 items-center min-h-[1.5rem]">
-          {friend.countryCode && (
+        {hasText(friend.countryCode) && (
+          <div className="flex gap-x-2 items-center">
             <div className="flex items-center gap-x-1 w-full">
               <img
-                src={`https://flagcdn.com/${sizes.flagRes}/${friend.countryCode.toLowerCase()}.png`}
+                src={`https://flagcdn.com/${sizes.flagRes}/${friend.countryCode.trim().toLowerCase()}.png`}
                 className="w-max h-max"
                 alt={`country flag (${friend.countryCode}) of the user ${friend.nickname}`}
                 width={sizes.flagWidth}
@@ -214,14 +211,14 @@ function UserCard({
               {!isLoadingLocationDetails && state && `${state.name}, `}
               {!isLoadingLocationDetails && country && `${country.name}`}
             </div>
-          )}
-        </div>
-        {typeof probability === 'number' && (
+          </div>
+        )}
+        {typeof probability === 'number' && Number.isFinite(probability) && (
           <p className="">
             {translator('probability')}: {probability.toFixed(2)}%
           </p>
         )}
-        {friend.url && (
+        {hasText(friend.url) && (
           <p>
             {translator('url')}:{' '}
             <a
@@ -234,7 +231,7 @@ function UserCard({
             </a>
           </p>
         )}
-        {typeof count === 'number' && (
+        {typeof count === 'number' && Number.isFinite(count) && (
           <p>
             {translator('reliability')}: {count}
           </p>

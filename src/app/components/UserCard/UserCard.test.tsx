@@ -255,4 +255,182 @@ describe('UserCard Component', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  // ---------------------------------------------------------------------
+  // Optional fields: nothing renders when empty (no blank reserved space)
+  // ---------------------------------------------------------------------
+  describe('optional empty fields', () => {
+    it('does not render the real name row when realName/gcName are empty and not loading', async () => {
+      (useGamersClubName as jest.Mock).mockReturnValue({
+        name: null,
+        isLoading: false,
+        error: null,
+      });
+
+      let container: HTMLElement;
+      await act(async () => {
+        ({ container } = render(
+          <UserCard
+            friend={Object.assign({}, mockFriend, { realName: '' })}
+            itsTargetUser={false}
+          />,
+        ));
+      });
+
+      expect(screen.queryByText(/Real Name/i)).not.toBeInTheDocument();
+      expect(
+        container!.querySelector('.min-h-\\[1\\.5rem\\]'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('treats whitespace-only realName as empty', async () => {
+      (useGamersClubName as jest.Mock).mockReturnValue({
+        name: '   ',
+        isLoading: false,
+        error: null,
+      });
+
+      await act(async () => {
+        render(
+          <UserCard
+            friend={Object.assign({}, mockFriend, { realName: '   ' })}
+            itsTargetUser={false}
+          />,
+        );
+      });
+
+      expect(screen.queryByText(/Real Name/i)).not.toBeInTheDocument();
+    });
+
+    it('does not render the location row when countryCode is empty or whitespace-only', async () => {
+      for (const countryCode of ['', '   ']) {
+        const { container, unmount } = render(
+          <UserCard
+            friend={Object.assign({}, mockFriend, { countryCode })}
+            itsTargetUser={false}
+          />,
+        );
+
+        await waitFor(() => {
+          expect(
+            container.querySelector('img[alt*="country flag"]'),
+          ).not.toBeInTheDocument();
+        });
+        expect(
+          container.querySelector('.min-h-\\[1\\.5rem\\]'),
+        ).not.toBeInTheDocument();
+        unmount();
+      }
+    });
+
+    it('does not render nickname or url when whitespace-only', async () => {
+      await act(async () => {
+        render(
+          <UserCard
+            friend={Object.assign({}, mockFriend, {
+              nickname: '   ',
+              url: '   ',
+            })}
+            itsTargetUser={false}
+          />,
+        );
+      });
+
+      expect(screen.queryByText(/Nickname/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Url:/i)).not.toBeInTheDocument();
+    });
+
+    it('does not render probability or reliability when NaN', async () => {
+      await act(async () => {
+        render(
+          <UserCard
+            friend={mockFriend}
+            itsTargetUser={false}
+            probability={NaN}
+            count={NaN}
+          />,
+        );
+      });
+
+      expect(screen.queryByText(/Probability/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Reliability/i)).not.toBeInTheDocument();
+    });
+
+    it('never emits a literal "false" class from the content wrapper', async () => {
+      let container: HTMLElement;
+      await act(async () => {
+        ({ container } = render(
+          <UserCard friend={mockFriend} itsTargetUser={false} />,
+        ));
+      });
+
+      const wrapper = container!.querySelector('.break-words');
+      expect(wrapper).toBeInTheDocument();
+      expect(Array.from(wrapper!.classList)).not.toContain('false');
+    });
+  });
+
+  // ---------------------------------------------------------------------
+  // Stable card layout: fixed text-column height, no inter-row gap,
+  // leftover space stays at the bottom
+  // ---------------------------------------------------------------------
+  describe('stable card layout', () => {
+    it('keeps the text column min-height with no row gap even when every optional field is empty', async () => {
+      (useGamersClubName as jest.Mock).mockReturnValue({
+        name: null,
+        isLoading: false,
+        error: null,
+      });
+
+      let container: HTMLElement;
+      await act(async () => {
+        ({ container } = render(
+          <UserCard
+            friend={Object.assign({}, mockFriend, {
+              nickname: '',
+              realName: '',
+              countryCode: '',
+              url: '',
+            })}
+            itsTargetUser={false}
+          />,
+        ));
+      });
+
+      expect(screen.queryByText(/Nickname/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Real Name/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Url:/i)).not.toBeInTheDocument();
+
+      const column = container!.querySelector('.break-words');
+      expect(column).toBeInTheDocument();
+      const classes = Array.from(column!.classList);
+      expect(classes).toContain('min-h-[9rem]');
+      expect(classes).toContain('self-start');
+      expect(classes).not.toContain('gap-y-2');
+    });
+
+    it('uses the same gapless top-aligned column when all fields are filled (target and friend)', async () => {
+      for (const itsTargetUser of [true, false]) {
+        const { container, unmount } = render(
+          <UserCard
+            friend={mockFriend}
+            itsTargetUser={itsTargetUser}
+            probability={85}
+            count={10}
+          />,
+        );
+
+        await waitFor(() => {
+          expect(screen.getByText(/Nickname: User123/i)).toBeInTheDocument();
+        });
+
+        const column = container.querySelector('.break-words');
+        const classes = Array.from(column!.classList);
+        expect(classes).toContain('min-h-[9rem]');
+        expect(classes).toContain('self-start');
+        expect(classes).not.toContain('gap-y-2');
+        unmount();
+      }
+    });
+  });
 });
