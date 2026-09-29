@@ -165,7 +165,9 @@ function UserCard({
           )}
         </div>
       )}
-      <div className="flex flex-col w-full break-words self-start min-h-[9rem]">
+      <div
+        className={`flex flex-col w-full break-words self-start min-h-[9rem]${itsTargetUser ? ' gap-1' : ''}`}
+      >
         {hasText(friend.nickname) && (
           <p className="font-semibold">
             {translator('nickname')}: {friend.nickname}
