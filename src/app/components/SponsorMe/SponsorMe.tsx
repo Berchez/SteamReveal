@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
+import { useModalAnalytics } from '@/app/templates/Home/shared/analytics/useModalAnalytics';
 
 interface SponsorMeProps {
   onClose: () => void;
@@ -8,6 +9,14 @@ interface SponsorMeProps {
 
 function SponsorMe({ onClose, dontAskAgain }: SponsorMeProps) {
   const translator = useTranslations('SponsorMe');
+
+  // Engagement instrumentation (shown once + CTA/close/dismiss beacons)
+  // lives in the shared hook — see it for the StrictMode/fire-and-forget
+  // contract.
+  const { handleCta, handleClose, handleDismiss } = useModalAnalytics(
+    'sponsor',
+    { onClose, dontAskAgain },
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
@@ -23,6 +32,7 @@ function SponsorMe({ onClose, dontAskAgain }: SponsorMeProps) {
             href="https://github.com/Berchez/SteamReveal"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleCta}
             className="px-4 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg"
           >
             {translator('giveStar')}
@@ -31,12 +41,12 @@ function SponsorMe({ onClose, dontAskAgain }: SponsorMeProps) {
         <button
           type="button"
           className="self-center mt-6 text-gray-500 underline pointer hover:text-gray-400 bg-transparent border-none"
-          onClick={dontAskAgain}
+          onClick={handleDismiss}
         >
           {translator('dontAskAgain')}
         </button>
         <button
-          onClick={onClose}
+          onClick={handleClose}
           type="button"
           className="absolute top-0 right-2 text-purple-300 hover:text-purple-500 md:text-4xl text-3xl"
         >

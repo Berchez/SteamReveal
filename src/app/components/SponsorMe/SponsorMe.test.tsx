@@ -2,10 +2,17 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom'; // for the custom matchers like `toBeInTheDocument`
 import SponsorMe from './SponsorMe';
 import { useTranslations } from 'next-intl';
+import { trackModalEvent } from '@/app/templates/Home/shared/analytics/modalAnalytics';
 
 // Mock the `useTranslations` hook from `next-intl`
 jest.mock('next-intl', () => ({
   useTranslations: jest.fn(),
+}));
+
+// Modal engagement beacons: assert the (modal, event) contract, never the
+// network (the helper itself owns fetch/keepalive, pinned in its own test).
+jest.mock('@/app/templates/Home/shared/analytics/modalAnalytics', () => ({
+  trackModalEvent: jest.fn(),
 }));
 
 describe('SponsorMe component', () => {
@@ -78,5 +85,26 @@ describe('SponsorMe component', () => {
     );
     expect(githubLink).toHaveAttribute('target', '_blank');
     expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('fires sponsor engagement beacons (shown once, CTA, close, dismiss)', () => {
+    render(<SponsorMe onClose={mockOnClose} dontAskAgain={mockDontAskAgain} />);
+
+    expect(trackModalEvent).toHaveBeenCalledTimes(1);
+    expect(trackModalEvent).toHaveBeenCalledWith('sponsor', 'shown');
+
+    fireEvent.click(screen.getByText('Give us a star!'));
+    expect(trackModalEvent).toHaveBeenCalledWith(
+      'sponsor',
+      'cta_clicked',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /×/ }));
+    expect(trackModalEvent).toHaveBeenCalledWith('sponsor', 'closed');
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByText("Don't ask me again!"));
+    expect(trackModalEvent).toHaveBeenCalledWith('sponsor', 'dismissed');
+    expect(mockDontAskAgain).toHaveBeenCalledTimes(1);
   });
 });

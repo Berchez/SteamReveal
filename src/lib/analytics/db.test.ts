@@ -2716,3 +2716,131 @@ describe('login funnel DAL (Steam sign-in instrumentation)', () => {
     await expect(getLoginPopupStats()).rejects.toThrow('socket hang up');
   });
 });
+
+describe('modal engagement DAL (SponsorMe / SupportMe / login-prompt)', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    mockCreateClient.mockReset();
+    mockExecute.mockReset();
+    mockBatch.mockReset();
+    mockClose.mockReset();
+    buildMockClient();
+    mockExecute.mockResolvedValue({ rows: [] });
+    process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
+    process.env.DATABASE_TOKEN = 'secret-token';
+  });
+
+  it('recordModalEvent inserts one row with modal/event/timestamp (no identifiers)', async () => {
+    const { recordModalEvent } = require('./db');
+
+    await recordModalEvent({ modal: 'sponsor', event: 'cta_clicked' });
+
+    // Call 0 is getClient's PRAGMA foreign_keys = ON (cold-start connect);
+    // the INSERT lands second.
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    const call = mockExecute.mock.calls[1][0] as {
+      sql: string;
+      args: unknown[];
+    };
+    expect(call.sql).toContain('INSERT INTO modal_events');
+    expect(call.args[0]).toBe('sponsor');
+    expect(call.args[1]).toBe('cta_clicked');
+    expect(typeof call.args[2]).toBe('string');
+    expect(call.args).toHaveLength(3);
+  });
+
+  it('getModalStats aggregates GROUP BY pairs with zero-fill in one query', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        { modal: 'sponsor', event: 'shown', n: 10 },
+        { modal: 'sponsor', event: 'cta_clicked', n: 3 },
+        { modal: 'sponsor', event: 'closed', n: 5 },
+        { modal: 'sponsor', event: 'dismissed', n: 2 },
+        { modal: 'support', event: 'shown', n: 7 },
+        { modal: 'support', event: 'cta_clicked', n: 1 },
+        { modal: 'support', event: 'closed', n: 4 },
+        { modal: 'support', event: 'dismissed', n: 2 },
+        { modal: 'login_prompt', event: 'shown', n: 12 },
+        { modal: 'login_prompt', event: 'cta_clicked', n: 4 },
+        { modal: 'login_prompt', event: 'closed', n: 6 },
+        { modal: 'login_prompt', event: 'dismissed', n: 2 },
+      ],
+    });
+    const { getModalStats } = require('./db');
+
+    const stats = await getModalStats();
+
+    // Call 0 is the cold-start PRAGMA; the aggregation lands second — one
+    // GROUP BY query for all three sections (single snapshot).
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    expect(mockExecute.mock.calls[1][0].sql).toContain(
+      'FROM modal_events GROUP BY modal, event',
+    );
+    expect(stats).toEqual({
+      sponsor: { shown: 10, ctaClicks: 3, closed: 5, dismissed: 2 },
+      support: { shown: 7, ctaClicks: 1, closed: 4, dismissed: 2 },
+      loginPrompt: { shown: 12, ctaClicks: 4, closed: 6, dismissed: 2 },
+      generatedAt: expect.any(String),
+    });
+  });
+
+  it('getModalStats zero-fills missing pairs on an empty table', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    const { getModalStats } = require('./db');
+
+    const stats = await getModalStats();
+
+    expect(stats.sponsor).toEqual({
+      shown: 0,
+      ctaClicks: 0,
+      closed: 0,
+      dismissed: 0,
+    });
+    expect(stats.support).toEqual({
+      shown: 0,
+      ctaClicks: 0,
+      closed: 0,
+      dismissed: 0,
+    });
+    expect(stats.loginPrompt).toEqual({
+      shown: 0,
+      ctaClicks: 0,
+      closed: 0,
+      dismissed: 0,
+    });
+  });
+
+  it('getModalStats hints db:migrate when the modal table is missing', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(
+      new Error('no such table: modal_events'),
+    );
+    const { getModalStats } = require('./db');
+
+    await expect(getModalStats()).rejects.toThrow(/db:migrate/);
+  });
+
+  it('readModalStatsIsolated degrades a missing table to zeros (dashboard keeps rendering)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(
+      new Error('no such table: modal_events'),
+    );
+    const { readModalStatsIsolated } = require('./db');
+
+    const stats = await readModalStatsIsolated();
+
+    expect(stats.sponsor.shown).toBe(0);
+    expect(stats.support.closed).toBe(0);
+    expect(stats.loginPrompt.dismissed).toBe(0);
+  });
+
+  it('readModalStatsIsolated still throws transport failures (only missing-schema degrades)', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockRejectedValueOnce(new Error('socket hang up'));
+    const { readModalStatsIsolated } = require('./db');
+
+    await expect(readModalStatsIsolated()).rejects.toThrow('socket hang up');
+  });
+});

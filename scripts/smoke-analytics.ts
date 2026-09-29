@@ -94,6 +94,9 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 (async () => {
   let exitCode = 1;
   let id: string | null = null;
+  // Modal-leg window start (see 3.7): assigned inside try, read by the
+  // finally cleanup — null when the leg never ran, so cleanup skips.
+  let modalRunStart: string | null = null;
 
   try {
     if (!(await serverReachable())) {
@@ -251,6 +254,50 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       );
     }
 
+    // 3.7 Promo-modal leg (same gate discipline): shown + CTA beacons for
+    //     one modal through the real route, rows verified in Turso, and the
+    //     dashboard sections checked live. Catches a forgotten migration
+    //     018 the same way 3.5 catches 015 (the route 500s loudly without
+    //     the table). Modal rows carry no session marker by design (counts
+    //     only), so scoping is by (modal, created_at >= run start) instead
+    //     of MARKER — concurrent real sponsor rows inside the same seconds
+    //     window would read as ours (harmless: assertion is >=) and could
+    //     be swept by the cleanup below (accepted residual, documented
+    //     there; modal traffic is near-zero per second).
+    modalRunStart = new Date().toISOString();
+    for (const modalEvent of ['shown', 'cta_clicked']) {
+      // eslint-disable-next-line no-await-in-loop
+      const modalRes = await fetchWithTimeout(
+        `${BASE}/api/recordAnalyticsModals`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ modal: 'sponsor', event: modalEvent }),
+        },
+        FETCH_TIMEOUT_MS,
+      );
+      if (!modalRes.ok) {
+        const modalBody = await modalRes.text();
+        throw new Error(
+          `modals(sponsor/${modalEvent}): HTTP ${modalRes.status} ${modalBody}`,
+        );
+      }
+    }
+
+    const modalRow = await withTimeout(
+      client.execute({
+        sql: "SELECT COUNT(*) AS n FROM modal_events WHERE modal = 'sponsor' AND created_at >= ?",
+        args: [modalRunStart],
+      }),
+      DB_TIMEOUT_MS,
+      'turso verify modal_events rows',
+    );
+    if (Number(modalRow.rows[0].n) < 2) {
+      throw new Error(
+        `modal_events rows missing in Turso: ${JSON.stringify(modalRow.rows)}`,
+      );
+    }
+
     // 4. The dashboard (live-rendered from Turso) must show the record.
     //    Authentication goes through the x-analytics-key header (never a URL
     //    query string — a ?key= would leak the secret into access logs) when
@@ -278,6 +325,15 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       !dashHtml.includes('<script type="application/json" id="login-funnel-db">')
     ) {
       throw new Error('dashboard: login-funnel panel missing from render');
+    }
+    // Modal sections likewise (structure only, same aggregate rationale).
+    if (
+      !dashHtml.includes('SponsorMe') ||
+      !dashHtml.includes('SupportMe') ||
+      !dashHtml.includes('Login prompt') ||
+      !dashHtml.includes('<script type="application/json" id="modal-stats-db">')
+    ) {
+      throw new Error('dashboard: modal sections missing from render');
     }
 
     // eslint-disable-next-line no-console
@@ -339,6 +395,26 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(`cleanup login_popup_events failed: ${sanitizeError(err)}`);
+    }
+    // Modal rows likewise, scoped by (modal, created_at window) — the
+    // table has no session marker by design. A real sponsor event landing
+    // inside the same seconds window would be swept too (near-zero modal
+    // traffic per second makes this acceptable; counts-only rows carry no
+    // identity to disambiguate by). Skipped when the leg never ran.
+    if (modalRunStart !== null) {
+      try {
+        await withTimeout(
+          client.execute({
+            sql: "DELETE FROM modal_events WHERE modal = 'sponsor' AND created_at >= ?",
+            args: [modalRunStart],
+          }),
+          DB_TIMEOUT_MS,
+          'turso cleanup modal_events',
+        );
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(`cleanup modal_events failed: ${sanitizeError(err)}`);
+      }
     }
     // Tear the smoke row down. Marker-scoped checks only (no global count
     // deltas) so concurrent real traffic on a shared DB can't cause false
@@ -442,6 +518,9 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     // above): the smoke must prove its OWN beacon row left with it. Runs
     // before the probeIncomplete warning so a stall here is reported too.
     // Popup rows ride the same probe (own table, same session marker).
+    // Modal rows ride a time-windowed probe instead (own table, no session
+    // marker by design — same predicate as the cleanup above, skipped when
+    // the leg never ran).
     for (const probeTable of ['login_funnel_events', 'login_popup_events']) {
       try {
         // eslint-disable-next-line no-await-in-loop
@@ -457,6 +536,27 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error(`cleanup probe ${probeTable} failed: ${sanitizeError(error)}`);
+        if (isTimeoutError(error)) {
+          probeIncomplete = true;
+        } else {
+          orphanedRows += 1;
+        }
+      }
+    }
+    if (modalRunStart !== null) {
+      try {
+        const modalProbe = await withTimeout(
+          client.execute({
+            sql: "SELECT COUNT(*) AS n FROM modal_events WHERE modal = 'sponsor' AND created_at >= ?",
+            args: [modalRunStart],
+          }),
+          PROBE_TIMEOUT_MS,
+          'turso cleanup probe modal_events',
+        );
+        orphanedRows += Number(modalProbe.rows[0].n);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`cleanup probe modal_events failed: ${sanitizeError(error)}`);
         if (isTimeoutError(error)) {
           probeIncomplete = true;
         } else {

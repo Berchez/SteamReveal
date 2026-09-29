@@ -79,6 +79,39 @@ function funnelCardTexts(): string[] {
   ) as string[];
 }
 
+/**
+ * Executes the dashboard script with a populated modal-stats block so the
+ * three modal sections' DATA path actually runs — the default 'null' block
+ * only ever exercises the "unavailable" early return.
+ */
+function loadDashboardWithModals(
+  modals: Record<string, unknown> | null,
+  entriesJson: string = SAMPLE,
+) {
+  const html = buildAnalyticsHtml(
+    entriesJson,
+    'null',
+    'null',
+    modals === null ? 'null' : JSON.stringify(modals),
+  );
+  document.body.innerHTML = html;
+  const inner = /<script>([\s\S]*?)<\/script>/.exec(html);
+  if (!inner) throw new Error('inline <script> has no captured body');
+  // eslint-disable-next-line no-eval
+  eval(inner[1]);
+}
+
+function modalSectionTexts(elementId: string): string[] {
+  return Array.prototype.map.call(
+    document.querySelectorAll(`#${elementId} .stat-card`),
+    function (card) {
+      const value = card.querySelector('.value')?.textContent || '';
+      const label = card.querySelector('.label')?.textContent || '';
+      return `${value} ${label}`.trim();
+    },
+  ) as string[];
+}
+
 function cheaterOutcomes(): string[] {
   return Array.prototype.map.call(
     document.querySelectorAll('#cheater-body tr td:nth-child(5)'),
@@ -302,6 +335,71 @@ describe('dashboard interactive tables', () => {
       '0 Popup sign-in clicks',
       '0 Popup-attributed logins',
       '— Popup → login conversion',
+    ]);
+  });
+
+  it('renders the three modal sections with four cards each', () => {
+    loadDashboardWithModals({
+      sponsor: { shown: 10, ctaClicks: 3, closed: 5, dismissed: 2 },
+      support: { shown: 7, ctaClicks: 1, closed: 4, dismissed: 2 },
+      loginPrompt: { shown: 12, ctaClicks: 4, closed: 6, dismissed: 1 },
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+
+    expect(modalSectionTexts('modal-sponsor-stats')).toEqual([
+      '10 Shown',
+      '3 CTA clicks',
+      '5 Closed (X)',
+      '2 Never show again',
+    ]);
+    expect(modalSectionTexts('modal-support-stats')).toEqual([
+      '7 Shown',
+      '1 CTA clicks',
+      '4 Closed (X)',
+      '2 Never show again',
+    ]);
+    expect(modalSectionTexts('modal-login-prompt-stats')).toEqual([
+      '12 Shown',
+      '4 CTA clicks',
+      '6 Closed (X)',
+      '1 Never show again',
+    ]);
+  });
+
+  it('renders modal unavailable states on a null block (failed reads degrade, never throw)', () => {
+    loadDashboardWithModals(null);
+
+    expect(modalSectionTexts('modal-sponsor-stats')).toEqual([
+      '— SponsorMe unavailable',
+    ]);
+    expect(modalSectionTexts('modal-support-stats')).toEqual([
+      '— SupportMe unavailable',
+    ]);
+    expect(modalSectionTexts('modal-login-prompt-stats')).toEqual([
+      '— Login prompt unavailable',
+    ]);
+  });
+
+  it('renders missing modal sections as zeros (stale block never breaks the page)', () => {
+    // A block shaped before a modal existed (or with the key dropped)
+    // must degrade per-section — one bad section can't kill the panels
+    // below it.
+    loadDashboardWithModals({
+      sponsor: { shown: 5, ctaClicks: 1, closed: 2, dismissed: 0 },
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+
+    expect(modalSectionTexts('modal-sponsor-stats')).toEqual([
+      '5 Shown',
+      '1 CTA clicks',
+      '2 Closed (X)',
+      '0 Never show again',
+    ]);
+    expect(modalSectionTexts('modal-support-stats')).toEqual([
+      '0 Shown',
+      '0 CTA clicks',
+      '0 Closed (X)',
+      '0 Never show again',
     ]);
   });
 

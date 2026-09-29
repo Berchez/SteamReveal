@@ -8,6 +8,7 @@ jest.mock('@/lib/analytics/db', () => ({
   getSearchRecords: jest.fn(),
   getWatchDashboardData: jest.fn(),
   getLoginFunnelStats: jest.fn(),
+  readModalStatsIsolated: jest.fn(),
 }));
 
 jest.mock('@/lib/logRouteError', () => ({
@@ -29,12 +30,17 @@ jest.mock('@/lib/rateLimit', () => {
   };
 });
 
-const { getSearchRecords, getWatchDashboardData, getLoginFunnelStats } =
-  jest.requireMock('@/lib/analytics/db') as {
-    getSearchRecords: jest.Mock;
-    getWatchDashboardData: jest.Mock;
-    getLoginFunnelStats: jest.Mock;
-  };
+const {
+  getSearchRecords,
+  getWatchDashboardData,
+  getLoginFunnelStats,
+  readModalStatsIsolated,
+} = jest.requireMock('@/lib/analytics/db') as {
+  getSearchRecords: jest.Mock;
+  getWatchDashboardData: jest.Mock;
+  getLoginFunnelStats: jest.Mock;
+  readModalStatsIsolated: jest.Mock;
+};
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
   __testIsRateLimited: jest.Mock;
@@ -95,6 +101,12 @@ describe('GET /api/analytics/dashboard', () => {
         popupAttributedSignins: 0,
         popupConversionRate: null,
       },
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+    readModalStatsIsolated.mockResolvedValue({
+      sponsor: { shown: 0, ctaClicks: 0, closed: 0, dismissed: 0 },
+      support: { shown: 0, ctaClicks: 0, closed: 0, dismissed: 0 },
+      loginPrompt: { shown: 0, ctaClicks: 0, closed: 0, dismissed: 0 },
       generatedAt: '2026-09-24T00:00:00.000Z',
     });
     originalDbUrl = process.env.DATABASE_URL;
@@ -353,6 +365,44 @@ describe('GET /api/analytics/dashboard', () => {
     expect(html).toMatch(/id="login-funnel-db">\s*null\s*<\/script>/);
     expect(logRouteErrorMock).toHaveBeenCalledWith(
       'analytics/dashboard:loginFunnel',
+      expect.anything(),
+    );
+  });
+
+  it('embeds the modal aggregates in a fourth JSON block', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    readModalStatsIsolated.mockResolvedValue({
+      sponsor: { shown: 10, ctaClicks: 3, closed: 5, dismissed: 2 },
+      support: { shown: 7, ctaClicks: 1, closed: 4, dismissed: 2 },
+      loginPrompt: { shown: 12, ctaClicks: 4, closed: 6, dismissed: 1 },
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+    const html = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(html).toContain('<script type="application/json" id="modal-stats-db">');
+    expect(html).toContain('"ctaClicks": 3');
+    expect(html).toContain('SponsorMe');
+    expect(html).toContain('SupportMe');
+    expect(html).toContain('Login prompt');
+    expect(readModalStatsIsolated).toHaveBeenCalledTimes(1);
+  });
+
+  it('still renders searches when the modal reads fail (fail-open section)', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    readModalStatsIsolated.mockRejectedValue(new Error('modal table down'));
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+    const html = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(html).toContain('76561198000000000');
+    expect(html).toContain('<script type="application/json" id="modal-stats-db">');
+    expect(html).toMatch(/id="modal-stats-db">\s*null\s*<\/script>/);
+    expect(logRouteErrorMock).toHaveBeenCalledWith(
+      'analytics/dashboard:modals',
       expect.anything(),
     );
   });

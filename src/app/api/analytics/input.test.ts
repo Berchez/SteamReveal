@@ -3,6 +3,7 @@ import {
   parseCheaterBody,
   parseFriendGcNamesBody,
   parseLoginFunnelBody,
+  parseModalEventBody,
 } from './input';
 
 describe('parseRecordBody', () => {
@@ -418,5 +419,28 @@ describe('parseLoginFunnelBody', () => {
     expect(
       parseLoginFunnelBody({ event: 'login_popup_shown_extra', sessionId: 's1' }),
     ).toBeNull();
+  });
+});
+
+describe('parseModalEventBody', () => {
+  it('parses every modal × event pair (no identifiers)', () => {
+    for (const modal of ['sponsor', 'support', 'login_prompt']) {
+      for (const event of ['shown', 'cta_clicked', 'closed', 'dismissed']) {
+        expect(parseModalEventBody({ modal, event })).toEqual({
+          modal,
+          event,
+        });
+      }
+    }
+  });
+
+  it('rejects unknown modals, unknown events and non-string pairs', () => {
+    expect(parseModalEventBody({ modal: 'donate', event: 'shown' })).toBeNull();
+    expect(
+      parseModalEventBody({ modal: 'sponsor', event: 'hovered' }),
+    ).toBeNull();
+    expect(parseModalEventBody({ modal: 'sponsor' })).toBeNull();
+    expect(parseModalEventBody({ event: 'shown' })).toBeNull();
+    expect(parseModalEventBody(null)).toBeNull();
   });
 });

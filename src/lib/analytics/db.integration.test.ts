@@ -24,6 +24,7 @@ import fs from 'fs';
 import path from 'path';
 
 import splitSqlStatements from './sqlStatements';
+import { MODAL_EVENTS, MODAL_KINDS } from './types';
 
 const MIGRATION_SQL = fs.readFileSync(
   path.join(__dirname, 'migrations', '001_init.sql'),
@@ -95,6 +96,11 @@ const LOGIN_FUNNEL_MID_STEPS_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const MODAL_EVENTS_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '018_modal_events.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -135,6 +141,8 @@ type DbApi = {
   getLoginFunnelStats: typeof import('./db').getLoginFunnelStats;
   recordLoginPopupEvent: typeof import('./db').recordLoginPopupEvent;
   getLoginPopupStats: typeof import('./db').getLoginPopupStats;
+  recordModalEvent: typeof import('./db').recordModalEvent;
+  getModalStats: typeof import('./db').getModalStats;
   ensureActiveWatch: typeof import('./db').ensureActiveWatch;
   hashConfirmToken: typeof import('./db').hashConfirmToken;
   createAccount: typeof import('./db').createAccount;
@@ -309,6 +317,11 @@ describe('analytics db integration against real libSQL', () => {
         "INSERT INTO login_funnel_events (event, session_id, search_id, created_at) VALUES ('bogus', NULL, NULL, '2026-02-01T00:00:00.000Z')",
       ),
     ).rejects.toThrow();
+    // 018 carries modal_events (SponsorMe / SupportMe / login-prompt
+    // engagement) — last in filename order, like production applies it.
+    for (const statement of splitSqlStatements(MODAL_EVENTS_MIGRATION_SQL)) {
+      await db.executeForTests(statement);
+    }
   });
 
   beforeEach(async () => {
@@ -324,6 +337,8 @@ describe('analytics db integration against real libSQL', () => {
     await db.executeForTests('DELETE FROM login_funnel_events');
     // Popup table likewise (no FKs by design).
     await db.executeForTests('DELETE FROM login_popup_events');
+    // Modal table likewise (no FKs by design).
+    await db.executeForTests('DELETE FROM modal_events');
   });
 
   afterAll(async () => {
@@ -2132,6 +2147,97 @@ describe('analytics db integration against real libSQL', () => {
       // Navbar funnel untouched by the empty popup table.
       expect(stats.ctaEvents).toBe(0);
       expect(stats.conversionRate).toBeNull();
+    });
+  });
+
+  describe('modal engagement instrumentation (018)', () => {
+    it('recordModalEvent → getModalStats round-trips raw per-modal counts on real SQL', async () => {
+      // Repeats count (raw volume, no sessions): sponsor shown twice,
+      // CTA once, closed once, dismissed once; support shown once with no
+      // engagement; login_prompt shown + CTA + close, never dismissed.
+      const events: Array<{ modal: 'sponsor' | 'support' | 'login_prompt'; event: 'shown' | 'cta_clicked' | 'closed' | 'dismissed' }> = [
+        { modal: 'sponsor', event: 'shown' },
+        { modal: 'sponsor', event: 'shown' },
+        { modal: 'sponsor', event: 'cta_clicked' },
+        { modal: 'sponsor', event: 'closed' },
+        { modal: 'sponsor', event: 'dismissed' },
+        { modal: 'support', event: 'shown' },
+        { modal: 'login_prompt', event: 'shown' },
+        { modal: 'login_prompt', event: 'cta_clicked' },
+        { modal: 'login_prompt', event: 'closed' },
+      ];
+      for (const { modal, event } of events) {
+        await db.recordModalEvent({ modal, event });
+      }
+
+      const stats = await db.getModalStats();
+
+      expect(stats.sponsor).toEqual({
+        shown: 2,
+        ctaClicks: 1,
+        closed: 1,
+        dismissed: 1,
+      });
+      expect(stats.support).toEqual({
+        shown: 1,
+        ctaClicks: 0,
+        closed: 0,
+        dismissed: 0,
+      });
+      expect(stats.loginPrompt).toEqual({
+        shown: 1,
+        ctaClicks: 1,
+        closed: 1,
+        dismissed: 0,
+      });
+      expect(typeof stats.generatedAt).toBe('string');
+    });
+
+    it('reports zeros on an empty modal table (no data, not null)', async () => {
+      const stats = await db.getModalStats();
+
+      expect(stats.sponsor).toEqual({
+        shown: 0,
+        ctaClicks: 0,
+        closed: 0,
+        dismissed: 0,
+      });
+      expect(stats.support.shown).toBe(0);
+      expect(stats.loginPrompt.shown).toBe(0);
+    });
+
+    it.each(
+      MODAL_KINDS.flatMap((modal) =>
+        MODAL_EVENTS.map((event) => [modal, event] as const),
+      ),
+    )('accepts %s × %s (tuples ↔ event CHECK)', async (modal, event) => {
+      // Pins the single-source claim in types.ts: every tuple pair must
+      // insert cleanly. Only the EVENT set carries a SQL CHECK (modal has
+      // none by design) — a CHECK edit that drops an event fails here,
+      // not on Turso (wiped per test, so pairs never collide).
+      await expect(
+        db.recordModalEvent({ modal, event }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('rejects rows outside the event allowlist (modal has no CHECK by design)', async () => {
+      // Unknown modals are accepted at the DB level (zero-migration
+      // evolution — see 018) and silently ignored by getModalStats, which
+      // maps only known modals: panel corruption is impossible either way.
+      // Unknown EVENTS stay rejected (stable set, data-quality guard).
+      await db.executeForTests(
+        "INSERT INTO modal_events (modal, event, created_at) VALUES ('donate', 'shown', '2026-02-01T00:00:00.000Z')",
+      );
+      const stats = await db.getModalStats();
+      expect(stats.sponsor.shown).toBe(0);
+      expect(stats.support.shown).toBe(0);
+      expect(stats.loginPrompt.shown).toBe(0);
+
+      await expect(
+        db.executeForTests(
+          "INSERT INTO modal_events (modal, event, created_at) VALUES ('sponsor', 'hovered', '2026-02-01T00:00:00.000Z')",
+        ),
+      ).rejects.toThrow();
     });
   });
 });

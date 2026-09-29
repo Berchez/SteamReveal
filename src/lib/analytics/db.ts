@@ -38,6 +38,10 @@ import type {
   LoginFunnelStats,
   LoginPopupEventKind,
   LoginPopupStats,
+  ModalDashboardStats,
+  ModalEventKind,
+  ModalKind,
+  ModalStats,
   ExpiredConfirmCandidate,
   BanWatchSubscription,
   BanWatchTarget,
@@ -2169,6 +2173,116 @@ export const getLoginFunnelStats = async (): Promise<LoginFunnelStats> => {
     popup: await readPopupStatsIsolated(db),
     generatedAt: new Date().toISOString(),
   };
+};
+
+// ---------------------------------------------------------------------------
+// Promo-modal engagement (SponsorMe / SupportMe / login-prompt). One row
+// per modal event; the dashboard reads raw per-modal counts (repeats
+// included — "how many times", never a rate). Counts only by design: no
+// session_id / search_id columns (see 018) — pure volume, no identifiers.
+// Same best-effort contract as the funnel/popup tables: writers never
+// throw into product code paths (routes catch), readers degrade (see
+// readModalStatsIsolated below).
+// ---------------------------------------------------------------------------
+
+/** Row written by recordModalEvent (modal: app allowlist, event: 018 CHECK). */
+export type ModalEventInput = {
+  modal: ModalKind;
+  event: ModalEventKind;
+};
+
+/**
+ * Appends one modal event. Single INSERT (no batch — one row, nothing to
+ * make atomic with). Throws on transport failure so routes can log loudly;
+ * every caller treats it as non-fatal.
+ */
+export const recordModalEvent = async (
+  input: ModalEventInput,
+): Promise<void> => {
+  const db = await getClient();
+  await withSchemaHint(
+    db.execute({
+      sql: `INSERT INTO modal_events (modal, event, created_at)
+            VALUES (?, ?, ?)`,
+      args: [input.modal, input.event, new Date().toISOString()],
+    }),
+  );
+};
+
+/**
+ * Read-only per-modal engagement aggregates for the analytics dashboard.
+ * One GROUP BY query (at most 12 rows: 3 modals × 4 events), zero-filled
+ * in JS so missing pairs read as 0, never undefined. Throws when the
+ * table is missing (migration not run) — the dashboard route treats that
+ * as fail-open null via readModalStatsIsolated below.
+ */
+export const getModalStats = async (): Promise<ModalDashboardStats> => {
+  const db = await getClient();
+  const result = await withSchemaHint(
+    db.execute({
+      sql: `SELECT modal, event, COUNT(*) AS n FROM modal_events GROUP BY modal, event`,
+    }),
+  );
+
+  const toCount = (value: unknown): number =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  const counts = new Map<string, number>();
+  (result.rows as Array<Record<string, unknown>>).forEach((row) => {
+    if (typeof row.modal === 'string' && typeof row.event === 'string') {
+      counts.set(`${row.modal}:${row.event}`, toCount(row.n));
+    }
+  });
+
+  const modalStats = (modal: ModalKind): ModalStats => ({
+    shown: counts.get(`${modal}:shown`) ?? 0,
+    ctaClicks: counts.get(`${modal}:cta_clicked`) ?? 0,
+    closed: counts.get(`${modal}:closed`) ?? 0,
+    dismissed: counts.get(`${modal}:dismissed`) ?? 0,
+  });
+
+  return {
+    sponsor: modalStats('sponsor'),
+    support: modalStats('support'),
+    loginPrompt: modalStats('login_prompt'),
+    generatedAt: new Date().toISOString(),
+  };
+};
+
+/**
+ * Modals read isolated from the funnel read. Same rollout rationale as
+ * readPopupStatsIsolated: a DB with 018 pending must degrade ONLY the
+ * modal sections to zeros, never null out the whole dashboard. Only a
+ * missing TABLE is swallowed here (deliberately narrower than the shared
+ * SCHEMA_MISSING_PATTERN, which also matches "no such column": a typo'd
+ * column must surface as an unavailable section via the route's fail-open
+ * null, never as plausible-looking zeros). Transport/logic errors still
+ * throw for the same reason.
+ */
+const MODAL_TABLE_MISSING_PATTERN = /no such table/i;
+
+export const readModalStatsIsolated = async (): Promise<ModalDashboardStats> => {
+  try {
+    return await getModalStats();
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      MODAL_TABLE_MISSING_PATTERN.test(error.message)
+    ) {
+      const zeros: ModalStats = {
+        shown: 0,
+        ctaClicks: 0,
+        closed: 0,
+        dismissed: 0,
+      };
+      return {
+        sponsor: { ...zeros },
+        support: { ...zeros },
+        loginPrompt: { ...zeros },
+        generatedAt: new Date().toISOString(),
+      };
+    }
+    throw error;
+  }
 };
 
 /**

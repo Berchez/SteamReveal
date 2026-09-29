@@ -1,6 +1,7 @@
 import { buildAnalyticsHtml } from './dashboardTemplate';
 import type {
   LoginFunnelStats,
+  ModalDashboardStats,
   SearchRecord,
   WatchDashboardData,
 } from './types';
@@ -35,14 +36,25 @@ export const serializeLoginFunnel = (
   funnel: LoginFunnelStats | null,
 ): string => JSON.stringify(funnel, null, 2).replace(/</g, '\\u003c');
 
+/**
+ * Same embed escaping as serializeEntries (modal aggregates are counts
+ * only — no free text at all — but the rule is uniform: anything
+ * embedded into a <script> block gets it).
+ */
+export const serializeModalStats = (
+  modals: ModalDashboardStats | null,
+): string => JSON.stringify(modals, null, 2).replace(/</g, '\\u003c');
+
 /** Renders a full dashboard HTML document from the given records. */
 export const renderDashboard = (
   entries: SearchRecord[],
   watch: WatchDashboardData | null = null,
   funnel: LoginFunnelStats | null = null,
+  modals: ModalDashboardStats | null = null,
 ): string =>
   buildAnalyticsHtml(
     serializeEntries(entries),
     serializeWatchStats(watch),
     serializeLoginFunnel(funnel),
+    serializeModalStats(modals),
   );

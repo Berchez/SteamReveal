@@ -3,8 +3,11 @@ import type {
   FriendRecord,
   LocationGuess,
   GameSnapshotEntry,
+  ModalEventKind,
+  ModalKind,
   NewSearchInput,
 } from '@/lib/analytics/types';
+import { MODAL_EVENTS, MODAL_KINDS } from '@/lib/analytics/types';
 import {
   normalizeFriendsVisibility,
   type FriendsVisibility,
@@ -292,4 +295,42 @@ export const parseLoginFunnelBody = (
       : null;
   if (searchId !== null && searchId.length > 64) return null;
   return { event: body.event, sessionId: body.sessionId, searchId };
+};
+
+export interface ParsedModalEventInput {
+  modal: ModalKind;
+  event: ModalEventKind;
+}
+
+/**
+ * Body parsing for the promo-modal engagement beacons (POST
+ * /api/recordAnalyticsModals): SponsorMe / SupportMe / login-prompt,
+ * each reporting shown / cta_clicked / closed / dismissed.
+ *
+ * Counts only, so the body carries no identifiers at all (no session,
+ * no search — see 018): the allowlist IS the whole validation, modal ×
+ * event, anything else is a 400. The lists derive from the shared
+ * MODAL_KINDS / MODAL_EVENTS tuples (types.ts) so a new modal can't land
+ * in the types and silently 400 here — or vice versa.
+ */
+export const parseModalEventBody = (
+  body: unknown,
+): ParsedModalEventInput | null => {
+  if (!isRecord(body)) return null;
+  if (
+    typeof body.modal !== 'string' ||
+    !(MODAL_KINDS as readonly string[]).includes(body.modal)
+  ) {
+    return null;
+  }
+  if (
+    typeof body.event !== 'string' ||
+    !(MODAL_EVENTS as readonly string[]).includes(body.event)
+  ) {
+    return null;
+  }
+  return {
+    modal: body.modal as ModalKind,
+    event: body.event as ModalEventKind,
+  };
 };

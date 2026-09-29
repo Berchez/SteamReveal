@@ -1,6 +1,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useModalAnalytics } from '@/app/templates/Home/shared/analytics/useModalAnalytics';
 
 interface SupportMeProps {
   onClose: () => void;
@@ -37,6 +38,18 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
     setTab(isBrazilVar ? 'pix' : 'stripe');
   }, [locale]);
 
+  // The component returns null until locale resolution lands — the hook's
+  // `enabled` gate defers the shown beacon to the first visible render
+  // instead of counting a display the user never saw.
+  // CTA covers every donation-intent action: the outbound Stripe/Steam
+  // links AND the PIX / trade-URL copy buttons (copying the key IS the
+  // donation flow in BR). Tab switches are navigation, not conversion —
+  // untracked by design.
+  const { handleCta, handleClose, handleDismiss } = useModalAnalytics(
+    'support',
+    { onClose, dontAskAgain, enabled: isBrazil !== null },
+  );
+
   if (isBrazil === null) {
     return null;
   }
@@ -50,6 +63,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
   };
 
   const copyToClipboard = async (text: string) => {
+    handleCta();
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -64,7 +78,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
       <div className="relative max-w-md w-full bg-[#1c1c28] rounded-xl border border-purple-500/40 px-8 py-8 text-center shadow-xl">
         {/* Close */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute right-4 top-2 text-3xl text-purple-300 hover:text-purple-400"
           type="button"
         >
@@ -161,6 +175,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
             href={stripeLink}
             target="_blank"
             rel="noreferrer"
+            onClick={handleCta}
             className="mt-6 block text-center bg-purple-700/50 text-white py-2 rounded-lg border border-purple-400/60 shadow-[0_0_4px_rgba(168,85,247,0.8)] hover:shadow-[0_0_14px_rgba(168,85,247,1)] hover:-translate-y-[2px] transition"
           >
             {translator('openStripe')}
@@ -191,6 +206,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
             <a
               href={STEAM_TRADE_URL}
               target="_blank"
+              onClick={handleCta}
               className="mt-4 block text-center bg-purple-700/50 text-white py-2 rounded-lg border border-purple-400/60 shadow-[0_0_4px_rgba(168,85,247,0.8)] hover:shadow-[0_0_14px_rgba(168,85,247,1)] hover:-translate-y-[2px] transition"
               rel="noreferrer"
             >
@@ -201,7 +217,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
 
         {/* Don't ask again */}
         <button
-          onClick={dontAskAgain}
+          onClick={handleDismiss}
           className="mt-6 text-gray-500 hover:text-gray-400 underline text-sm"
           type="button"
         >

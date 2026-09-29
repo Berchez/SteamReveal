@@ -1,11 +1,13 @@
 import {
   serializeEntries,
   serializeLoginFunnel,
+  serializeModalStats,
   serializeWatchStats,
   renderDashboard,
 } from './dashboardRender';
 import type {
   LoginFunnelStats,
+  ModalDashboardStats,
   SearchRecord,
   WatchDashboardData,
 } from './types';
@@ -167,5 +169,58 @@ describe('serializeWatchStats', () => {
 
   it('serializes null (failed reads degrade to empty panels)', () => {
     expect(serializeWatchStats(null)).toBe('null');
+  });
+});
+
+describe('serializeModalStats', () => {
+  const modals: ModalDashboardStats = {
+    sponsor: { shown: 10, ctaClicks: 3, closed: 5, dismissed: 2 },
+    support: { shown: 7, ctaClicks: 1, closed: 4, dismissed: 2 },
+    loginPrompt: { shown: 12, ctaClicks: 4, closed: 6, dismissed: 1 },
+    generatedAt: '2026-09-24T00:00:00.000Z',
+  };
+
+  it('serializes per-modal counts without breaking the script block', () => {
+    const out = serializeModalStats(modals);
+    expect(out).not.toContain('</script>');
+    expect(out).toContain('"ctaClicks": 3');
+    expect(out).toContain('"dismissed": 2');
+  });
+
+  it('carries all three sections through to the panel JSON block', () => {
+    const out = serializeModalStats(modals);
+    for (const key of ['"sponsor": {', '"support": {', '"loginPrompt": {']) {
+      expect(out).toContain(key);
+    }
+  });
+
+  it('serializes null (failed reads degrade to the unavailable sections)', () => {
+    expect(serializeModalStats(null)).toBe('null');
+  });
+});
+
+describe('renderDashboard modal block', () => {
+  it('embeds the modal-stats block and section containers', () => {
+    const html = renderDashboard(
+      [],
+      null,
+      null,
+      {
+        sponsor: { shown: 10, ctaClicks: 3, closed: 5, dismissed: 2 },
+        support: { shown: 0, ctaClicks: 0, closed: 0, dismissed: 0 },
+        loginPrompt: { shown: 0, ctaClicks: 0, closed: 0, dismissed: 0 },
+        generatedAt: '2026-09-24T00:00:00.000Z',
+      },
+    );
+    expect(html).toContain('<script type="application/json" id="modal-stats-db">');
+    expect(html).toContain('"ctaClicks": 3');
+    expect(html).toContain('id="modal-sponsor-stats"');
+    expect(html).toContain('id="modal-support-stats"');
+    expect(html).toContain('id="modal-login-prompt-stats"');
+  });
+
+  it('embeds an empty modal block by default (sections render unavailable)', () => {
+    const html = renderDashboard([]);
+    expect(html).toMatch(/id="modal-stats-db">\s*null\s*<\/script>/);
   });
 });

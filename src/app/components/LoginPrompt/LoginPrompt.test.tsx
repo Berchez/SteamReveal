@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LoginPrompt from './LoginPrompt';
 import { useTranslations, useLocale } from 'next-intl';
+import { trackModalEvent } from '@/app/templates/Home/shared/analytics/modalAnalytics';
 
 // Mock the `useTranslations`/`useLocale` hooks from `next-intl` (same
 // SponsorMe precedent: key-echo translator).
@@ -25,6 +26,14 @@ jest.mock('next-intl/navigation', () => ({
 
 // resolveLoginNext is intentionally real (like SiteNavSignIn tests): with
 // the mocked pathname/locale above it yields '/en/player/player-c'.
+
+// Modal engagement beacons: assert the (modal, event) contract, never the
+// network (the helper itself owns fetch/keepalive, pinned in its own test).
+// The login_popup_* beacons keep their own fetch-based tests below — the
+// two tables are independent by design.
+jest.mock('@/app/templates/Home/shared/analytics/modalAnalytics', () => ({
+  trackModalEvent: jest.fn(),
+}));
 
 describe('LoginPrompt component', () => {
   const mockOnClose = jest.fn();
@@ -151,6 +160,27 @@ describe('LoginPrompt component', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
+  it('counts an Escape dismissal as closed (exactly once)', () => {
+    render(<LoginPrompt onClose={mockOnClose} dontAskAgain={mockDontAskAgain} />);
+    (trackModalEvent as jest.Mock).mockClear();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(trackModalEvent).toHaveBeenCalledTimes(1);
+    expect(trackModalEvent).toHaveBeenCalledWith('login_prompt', 'closed');
+  });
+
+  it('ignores auto-repeat Esc holds (one dismissal, not one per repeat)', () => {
+    render(<LoginPrompt onClose={mockOnClose} dontAskAgain={mockDontAskAgain} />);
+    (trackModalEvent as jest.Mock).mockClear();
+
+    fireEvent.keyDown(document, { key: 'Escape', repeat: true });
+    fireEvent.keyDown(document, { key: 'Escape', repeat: true });
+
+    expect(trackModalEvent).not.toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
   it('calls dontAskAgain and onClose on their buttons', () => {
     render(<LoginPrompt onClose={mockOnClose} dontAskAgain={mockDontAskAgain} />);
 
@@ -159,5 +189,26 @@ describe('LoginPrompt component', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires login_prompt engagement beacons (shown once, CTA, close, dismiss)', () => {
+    render(<LoginPrompt onClose={mockOnClose} dontAskAgain={mockDontAskAgain} />);
+
+    expect(trackModalEvent).toHaveBeenCalledTimes(1);
+    expect(trackModalEvent).toHaveBeenCalledWith('login_prompt', 'shown');
+
+    fireEvent.click(screen.getByText('Sign in with Steam'));
+    expect(trackModalEvent).toHaveBeenCalledWith(
+      'login_prompt',
+      'cta_clicked',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(trackModalEvent).toHaveBeenCalledWith('login_prompt', 'closed');
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByText("Don't ask again"));
+    expect(trackModalEvent).toHaveBeenCalledWith('login_prompt', 'dismissed');
+    expect(mockDontAskAgain).toHaveBeenCalledTimes(1);
   });
 });

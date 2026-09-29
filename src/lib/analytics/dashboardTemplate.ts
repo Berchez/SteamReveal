@@ -51,12 +51,13 @@
  *      diffing the runtime string against the source you started from --
  *      not just eyeballing it -- before committing.
  *
- * Split in four around the data blocks: HEAD ends right after the
+ * Split in five around the data blocks: HEAD ends right after the
  * `<script id="db">` opening tag, the entries array follows, then WATCH_MID
  * closes it and opens `<script id="watch-db">`, then the watch JSON, then
  * FUNNEL_DB_MID opens `<script id="login-funnel-db">`, then the funnel
- * JSON, then TAIL (which starts at the funnel block's closing tag).
- * buildAnalyticsHtml() joins the parts around the three serialized payloads.
+ * JSON, then MODAL_DB_MID opens `<script id="modal-stats-db">`, then the
+ * modal JSON, then TAIL (which starts at the modal block's closing tag).
+ * buildAnalyticsHtml() joins the parts around the four serialized payloads.
  */
 
 import { CHEATER_OUTCOME_THRESHOLDS_PERCENT } from '@/lib/cheaterOutcomeBands';
@@ -401,6 +402,21 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
 
 <div class="stats" id="login-funnel-stats"></div>
 
+<h1 style="margin-top: 8px;">SponsorMe</h1>
+<p class="subtitle">Star-prompt modal: displays vs CTA clicks vs closes vs never-show-again, all time</p>
+
+<div class="stats" id="modal-sponsor-stats"></div>
+
+<h1 style="margin-top: 8px;">SupportMe</h1>
+<p class="subtitle">Donation-prompt modal: displays vs CTA clicks (raw: Stripe/Steam links + PIX/trade-URL copies, repeats included) vs closes vs never-show-again, all time</p>
+
+<div class="stats" id="modal-support-stats"></div>
+
+<h1 style="margin-top: 8px;">Login prompt</h1>
+<p class="subtitle">Sign-in-prompt modal: displays vs CTA clicks vs closes (X or Esc) vs never-show-again, all time</p>
+
+<div class="stats" id="modal-login-prompt-stats"></div>
+
 <div class="panel">
   <h2>Search history</h2>
   <div class="toolbar">
@@ -442,6 +458,8 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   the Watch aggregates (or null when those reads failed) — same rules.
   The third block (<script id="login-funnel-db">, after the watch block)
   carries the login-funnel aggregates (or null) — same rules.
+  The fourth block (<script id="modal-stats-db">, after the funnel block)
+  carries the promo-modal aggregates (or null) — same rules.
 -->
 <script type="application/json" id="db">`;
 
@@ -1419,6 +1437,61 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     }).join('');
   })();
 
+  // ---------------------------------------------------------------------
+  // Promo-modal engagement (SponsorMe / SupportMe / login-prompt). Reads
+  // the #modal-stats-db JSON block (null when the reads failed — each
+  // section degrades to an explicit empty state instead of breaking the
+  // page, same fail-open contract as the funnel section above).
+  //
+  // Canonical source note: the Login-prompt numbers here come from
+  // modal_events (per-modal engagement), while the funnel panel's Popup
+  // cards come from login_popup_events (popup→signin attribution). Same
+  // displays, different tables and questions — expect small drift, never
+  // exact equality (independent rows, independent beacons).
+  // ---------------------------------------------------------------------
+
+  var modalStats = null;
+  try {
+    modalStats = JSON.parse(document.getElementById('modal-stats-db').textContent);
+  } catch (e) {
+    console.error('Failed to read the modal-stats data block', e);
+  }
+
+  // One renderer for the three modal sections (same four cards each):
+  // shown / CTA clicks / X closes / never-show-again. A missing section
+  // object (stale block from before a modal existed) renders zeros, never
+  // throws mid-IIFE — one bad section must not kill the panels below it.
+  // Own num() guard (the funnel one lives inside its IIFE scope).
+  var modalNum = function (v) { return (typeof v === 'number' && isFinite(v)) ? v : 0; };
+  function renderModalSection(elementId, section, unavailableLabel) {
+    var statsEl = document.getElementById(elementId);
+    if (!modalStats) {
+      statsEl.innerHTML = '<div class="stat-card"><div class="value">—</div><div class="label">' + unavailableLabel + '</div></div>';
+      return;
+    }
+    var s = section || {};
+    statsEl.innerHTML = [
+      { value: modalNum(s.shown), label: 'Shown' },
+      { value: modalNum(s.ctaClicks), label: 'CTA clicks' },
+      { value: modalNum(s.closed), label: 'Closed (X)' },
+      { value: modalNum(s.dismissed), label: 'Never show again' },
+    ].map(function (card) {
+      return '<div class="stat-card"><div class="value">' + escapeHtml(card.value) + '</div><div class="label">' + escapeHtml(card.label) + '</div></div>';
+    }).join('');
+  }
+
+  (function renderModalSections() {
+    if (!modalStats) {
+      renderModalSection('modal-sponsor-stats', null, 'SponsorMe unavailable');
+      renderModalSection('modal-support-stats', null, 'SupportMe unavailable');
+      renderModalSection('modal-login-prompt-stats', null, 'Login prompt unavailable');
+      return;
+    }
+    renderModalSection('modal-sponsor-stats', modalStats.sponsor);
+    renderModalSection('modal-support-stats', modalStats.support);
+    renderModalSection('modal-login-prompt-stats', modalStats.loginPrompt);
+  })();
+
   // ---- Ranking: most searched profiles / most frequent friends ----
   function topRankHtml(counts, labelFn) {
     var arr = Object.keys(counts).map(function (k) { return { key: k, count: counts[k].count, meta: counts[k].meta }; });
@@ -1673,12 +1746,18 @@ const WATCH_DB_MID = `</script>
 const FUNNEL_DB_MID = `</script>
 <script type="application/json" id="login-funnel-db">`;
 
+/** Closes the login-funnel block and opens the modal-stats block (joined by buildAnalyticsHtml). */
+const MODAL_DB_MID = `</script>
+<script type="application/json" id="modal-stats-db">`;
+
 /**
  * Assembles a full analytics.html from the dashboard shell (HEAD/TAIL,
- * above) around three already-serialized JSON strings: the searches array
- * for the <script id="db"> block, the Watch aggregates (or 'null' when
- * those reads failed) for the <script id="watch-db"> block, and the login
- * funnel aggregates (or 'null') for the <script id="login-funnel-db"> block.
+ * above) around the already-serialized JSON payloads, in order: the
+ * searches array for the <script id="db"> block, the Watch aggregates
+ * (or 'null' when those reads failed) for the <script id="watch-db">
+ * block, the login funnel aggregates (or 'null') for the
+ * <script id="login-funnel-db"> block, and the promo-modal aggregates
+ * (or 'null') for the <script id="modal-stats-db"> block.
  *
  * Deliberately takes pre-serialized strings rather than SearchRecord[]:
  * this file only knows about markup/styling/behavior, not about what a
@@ -1693,8 +1772,9 @@ export const buildAnalyticsHtml = (
   serializedEntriesJson: string,
   serializedWatchJson: string = 'null',
   serializedFunnelJson: string = 'null',
+  serializedModalsJson: string = 'null',
 ): string =>
-  `${ANALYTICS_DASHBOARD_HEAD}\n${serializedEntriesJson}\n${WATCH_DB_MID}\n${serializedWatchJson}\n${FUNNEL_DB_MID}\n${serializedFunnelJson}\n${ANALYTICS_DASHBOARD_TAIL}`;
+  `${ANALYTICS_DASHBOARD_HEAD}\n${serializedEntriesJson}\n${WATCH_DB_MID}\n${serializedWatchJson}\n${FUNNEL_DB_MID}\n${serializedFunnelJson}\n${MODAL_DB_MID}\n${serializedModalsJson}\n${ANALYTICS_DASHBOARD_TAIL}`;
 
 /**
  * Convenience wrapper for an empty-history dashboard — used by tests and by

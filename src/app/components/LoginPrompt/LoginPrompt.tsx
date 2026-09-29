@@ -6,6 +6,7 @@ import {
   recordLoginPopupCta,
   recordLoginPopupShown,
 } from '@/app/templates/Home/shared/analytics/loginFunnel';
+import { useModalAnalytics } from '@/app/templates/Home/shared/analytics/useModalAnalytics';
 
 interface LoginPromptProps {
   onClose: () => void;
@@ -21,31 +22,48 @@ function LoginPrompt({ onClose, dontAskAgain }: LoginPromptProps) {
   const pathname = usePathname();
   const next = resolveLoginNext(pathname, locale);
 
-  // Impression beacon: exactly once per display. Ref-guarded (not
-  // state-guarded) so React 18 StrictMode's setup→cleanup→setup double
-  // effect in dev doesn't double-count the same display.
-  const shownFiredRef = useRef(false);
+  // Impression beacons: exactly once per display. The popup-table beacon
+  // (popup→signin attribution) keeps its own ref guard — the shared hook
+  // below only guards the modal-table beacon that feeds the dashboard's
+  // per-modal engagement section.
+  const popupShownFiredRef = useRef(false);
   useEffect(() => {
-    if (shownFiredRef.current) {
+    if (popupShownFiredRef.current) {
       return;
     }
-    shownFiredRef.current = true;
+    popupShownFiredRef.current = true;
     recordLoginPopupShown();
   }, []);
 
+  // Engagement beacons for the modal section (fire-and-forget, never
+  // awaited): CTA wraps the sign-in link (the popup-table CTA above still
+  // fires too — separate table, separate question), close/dismiss wrap
+  // the parent callbacks so the modal still unmounts exactly as before.
+  // The hook's handleClose is stable (useCallback), so the Esc listener
+  // below depends on it without re-subscribing — and Esc dismissals count
+  // as closed too instead of bypassing the beacon.
+  const { handleCta, handleClose, handleDismiss } = useModalAnalytics(
+    'login_prompt',
+    { onClose, dontAskAgain },
+  );
+
   // Esc closes (same affordance as a native dialog; SponsorMe/SupportMe
   // don't have it yet — no shared ModalShell exists to inherit from).
+  // Routes through handleClose (not the raw onClose prop) so keyboard
+  // dismissals fire the closed beacon like the X button does.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
+      // Holding Esc auto-repeats keydown before the unmount lands — one
+      // dismissal, one beacon, one onClose call.
+      if (event.key === 'Escape' && !event.repeat) {
+        handleClose();
       }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [onClose]);
+  }, [handleClose]);
 
   // Benefit keys, rendered identically — mapped (not copy-pasted) so a
   // fourth benefit is one key + one locale line, not a new <li> block.
@@ -109,6 +127,7 @@ function LoginPrompt({ onClose, dontAskAgain }: LoginPromptProps) {
               // Deliberately NOT recordLoginCta — that would pollute the
               // navbar CTA metric the funnel panel reports.
               recordLoginPopupCta();
+              handleCta();
             }}
             className="px-6 py-3 text-base font-semibold text-white rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-[0_0_24px_rgba(168,85,247,0.6)] hover:shadow-[0_0_34px_rgba(168,85,247,0.8)] hover:-translate-y-0.5 active:translate-y-0 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1c1c28]"
           >
@@ -118,12 +137,12 @@ function LoginPrompt({ onClose, dontAskAgain }: LoginPromptProps) {
         <button
           type="button"
           className="self-center mt-6 text-gray-500 underline cursor-pointer hover:text-gray-400 bg-transparent border-none"
-          onClick={dontAskAgain}
+          onClick={handleDismiss}
         >
           {translator('dontAskAgain')}
         </button>
         <button
-          onClick={onClose}
+          onClick={handleClose}
           type="button"
           aria-label={feedbackTranslator('close')}
           className="absolute top-0 right-2 text-purple-300 hover:text-purple-500 md:text-4xl text-3xl"

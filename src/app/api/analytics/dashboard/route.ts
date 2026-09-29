@@ -9,6 +9,7 @@ import {
   getLoginFunnelStats,
   getSearchRecords,
   getWatchDashboardData,
+  readModalStatsIsolated,
 } from '@/lib/analytics/db';
 import { renderDashboard } from '@/lib/analytics/dashboardRender';
 
@@ -34,11 +35,12 @@ const ADDITIVE_READ_TIMEOUT_MS = 4_000;
  * Serves the analytics dashboard as live HTML, rebuilt on every request
  * from the current Turso data (searches via getSearchRecords + the additive
  * Watch section via getWatchDashboardData + the additive login-funnel
- * section via getLoginFunnelStats).
+ * section via getLoginFunnelStats + the additive promo-modal sections via
+ * readModalStatsIsolated).
  *
- * The Watch AND funnel halves are fail-open (error AND latency): a throw
- * or a timeout degrades that half to null instead of 500ing/delaying the
- * primary searches page.
+ * The Watch, funnel AND modal halves are fail-open (error AND latency): a
+ * throw or a timeout degrades that half to null instead of 500ing/delaying
+ * the primary searches page.
  *
  * This replaces the old local analytics.html file, which only lived on the
  * machine running the proxy. The markup/styling/JS shell is
@@ -127,24 +129,30 @@ export async function GET(req: Request) {
 
   try {
     // Reads run together (one Turso round trip each, no shared snapshot
-    // needed across the domains). The Watch and funnel halves are fail-open:
-    // if either throws OR exceeds ADDITIVE_READ_TIMEOUT_MS, the dashboard still
-    // renders searches with an "unavailable" section (null) instead of 500ing
-    // or stalling the whole page — the search history is the primary
-    // content, Watch/funnel stats are additive.
-    const [entriesResult, watchResult, funnelResult] = await Promise.allSettled([
-      getSearchRecords(),
-      withTimeout(
-        getWatchDashboardData(),
-        'watch dashboard',
-        ADDITIVE_READ_TIMEOUT_MS,
-      ),
-      withTimeout(
-        getLoginFunnelStats(),
-        'login funnel dashboard',
-        ADDITIVE_READ_TIMEOUT_MS,
-      ),
-    ]);
+    // needed across the domains). The Watch, funnel and modal halves are
+    // fail-open: if any throws OR exceeds ADDITIVE_READ_TIMEOUT_MS, the
+    // dashboard still renders searches with an "unavailable" section (null)
+    // instead of 500ing or stalling the whole page — the search history is
+    // the primary content, Watch/funnel/modal stats are additive.
+    const [entriesResult, watchResult, funnelResult, modalsResult] =
+      await Promise.allSettled([
+        getSearchRecords(),
+        withTimeout(
+          getWatchDashboardData(),
+          'watch dashboard',
+          ADDITIVE_READ_TIMEOUT_MS,
+        ),
+        withTimeout(
+          getLoginFunnelStats(),
+          'login funnel dashboard',
+          ADDITIVE_READ_TIMEOUT_MS,
+        ),
+        withTimeout(
+          readModalStatsIsolated(),
+          'modal stats dashboard',
+          ADDITIVE_READ_TIMEOUT_MS,
+        ),
+      ]);
     // Log each additive-half failure FIRST so a simultaneous entries failure
     // (which throws below) cannot swallow it — in a real incident several
     // halves failing at once is exactly when each reason matters. Separate
@@ -162,11 +170,18 @@ export async function GET(req: Request) {
         sanitizeError(funnelResult.reason),
       );
     }
+    if (modalsResult.status === 'rejected') {
+      logRouteError(
+        'analytics/dashboard:modals',
+        sanitizeError(modalsResult.reason),
+      );
+    }
     if (entriesResult.status === 'rejected') throw entriesResult.reason;
     const html = renderDashboard(
       entriesResult.value,
       watchResult.status === 'fulfilled' ? watchResult.value : null,
       funnelResult.status === 'fulfilled' ? funnelResult.value : null,
+      modalsResult.status === 'fulfilled' ? modalsResult.value : null,
     );
 
     return new NextResponse(html, {

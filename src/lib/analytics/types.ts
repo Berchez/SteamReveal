@@ -392,6 +392,51 @@ export interface LoginPopupStats {
   popupConversionRate: number | null;
 }
 
+/**
+ * Promo modals with engagement instrumentation. Single source of truth
+ * for the modal allowlist: the parser (input.ts) and the DAL (db.ts)
+ * derive from these tuples, so a new modal can't land in one layer and
+ * silently 400/reject in another. The SQL layer mirrors only the EVENT
+ * set in a CHECK (stable by design — a modal lifecycle has exactly these
+ * four transitions); modal itself has no CHECK (see 018), and the
+ * integration test pins both halves.
+ */
+export const MODAL_KINDS = ['sponsor', 'support', 'login_prompt'] as const;
+
+/** Promo modal with engagement instrumentation (no SQL CHECK by design). */
+export type ModalKind = (typeof MODAL_KINDS)[number];
+
+/** Per-modal engagement steps. Single source of truth, same as MODAL_KINDS. */
+export const MODAL_EVENTS = [
+  'shown',
+  'cta_clicked',
+  'closed',
+  'dismissed',
+] as const;
+
+/** Per-modal engagement step (mirrors the modal_events event CHECK). */
+export type ModalEventKind = (typeof MODAL_EVENTS)[number];
+
+/** Raw per-modal engagement counts (every event, including repeats). */
+export interface ModalStats {
+  /** Times the modal was displayed. */
+  shown: number;
+  /** Times its CTA was clicked (outbound/donation action or sign-in). */
+  ctaClicks: number;
+  /** Times it was closed via X (or Esc where supported). */
+  closed: number;
+  /** Times users asked to never see it again. */
+  dismissed: number;
+}
+
+/** Promo-modal aggregates for the analytics dashboard (own table, own read). */
+export interface ModalDashboardStats {
+  sponsor: ModalStats;
+  support: ModalStats;
+  loginPrompt: ModalStats;
+  generatedAt: string;
+}
+
 /** Funnel aggregates for the analytics dashboard. */
 export interface LoginFunnelStats {
   /** Raw login_cta_clicked rows (every click, including repeats). */
