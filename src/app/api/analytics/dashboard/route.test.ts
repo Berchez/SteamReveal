@@ -5,7 +5,10 @@
 import { GET } from './route';
 
 jest.mock('@/lib/analytics/db', () => ({
-  getSearchRecords: jest.fn(),
+  DASHBOARD_HISTORY_LIMIT: 500,
+  DASHBOARD_HISTORY_LIMIT_MAX: 1500,
+  getDashboardHistory: jest.fn(),
+  getDashboardStats: jest.fn(),
   getWatchDashboardData: jest.fn(),
   getLoginFunnelStats: jest.fn(),
   readModalStatsIsolated: jest.fn(),
@@ -31,12 +34,16 @@ jest.mock('@/lib/rateLimit', () => {
 });
 
 const {
-  getSearchRecords,
+  DASHBOARD_HISTORY_LIMIT,
+  getDashboardHistory,
+  getDashboardStats,
   getWatchDashboardData,
   getLoginFunnelStats,
   readModalStatsIsolated,
 } = jest.requireMock('@/lib/analytics/db') as {
-  getSearchRecords: jest.Mock;
+  DASHBOARD_HISTORY_LIMIT: number;
+  getDashboardHistory: jest.Mock;
+  getDashboardStats: jest.Mock;
   getWatchDashboardData: jest.Mock;
   getLoginFunnelStats: jest.Mock;
   readModalStatsIsolated: jest.Mock;
@@ -74,7 +81,31 @@ describe('GET /api/analytics/dashboard', () => {
     // clearAllMocks only clears call history, not implementations — reset the
     // limiter to "open" so a persistent mockReturnValue can't leak across tests.
     __testIsRateLimited.mockReturnValue(false);
-    getSearchRecords.mockResolvedValue([SAMPLE_RECORD]);
+    getDashboardHistory.mockResolvedValue([SAMPLE_RECORD]);
+    getDashboardStats.mockResolvedValue({
+      summary: {
+        totalSearches: 1,
+        uniqueProfiles: 1,
+        uniqueFriends: 0,
+        totalFriends: 0,
+        privateListSearches: 0,
+        gcMatches: 0,
+        avgDurationMs: null,
+      },
+      searchTimestamps: ['2026-09-04T20:00:00.000Z'],
+      localeCounts: {},
+      browserLangCounts: {},
+      deviceCounts: {},
+      countryCounts: {},
+      cheaterRows: [],
+      games: [],
+      totalProfilesForGames: 1,
+      csActiveCount: 0,
+      locations: [],
+      topProfiles: [],
+      topFriends: [],
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
     getWatchDashboardData.mockResolvedValue({
       accounts: [],
       watched: [],
@@ -134,7 +165,32 @@ describe('GET /api/analytics/dashboard', () => {
     expect(res.headers.get('content-type')).toContain('text/html');
     expect(html).toContain('<script type="application/json" id="db">');
     expect(html).toContain('76561198000000000');
-    expect(getSearchRecords).toHaveBeenCalledTimes(1);
+    expect(getDashboardHistory).toHaveBeenCalledTimes(1);
+    // Bounded window (never the full tables): the route passes the
+    // product cap, not an arbitrary number.
+    expect(getDashboardHistory).toHaveBeenCalledWith(DASHBOARD_HISTORY_LIMIT);
+    expect(getDashboardStats).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['absent (default window)', '', 500],
+    ['empty (default window)', '&limit=', 500],
+    ['garbage (default window)', '&limit=abc', 500],
+    ['Infinity (default window)', '&limit=Infinity', 500],
+    ['negative clamps to 1', '&limit=-20', 1],
+    ['zero clamps to 1', '&limit=0', 1],
+    ['decimal floors', '&limit=12.9', 12],
+    ['custom window', '&limit=100', 100],
+    ['over the ceiling clamps', '&limit=999999', 1500],
+  ])('history window %s', async (_label, extraQuery, expected) => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+
+    const res = await GET(
+      makeRequest(`/api/analytics/dashboard?key=secret${extraQuery}`),
+    );
+
+    expect(res.status).toBe(200);
+    expect(getDashboardHistory).toHaveBeenCalledWith(expected);
   });
 
   it('accepts the key via the x-analytics-key header (no secret in the URL)', async () => {
@@ -145,7 +201,7 @@ describe('GET /api/analytics/dashboard', () => {
 
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('Alice');
-    expect(getSearchRecords).toHaveBeenCalledTimes(1);
+    expect(getDashboardHistory).toHaveBeenCalledTimes(1);
   });
 
   it('prefers the x-analytics-key header over ?key= when both differ', async () => {
@@ -156,7 +212,7 @@ describe('GET /api/analytics/dashboard', () => {
       makeRequest('/api/analytics/dashboard?key=wrong', { 'x-analytics-key': 'secret' }),
     );
     expect(accepted.status).toBe(200);
-    expect(getSearchRecords).toHaveBeenCalledTimes(1);
+    expect(getDashboardHistory).toHaveBeenCalledTimes(1);
 
     // Wrong header + correct query → the wrong header wins (401), so the
     // header form is authoritative and ?key= can't override a bad header.
@@ -164,7 +220,7 @@ describe('GET /api/analytics/dashboard', () => {
       makeRequest('/api/analytics/dashboard?key=secret', { 'x-analytics-key': 'wrong' }),
     );
     expect(rejected.status).toBe(401);
-    expect(getSearchRecords).toHaveBeenCalledTimes(1);
+    expect(getDashboardHistory).toHaveBeenCalledTimes(1);
   });
 
   it('rejects wrong or missing keys with 401', async () => {
@@ -176,7 +232,7 @@ describe('GET /api/analytics/dashboard', () => {
         await GET(makeRequest('/api/analytics/dashboard', { 'x-analytics-key': 'wrong' }))
       ).status,
     ).toBe(401);
-    expect(getSearchRecords).not.toHaveBeenCalled();
+    expect(getDashboardHistory).not.toHaveBeenCalled();
   });
 
   it('rate-limits auth attempts (429) even with the correct key', async () => {
@@ -186,7 +242,7 @@ describe('GET /api/analytics/dashboard', () => {
     const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
 
     expect(res.status).toBe(429);
-    expect(getSearchRecords).not.toHaveBeenCalled();
+    expect(getDashboardHistory).not.toHaveBeenCalled();
     expect(__testIsRateLimited).toHaveBeenCalledWith('test-ip');
   });
 
@@ -207,7 +263,7 @@ describe('GET /api/analytics/dashboard', () => {
     setNodeEnv('production');
     const res = await GET(makeRequest('/api/analytics/dashboard'));
     expect(res.status).toBe(503);
-    expect(getSearchRecords).not.toHaveBeenCalled();
+    expect(getDashboardHistory).not.toHaveBeenCalled();
   });
 
   it('fails closed when NODE_ENV is unset (misconfigured self-hosted deploy)', async () => {
@@ -217,7 +273,7 @@ describe('GET /api/analytics/dashboard', () => {
     (process.env as Record<string, string>).NODE_ENV = '';
     const res = await GET(makeRequest('/api/analytics/dashboard'));
     expect(res.status).toBe(503);
-    expect(getSearchRecords).not.toHaveBeenCalled();
+    expect(getDashboardHistory).not.toHaveBeenCalled();
   });
 
   it('returns 503 when DATABASE_URL is not configured', async () => {
@@ -226,12 +282,12 @@ describe('GET /api/analytics/dashboard', () => {
     const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
     expect(res.status).toBe(503);
     expect(await res.text()).toContain('DATABASE_URL');
-    expect(getSearchRecords).not.toHaveBeenCalled();
+    expect(getDashboardHistory).not.toHaveBeenCalled();
   });
 
   it('returns 500 when the read fails', async () => {
     process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
-    getSearchRecords.mockRejectedValue(new Error('db down'));
+    getDashboardHistory.mockRejectedValue(new Error('db down'));
     const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
     expect(res.status).toBe(500);
   });
@@ -301,7 +357,7 @@ describe('GET /api/analytics/dashboard', () => {
 
   it('logs both causes when searches and watch fail together (watch first)', async () => {
     process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
-    getSearchRecords.mockRejectedValueOnce(new Error('searches down'));
+    getDashboardHistory.mockRejectedValueOnce(new Error('searches down'));
     getWatchDashboardData.mockRejectedValueOnce(new Error('watch down'));
 
     const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
@@ -346,8 +402,8 @@ describe('GET /api/analytics/dashboard', () => {
 
     expect(res.status).toBe(200);
     expect(html).toContain('<script type="application/json" id="login-funnel-db">');
-    expect(html).toContain('"ctaEvents": 300');
-    expect(html).toContain('"popupClicks": 5');
+    expect(html).toContain('"ctaEvents":300');
+    expect(html).toContain('"popupClicks":5');
     expect(html).toContain('Steam login funnel');
     expect(getLoginFunnelStats).toHaveBeenCalledTimes(1);
   });
@@ -383,7 +439,7 @@ describe('GET /api/analytics/dashboard', () => {
 
     expect(res.status).toBe(200);
     expect(html).toContain('<script type="application/json" id="modal-stats-db">');
-    expect(html).toContain('"ctaClicks": 3');
+    expect(html).toContain('"ctaClicks":3');
     expect(html).toContain('SponsorMe');
     expect(html).toContain('SupportMe');
     expect(html).toContain('Login prompt');
@@ -405,5 +461,92 @@ describe('GET /api/analytics/dashboard', () => {
       'analytics/dashboard:modals',
       expect.anything(),
     );
+  });
+
+  it('embeds the search-stats aggregates in a fifth JSON block', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    getDashboardStats.mockResolvedValue({
+      summary: {
+        totalSearches: 6231,
+        uniqueProfiles: 6000,
+        uniqueFriends: 9000,
+        totalFriends: 84000,
+        privateListSearches: 10,
+        gcMatches: 20,
+        avgDurationMs: 1500,
+      },
+      searchTimestamps: [],
+      localeCounts: {},
+      browserLangCounts: {},
+      deviceCounts: {},
+      countryCounts: {},
+      cheaterRows: [],
+      games: [],
+      totalProfilesForGames: 6231,
+      csActiveCount: 100,
+      locations: [],
+      topProfiles: [],
+      topFriends: [],
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+    const html = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(html).toContain('<script type="application/json" id="dashboard-stats-db">');
+    expect(html).toContain('"totalSearches":6231');
+    expect(getDashboardStats).toHaveBeenCalledTimes(1);
+  });
+
+  it('still renders history when the stats read fails (fail-open section)', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    getDashboardStats.mockRejectedValue(new Error('stats down'));
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+    const html = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(html).toContain('76561198000000000');
+    expect(html).toContain('<script type="application/json" id="dashboard-stats-db">');
+    expect(html).toMatch(/id="dashboard-stats-db">\s*null\s*<\/script>/);
+    expect(logRouteErrorMock).toHaveBeenCalledWith(
+      'analytics/dashboard:stats',
+      expect.anything(),
+    );
+  });
+
+  it('still renders history when the stats read times out (fail-open on latency, not just errors)', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+    // Never settles: the 8s withTimeout budget (not a throw) must trip the
+    // same null-stats degradation as a rejection.
+    getDashboardStats.mockReturnValue(new Promise(() => {}));
+    jest.useFakeTimers();
+    try {
+      const pending = GET(makeRequest('/api/analytics/dashboard?key=secret'));
+      await jest.advanceTimersByTimeAsync(8000);
+      const res = await pending;
+      const html = await res.text();
+
+      expect(res.status).toBe(200);
+      expect(html).toContain('76561198000000000');
+      expect(html).toMatch(/id="dashboard-stats-db">\s*null\s*<\/script>/);
+      expect(logRouteErrorMock).toHaveBeenCalledWith(
+        'analytics/dashboard:stats',
+        expect.anything(),
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('sends anti-leak hardening headers on the 200 (bookmarkable ?key= must not escape)', async () => {
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
+
+    const res = await GET(makeRequest('/api/analytics/dashboard?key=secret'));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('referrer-policy')).toBe('no-referrer');
+    expect(res.headers.get('x-robots-tag')).toContain('noindex');
   });
 });

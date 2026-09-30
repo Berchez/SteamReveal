@@ -40,7 +40,7 @@ const SAMPLE = JSON.stringify([
 ]);
 
 function loadDashboard(entriesJson: string = SAMPLE) {
-  const html = buildAnalyticsHtml(entriesJson, 'null');
+  const html = buildAnalyticsHtml({ entries: entriesJson });
   document.body.innerHTML = html;
   const inner = /<script>([\s\S]*?)<\/script>/.exec(html);
   if (!inner) throw new Error('inline <script> has no captured body');
@@ -58,13 +58,129 @@ function loadDashboardWithFunnel(
   funnel: Record<string, unknown>,
   entriesJson: string = SAMPLE,
 ) {
-  const html = buildAnalyticsHtml(entriesJson, 'null', JSON.stringify(funnel));
+  const html = buildAnalyticsHtml({
+    entries: entriesJson,
+    funnel: JSON.stringify(funnel),
+  });
   document.body.innerHTML = html;
   const inner = /<script>([\s\S]*?)<\/script>/.exec(html);
   if (!inner) throw new Error('inline <script> has no captured body');
   // eslint-disable-next-line no-eval
   eval(inner[1]);
 }
+
+/**
+ * Executes the dashboard script with a populated dashboard-stats block so
+ * the aggregate panels (stat cards, charts, rankings, cheater section)
+ * run their DATA path. Mirrors getDashboardStats/getDashboardHistory
+ * shapes — entries carry the capped history window, stats the all-time
+ * aggregates.
+ */
+function loadDashboardWithStats(
+  stats: Record<string, unknown> | null,
+  entriesJson: string = SAMPLE,
+) {
+  // Same `<` → `\u003c` escaping production applies in
+  // serializeDashboardStats: without it a hostile fixture would break out
+  // of the JSON block and the test would prove nothing about the panel.
+  const html = buildAnalyticsHtml({
+    entries: entriesJson,
+    stats:
+      stats === null ? 'null' : JSON.stringify(stats).replace(/</g, '\\u003c'),
+  });
+  document.body.innerHTML = html;
+  const inner = /<script>([\s\S]*?)<\/script>/.exec(html);
+  if (!inner) throw new Error('inline <script> has no captured body');
+  // eslint-disable-next-line no-eval
+  eval(inner[1]);
+}
+
+// Stats fixture mirroring SAMPLE (3 searches: Alice + Bob with cheater
+// rows, Carol without). Counts are hand-derived from SAMPLE so the panel
+// expectations below pin rendered output, not fixture generation.
+const SAMPLE_STATS = {
+  summary: {
+    totalSearches: 3,
+    uniqueProfiles: 3,
+    uniqueFriends: 1,
+    totalFriends: 1,
+    privateListSearches: 0,
+    gcMatches: 0,
+    avgDurationMs: null,
+  },
+  searchTimestamps: [
+    '2026-09-01T10:00:00.000Z',
+    '2026-09-02T10:00:00.000Z',
+    '2026-09-03T10:00:00.000Z',
+  ],
+  localeCounts: { unknown: 3 },
+  browserLangCounts: { unknown: 3 },
+  deviceCounts: { unknown: 3 },
+  countryCounts: { unknown: 3 },
+  cheaterRows: [
+    {
+      searchedAt: '2026-09-01T10:00:00.000Z',
+      steamId: '76561198000000001',
+      nickname: 'Alice',
+      gcName: null,
+      countryCode: null,
+      steamUrl: null,
+      friendCount: 1,
+      score: 0.2,
+      bannedFriendsCount: 0,
+      computedAt: '2026-09-01T11:00:00.000Z',
+    },
+    {
+      searchedAt: '2026-09-02T10:00:00.000Z',
+      steamId: '76561198000000002',
+      nickname: 'Bob',
+      gcName: null,
+      countryCode: null,
+      steamUrl: null,
+      friendCount: 0,
+      score: 0.7,
+      bannedFriendsCount: 3,
+      computedAt: '2026-09-02T11:00:00.000Z',
+    },
+  ],
+  games: [],
+  totalProfilesForGames: 3,
+  csActiveCount: 0,
+  locations: [],
+  topProfiles: [
+    {
+      steamId: '76561198000000001',
+      nickname: 'Alice',
+      gcName: null,
+      countryCode: null,
+      count: 1,
+    },
+    {
+      steamId: '76561198000000002',
+      nickname: 'Bob',
+      gcName: null,
+      countryCode: null,
+      count: 1,
+    },
+    {
+      steamId: '76561198000000003',
+      nickname: 'Carol',
+      gcName: null,
+      countryCode: null,
+      count: 1,
+    },
+  ],
+  topFriends: [
+    {
+      steamId: '76561198000000009',
+      nickname: 'Zed',
+      gcName: null,
+      countryCode: null,
+      count: 1,
+    },
+  ],
+  generatedAt: '2026-09-24T00:00:00.000Z',
+};
 
 function funnelCardTexts(): string[] {
   return Array.prototype.map.call(
@@ -88,12 +204,10 @@ function loadDashboardWithModals(
   modals: Record<string, unknown> | null,
   entriesJson: string = SAMPLE,
 ) {
-  const html = buildAnalyticsHtml(
-    entriesJson,
-    'null',
-    'null',
-    modals === null ? 'null' : JSON.stringify(modals),
-  );
+  const html = buildAnalyticsHtml({
+    entries: entriesJson,
+    modals: modals === null ? 'null' : JSON.stringify(modals),
+  });
   document.body.innerHTML = html;
   const inner = /<script>([\s\S]*?)<\/script>/.exec(html);
   if (!inner) throw new Error('inline <script> has no captured body');
@@ -202,13 +316,13 @@ describe('dashboard interactive tables', () => {
   });
 
   it('renders cheater rows highest-score-first by default', () => {
-    loadDashboard();
+    loadDashboardWithStats(SAMPLE_STATS);
     // Bob 70% > Alice 20%; Carol has no cheater row at all.
     expect(cheaterNicknames()).toEqual(['Bob', 'Alice']);
   });
 
   it('sorts the cheater table by profile name on header click', () => {
-    loadDashboard();
+    loadDashboardWithStats(SAMPLE_STATS);
     clickTh('cheater-table', 'profile');
     expect(cheaterNicknames()).toEqual(['Alice', 'Bob']);
     // Second click flips direction.
@@ -217,7 +331,7 @@ describe('dashboard interactive tables', () => {
   });
 
   it('filters cheater rows by nickname or steamId', () => {
-    loadDashboard();
+    loadDashboardWithStats(SAMPLE_STATS);
     const input = document.getElementById('cheater-filter');
     if (!input) throw new Error('missing #cheater-filter');
     fireEvent.input(input, { target: { value: 'alice' } });
@@ -241,6 +355,112 @@ describe('dashboard interactive tables', () => {
     if (!input) throw new Error('missing #filter');
     fireEvent.input(input, { target: { value: 'bob' } });
     expect(historyNicknames()).toEqual(['Bob']);
+  });
+
+  function statCardTexts(): string[] {
+    return Array.prototype.map.call(
+      document.querySelectorAll('#stats .stat-card'),
+      function (card) {
+        const value = card.querySelector('.value')?.textContent || '';
+        const label = card.querySelector('.label')?.textContent || '';
+        return `${value} ${label}`.trim();
+      },
+    ) as string[];
+  }
+
+  it('renders stat cards from the stats block (all-time, never the capped window)', () => {
+    // SAMPLE entries carry 3 searches but the stats block claims 300:
+    // the cards must show the block, proving aggregates don't derive
+    // from the capped history window. Fake timers pin "now" to local
+    // noon: relative timestamps (now-1h) would fall on yesterday between
+    // 00:00 and 01:00 and flake the today card.
+    jest.useFakeTimers().setSystemTime(new Date(2026, 8, 30, 12, 0, 0));
+    try {
+      const now = Date.now();
+      const todayIso = new Date(now - 60 * 60 * 1000).toISOString();
+      const sixDaysAgoIso = new Date(now - 6 * 24 * 60 * 60 * 1000).toISOString();
+      loadDashboardWithStats({
+        ...SAMPLE_STATS,
+        summary: {
+          totalSearches: 300,
+          uniqueProfiles: 250,
+          uniqueFriends: 400,
+          totalFriends: 900,
+          privateListSearches: 5,
+          gcMatches: 30,
+          avgDurationMs: 2500,
+        },
+        searchTimestamps: [todayIso, todayIso, sixDaysAgoIso],
+      });
+
+      expect(statCardTexts()).toEqual([
+        '300 Recorded searches',
+        '250 Unique searched profiles',
+        '400 Unique cataloged friends',
+        '3.0 Average friends per search',
+        '5 Private-list searches',
+        '10.0% GamersClub match rate',
+        '2 Searches today',
+        '3 Searches in the last 7 days',
+        '2.5s Average search duration',
+        '45.0% Average cheater probability',
+        '45.0% Median cheater probability',
+      ]);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('announces the history window explicitly', () => {
+    loadDashboardWithStats(SAMPLE_STATS);
+
+    const note = document.getElementById('history-window-note');
+    if (!note) throw new Error('missing #history-window-note');
+    expect(note.textContent).toContain('Showing last 3 of 3 searches');
+  });
+
+  it('renders top profiles and friends from the stats block', () => {
+    loadDashboardWithStats(SAMPLE_STATS);
+
+    const profiles = document.getElementById('top-profiles')?.textContent || '';
+    expect(profiles).toContain('Alice');
+    expect(profiles).toContain('Bob');
+    expect(profiles).toContain('Carol');
+    const friends = document.getElementById('top-friends')?.textContent || '';
+    expect(friends).toContain('Zed');
+  });
+
+  it('degrades aggregate panels to explicit unavailable states on a null stats block', () => {
+    // Failed stats read: no panel may derive plausible-looking numbers
+    // from the capped history window, and no panel may throw mid-script
+    // (the history table + funnel/modal sections below must still render).
+    loadDashboardWithStats(null);
+
+    const statsText =
+      document.getElementById('stats')?.textContent || '';
+    expect(statsText).toContain('Search stats unavailable');
+    for (const id of [
+      'chart-by-day',
+      'chart-by-hour',
+      'chart-locale',
+      'chart-country',
+      'chart-cheater',
+      'chart-locations',
+      'chart-games-per-profile',
+      'chart-cs-active',
+    ]) {
+      expect(document.getElementById(id)?.textContent).toContain(
+        'Search stats unavailable.',
+      );
+    }
+    expect(
+      document.getElementById('top-profiles')?.textContent,
+    ).toContain('Search stats unavailable.');
+    expect(
+      document.getElementById('cheater-empty-msg')?.textContent,
+    ).toContain('Search stats unavailable.');
+    // History (capped window) still renders from the entries block.
+    expect(historyNicknames()).toEqual(['Carol', 'Bob', 'Alice']);
   });
 
   it('executes the funnel panel data path: 13 cards, numbers, rate texts', () => {
@@ -380,6 +600,150 @@ describe('dashboard interactive tables', () => {
     ]);
   });
 
+  it('never injects markup from hostile stats strings (nicknames, games, locations, urls)', () => {
+    const hostile = '</script><img src=x onerror=alert(1)>';
+    loadDashboardWithStats({
+      summary: {
+        totalSearches: 1,
+        uniqueProfiles: 1,
+        uniqueFriends: 0,
+        totalFriends: 0,
+        privateListSearches: 0,
+        gcMatches: 0,
+        avgDurationMs: null,
+      },
+      searchTimestamps: [],
+      localeCounts: {},
+      browserLangCounts: {},
+      deviceCounts: {},
+      countryCounts: {},
+      cheaterRows: [
+        {
+          searchedAt: '2026-09-30T00:00:00.000Z',
+          steamId: '76561198000000001',
+          nickname: hostile,
+          gcName: null,
+          countryCode: null,
+          steamUrl: hostile,
+          friendCount: 0,
+          score: 70,
+          bannedFriendsCount: 0,
+          computedAt: '2026-09-30T00:01:00.000Z',
+        },
+      ],
+      games: [{ name: hostile, totalHours: 10, profilesCount: 1 }],
+      totalProfilesForGames: 1,
+      csActiveCount: 0,
+      locations: [{ location: `{"cityName":"${hostile}"}`, count: 1 }],
+      topProfiles: [
+        {
+          steamId: '76561198000000001',
+          nickname: hostile,
+          gcName: null,
+          countryCode: null,
+          count: 1,
+        },
+      ],
+      topFriends: [],
+      generatedAt: '2026-09-24T00:00:00.000Z',
+    });
+
+    const html = document.body.innerHTML;
+    // Escaped form survives in the JSON block (proves values render, just
+    // neutralized at the embed layer).
+    expect(html).toContain('\\u003cimg src=x onerror=alert(1)>');
+    // No payload string may parse as ELEMENTS in the rendered panels. Note
+    // this asserts on the DOM, not on the raw innerHTML string: a hostile
+    // value rendered into a *quoted attribute* (e.g. the locations chart's
+    // data-label) legally re-serializes with a literal `<` — HTML only
+    // escapes &, nbsp and " in attribute values — while staying inert
+    // (quoted attribute, never a tag). querySelector proves nothing parsed.
+    expect(document.body.querySelector('img')).toBeNull();
+    expect(document.getElementById('cheater-body')?.querySelector('img')).toBeNull();
+    // The hostile cheater row still renders (score badge + nickname text),
+    // just neutralized: the nickname survives as text, never as markup.
+    expect(document.getElementById('cheater-body')?.textContent).toContain(
+      '</script><img src=x onerror=alert(1)>',
+    );
+  });
+
+  it('exports CSV with formatted locations and a window-tagged filename', async () => {
+    const entriesJson = JSON.stringify([
+      {
+        id: 's1',
+        searchedAt: '2026-09-30T00:00:00.000Z',
+        profile: { steamId: '76561198000000001', nickname: 'Alice' },
+        friends: [],
+        locationGuess: [
+          {
+            location: {
+              cityName: 'Sao Paulo',
+              stateName: 'SP',
+              countryName: 'Brazil',
+            },
+            probability: 90,
+          },
+        ],
+      },
+    ]);
+    loadDashboardWithStats(
+      {
+        ...SAMPLE_STATS,
+        summary: { ...SAMPLE_STATS.summary, totalSearches: 42 },
+      },
+      entriesJson,
+    );
+
+    // jsdom has no URL.createObjectURL: capture the Blob instead of a URL.
+    const blobs: Blob[] = [];
+    const urlStub = URL as unknown as {
+      createObjectURL: (b: Blob) => string;
+      revokeObjectURL: (u: string) => void;
+    };
+    const realCreate = urlStub.createObjectURL;
+    const realRevoke = urlStub.revokeObjectURL;
+    urlStub.createObjectURL = (b: Blob) => {
+      blobs.push(b);
+      return 'blob:mock';
+    };
+    urlStub.revokeObjectURL = () => {};
+    // Pure spy (no mockImplementation): the handler's own a.click() must
+    // still dispatch, and the anchor is removed right after — intercepting
+    // the append is the only way to read its download attribute.
+    const appendSpy = jest.spyOn(document.body, 'appendChild');
+    try {
+      (document.getElementById('export-csv') as HTMLButtonElement).click();
+    } finally {
+      urlStub.createObjectURL = realCreate;
+      urlStub.revokeObjectURL = realRevoke;
+    }
+    const anchor = appendSpy.mock.calls
+      .map((call) => call[0])
+      .find((node) => node instanceof HTMLAnchorElement) as
+      | HTMLAnchorElement
+      | undefined;
+    appendSpy.mockRestore();
+
+    expect(blobs).toHaveLength(1);
+    // jsdom's Blob has no .text(): read it back through FileReader.
+    const text = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () =>
+        reject(reader.error ?? new Error('FileReader failed'));
+      reader.readAsText(blobs[0]);
+    });
+    // locationGuess[0].location is an OBJECT: raw String(obj) would export
+    // "[object Object]" — formatLocation must render the real label.
+    expect(text).toContain('Sao Paulo, SP, Brazil');
+    expect(text).not.toContain('[object Object]');
+    // The file covers the 1-row window of 42 searches — the name says so,
+    // so it can never be mistaken for a complete backup.
+    expect(anchor?.download).toMatch(
+      /^steamreveal-analytics-\d{4}-\d{2}-\d{2}-last1of42\.csv$/,
+    );
+  });
+
   it('renders missing modal sections as zeros (stale block never breaks the page)', () => {
     // A block shaped before a modal existed (or with the key dropped)
     // must degrade per-section — one bad section can't kill the panels
@@ -409,16 +773,17 @@ describe('dashboard interactive tables', () => {
     // cheaterOutcomeRank sort key): a boundary edit that touched only some
     // of them would fail here. Scores sit exactly on the cuts (0-1
     // fractions, normalized ×100).
+    const boundaryRows = [
+      { nick: 'VT20', score: 0.2 },
+      { nick: 'IN21', score: 0.21 },
+      { nick: 'IC45', score: 0.45 },
+      { nick: 'IC58', score: 0.58 },
+      { nick: 'SU59', score: 0.59 },
+      { nick: 'SU65', score: 0.65 },
+      { nick: 'HS66', score: 0.66 },
+    ];
     const boundaryEntries = JSON.stringify(
-      [
-        { nick: 'VT20', score: 0.2 },
-        { nick: 'IN21', score: 0.21 },
-        { nick: 'IC45', score: 0.45 },
-        { nick: 'IC58', score: 0.58 },
-        { nick: 'SU59', score: 0.59 },
-        { nick: 'SU65', score: 0.65 },
-        { nick: 'HS66', score: 0.66 },
-      ].map((r, i) => ({
+      boundaryRows.map((r, i) => ({
         id: 'b' + (i + 1),
         searchedAt: '2026-09-0' + (i + 1) + 'T10:00:00.000Z',
         profile: {
@@ -433,7 +798,48 @@ describe('dashboard interactive tables', () => {
         },
       })),
     );
-    loadDashboard(boundaryEntries);
+    // Cheater panels read the stats block now (entries carry history only):
+    // same rows, stats-block shape.
+    loadDashboardWithStats(
+      {
+        summary: {
+          totalSearches: 7,
+          uniqueProfiles: 7,
+          uniqueFriends: 0,
+          totalFriends: 0,
+          privateListSearches: 0,
+          gcMatches: 0,
+          avgDurationMs: null,
+        },
+        searchTimestamps: boundaryRows.map(
+          (_, i) => '2026-09-0' + (i + 1) + 'T10:00:00.000Z',
+        ),
+        localeCounts: {},
+        browserLangCounts: {},
+        deviceCounts: {},
+        countryCounts: {},
+        cheaterRows: boundaryRows.map((r, i) => ({
+          searchedAt: '2026-09-0' + (i + 1) + 'T10:00:00.000Z',
+          steamId: '765611980000000' + (10 + i),
+          nickname: r.nick,
+          gcName: null,
+          countryCode: null,
+          steamUrl: null,
+          friendCount: 0,
+          score: r.score,
+          bannedFriendsCount: 0,
+          computedAt: '2026-09-0' + (i + 1) + 'T11:00:00.000Z',
+        })),
+        games: [],
+        totalProfilesForGames: 7,
+        csActiveCount: 0,
+        locations: [],
+        topProfiles: [],
+        topFriends: [],
+        generatedAt: '2026-09-24T00:00:00.000Z',
+      },
+      boundaryEntries,
+    );
 
     // 1. Table labels: default score-desc render must show the band outcome
     // matching the server-side classifyCheaterOutcome strictness

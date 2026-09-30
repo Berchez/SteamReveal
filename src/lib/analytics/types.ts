@@ -437,6 +437,96 @@ export interface ModalDashboardStats {
   generatedAt: string;
 }
 
+/**
+ * Dashboard search aggregates (all-time, read-only). Single snapshot read
+ * for every count-based panel, so the page never ships full tables to the
+ * browser: friends/games/locations travel here as GROUP BY results
+ * (hundreds of rows) instead of raw child rows (hundreds of thousands).
+ */
+export interface DashboardSummaryStats {
+  /** Total recorded searches. */
+  totalSearches: number;
+  /** Distinct target Steam IDs. */
+  uniqueProfiles: number;
+  /** Distinct friend Steam IDs across all searches. */
+  uniqueFriends: number;
+  /** Total friend rows (avg-friends-per-search = totalFriends/totalSearches). */
+  totalFriends: number;
+  /** Searches whose friends list came back private. */
+  privateListSearches: number;
+  /** Searches with a non-empty GamersClub name. */
+  gcMatches: number;
+  /** Mean search duration in ms (NULL when no search recorded one). */
+  avgDurationMs: number | null;
+}
+
+/** One cheater row for the dashboard (joined, tiny table by nature). */
+export interface DashboardCheaterRow {
+  searchedAt: string;
+  steamId: string;
+  nickname: string | null;
+  gcName: string | null;
+  countryCode: string | null;
+  steamUrl: string | null;
+  friendCount: number;
+  score: number;
+  bannedFriendsCount: number | null;
+  computedAt: string;
+}
+
+/** Per-game aggregates for the dashboard charts. */
+export interface DashboardGameRow {
+  name: string;
+  totalHours: number;
+  profilesCount: number;
+}
+
+/** Top-N entry (profiles / friends ranking). */
+export interface DashboardTopEntry {
+  steamId: string;
+  nickname: string | null;
+  gcName: string | null;
+  countryCode: string | null;
+  count: number;
+}
+
+/** Pre-aggregated location bucket (raw location JSON + count). */
+export interface DashboardLocationRow {
+  location: string;
+  count: number;
+}
+
+/** Everything the dashboard renders except the capped history table. */
+export interface DashboardStats {
+  summary: DashboardSummaryStats;
+  /**
+   * Every searched_at, oldest first. Day/hour/today/week bucketing stays
+   * client-side (browser-local timezone, exactly as before) — timestamps
+   * are ~25 bytes each, so even 100k searches stay a ~2.5MB sidecar next
+   * to the megabytes the child tables used to cost. Revisit with
+   * server-side UTC bucketing if this list ever dominates the payload.
+   */
+  searchTimestamps: string[];
+  localeCounts: Record<string, number>;
+  browserLangCounts: Record<string, number>;
+  deviceCounts: Record<string, number>;
+  countryCounts: Record<string, number>;
+  cheaterRows: DashboardCheaterRow[];
+  games: DashboardGameRow[];
+  /**
+   * All-time profile denominator for per-profile game averages. Read from
+   * the profiles table, not from any entries array (the history window is
+   * capped — averaging over it would inflate every per-profile number).
+   */
+  totalProfilesForGames: number;
+  /** Profiles with is_cs_active = 1. */
+  csActiveCount: number;
+  locations: DashboardLocationRow[];
+  topProfiles: DashboardTopEntry[];
+  topFriends: DashboardTopEntry[];
+  generatedAt: string;
+}
+
 /** Funnel aggregates for the analytics dashboard. */
 export interface LoginFunnelStats {
   /** Raw login_cta_clicked rows (every click, including repeats). */

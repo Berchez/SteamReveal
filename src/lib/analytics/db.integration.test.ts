@@ -139,6 +139,9 @@ type DbApi = {
   recordLogin: typeof import('./db').recordLogin;
   recordLoginFunnelEvent: typeof import('./db').recordLoginFunnelEvent;
   getLoginFunnelStats: typeof import('./db').getLoginFunnelStats;
+  getDashboardStats: typeof import('./db').getDashboardStats;
+  getDashboardHistory: typeof import('./db').getDashboardHistory;
+  clearDashboardStatsCache: typeof import('./db').clearDashboardStatsCache;
   recordLoginPopupEvent: typeof import('./db').recordLoginPopupEvent;
   getLoginPopupStats: typeof import('./db').getLoginPopupStats;
   recordModalEvent: typeof import('./db').recordModalEvent;
@@ -327,6 +330,9 @@ describe('analytics db integration against real libSQL', () => {
   beforeEach(async () => {
     // Wipe the previous test's rows (cascades into every child table via FK).
     await db.executeForTests('DELETE FROM searches');
+    // The stats memo outlives single calls by design — without this a
+    // dashboard test would read the previous test's aggregates.
+    db.clearDashboardStatsCache();
     // Watch tables have no FKs by design (events survive opt-out deletes),
     // so they need their own wipe.
     await db.executeForTests('DELETE FROM watch_events');
@@ -2064,6 +2070,330 @@ describe('analytics db integration against real libSQL', () => {
       // Health signal: the beacon-lost completion is visible on the panel.
       expect(stats.unattributedCompletions).toBe(1);
       expect(stats.conversionRate).toBe(100);
+    });
+  });
+
+  describe('dashboard fast path (aggregates + capped history)', () => {
+    it('getDashboardStats matches getSearchRecords-derived aggregates on real SQL', async () => {
+      // Three searches exercising every normalization seam: lowercase
+      // country (canonicalized), missing meta (unknown buckets), shared
+      // friend + shared location across searches (bucket merging), cheater
+      // rows on two of three.
+      const saoPaulo = { cityName: 'Sao Paulo', countryCode: 'BR' };
+      const a = await db.recordSearch({
+        profile: { steamId: '76561198000000001', nickname: 'Alice', gcName: 'gcA' },
+        friends: [
+          { steamId: '76561198000000009', nickname: 'Zed', gcName: 'gcZ', countryCode: 'US' },
+          { steamId: '76561198000000010', nickname: 'Yara' },
+        ],
+        gamesSnapshot: [
+          { name: 'Counter-Strike 2', playtimeHours: 100 },
+          { name: 'Dota 2', playtimeHours: 10 },
+        ],
+        locationGuess: [{ location: saoPaulo, probability: 0.9 }],
+        isCSActive: true,
+        requesterLocale: 'pt',
+        requesterCountry: 'br',
+        requesterBrowserLanguage: 'pt-BR',
+        device: 'desktop',
+        durationMs: 1000,
+      });
+      const b = await db.recordSearch({
+        profile: { steamId: '76561198000000002', nickname: 'Bob' },
+        friends: [{ steamId: '76561198000000009', nickname: 'Zed' }],
+        friendsVisibility: 'private',
+        gamesSnapshot: [{ name: 'Counter-Strike 2', playtimeHours: 50 }],
+        locationGuess: [{ location: saoPaulo, probability: 0.8 }],
+        isCSActive: false,
+        requesterLocale: 'en',
+        requesterCountry: 'US',
+        requesterBrowserLanguage: 'en-US',
+        device: 'mobile',
+        durationMs: 2000,
+      });
+      await db.recordSearch({
+        profile: { steamId: '76561198000000003', nickname: 'Carol' },
+        friends: [],
+      });
+      await db.attachCheaterProbability(a.id, {
+        score: 70,
+        bannedFriendsCount: 1,
+        computedAt: '2026-09-30T00:01:00.000Z',
+      });
+      await db.attachCheaterProbability(b.id, {
+        score: 20,
+        bannedFriendsCount: 0,
+        computedAt: '2026-09-30T00:02:00.000Z',
+      });
+
+      // Old path: full records, aggregates derived client-side exactly
+      // like dashboardTemplate.ts does (the behavior being preserved).
+      const records = await db.getSearchRecords();
+      expect(records).toHaveLength(3);
+      const stats = await db.getDashboardStats();
+
+      expect(stats.summary.totalSearches).toBe(records.length);
+      expect(stats.summary.privateListSearches).toBe(
+        records.filter((r) => r.friendsVisibility === 'private').length,
+      );
+      expect(stats.summary.privateListSearches).toBe(1);
+      expect(stats.summary.uniqueProfiles).toBe(
+        new Set(records.map((r) => r.profile.steamId)).size,
+      );
+      expect(stats.summary.totalFriends).toBe(
+        records.reduce((sum, r) => sum + r.friends.length, 0),
+      );
+      expect(stats.summary.uniqueFriends).toBe(2);
+      expect(stats.summary.gcMatches).toBe(1);
+      expect(stats.summary.avgDurationMs).toBe(1500);
+      expect(stats.searchTimestamps).toEqual(
+        records.map((r) => r.searchedAt),
+      );
+      expect(stats.localeCounts).toEqual({ pt: 1, en: 1, unknown: 1 });
+      expect(stats.deviceCounts).toEqual({
+        desktop: 1,
+        mobile: 1,
+        unknown: 1,
+      });
+      expect(stats.browserLangCounts).toEqual({
+        'pt-br': 1,
+        'en-us': 1,
+        unknown: 1,
+      });
+      // Lowercase 'br' canonicalizes identically on both paths.
+      expect(stats.countryCounts).toEqual({ BR: 1, US: 1, unknown: 1 });
+      expect(stats.cheaterRows).toHaveLength(2);
+      expect(stats.cheaterRows.map((r) => r.score).sort()).toEqual([20, 70]);
+      // By steamId, not by position: rapid inserts can share a millisecond
+      // and ids carry a random suffix, so row order ties are undefined.
+      const aliceCheater = stats.cheaterRows.find(
+        (r) => r.steamId === '76561198000000001',
+      );
+      expect(aliceCheater?.friendCount).toBe(2);
+      // GROUP BY order is engine-undefined — compare as sets.
+      expect(stats.games).toHaveLength(2);
+      expect(stats.games).toContainEqual({
+        name: 'Counter-Strike 2',
+        totalHours: 150,
+        profilesCount: 2,
+      });
+      expect(stats.games).toContainEqual({
+        name: 'Dota 2',
+        totalHours: 10,
+        profilesCount: 1,
+      });
+      expect(stats.totalProfilesForGames).toBe(3);
+      expect(stats.csActiveCount).toBe(1);
+      // Same location payload twice merges into one bucket of 2.
+      expect(stats.locations).toHaveLength(1);
+      expect(stats.locations[0].count).toBe(2);
+      expect(JSON.parse(stats.locations[0].location)).toEqual(saoPaulo);
+      expect(stats.topProfiles).toHaveLength(3);
+      // Zed's meta comes from B's row (last-wins: entries ASC overwrite,
+      // and B's Zed carries no gcName/country) — identical to the old
+      // client-side overwrite, which this expectation would have caught
+      // had the SQL picked A's richer row instead.
+      expect(stats.topFriends).toEqual([
+        {
+          steamId: '76561198000000009',
+          nickname: 'Zed',
+          gcName: null,
+          countryCode: null,
+          count: 2,
+        },
+        {
+          steamId: '76561198000000010',
+          nickname: 'Yara',
+          gcName: null,
+          countryCode: null,
+          count: 1,
+        },
+      ]);
+      expect(typeof stats.generatedAt).toBe('string');
+    });
+
+    it('counts only the first guess per search (2nd/3rd guesses never inflate locations)', async () => {
+      // Same [0] location on two searches, different 2nd/3rd guesses: one
+      // bucket of 2, not six rows across three buckets.
+      const shared = { cityName: 'Sao Paulo', countryCode: 'BR' };
+      await db.recordSearch({
+        profile: { steamId: '76561198000000021', nickname: 'L1' },
+        friends: [],
+        locationGuess: [
+          { location: shared, probability: 0.9 },
+          { location: { cityName: 'Rio', countryCode: 'BR' }, probability: 0.05 },
+          { location: { cityName: 'Lima', countryCode: 'PE' }, probability: 0.05 },
+        ],
+      });
+      await db.recordSearch({
+        profile: { steamId: '76561198000000022', nickname: 'L2' },
+        friends: [],
+        locationGuess: [
+          { location: shared, probability: 0.7 },
+          { location: { cityName: 'Bogota', countryCode: 'CO' }, probability: 0.3 },
+        ],
+      });
+
+      const stats = await db.getDashboardStats();
+
+      expect(stats.locations).toHaveLength(1);
+      expect(stats.locations[0].count).toBe(2);
+      expect(JSON.parse(stats.locations[0].location)).toEqual(shared);
+    });
+
+    it('orders ranking ties by steam_id (repeated loads are stable)', async () => {
+      await db.recordSearch({
+        profile: { steamId: '76561198000000032', nickname: 'TieB' },
+        friends: [],
+      });
+      await db.recordSearch({
+        profile: { steamId: '76561198000000031', nickname: 'TieA' },
+        friends: [],
+      });
+
+      const stats = await db.getDashboardStats();
+
+      // Both n=1: the tiebreak (not insertion order) decides.
+      expect(stats.topProfiles.map((p) => p.steamId)).toEqual([
+        '76561198000000031',
+        '76561198000000032',
+      ]);
+    });
+
+    it('unions the volume and engagement top-20 (engagement-only games survive)', async () => {
+      // 21 games where the volume and engagement top-20s diverge: Vol19 is
+      // 21st by volume but top-20 by engagement, Vol0 the reverse. The
+      // merged list must carry BOTH (client re-sorts per chart), with exact
+      // aggregates — this is the only shape that exercises the engagement
+      // ORDER BY and the union on real SQL.
+      const vol = Array.from({ length: 20 }, (_, i) => ({
+        name: `Vol${i}`,
+        playtimeHours: 10,
+      }));
+      await db.recordSearch({
+        profile: { steamId: '76561198000000041', nickname: 'V1' },
+        friends: [],
+        gamesSnapshot: vol,
+      });
+      await db.recordSearch({
+        profile: { steamId: '76561198000000042', nickname: 'V2' },
+        friends: [],
+        gamesSnapshot: [
+          { name: 'Solo', playtimeHours: 95 },
+          { name: 'Vol0', playtimeHours: 1 },
+        ],
+      });
+
+      const stats = await db.getDashboardStats();
+
+      expect(stats.games).toHaveLength(21);
+      expect(stats.games).toContainEqual({
+        name: 'Vol19',
+        totalHours: 10,
+        profilesCount: 1,
+      });
+      expect(stats.games).toContainEqual({
+        name: 'Vol0',
+        totalHours: 11,
+        profilesCount: 2,
+      });
+      expect(stats.games).toContainEqual({
+        name: 'Solo',
+        totalHours: 95,
+        profilesCount: 1,
+      });
+    });
+
+    it('drops profile-less searches everywhere (never blank lines, never ghost buckets)', async () => {
+      // Hand-edited/legacy corruption getSearchRecords drops: raw INSERT
+      // with no profiles row, plus a cheater row attached to it. The
+      // orphan must not leak into ANY population — totals, cheater rows,
+      // timestamps, breakdowns, friends/games/locations or history alike.
+      // One valid search alongside proves the orphan neither counts nor
+      // eats a history window slot (INNER JOIN, not LEFT + drop).
+      const valid = await db.recordSearch({
+        profile: { steamId: '76561198000000001', nickname: 'Alice' },
+        friends: [{ steamId: '76561198000000002', nickname: 'Bob' }],
+        gamesSnapshot: [{ name: 'Counter-Strike 2', playtimeHours: 5 }],
+        locationGuess: [
+          { location: { cityName: 'Sao Paulo', countryCode: 'BR' }, probability: 0.9 },
+        ],
+      });
+      await db.executeForTests(
+        "INSERT INTO searches (id, searched_at) VALUES ('orphan-search', '2026-09-30T00:00:00.000Z')",
+      );
+      await db.executeForTests(
+        "INSERT INTO cheater_results (search_id, score, banned_friends_count, computed_at) VALUES ('orphan-search', 99, 0, '2026-09-30T00:01:00.000Z')",
+      );
+      await db.executeForTests(
+        "INSERT INTO friends (search_id, steam_id, nickname) VALUES ('orphan-search', '76561198000000099', 'Ghost')",
+      );
+      await db.executeForTests(
+        "INSERT INTO games_snapshot (search_id, name, playtime_hours) VALUES ('orphan-search', 'Ghost Game', 999)",
+      );
+      await db.executeForTests(
+        "INSERT INTO location_guesses (search_id, location, probability) VALUES ('orphan-search', '{\"cityName\":\"Ghost Town\"}', 1)",
+      );
+
+      const stats = await db.getDashboardStats();
+      const history = await db.getDashboardHistory();
+
+      expect(stats.summary.totalSearches).toBe(1);
+      expect(stats.summary.uniqueFriends).toBe(1);
+      expect(stats.summary.totalFriends).toBe(1);
+      expect(stats.cheaterRows).toEqual([]);
+      expect(stats.searchTimestamps).toHaveLength(1);
+      expect(stats.localeCounts).toEqual({ unknown: 1 });
+      expect(stats.deviceCounts).toEqual({ unknown: 1 });
+      expect(stats.countryCounts).toEqual({ unknown: 1 });
+      expect(stats.browserLangCounts).toEqual({ unknown: 1 });
+      // Only the valid search's game/location/friend populations survive.
+      expect(stats.games).toEqual([
+        { name: 'Counter-Strike 2', totalHours: 5, profilesCount: 1 },
+      ]);
+      expect(stats.locations).toHaveLength(1);
+      expect(JSON.parse(stats.locations[0].location)).toEqual({
+        cityName: 'Sao Paulo',
+        countryCode: 'BR',
+      });
+      expect(stats.topFriends.map((f) => f.steamId)).toEqual([
+        '76561198000000002',
+      ]);
+      // ...and the history window holds the valid search, undiluted.
+      expect(history.map((r) => r.id)).toEqual([valid.id]);
+    });
+
+    it('getDashboardHistory caps newest-first with full row shape (no games leg)', async () => {
+      const ids: string[] = [];
+      for (let i = 0; i < 3; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        const record = await db.recordSearch({
+          profile: { steamId: `7656119800000010${i}`, nickname: `H${i}` },
+          friends: [{ steamId: '76561198000000099', nickname: 'Zed' }],
+          gamesSnapshot: [{ name: 'Counter-Strike 2', playtimeHours: 5 }],
+        });
+        ids.push(record.id);
+      }
+
+      const page = await db.getDashboardHistory(2);
+
+      // Capped at the limit, newest-first (ISO strings sort
+      // chronologically — no exact-id assumption: rapid inserts can share
+      // a millisecond and ids carry a random suffix, so ties are
+      // implementation-defined).
+      expect(page).toHaveLength(2);
+      expect(page[0].searchedAt >= page[1].searchedAt).toBe(true);
+      page.forEach((row) => {
+        expect(ids).toContain(row.id);
+      });
+      // …with the full row shape the history table renders (friends list
+      // included) but no games leg (no panel reads per-row games).
+      expect(page[0].friends).toHaveLength(1);
+      expect(page[0].friends[0].nickname).toBe('Zed');
+      expect(page[0].gamesSnapshot).toBeNull();
+
+      const all = await db.getDashboardHistory();
+      expect(all).toHaveLength(3);
     });
   });
 

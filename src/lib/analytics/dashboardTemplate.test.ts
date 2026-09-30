@@ -24,13 +24,13 @@ const extractInlineScript = (html: string): string => {
 
 describe('inline dashboard script', () => {
   it('compiles as valid JS', () => {
-    const html = buildAnalyticsHtml('[]', 'null');
+    const html = buildAnalyticsHtml({ entries: '[]', watch: 'null' });
     const script = extractInlineScript(html);
     expect(() => new vm.Script(script)).not.toThrow();
   });
 
   it('preserves the load-bearing escapes (incident regression guard)', () => {
-    const html = buildAnalyticsHtml('[]', 'null');
+    const html = buildAnalyticsHtml({ entries: '[]', watch: 'null' });
     const script = extractInlineScript(html);
     // safeProfileLink URL-scheme check — single backslashes in the RUNTIME
     // string (doubled here only because this test file is itself parsed).
@@ -47,7 +47,7 @@ describe('inline dashboard script', () => {
       { searchedAt: '2026-09-02T00:00:00.000Z', cheater: { score: 0.5 } },
       { searchedAt: '2026-09-03T00:00:00.000Z', cheater: { score: 0.7 } },
     ]);
-    var html = buildAnalyticsHtml(entries, 'null');
+    var html = buildAnalyticsHtml({ entries });
     var script = extractInlineScript(html);
     // Histogram bins (built at runtime from CHEATER_HISTOGRAM_BIN_WIDTH).
     expect(script).toContain('CHEATER_HISTOGRAM_BIN_WIDTH');
@@ -63,7 +63,7 @@ describe('inline dashboard script', () => {
   });
 
   it('renders the granular cheater-reports table shell', () => {
-    var html = buildAnalyticsHtml('[]', 'null');
+    var html = buildAnalyticsHtml({ entries: '[]', watch: 'null' });
     expect(html).toContain('<h2>Cheater reports</h2>');
     expect(html).toContain('<tbody id="cheater-body"></tbody>');
     expect(html).toContain('>Outcome</th>');
@@ -73,7 +73,7 @@ describe('inline dashboard script', () => {
   });
 
   it('renders sortable, scrollable tables with a cheater filter', () => {
-    var html = buildAnalyticsHtml('[]', 'null');
+    var html = buildAnalyticsHtml({ entries: '[]', watch: 'null' });
     expect(html).toContain('id="cheater-filter"');
     expect(html).toContain('class="table-scroll"');
     expect(html).toContain('data-sort="score"');
@@ -93,13 +93,13 @@ describe('inline dashboard script', () => {
   });
 
   it('embeds a null watch block by default', () => {
-    const html = buildAnalyticsHtml('[]');
+    const html = buildAnalyticsHtml({ entries: '[]' });
     expect(html).toContain('<script type="application/json" id="watch-db">');
     expect(html).toMatch(/id="watch-db">\s*null\s*<\/script>/);
   });
 
   it('embeds a null login-funnel block by default and renders its panel shell', () => {
-    const html = buildAnalyticsHtml('[]');
+    const html = buildAnalyticsHtml({ entries: '[]' });
     expect(html).toContain('<script type="application/json" id="login-funnel-db">');
     expect(html).toMatch(/id="login-funnel-db">\s*null\s*<\/script>/);
     expect(html).toContain('Steam login funnel');

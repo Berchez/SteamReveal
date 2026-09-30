@@ -2459,6 +2459,34 @@ describe('getWatchDashboardData', () => {
       },
     ]);
   });
+
+  it('passes the ban_alert lane through (sweep deliveries are panel data too)', async () => {
+    batchRows(
+      [],
+      [],
+      [
+        {
+          kind: 'ban_alert',
+          status: 'sent',
+          created_at: '2026-09-03T00:00:00.000Z',
+          sent_at: '2026-09-03T00:01:00.000Z',
+        },
+      ],
+      [],
+    );
+    const { getWatchDashboardData } = require('./db');
+
+    const data = await getWatchDashboardData();
+
+    expect(data.events).toEqual([
+      {
+        kind: 'ban_alert',
+        status: 'sent',
+        createdAt: '2026-09-03T00:00:00.000Z',
+        sentAt: '2026-09-03T00:01:00.000Z',
+      },
+    ]);
+  });
 });
 
 describe('login funnel DAL (Steam sign-in instrumentation)', () => {
@@ -2842,5 +2870,327 @@ describe('modal engagement DAL (SponsorMe / SupportMe / login-prompt)', () => {
     const { readModalStatsIsolated } = require('./db');
 
     await expect(readModalStatsIsolated()).rejects.toThrow('socket hang up');
+  });
+});
+
+describe('dashboard fast path (aggregates + capped history)', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    mockCreateClient.mockReset();
+    mockExecute.mockReset();
+    mockBatch.mockReset();
+    mockClose.mockReset();
+    buildMockClient();
+    mockExecute.mockResolvedValue({ rows: [] });
+    process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
+    process.env.DATABASE_TOKEN = 'secret-token';
+  });
+
+  const batchStatsRows = () => {
+    mockBatch.mockResolvedValue([
+      // summary
+      {
+        rows: [
+          {
+            total: 6231,
+            unique_profiles: 6000,
+            unique_friends: 9000,
+            total_friends: 84000,
+            private_lists: 10,
+            gc_matches: 20,
+            avg_duration_ms: 1500,
+          },
+        ],
+      },
+      // timestamps
+      { rows: [{ searched_at: '2026-09-30T00:00:13.840Z' }] },
+      // locale / browser / device / country maps
+      { rows: [{ k: 'en', n: 6000 }] },
+      { rows: [{ k: 'en-us', n: 5900 }] },
+      { rows: [{ k: 'desktop', n: 6000 }] },
+      { rows: [{ k: 'us', n: 5900 }] },
+      // cheater rows
+      {
+        rows: [
+          {
+            searched_at: '2026-09-30T00:00:13.840Z',
+            steam_id: '76561198000000001',
+            nickname: 'Alice',
+            gc_name: null,
+            country_code: 'BR',
+            steam_url: null,
+            friend_count: 3,
+            score: 70,
+            banned: 1,
+            computed_at: '2026-09-30T00:01:00.000Z',
+          },
+        ],
+      },
+      // games by volume
+      { rows: [{ name: 'Counter-Strike 2', total_hours: 50000, profiles: 2000 }] },
+      // games by engagement
+      { rows: [{ name: 'Dota 2', total_hours: 8000, profiles: 100 }] },
+      // game totals
+      { rows: [{ total: 6231, cs: 100 }] },
+      // locations (COUNT alias is `n`, like every aggregate above)
+      { rows: [{ location: '{"cityName":"Sao Paulo"}', n: 5 }] },
+      // top profiles / top friends
+      {
+        rows: [
+          {
+            steam_id: '76561198000000001',
+            nickname: 'Alice',
+            gc_name: null,
+            country_code: 'BR',
+            n: 4,
+          },
+        ],
+      },
+      {
+        rows: [
+          {
+            steam_id: '76561198000000009',
+            nickname: 'Zed',
+            gc_name: null,
+            country_code: null,
+            n: 9,
+          },
+        ],
+      },
+    ]);
+  };
+
+  it('DASHBOARD_HISTORY_LIMIT is the product window (route + note agree)', async () => {
+    // Pins the real value (the route test can only pin that the route
+    // forwards the constant — its mock defines the constant itself).
+    const { DASHBOARD_HISTORY_LIMIT, DASHBOARD_HISTORY_LIMIT_MAX } =
+      require('./db');
+
+    expect(DASHBOARD_HISTORY_LIMIT).toBe(500);
+    expect(DASHBOARD_HISTORY_LIMIT_MAX).toBe(1500);
+  });
+
+  it('getDashboardStats maps one batch into the dashboard shape', async () => {
+    batchStatsRows();
+    const { getDashboardStats } = require('./db');
+
+    const stats = await getDashboardStats();
+
+    // One batch call with thirteen statements (single snapshot for the page).
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+    expect(mockBatch.mock.calls[0][0]).toHaveLength(13);
+    expect(stats.summary).toEqual({
+      totalSearches: 6231,
+      uniqueProfiles: 6000,
+      uniqueFriends: 9000,
+      totalFriends: 84000,
+      privateListSearches: 10,
+      gcMatches: 20,
+      avgDurationMs: 1500,
+    });
+    expect(stats.searchTimestamps).toEqual(['2026-09-30T00:00:13.840Z']);
+    expect(stats.localeCounts).toEqual({ en: 6000 });
+    expect(stats.countryCounts).toEqual({ us: 5900 });
+    expect(stats.cheaterRows).toEqual([
+      {
+        searchedAt: '2026-09-30T00:00:13.840Z',
+        steamId: '76561198000000001',
+        nickname: 'Alice',
+        gcName: null,
+        countryCode: 'BR',
+        steamUrl: null,
+        friendCount: 3,
+        score: 70,
+        bannedFriendsCount: 1,
+        computedAt: '2026-09-30T00:01:00.000Z',
+      },
+    ]);
+    expect(stats.games).toEqual([
+      { name: 'Counter-Strike 2', totalHours: 50000, profilesCount: 2000 },
+      { name: 'Dota 2', totalHours: 8000, profilesCount: 100 },
+    ]);
+    expect(stats.totalProfilesForGames).toBe(6231);
+    expect(stats.csActiveCount).toBe(100);
+    expect(stats.locations).toEqual([
+      { location: '{"cityName":"Sao Paulo"}', count: 5 },
+    ]);
+    expect(stats.topProfiles).toEqual([
+      {
+        steamId: '76561198000000001',
+        nickname: 'Alice',
+        gcName: null,
+        countryCode: 'BR',
+        count: 4,
+      },
+    ]);
+    expect(stats.topFriends).toEqual([
+      {
+        steamId: '76561198000000009',
+        nickname: 'Zed',
+        gcName: null,
+        countryCode: null,
+        count: 9,
+      },
+    ]);
+    expect(typeof stats.generatedAt).toBe('string');
+  });
+
+  it('getDashboardStats degrades an empty database to zeros (not null)', async () => {
+    // Thirteen empty row-sets (one per batched statement): SUMs come back
+    // NULL, COUNTs 0 — all coalesce to 0 and the shape stays complete.
+    mockBatch.mockResolvedValue([
+      { rows: [{}] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [{}] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+    ]);
+    const { getDashboardStats } = require('./db');
+
+    const stats = await getDashboardStats();
+
+    expect(stats.summary.totalSearches).toBe(0);
+    expect(stats.summary.avgDurationMs).toBeNull();
+    expect(stats.searchTimestamps).toEqual([]);
+    expect(stats.cheaterRows).toEqual([]);
+    expect(stats.topProfiles).toEqual([]);
+  });
+
+  it('getDashboardStats hints db:migrate when the tables are missing', async () => {
+    mockBatch.mockRejectedValueOnce(new Error('no such table: searches'));
+    const { getDashboardStats } = require('./db');
+
+    await expect(getDashboardStats()).rejects.toThrow(/db:migrate/);
+  });
+
+  it('getDashboardStats memoizes the snapshot for 60s (one batch per TTL window)', async () => {
+    batchStatsRows();
+    const { getDashboardStats } = require('./db');
+
+    const first = await getDashboardStats();
+    const second = await getDashboardStats();
+
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+    expect(second).toBe(first);
+  });
+
+  it('getDashboardStats refetches after the TTL expires', async () => {
+    batchStatsRows();
+    const { getDashboardStats } = require('./db');
+
+    await getDashboardStats();
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.now() + 61_000);
+    try {
+      await getDashboardStats();
+    } finally {
+      nowSpy.mockRestore();
+    }
+
+    expect(mockBatch).toHaveBeenCalledTimes(2);
+  });
+
+  it('concurrent getDashboardStats calls share one inflight batch (single-flight)', async () => {
+    batchStatsRows();
+    const { getDashboardStats } = require('./db');
+
+    const [first, second] = await Promise.all([
+      getDashboardStats(),
+      getDashboardStats(),
+    ]);
+
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+    expect(second).toBe(first);
+  });
+
+  it('getDashboardStats never caches failures (a down DB retries next load)', async () => {
+    mockBatch.mockRejectedValueOnce(new Error('no such table: searches'));
+    batchStatsRows();
+    const { getDashboardStats } = require('./db');
+
+    await expect(getDashboardStats()).rejects.toThrow(/db:migrate/);
+    const stats = await getDashboardStats();
+
+    expect(mockBatch).toHaveBeenCalledTimes(2);
+    expect(stats.summary.totalSearches).toBe(6231);
+  });
+
+  it('getDashboardHistory caps newest-first without the games leg', async () => {
+    mockBatch.mockResolvedValue([
+      {
+        rows: [
+          {
+            id: 's2',
+            searched_at: '2026-09-30T00:01:00.000Z',
+            steam_id: '76561198000000002',
+            steam_url: null,
+            nickname: 'Bob',
+            gc_name: null,
+            country_code: null,
+            state_code: null,
+            city_id: null,
+            is_cs_active: null,
+            duration_ms: null,
+            requester_locale: null,
+            requester_country: null,
+            requester_browser_language: null,
+            device: null,
+            friends_visibility: null,
+          },
+        ],
+      },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+    ]);
+    const { getDashboardHistory } = require('./db');
+
+    const records = await getDashboardHistory(100);
+
+    // One batch call with four statements (main + friends + locations +
+    // cheaters — no games_snapshot leg by design).
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+    expect(mockBatch.mock.calls[0][0]).toHaveLength(4);
+    expect(mockBatch.mock.calls[0][0][0].args).toEqual([100]);
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      id: 's2',
+      friends: [],
+      gamesSnapshot: null,
+      locationGuess: null,
+      cheater: null,
+    });
+  });
+
+  it('getDashboardHistory clamps the limit (never unbounded, never zero)', async () => {
+    mockBatch.mockResolvedValue([
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+      { rows: [] },
+    ]);
+    const { getDashboardHistory, DASHBOARD_HISTORY_LIMIT } = require('./db');
+
+    await getDashboardHistory(0);
+    expect(mockBatch.mock.calls[0][0][0].args).toEqual([1]);
+
+    await getDashboardHistory(10 ** 9);
+    expect(mockBatch.mock.calls[1][0][0].args).toEqual([1500]);
+
+    await getDashboardHistory();
+    expect(mockBatch.mock.calls[2][0][0].args).toEqual([
+      DASHBOARD_HISTORY_LIMIT,
+    ]);
   });
 });

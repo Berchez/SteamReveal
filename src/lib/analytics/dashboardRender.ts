@@ -1,5 +1,6 @@
 import { buildAnalyticsHtml } from './dashboardTemplate';
 import type {
+  DashboardStats,
   LoginFunnelStats,
   ModalDashboardStats,
   SearchRecord,
@@ -14,9 +15,13 @@ import type {
  * browser's JSON.parse() decodes the escapes back, so the data is unchanged.
  * This mirrors the guard that used to live in the JSON-file store's
  * refreshDashboard().
+ *
+ * Compact (no pretty-print): the history window ships full friend rows per
+ * search, so indentation would cost ~25-35% of payload for zero behavior
+ * gain. View-source readability is not worth megabytes on every load.
  */
 export const serializeEntries = (entries: SearchRecord[]): string =>
-  JSON.stringify(entries, null, 2).replace(/</g, '\\u003c');
+  JSON.stringify(entries).replace(/</g, '\\u003c');
 
 /**
  * Same embed escaping as serializeEntries (watch payloads carry steamIds
@@ -25,7 +30,7 @@ export const serializeEntries = (entries: SearchRecord[]): string =>
  */
 export const serializeWatchStats = (
   watch: WatchDashboardData | null,
-): string => JSON.stringify(watch, null, 2).replace(/</g, '\\u003c');
+): string => JSON.stringify(watch).replace(/</g, '\\u003c');
 
 /**
  * Same embed escaping as serializeEntries (funnel aggregates are counts
@@ -34,7 +39,7 @@ export const serializeWatchStats = (
  */
 export const serializeLoginFunnel = (
   funnel: LoginFunnelStats | null,
-): string => JSON.stringify(funnel, null, 2).replace(/</g, '\\u003c');
+): string => JSON.stringify(funnel).replace(/</g, '\\u003c');
 
 /**
  * Same embed escaping as serializeEntries (modal aggregates are counts
@@ -43,18 +48,30 @@ export const serializeLoginFunnel = (
  */
 export const serializeModalStats = (
   modals: ModalDashboardStats | null,
-): string => JSON.stringify(modals, null, 2).replace(/</g, '\\u003c');
+): string => JSON.stringify(modals).replace(/</g, '\\u003c');
+
+/**
+ * Same embed escaping as serializeEntries (dashboard aggregates carry
+ * third-party strings — nicknames, game names, raw location JSON, steam
+ * URLs in cheater/top rows — so the escape is load-bearing, not
+ * belt-and-braces; compact for the same payload reason as above).
+ */
+export const serializeDashboardStats = (
+  stats: DashboardStats | null,
+): string => JSON.stringify(stats).replace(/</g, '\\u003c');
 
 /** Renders a full dashboard HTML document from the given records. */
-export const renderDashboard = (
-  entries: SearchRecord[],
-  watch: WatchDashboardData | null = null,
-  funnel: LoginFunnelStats | null = null,
-  modals: ModalDashboardStats | null = null,
-): string =>
-  buildAnalyticsHtml(
-    serializeEntries(entries),
-    serializeWatchStats(watch),
-    serializeLoginFunnel(funnel),
-    serializeModalStats(modals),
-  );
+export const renderDashboard = (input: {
+  entries: SearchRecord[];
+  watch?: WatchDashboardData | null;
+  funnel?: LoginFunnelStats | null;
+  modals?: ModalDashboardStats | null;
+  stats?: DashboardStats | null;
+}): string =>
+  buildAnalyticsHtml({
+    entries: serializeEntries(input.entries),
+    watch: serializeWatchStats(input.watch ?? null),
+    funnel: serializeLoginFunnel(input.funnel ?? null),
+    modals: serializeModalStats(input.modals ?? null),
+    stats: serializeDashboardStats(input.stats ?? null),
+  });

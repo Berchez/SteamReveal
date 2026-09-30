@@ -6,8 +6,11 @@ import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import withTimeout from '@/lib/withTimeout';
 import {
+  DASHBOARD_HISTORY_LIMIT,
+  DASHBOARD_HISTORY_LIMIT_MAX,
+  getDashboardHistory,
+  getDashboardStats,
   getLoginFunnelStats,
-  getSearchRecords,
   getWatchDashboardData,
   readModalStatsIsolated,
 } from '@/lib/analytics/db';
@@ -18,13 +21,13 @@ const RATE_LIMIT_MAX = 30;
 const dashboardRateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
 
 /**
- * Budget for the additive halves of the dashboard (Watch + login funnel).
- * allSettled alone only covers *errors* — without this, a slow/hung query
- * in either half (watch_events grows one row per bot delivery, no
- * retention) would hold the whole page, including the primary searches
- * section, until the platform 504s. Promise.race doesn't cancel the driver
- * query, it just frees the response (accepted limitation, same as every
- * other withTimeout call site).
+ * Budget for the additive halves of the dashboard (Watch + login funnel +
+ * modals). allSettled alone only covers *errors* — without this, a
+ * slow/hung query in either half (watch_events grows one row per bot
+ * delivery, no retention) would hold the whole page, including the primary
+ * searches section, until the platform 504s. Promise.race doesn't cancel
+ * the driver query, it just frees the response (accepted limitation, same
+ * as every other withTimeout call site).
  *
  * Module-scoped (NOT exported: Next.js route files may only export
  * route-related names — an extra export breaks the generated route types).
@@ -32,15 +35,53 @@ const dashboardRateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_
 const ADDITIVE_READ_TIMEOUT_MS = 4_000;
 
 /**
- * Serves the analytics dashboard as live HTML, rebuilt on every request
- * from the current Turso data (searches via getSearchRecords + the additive
- * Watch section via getWatchDashboardData + the additive login-funnel
- * section via getLoginFunnelStats + the additive promo-modal sections via
- * readModalStatsIsolated).
+ * Separate, larger budget for the search-stats half. Unlike Watch/funnel/
+ * modals (small tables, additive panels), the stats read scans the three
+ * big child tables (friends/games/locations grow ~15/40/1 rows per search)
+ * and feeds most panels on the page — it is primary content wearing a
+ * fail-open coat: a throw or a timeout still degrades to the explicit
+ * unavailable panels instead of 500ing, but the budget gives it room to
+ * finish as the tables grow.
  *
- * The Watch, funnel AND modal halves are fail-open (error AND latency): a
- * throw or a timeout degrades that half to null instead of 500ing/delaying
- * the primary searches page.
+ * Deliberately 8s, not higher: without an explicit `maxDuration` export
+ * the platform may cap the function below a longer budget (Hobby-class
+ * ceilings), which would 504 the WHOLE page before the fail-open could
+ * fire — the exact outcome this timeout exists to prevent. Measured ~2.6s
+ * on ~360k child rows, so 8s holds ~3x headroom; revisit (higher cap with
+ * maxDuration, or TTL memo) if p99 approaches this ceiling.
+ */
+const STATS_READ_TIMEOUT_MS = 8_000;
+
+/**
+ * Parses ?limit= into a clamped history window. Garbage in → default out
+ * (never 400: a bookmarked dashboard link must keep rendering); the DAL
+ * clamps again defensively, so this is purely the route honoring intent.
+ */
+const parseHistoryLimit = (params: URLSearchParams): number => {
+  // Number(null) === 0 and Number('') === 0 — an absent or empty ?limit=
+  // must mean "default", never "1 row". Non-finite strings (NaN,
+  // Infinity) fall back the same way; only a real number clamps (ceiling
+  // shared with the DAL so the two can never drift).
+  const param = params.get('limit');
+  if (param === null || param.trim() === '') return DASHBOARD_HISTORY_LIMIT;
+  const raw = Number(param);
+  if (!Number.isFinite(raw)) return DASHBOARD_HISTORY_LIMIT;
+  return Math.max(1, Math.min(DASHBOARD_HISTORY_LIMIT_MAX, Math.floor(raw)));
+};
+
+/**
+ * Serves the analytics dashboard as live HTML, rebuilt on every request
+ * from the current Turso data (capped history via getDashboardHistory,
+ * default DASHBOARD_HISTORY_LIMIT rows, widenable via ?limit= up to
+ * DASHBOARD_HISTORY_LIMIT_MAX + the additive Watch section via getWatchDashboardData
+ * + the additive login-funnel section via getLoginFunnelStats + the
+ * additive promo-modal sections via readModalStatsIsolated + the
+ * search-stats section via getDashboardStats, which carries its own larger
+ * timeout because it feeds most panels — see STATS_READ_TIMEOUT_MS).
+ *
+ * The Watch, funnel, modal AND search-stats halves are fail-open (error
+ * AND latency): a throw or a timeout degrades that half to null instead
+ * of 500ing/delaying the primary searches page.
  *
  * This replaces the old local analytics.html file, which only lived on the
  * machine running the proxy. The markup/styling/JS shell is
@@ -57,7 +98,7 @@ const ADDITIVE_READ_TIMEOUT_MS = 4_000;
  * the comparison is rate-limited per IP BEFORE it runs, so a wrong-key guess
  * can't be hammered.
  *
- * Without the env var it stays open in dev/test only, matching the
+ * Without the env var it stays open in development only, matching the
  * "best-effort analytics" philosophy.
  *
  * Path: src/app/api/analytics/dashboard/route.ts
@@ -129,14 +170,18 @@ export async function GET(req: Request) {
 
   try {
     // Reads run together (one Turso round trip each, no shared snapshot
-    // needed across the domains). The Watch, funnel and modal halves are
-    // fail-open: if any throws OR exceeds ADDITIVE_READ_TIMEOUT_MS, the
-    // dashboard still renders searches with an "unavailable" section (null)
-    // instead of 500ing or stalling the whole page — the search history is
-    // the primary content, Watch/funnel/modal stats are additive.
-    const [entriesResult, watchResult, funnelResult, modalsResult] =
+    // needed across the domains). The history half stays unbounded-time
+    // (it IS the primary content) but bounded-rows: the newest N records
+    // (default DASHBOARD_HISTORY_LIMIT, widenable via ?limit=) with a UI
+    // note saying so. The Watch, funnel and modal halves are fail-open
+    // under ADDITIVE_READ_TIMEOUT_MS; the heavier search-stats half gets
+    // STATS_READ_TIMEOUT_MS instead. Any half that throws OR exceeds its
+    // budget still renders with an "unavailable" section (null) instead of
+    // 500ing or stalling the whole page.
+    const historyLimit = parseHistoryLimit(new URL(req.url).searchParams);
+    const [entriesResult, watchResult, funnelResult, modalsResult, statsResult] =
       await Promise.allSettled([
-        getSearchRecords(),
+        getDashboardHistory(historyLimit),
         withTimeout(
           getWatchDashboardData(),
           'watch dashboard',
@@ -151,6 +196,11 @@ export async function GET(req: Request) {
           readModalStatsIsolated(),
           'modal stats dashboard',
           ADDITIVE_READ_TIMEOUT_MS,
+        ),
+        withTimeout(
+          getDashboardStats(),
+          'search stats dashboard',
+          STATS_READ_TIMEOUT_MS,
         ),
       ]);
     // Log each additive-half failure FIRST so a simultaneous entries failure
@@ -176,19 +226,32 @@ export async function GET(req: Request) {
         sanitizeError(modalsResult.reason),
       );
     }
+    if (statsResult.status === 'rejected') {
+      logRouteError(
+        'analytics/dashboard:stats',
+        sanitizeError(statsResult.reason),
+      );
+    }
     if (entriesResult.status === 'rejected') throw entriesResult.reason;
-    const html = renderDashboard(
-      entriesResult.value,
-      watchResult.status === 'fulfilled' ? watchResult.value : null,
-      funnelResult.status === 'fulfilled' ? funnelResult.value : null,
-      modalsResult.status === 'fulfilled' ? modalsResult.value : null,
-    );
+    const html = renderDashboard({
+      entries: entriesResult.value,
+      watch: watchResult.status === 'fulfilled' ? watchResult.value : null,
+      funnel: funnelResult.status === 'fulfilled' ? funnelResult.value : null,
+      modals: modalsResult.status === 'fulfilled' ? modalsResult.value : null,
+      stats: statsResult.status === 'fulfilled' ? statsResult.value : null,
+    });
 
     return new NextResponse(html, {
       status: 200,
       headers: {
         'content-type': 'text/html; charset=utf-8',
         'cache-control': 'no-store, max-age=0',
+        // Owner-only analytics page carrying a bookmarkable ?key=: never
+        // leak the URL (or the page itself to indexers) via outbound
+        // navigation or crawling. Belt-and-braces alongside rel=noopener
+        // on the rendered profile links.
+        'referrer-policy': 'no-referrer',
+        'x-robots-tag': 'noindex, nofollow',
       },
     });
   } catch (error) {

@@ -34,6 +34,11 @@ import type {
   WatchDashboardWatched,
   WatchDashboardEvent,
   WatchDashboardData,
+  DashboardCheaterRow,
+  DashboardGameRow,
+  DashboardLocationRow,
+  DashboardStats,
+  DashboardTopEntry,
   LoginFunnelEventKind,
   LoginFunnelStats,
   LoginPopupEventKind,
@@ -1705,6 +1710,10 @@ export const getWatchDashboardData = async (): Promise<WatchDashboardData> => {
     'notify',
     'welcome',
     'confirm_resend',
+    // ban_alert included: the sweep's reveal alerts are deliveries too —
+    // omitting the kind silently drops the whole lane from the panel
+    // (the client derives lanes from the data, so no template change).
+    'ban_alert',
   ];
   const eventRows: WatchDashboardEvent[] = [];
   events.rows.forEach((row) => {
@@ -3290,6 +3299,142 @@ const parseLocationGuesses = (rows: Row[]): LocationGuess[] => {
   return guesses;
 };
 
+// Child rows indexed by search, shared by the two record readers below:
+// identical indexing + mapping, so a coercion fix in one can't silently
+// drift from the other. The ONLY deliberate difference is the games leg,
+// which getDashboardHistory skips (no panel reads per-row games) — hence
+// games maps to null there instead of omitting the field.
+type SearchChildMaps = {
+  friends: Map<string, FriendRecord[]>;
+  locations: Map<string, LocationGuess[]>;
+  cheaters: Map<string, CheaterProbabilityRecord>;
+  games: Map<string, GameSnapshotEntry[]> | null;
+};
+
+const indexSearchChildren = (
+  friendRows: Row[],
+  locationRows: Row[],
+  cheaterRows: Row[],
+  gameRows: Row[] | null,
+): SearchChildMaps => {
+  const friends = new Map<string, FriendRecord[]>();
+  friendRows.forEach((row) => {
+    const searchId = row.search_id as string;
+    const list = friends.get(searchId) ?? [];
+    list.push({
+      steamId: row.steam_id as string,
+      nickname: toNullableString(row.nickname),
+      gcName: toNullableString(row.gc_name),
+      mutualCount: toNullableNumber(row.mutual_count),
+      probability: toNullableNumber(row.probability),
+      countryCode: toNullableString(row.country_code),
+    });
+    friends.set(searchId, list);
+  });
+
+  const locations = new Map<string, LocationGuess[]>();
+  locationRows.forEach((row) => {
+    const searchId = row.search_id as string;
+    const list = locations.get(searchId) ?? [];
+    list.push(...parseLocationGuesses([row]));
+    locations.set(searchId, list);
+  });
+
+  const cheaters = new Map<string, CheaterProbabilityRecord>();
+  cheaterRows.forEach((row) => {
+    cheaters.set(row.search_id as string, {
+      score: row.score as number,
+      bannedFriendsCount: toNullableNumber(row.banned_friends_count),
+      computedAt: row.computed_at as string,
+    });
+  });
+
+  if (gameRows === null) {
+    return { friends, locations, cheaters, games: null };
+  }
+  const games = new Map<string, GameSnapshotEntry[]>();
+  gameRows.forEach((row) => {
+    const searchId = row.search_id as string;
+    const list = games.get(searchId) ?? [];
+    list.push({
+      name: row.name as string,
+      playtimeHours:
+        typeof row.playtime_hours === 'number'
+          ? row.playtime_hours
+          : Number(row.playtime_hours ?? 0),
+    });
+    games.set(searchId, list);
+  });
+  return { friends, locations, cheaters, games };
+};
+
+const mapSearchRecord = (
+  row: Row,
+  children: SearchChildMaps,
+): SearchRecord | null => {
+  const searchId = row.id as string;
+
+  // Defensive: the LEFT JOIN on profiles can only ever yield a NULL
+  // steam_id if a searches row lost its profile (impossible through the
+  // DAL — recordSearch writes both atomically — but hand-edited rows or a
+  // partial legacy import could do it). A profile-less record renders a
+  // broken dashboard row (null steamId), so drop it instead of casting the
+  // null to string and shipping a corrupt SearchRecord.
+  if (typeof row.steam_id !== 'string' || row.steam_id.length === 0) {
+    return null;
+  }
+
+  const profile: ProfileRecord = {
+    steamId: row.steam_id as string,
+    steamUrl: toNullableString(row.steam_url),
+    nickname: toNullableString(row.nickname),
+    gcName: toNullableString(row.gc_name),
+    countryCode: toNullableString(row.country_code),
+    stateCode: toNullableString(row.state_code),
+    cityId: toNullableString(row.city_id),
+  };
+
+  const { is_cs_active: isActive, device } = row;
+  const cheater = children.cheaters.get(searchId) ?? null;
+
+  return {
+    id: searchId,
+    searchedAt: row.searched_at as string,
+    profile,
+    friendsVisibility: normalizeFriendsVisibility(row.friends_visibility),
+    // An empty child table reads back as arrays/nulls regardless of whether
+    // the source sent `[]` or `undefined` (both store zero rows) — fine, the
+    // dashboard treats null and [] the same (it maps over `?? []`).
+    friends: children.friends.get(searchId) ?? [],
+    gamesSnapshot: children.games?.get(searchId) ?? null,
+    isCSActive:
+      typeof isActive === 'number' && (isActive === 0 || isActive === 1)
+        ? isActive === 1
+        : null,
+    requesterLocale: toNullableString(row.requester_locale),
+    // Same choke point as listProfileSearches: legacy lowercase
+    // rows read back canonical, so dashboard and inbox agree.
+    requesterCountry: normalizeCountryCode(row.requester_country),
+    requesterBrowserLanguage: toNullableString(
+      row.requester_browser_language,
+    ),
+    device: (device === 'mobile' || device === 'desktop'
+      ? device
+      : null) as 'mobile' | 'desktop' | null,
+    locationGuess: children.locations.get(searchId) ?? null,
+    cheater,
+    durationMs: toNullableNumber(row.duration_ms),
+  };
+};
+
+/**
+ * @deprecated Dashboard no longer calls this: getDashboardStats() (all-time
+ * aggregates) + getDashboardHistory() (capped window) replaced the
+ * unbounded five-table read on the dashboard path. Kept for its tested
+ * full-read contract (db.test.ts, db.integration.test.ts) and any future
+ * offline/export use — do NOT point request handlers at it without a
+ * LIMIT: friends/games/locations grow ~15/40/1 rows per search.
+ */
 export const getSearchRecords = async (): Promise<SearchRecord[]> => {
   const db = await getClient();
 
@@ -3321,108 +3466,477 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
     ]),
   );
 
-  const friendsBySearch = new Map<string, FriendRecord[]>();
-  friends.rows.forEach((row) => {
-    const searchId = row.search_id as string;
-    const list = friendsBySearch.get(searchId) ?? [];
-    list.push({
-      steamId: row.steam_id as string,
-      nickname: toNullableString(row.nickname),
-      gcName: toNullableString(row.gc_name),
-      mutualCount: toNullableNumber(row.mutual_count),
-      probability: toNullableNumber(row.probability),
-      countryCode: toNullableString(row.country_code),
+  const children = indexSearchChildren(
+    friends.rows as Row[],
+    locations.rows as Row[],
+    cheaters.rows as Row[],
+    games.rows as Row[],
+  );
+
+  return (searches.rows as Row[])
+    .map((row) => mapSearchRecord(row, children))
+    .filter((record) => record !== null);
+};
+
+// ---------------------------------------------------------------------------
+// Dashboard fast path — aggregates + capped history.
+//
+// getSearchRecords() above ships FIVE full tables (friends/games/locations
+// grow ~15/40/1 rows per search — 360k+ child rows today) for a page whose
+// panels only ever render counts, top-N lists and a few hundred cheater
+// rows. getDashboardStats() replaces that with small GROUP BY reads (one
+// batch = one snapshot, same rationale as getSearchRecords), and
+// getDashboardHistory() caps the row-level history table — the only panel
+// rendering individual rows — WITHOUT the games_snapshot leg (no panel
+// reads per-row games). getSearchRecords stays untouched for its tested
+// full-read contract.
+//
+// Time-series bucketing (per-day/per-hour/today/week) deliberately stays
+// client-side: the dashboard is owner-only and buckets in browser-local
+// time, and server-side UTC bucketing would shift day boundaries. The
+// timestamps list (~25 bytes/row) is the only unbounded read here —
+// revisit with server-side bucketing if searches ever approach ~100k.
+// ---------------------------------------------------------------------------
+
+/** History-table window: individual rows below this, aggregates above. */
+export const DASHBOARD_HISTORY_LIMIT = 500;
+
+/**
+ * History-window ceiling (shared with the dashboard route's ?limit= so
+ * the two can never drift: a raised cap here without the route chokes
+ * nothing, a raised route cap without this silently clamps).
+ *
+ * Deliberately 1500, not higher: every history row ships its full
+ * friends[] (~2-2.5KB/row compact with ~15 friends), so 5000 rows would
+ * land around ~10-12MB — past the ~4.5MB serverless function response
+ * ceiling (FUNCTION_PAYLOAD_TOO_LARGE instead of a wider window). 1500
+ * rows sit around ~3MB worst case: inside the budget with headroom left
+ * for the stats sidecar (timestamps + cheater rows). A true full export
+ * belongs in a dedicated streaming endpoint, not in this HTML page.
+ */
+export const DASHBOARD_HISTORY_LIMIT_MAX = 1500;
+
+// COUNT/SUM arrive as number over hrana but as bigint on the native
+// transport (file: URLs — local dev/test). Same bigint branch as
+// toNullableNumber above; without it every aggregate silently reads 0
+// outside production.
+const toDashboardCount = (value: unknown): number => {
+  if (typeof value === 'bigint') return Number(value);
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+};
+
+/**
+ * Read-only dashboard aggregates (all-time) + every searched_at for
+ * client-side bucketing. One batch = one snapshot. Throws when any table
+ * is missing — the dashboard route fail-opens the whole stats half to
+ * null (withSchemaHint rewrites to the db:migrate hint).
+ *
+ * 60s cross-request memo + single-flight (same per-instance pattern as
+ * getSteamIdentity's avatar cache and the rate limiter: NOT shared across
+ * serverless instances — accepted, this page has one reader). Without it
+ * every F5 during a slow window stacks another ~1M-row scan on Turso
+ * (Promise.race frees the response, never the driver query), and every
+ * load re-reads friends 3x + games 2x for byte-identical aggregates.
+ * Failures are never cached — a down DB must retry on the next load, not
+ * serve "unavailable" for a full TTL. The history half stays live (it IS
+ * the primary content and is already row-capped); only these all-time
+ * aggregates memoize, and the page's generatedAt exposes the staleness.
+ */
+const DASHBOARD_STATS_TTL_MS = 60_000;
+let dashboardStatsCache: {
+  stats: DashboardStats;
+  expiresAt: number;
+} | null = null;
+let dashboardStatsInflight: Promise<DashboardStats> | null = null;
+
+/** Test seam: the TTL cache outlives single calls by design. */
+export const clearDashboardStatsCache = (): void => {
+  dashboardStatsCache = null;
+  dashboardStatsInflight = null;
+};
+
+const readDashboardStats = async (): Promise<DashboardStats> => {
+  const db = await getClient();
+  const [
+    summaryRows,
+    timestampRows,
+    localeRows,
+    browserRows,
+    deviceRows,
+    countryRows,
+    cheaterRows,
+    gameVolumeRows,
+    gameEngagementRows,
+    gameTotalsRows,
+    locationRows,
+    topProfileRows,
+    topFriendRows,
+  ] = await withSchemaHint(
+    db.batch([
+      {
+        // INNER JOIN profiles (not LEFT): a profile-less search is corrupt
+        // input — getSearchRecords drops those rows, so the totals must
+        // not count them either, or "total" and the history note diverge.
+        // Same rule inside the friends subselects (EXISTS, not a bare
+        // table scan): otherwise uniqueFriends/totalFriends — and the
+        // avg-friends denominator built from them — mix populations.
+        sql: `SELECT COUNT(*) AS total,
+              COUNT(DISTINCT p.steam_id) AS unique_profiles,
+              (SELECT COUNT(DISTINCT f.steam_id) FROM friends f
+                WHERE EXISTS (SELECT 1 FROM profiles p2 WHERE p2.search_id = f.search_id)) AS unique_friends,
+              (SELECT COUNT(*) FROM friends f
+                WHERE EXISTS (SELECT 1 FROM profiles p2 WHERE p2.search_id = f.search_id)) AS total_friends,
+              SUM(CASE WHEN m.friends_visibility = 'private' THEN 1 ELSE 0 END) AS private_lists,
+              SUM(CASE WHEN p.gc_name IS NOT NULL AND p.gc_name != '' THEN 1 ELSE 0 END) AS gc_matches,
+              AVG(p.duration_ms) AS avg_duration_ms
+            FROM searches s
+            JOIN profiles p ON p.search_id = s.id
+            LEFT JOIN search_meta m ON m.search_id = s.id`,
+      },
+      // Driven by profiled searches (same population as the summary
+      // total, not raw searches): a profile-less orphan must not appear
+      // in day/hour/donut buckets that "Recorded searches" excludes.
+      { sql: `SELECT s.searched_at AS searched_at
+              FROM searches s JOIN profiles p ON p.search_id = s.id
+                AND p.steam_id IS NOT NULL AND p.steam_id != ''
+              ORDER BY s.searched_at ASC` },
+      // Capped at 200 buckets per map (display needs top 8 at most and
+      // keys are partly client-influenced — browser language is free-form
+      // — so the tail can never render and never travels). Same profiled
+      // population as above; ties broken by key for stable repeats.
+      {
+        sql: `SELECT COALESCE(NULLIF(LOWER(m.requester_locale), ''), 'unknown') AS k,
+                COUNT(*) AS n
+              FROM searches s
+              JOIN profiles p ON p.search_id = s.id
+                AND p.steam_id IS NOT NULL AND p.steam_id != ''
+              LEFT JOIN search_meta m ON m.search_id = s.id
+              GROUP BY k ORDER BY n DESC, k ASC LIMIT 200`,
+      },
+      {
+        sql: `SELECT COALESCE(NULLIF(LOWER(m.requester_browser_language), ''), 'unknown') AS k,
+                COUNT(*) AS n
+              FROM searches s
+              JOIN profiles p ON p.search_id = s.id
+                AND p.steam_id IS NOT NULL AND p.steam_id != ''
+              LEFT JOIN search_meta m ON m.search_id = s.id
+              GROUP BY k ORDER BY n DESC, k ASC LIMIT 200`,
+      },
+      {
+        // Mirrors getSearchRecords' device coercion (mobile/desktop or
+        // null → 'unknown'): anything else reads as unknown there too.
+        sql: `SELECT CASE WHEN m.device IN ('mobile', 'desktop') THEN m.device ELSE 'unknown' END AS k,
+                COUNT(*) AS n
+              FROM searches s
+              JOIN profiles p ON p.search_id = s.id
+                AND p.steam_id IS NOT NULL AND p.steam_id != ''
+              LEFT JOIN search_meta m ON m.search_id = s.id
+              GROUP BY k ORDER BY n DESC, k ASC LIMIT 200`,
+      },
+      {
+        // Mirrors normalizeCountryCode (2 ASCII letters → UPPER, else
+        // null → 'unknown'): same buckets the client-side code produces.
+        sql: `SELECT COALESCE(
+                  CASE WHEN m.requester_country GLOB '[A-Za-z][A-Za-z]'
+                    THEN UPPER(m.requester_country) ELSE NULL END,
+                  'unknown') AS k,
+                COUNT(*) AS n
+              FROM searches s
+              JOIN profiles p ON p.search_id = s.id
+                AND p.steam_id IS NOT NULL AND p.steam_id != ''
+              LEFT JOIN search_meta m ON m.search_id = s.id
+              GROUP BY k ORDER BY n DESC, k ASC LIMIT 200`,
+      },
+      {
+        // INNER JOIN profiles: a profile-less search renders a blank table
+        // row, so getSearchRecords drops those records — the cheater rows
+        // must drop them too instead of shipping steamId: null.
+        sql: `SELECT s.searched_at AS searched_at, p.steam_id AS steam_id,
+              p.nickname AS nickname, p.gc_name AS gc_name,
+              p.country_code AS country_code, p.steam_url AS steam_url,
+              (SELECT COUNT(*) FROM friends f WHERE f.search_id = s.id) AS friend_count,
+              c.score AS score, c.banned_friends_count AS banned,
+              c.computed_at AS computed_at
+            FROM cheater_results c
+            JOIN searches s ON s.id = c.search_id
+            JOIN profiles p ON p.search_id = s.id
+            ORDER BY s.searched_at ASC, s.id ASC`,
+      },
+      {
+        // Top 20 by volume (avgPerProfile's denominator is constant, so
+        // this IS the per-profile top 20). Name tiebreak: repeated loads
+        // must not reshuffle equal bars. Orphan searches (no profiles row)
+        // contribute no games, same as every other population here.
+        sql: `SELECT name, SUM(playtime_hours) AS total_hours,
+              COUNT(DISTINCT search_id) AS profiles
+            FROM games_snapshot WHERE search_id IN (SELECT search_id FROM profiles) GROUP BY name
+            ORDER BY total_hours DESC, name ASC LIMIT 20`,
+      },
+      {
+        // Top 20 by engagement (needs its own ordering — not derivable
+        // from the volume list). The client unions both lists, so both
+        // charts stay exact. Same orphan exclusion as the volume list.
+        sql: `SELECT name, SUM(playtime_hours) AS total_hours,
+              COUNT(DISTINCT search_id) AS profiles
+            FROM games_snapshot WHERE search_id IN (SELECT search_id FROM profiles) GROUP BY name
+            ORDER BY total_hours * 1.0 / COUNT(DISTINCT search_id) DESC, name ASC LIMIT 20`,
+      },
+      {
+        sql: `SELECT COUNT(*) AS total,
+                SUM(CASE WHEN is_cs_active = 1 THEN 1 ELSE 0 END) AS cs
+              FROM profiles`,
+      },
+      {
+        // First guess per search ONLY (MIN(id) = locationGuess[0]): the old
+        // code counted e.locationGuess[0], so counting every guess would
+        // inflate the panel and mix 1st/2nd/3rd guesses under one label.
+        // Raw location JSON strings (client parses + formats the top 10 —
+        // same skip-corrupt-row behavior as parseLocationGuesses). Capped:
+        // only the head can ever render. Location tiebreak keeps repeats
+        // stable; orphans excluded like every other population here.
+        sql: `SELECT location, COUNT(*) AS n FROM location_guesses
+              WHERE id IN (SELECT MIN(id) FROM location_guesses GROUP BY search_id)
+                AND search_id IN (SELECT search_id FROM profiles)
+              GROUP BY location ORDER BY n DESC, location ASC LIMIT 200`,
+      },
+      {
+        // Latest meta row per Steam ID wins (entries were ASC with last-wins
+        // overwrite). Single pass: SQLite resolves bare columns from the
+        // MAX() row by documented guarantee, so nickname/gcName/countryCode
+        // come from the most recent search without a self-join or a full
+        // window-function sort. Ties on the max clock are arbitrary among
+        // the tied rows (same as the old code's unknowable tie order).
+        // steam_id ASC tiebreak keeps repeated loads stable.
+        sql: `SELECT steam_id, nickname, gc_name, country_code, n FROM (
+                SELECT p.steam_id AS steam_id, p.nickname AS nickname,
+                  p.gc_name AS gc_name, p.country_code AS country_code,
+                  COUNT(*) AS n, MAX(s.searched_at) AS last_seen
+                FROM profiles p JOIN searches s ON s.id = p.search_id
+                WHERE p.steam_id IS NOT NULL AND p.steam_id != ''
+                GROUP BY p.steam_id
+              ) ORDER BY n DESC, steam_id ASC LIMIT 8`,
+      },
+      {
+        sql: `SELECT steam_id, nickname, gc_name, country_code, n FROM (
+                SELECT f.steam_id AS steam_id, f.nickname AS nickname,
+                  f.gc_name AS gc_name, f.country_code AS country_code,
+                  COUNT(*) AS n, MAX(f.id) AS last_id
+                FROM friends f
+                WHERE f.steam_id IS NOT NULL AND f.steam_id != ''
+                  AND EXISTS (SELECT 1 FROM profiles p WHERE p.search_id = f.search_id)
+                GROUP BY f.steam_id
+              ) ORDER BY n DESC, steam_id ASC LIMIT 8`,
+      },
+    ]),
+  );
+
+  const toCountMap = (result: { rows: unknown[] }): Record<string, number> => {
+    const map: Record<string, number> = {};
+    (result.rows as Array<Record<string, unknown>>).forEach((row) => {
+      if (typeof row.k === 'string') map[row.k] = toDashboardCount(row.n);
     });
-    friendsBySearch.set(searchId, list);
-  });
+    return map;
+  };
 
-  const gamesBySearch = new Map<string, GameSnapshotEntry[]>();
-  games.rows.forEach((row) => {
-    const searchId = row.search_id as string;
-    const list = gamesBySearch.get(searchId) ?? [];
-    list.push({
-      name: row.name as string,
-      playtimeHours:
-        typeof row.playtime_hours === 'number'
-          ? row.playtime_hours
-          : Number(row.playtime_hours ?? 0),
+  // Union of the two server-side top-20 lists (by volume + by engagement),
+  // deduped by name: every game either chart can render is present, so the
+  // client-side re-sort + slice stays exact while the payload caps at 40.
+  const mergeGameRows = (
+    volumeRows: Array<Record<string, unknown>>,
+    engagementRows: Array<Record<string, unknown>>,
+  ): DashboardGameRow[] => {
+    const byName = new Map<string, DashboardGameRow>();
+    volumeRows.concat(engagementRows).forEach((row) => {
+      if (typeof row.name !== 'string' || byName.has(row.name)) return;
+      byName.set(row.name, {
+        name: row.name,
+        totalHours: toDashboardCount(row.total_hours),
+        profilesCount: toDashboardCount(row.profiles),
+      });
     });
-    gamesBySearch.set(searchId, list);
+    return Array.from(byName.values());
+  };
+
+  const summary = summaryRows.rows[0] as Record<string, unknown>;
+  const totalSearches = toDashboardCount(summary.total);
+  const gameTotals = gameTotalsRows.rows[0] as Record<string, unknown>;
+
+  const toTopEntry = (row: Record<string, unknown>): DashboardTopEntry => ({
+    steamId: row.steam_id as string,
+    nickname: toNullableString(row.nickname),
+    gcName: toNullableString(row.gc_name),
+    countryCode: toNullableString(row.country_code),
+    count: toDashboardCount(row.n),
   });
 
-  const locationsBySearch = new Map<string, LocationGuess[]>();
-  locations.rows.forEach((row) => {
-    const searchId = row.search_id as string;
-    const list = locationsBySearch.get(searchId) ?? [];
-    list.push(...parseLocationGuesses([row]));
-    locationsBySearch.set(searchId, list);
-  });
+  const cheaterRowsOut: DashboardCheaterRow[] = (
+    cheaterRows.rows as Array<Record<string, unknown>>
+  ).map((row) => ({
+    searchedAt: row.searched_at as string,
+    steamId: row.steam_id as string,
+    nickname: toNullableString(row.nickname),
+    gcName: toNullableString(row.gc_name),
+    countryCode: toNullableString(row.country_code),
+    steamUrl: toNullableString(row.steam_url),
+    friendCount: toDashboardCount(row.friend_count),
+    score: toDashboardCount(row.score),
+    bannedFriendsCount: toNullableNumber(row.banned),
+    computedAt: row.computed_at as string,
+  }));
 
-  const cheatersBySearch = new Map<string, CheaterProbabilityRecord>();
-  cheaters.rows.forEach((row) => {
-    cheatersBySearch.set(row.search_id as string, {
-      score: row.score as number,
-      bannedFriendsCount: toNullableNumber(row.banned_friends_count),
-      computedAt: row.computed_at as string,
+  // avgDurationMs: SQL AVG skips NULLs exactly like the client's
+  // typeof-number filter; a non-numeric value can't occur (REAL column).
+  const avgDurationRaw = summary.avg_duration_ms;
+  return {
+    summary: {
+      totalSearches,
+      uniqueProfiles: toDashboardCount(summary.unique_profiles),
+      uniqueFriends: toDashboardCount(summary.unique_friends),
+      totalFriends: toDashboardCount(summary.total_friends),
+      privateListSearches: toDashboardCount(summary.private_lists),
+      gcMatches: toDashboardCount(summary.gc_matches),
+      avgDurationMs:
+        typeof avgDurationRaw === 'number' && Number.isFinite(avgDurationRaw)
+          ? avgDurationRaw
+          : null,
+    },
+    searchTimestamps: (timestampRows.rows as Array<Record<string, unknown>>)
+      .map((row) => row.searched_at)
+      .filter((v): v is string => typeof v === 'string'),
+    localeCounts: toCountMap(localeRows),
+    browserLangCounts: toCountMap(browserRows),
+    deviceCounts: toCountMap(deviceRows),
+    countryCounts: toCountMap(countryRows),
+    cheaterRows: cheaterRowsOut,
+    games: mergeGameRows(
+      gameVolumeRows.rows as Array<Record<string, unknown>>,
+      gameEngagementRows.rows as Array<Record<string, unknown>>,
+    ),
+    totalProfilesForGames: toDashboardCount(gameTotals.total),
+    csActiveCount: toDashboardCount(gameTotals.cs),
+    locations: (locationRows.rows as Array<Record<string, unknown>>).map(
+      (row): DashboardLocationRow => ({
+        location: row.location as string,
+        count: toDashboardCount(row.n),
+      }),
+    ),
+    topProfiles: (topProfileRows.rows as Array<Record<string, unknown>>).map(
+      toTopEntry,
+    ),
+    topFriends: (topFriendRows.rows as Array<Record<string, unknown>>).map(
+      toTopEntry,
+    ),
+    generatedAt: new Date().toISOString(),
+  };
+};
+
+export const getDashboardStats = async (): Promise<DashboardStats> => {
+  if (
+    dashboardStatsCache !== null &&
+    dashboardStatsCache.expiresAt > Date.now()
+  ) {
+    return dashboardStatsCache.stats;
+  }
+  if (dashboardStatsInflight === null) {
+    dashboardStatsInflight = readDashboardStats().finally(() => {
+      dashboardStatsInflight = null;
     });
-  });
+  }
+  const stats = await dashboardStatsInflight;
+  dashboardStatsCache = {
+    stats,
+    expiresAt: Date.now() + DASHBOARD_STATS_TTL_MS,
+  };
+  return stats;
+};
 
-  return searches.rows
-    .map((row) => {
-      const searchId = row.id as string;
+/**
+ * Read-only capped history for the dashboard's search-history table (the
+ * only panel rendering individual rows). Same record shape as
+ * getSearchRecords but newest-first, capped, and WITHOUT the
+ * games_snapshot leg (no history panel reads per-row games). The export
+ * CSV and the text filter operate on this same window — the panel says
+ * so explicitly ("showing last N of M").
+ */
+export const getDashboardHistory = async (
+  limit: number = DASHBOARD_HISTORY_LIMIT,
+): Promise<SearchRecord[]> => {
+  // Validated BEFORE getClient(): a bad limit must fail without opening
+  // (or reusing) a pooled connection for nothing.
+  if (!Number.isFinite(limit)) {
+    throw new Error('Invalid history limit: expected a finite number');
+  }
+  const n = Math.max(
+    1,
+    Math.min(DASHBOARD_HISTORY_LIMIT_MAX, Math.floor(limit)),
+  );
+  const db = await getClient();
 
-      // Defensive: the LEFT JOIN on profiles can only ever yield a NULL
-      // steam_id if a searches row lost its profile (impossible through the
-      // DAL — recordSearch writes both atomically — but hand-edited rows or a
-      // partial legacy import could do it). A profile-less record renders a
-      // broken dashboard row (null steamId), so drop it instead of casting the
-      // null to string and shipping a corrupt SearchRecord.
-      if (typeof row.steam_id !== 'string' || row.steam_id.length === 0) {
-        return null;
-      }
+  const [searches, friends, locations, cheaters] = await withSchemaHint(
+    db.batch([
+      {
+        // INNER JOIN profiles (same orphan rule as mapSearchRecord, which
+        // drops null/empty steam_ids): a LEFT JOIN would let orphans eat
+        // window slots and return fewer than N rows for a "last N of M"
+        // note computed over profiled searches.
+        sql: `
+          SELECT s.id, s.searched_at,
+                 p.steam_id, p.steam_url, p.nickname, p.gc_name,
+                 p.country_code, p.state_code, p.city_id,
+                 p.is_cs_active, p.duration_ms,
+                 m.requester_locale, m.requester_country,
+                 m.requester_browser_language, m.device,
+                 m.friends_visibility
+          FROM searches s
+          JOIN profiles p ON p.search_id = s.id
+            AND p.steam_id IS NOT NULL AND p.steam_id != ''
+          LEFT JOIN search_meta m ON m.search_id = s.id
+          ORDER BY s.searched_at DESC, s.id DESC
+          LIMIT ?`,
+        args: [n],
+      },
+      {
+        // Same profiled window as the main query: orphan children have no
+        // parent record (mapSearchRecord drops them) so fetching them only
+        // burns rows-read.
+        sql: `SELECT * FROM friends WHERE search_id IN (
+                SELECT s.id FROM searches s
+                JOIN profiles p ON p.search_id = s.id
+                  AND p.steam_id IS NOT NULL AND p.steam_id != ''
+                ORDER BY s.searched_at DESC, s.id DESC LIMIT ?
+              ) ORDER BY search_id, id`,
+        args: [n],
+      },
+      {
+        sql: `SELECT * FROM location_guesses WHERE search_id IN (
+                SELECT s.id FROM searches s
+                JOIN profiles p ON p.search_id = s.id
+                  AND p.steam_id IS NOT NULL AND p.steam_id != ''
+                ORDER BY s.searched_at DESC, s.id DESC LIMIT ?
+              ) ORDER BY search_id, id`,
+        args: [n],
+      },
+      {
+        sql: `SELECT * FROM cheater_results WHERE search_id IN (
+                SELECT s.id FROM searches s
+                JOIN profiles p ON p.search_id = s.id
+                  AND p.steam_id IS NOT NULL AND p.steam_id != ''
+                ORDER BY s.searched_at DESC, s.id DESC LIMIT ?
+              )`,
+        args: [n],
+      },
+    ]),
+  );
 
-      const profile: ProfileRecord = {
-        steamId: row.steam_id as string,
-        steamUrl: toNullableString(row.steam_url),
-        nickname: toNullableString(row.nickname),
-        gcName: toNullableString(row.gc_name),
-        countryCode: toNullableString(row.country_code),
-        stateCode: toNullableString(row.state_code),
-        cityId: toNullableString(row.city_id),
-      };
+  const children = indexSearchChildren(
+    friends.rows as Row[],
+    locations.rows as Row[],
+    cheaters.rows as Row[],
+    null,
+  );
 
-      const { is_cs_active: isActive, device } = row;
-      const cheater = cheatersBySearch.get(searchId) ?? null;
-
-      return {
-        id: searchId,
-        searchedAt: row.searched_at as string,
-        profile,
-        friendsVisibility: normalizeFriendsVisibility(row.friends_visibility),
-        // An empty child table reads back as arrays/nulls regardless of whether
-        // the source sent `[]` or `undefined` (both store zero rows) — fine, the
-        // dashboard treats null and [] the same (it maps over `?? []`).
-        friends: friendsBySearch.get(searchId) ?? [],
-        gamesSnapshot: gamesBySearch.get(searchId) ?? null,
-        isCSActive:
-          typeof isActive === 'number' && (isActive === 0 || isActive === 1)
-            ? isActive === 1
-            : null,
-        requesterLocale: toNullableString(row.requester_locale),
-        // Same choke point as listProfileSearches: legacy lowercase
-        // rows read back canonical, so dashboard and inbox agree.
-        requesterCountry: normalizeCountryCode(row.requester_country),
-        requesterBrowserLanguage: toNullableString(
-          row.requester_browser_language,
-        ),
-        device: (device === 'mobile' || device === 'desktop'
-          ? device
-          : null) as 'mobile' | 'desktop' | null,
-        locationGuess: locationsBySearch.get(searchId) ?? null,
-        cheater,
-        durationMs: toNullableNumber(row.duration_ms),
-      };
-    })
+  return (searches.rows as Row[])
+    .map((row) => mapSearchRecord(row, children))
     .filter((record) => record !== null);
 };
 

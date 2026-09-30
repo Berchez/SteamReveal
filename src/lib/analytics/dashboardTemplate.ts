@@ -17,7 +17,8 @@
  * styling, and client-side behavior. The dashboard route
  * (src/app/api/analytics/dashboard/route.ts) serves the ENTIRE shell via
  * buildAnalyticsHtml(), regenerated on every request from the current
- * getSearchRecords() data, so hand-editing any served HTML has no lasting
+ * getDashboardHistory() window + getDashboardStats() aggregates (plus the
+ * Watch/funnel/modal halves), so hand-editing any served HTML has no lasting
  * effect — the next request silently overwrites it with whatever this file
  * currently says. If you want to change the dashboard's look or behavior,
  * edit the HEAD/TAIL templates below, not a generated file.
@@ -51,13 +52,15 @@
  *      diffing the runtime string against the source you started from --
  *      not just eyeballing it -- before committing.
  *
- * Split in five around the data blocks: HEAD ends right after the
+ * Split in six around the data blocks: HEAD ends right after the
  * `<script id="db">` opening tag, the entries array follows, then WATCH_MID
  * closes it and opens `<script id="watch-db">`, then the watch JSON, then
  * FUNNEL_DB_MID opens `<script id="login-funnel-db">`, then the funnel
  * JSON, then MODAL_DB_MID opens `<script id="modal-stats-db">`, then the
- * modal JSON, then TAIL (which starts at the modal block's closing tag).
- * buildAnalyticsHtml() joins the parts around the four serialized payloads.
+ * modal JSON, then STATS_DB_MID opens `<script id="dashboard-stats-db">`,
+ * then the search-stats JSON, then TAIL (which starts at the stats block's
+ * closing tag). buildAnalyticsHtml() joins the parts around the five
+ * serialized payloads.
  */
 
 import { CHEATER_OUTCOME_THRESHOLDS_PERCENT } from '@/lib/cheaterOutcomeBands';
@@ -419,8 +422,9 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
 
 <div class="panel">
   <h2>Search history</h2>
+  <p class="panel-note" id="history-window-note"></p>
   <div class="toolbar">
-    <input id="filter" type="text" placeholder="Filter by nickname, SteamID, GC name, country, language..." />
+    <input id="filter" type="text" placeholder="Filter by nickname, SteamID, GC name, country, language… (showing window)" />
     <button class="btn" id="export-csv">⬇ Export CSV</button>
   </div>
   <div class="table-scroll">
@@ -460,6 +464,8 @@ export const ANALYTICS_DASHBOARD_HEAD = `<!DOCTYPE html>
   carries the login-funnel aggregates (or null) — same rules.
   The fourth block (<script id="modal-stats-db">, after the funnel block)
   carries the promo-modal aggregates (or null) — same rules.
+  The fifth block (<script id="dashboard-stats-db">, after the modal
+  block) carries the pre-aggregated search stats (or null) — same rules.
 -->
 <script type="application/json" id="db">`;
 
@@ -485,9 +491,18 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   // Ideally this would also be scoped to https://steamcommunity.com/, but
   // at minimum we require an http(s) scheme.
   function safeProfileLink(url, label) {
+    // NOTE: the doubled backslashes on the next line are load-bearing, NOT
+    // a typo: this block lives inside a TS template literal, so a doubled
+    // backslash-slash is what arrives at the browser as an escaped slash.
+    // Halving them silently turns the scheme check into a bare prefix test
+    // plus a // comment (see the incident note in this file's header) --
+    // pinned by the escape-guard test. (No backticks/braces in this note:
+    // they would need escaping inside the template literal.)
     var isSafe = typeof url === 'string' && /^https?:\\/\\//i.test(url);
+    // noreferrer pairs with the route's Referrer-Policy header: profile
+    // links must never carry the dashboard URL (bookmarkable ?key=) outward.
     return isSafe
-      ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + label + '</a>'
+      ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + label + '</a>'
       : label;
   }
 
@@ -778,20 +793,55 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     console.error('Failed to read the analytics.html data block', e);
   }
 
-  var totalSearches = entries.length;
-  var uniqueProfiles = new Set(entries.map(function (e) { return e.profile.steamId; }));
-  var allFriendIds = entries.flatMap(function (e) { return (e.friends || []).map(function (f) { return f.steamId; }); });
-  var uniqueFriends = new Set(allFriendIds);
-  var avgFriends = totalSearches
-    ? (entries.reduce(function (sum, e) { return sum + (e.friends || []).length; }, 0) / totalSearches).toFixed(1)
+  // Pre-aggregated search stats (single GROUP BY snapshot — see
+  // getDashboardStats): counts, top-N lists and cheater rows without
+  // shipping full tables. 'entries' above is now ONLY the capped history
+  // window (getDashboardHistory) — deriving all-time numbers from it
+  // would silently lie, so every aggregate panel below reads 'ds' and
+  // degrades to an explicit unavailable state when it is null (failed
+  // read), never to plausible-looking windowed numbers.
+  var dashboardStats = null;
+  try {
+    dashboardStats = JSON.parse(document.getElementById('dashboard-stats-db').textContent);
+  } catch (e) {
+    console.error('Failed to read the dashboard-stats data block', e);
+  }
+  var ds = dashboardStats;
+
+  // Timestamps for browser-local day/hour/today/week bucketing (same code
+  // as before, fed by the timestamps list instead of full records).
+  var tsEntries = ds ? ds.searchTimestamps.map(function (t) { return { searchedAt: t }; }) : [];
+
+  var totalSearches = ds ? ds.summary.totalSearches : 0;
+  var uniqueProfiles = ds ? ds.summary.uniqueProfiles : 0;
+  var uniqueFriends = ds ? ds.summary.uniqueFriends : 0;
+  var avgFriends = totalSearches && ds
+    ? (ds.summary.totalFriends / totalSearches).toFixed(1)
     : '0';
 
-  var gcMatches = entries.filter(function (e) { return e.profile && e.profile.gcName; }).length;
+  var gcMatches = ds ? ds.summary.gcMatches : 0;
   var gcMatchRate = totalSearches ? ((gcMatches / totalSearches) * 100).toFixed(1) + '%' : '—';
 
-  var privateListSearches = entries.filter(function (e) { return e.friendsVisibility === 'private'; }).length;
+  var privateListSearches = ds ? ds.summary.privateListSearches : 0;
 
-  var withCheater = entries.filter(function (e) { return e.cheater && typeof e.cheater.score === 'number'; });
+  var withCheater = ds ? ds.cheaterRows.map(function (r) {
+    return {
+      searchedAt: r.searchedAt,
+      profile: {
+        steamId: r.steamId,
+        nickname: r.nickname,
+        gcName: r.gcName,
+        countryCode: r.countryCode,
+        steamUrl: r.steamUrl,
+      },
+      friendCount: r.friendCount,
+      cheater: {
+        score: r.score,
+        bannedFriendsCount: r.bannedFriendsCount,
+        computedAt: r.computedAt,
+      },
+    };
+  }) : [];
   var cheaterScores = withCheater.map(function (e) { return normalizeScore(e.cheater.score); }).sort(function (a, b) { return a - b; });
   var avgCheater = withCheater.length
     ? (cheaterScores.reduce(function (s, v) { return s + v; }, 0) / cheaterScores.length).toFixed(1) + '%'
@@ -806,39 +856,43 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
       ).toFixed(1) + '%'
     : '—';
 
-  var withDuration = entries.filter(function (e) { return typeof e.durationMs === 'number'; });
-  var avgDuration = withDuration.length
-    ? (withDuration.reduce(function (s, e) { return s + e.durationMs; }, 0) / withDuration.length / 1000).toFixed(1) + 's'
+  var avgDurationMs = ds ? ds.summary.avgDurationMs : null;
+  var avgDuration = typeof avgDurationMs === 'number'
+    ? (avgDurationMs / 1000).toFixed(1) + 's'
     : '—';
 
   var now = new Date();
   var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   var startOfWeek = new Date(startOfToday.getTime() - 6 * 24 * 60 * 60 * 1000);
-  var searchesToday = entries.filter(function (e) { return new Date(e.searchedAt) >= startOfToday; }).length;
-  var searchesThisWeek = entries.filter(function (e) { return new Date(e.searchedAt) >= startOfWeek; }).length;
+  var searchesToday = tsEntries.filter(function (e) { return new Date(e.searchedAt) >= startOfToday; }).length;
+  var searchesThisWeek = tsEntries.filter(function (e) { return new Date(e.searchedAt) >= startOfWeek; }).length;
 
   // ---- Stat cards ----
   var statsEl = document.getElementById('stats');
-  var stats = [
-    { value: totalSearches, label: 'Recorded searches' },
-    { value: uniqueProfiles.size, label: 'Unique searched profiles' },
-    { value: uniqueFriends.size, label: 'Unique cataloged friends' },
-    { value: avgFriends, label: 'Average friends per search' },
-    { value: privateListSearches, label: 'Private-list searches' },
-    { value: gcMatchRate, label: 'GamersClub match rate' },
-    { value: searchesToday, label: 'Searches today' },
-    { value: searchesThisWeek, label: 'Searches in the last 7 days' },
-    { value: avgDuration, label: 'Average search duration' },
-    { value: avgCheater, label: 'Average cheater probability' },
-    { value: medianCheater, label: 'Median cheater probability' },
-  ];
-  statsEl.innerHTML = stats.map(function (s) {
-    return '<div class="stat-card"><div class="value">' + escapeHtml(s.value) + '</div><div class="label">' + escapeHtml(s.label) + '</div></div>';
-  }).join('');
+  if (!ds) {
+    statsEl.innerHTML = '<div class="stat-card"><div class="value">—</div><div class="label">Search stats unavailable</div></div>';
+  } else {
+    var stats = [
+      { value: totalSearches, label: 'Recorded searches' },
+      { value: uniqueProfiles, label: 'Unique searched profiles' },
+      { value: uniqueFriends, label: 'Unique cataloged friends' },
+      { value: avgFriends, label: 'Average friends per search' },
+      { value: privateListSearches, label: 'Private-list searches' },
+      { value: gcMatchRate, label: 'GamersClub match rate' },
+      { value: searchesToday, label: 'Searches today' },
+      { value: searchesThisWeek, label: 'Searches in the last 7 days' },
+      { value: avgDuration, label: 'Average search duration' },
+      { value: avgCheater, label: 'Average cheater probability' },
+      { value: medianCheater, label: 'Median cheater probability' },
+    ];
+    statsEl.innerHTML = stats.map(function (s) {
+      return '<div class="stat-card"><div class="value">' + escapeHtml(s.value) + '</div><div class="label">' + escapeHtml(s.label) + '</div></div>';
+    }).join('');
+  }
 
   // ---- Searches per day (30 days) ----
   var dayCounts = {};
-  entries.forEach(function (e) {
+  tsEntries.forEach(function (e) {
     var d = new Date(e.searchedAt);
     if (isNaN(d.getTime())) return;
     dayCounts[dayKey(d)] = (dayCounts[dayKey(d)] || 0) + 1;
@@ -853,13 +907,17 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   }
   function renderByDayChart() {
     var el = document.getElementById('chart-by-day');
+    if (!ds) {
+      el.innerHTML = '<div class="empty">Search stats unavailable.</div>';
+      return;
+    }
     el.innerHTML = svgBarChart(byDay, { width: containerWidth(el), color: 'var(--accent)' });
   }
   renderByDayChart();
 
   // ---- Searches by hour of day ----
   var hourCounts = new Array(24).fill(0);
-  entries.forEach(function (e) {
+  tsEntries.forEach(function (e) {
     var d = new Date(e.searchedAt);
     if (isNaN(d.getTime())) return;
     hourCounts[d.getHours()] += 1;
@@ -867,45 +925,46 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   var byHour = hourCounts.map(function (v, i) { return { label: String(i), value: v }; });
   function renderByHourChart() {
     var el = document.getElementById('chart-by-hour');
+    if (!ds) {
+      el.innerHTML = '<div class="empty">Search stats unavailable.</div>';
+      return;
+    }
     el.innerHTML = svgBarChart(byHour, { width: containerWidth(el), color: 'var(--accent2)' });
   }
   renderByHourChart();
 
   // ---- Language ----
-  var localeCounts = {};
-  entries.forEach(function (e) {
-    var loc = (e.requesterLocale || 'unknown').toLowerCase();
-    localeCounts[loc] = (localeCounts[loc] || 0) + 1;
-  });
-  document.getElementById('chart-locale').innerHTML = donutAndLegend(topNPlusOthers(localeCounts, 6));
+  // Pre-bucketed server-side (COALESCE/LOWER/unknown parity with the old
+  // client-side loop — see getDashboardStats); unknown keys can't occur
+  // beyond 'unknown' itself.
+  var localeCounts = ds ? ds.localeCounts : null;
+  document.getElementById('chart-locale').innerHTML = !ds
+    ? '<div class="empty">Search stats unavailable.</div>'
+    : donutAndLegend(topNPlusOthers(localeCounts, 6));
 
   // ---- Browser language ----
-  var browserLangCounts = {};
-  entries.forEach(function (e) {
-    var lang = (e.requesterBrowserLanguage || 'unknown').toLowerCase();
-    browserLangCounts[lang] = (browserLangCounts[lang] || 0) + 1;
-  });
-  document.getElementById('chart-browser-lang').innerHTML = donutAndLegend(topNPlusOthers(browserLangCounts, 6));
+  var browserLangCounts = ds ? ds.browserLangCounts : null;
+  document.getElementById('chart-browser-lang').innerHTML = !ds
+    ? '<div class="empty">Search stats unavailable.</div>'
+    : donutAndLegend(topNPlusOthers(browserLangCounts, 6));
 
   // ---- Device ----
-  var deviceCounts = {};
-  entries.forEach(function (e) {
-    var dev = e.device || 'unknown';
-    deviceCounts[dev] = (deviceCounts[dev] || 0) + 1;
-  });
-  document.getElementById('chart-device').innerHTML = donutAndLegend(topNPlusOthers(deviceCounts, 6));
+  var deviceCounts = ds ? ds.deviceCounts : null;
+  document.getElementById('chart-device').innerHTML = !ds
+    ? '<div class="empty">Search stats unavailable.</div>'
+    : donutAndLegend(topNPlusOthers(deviceCounts, 6));
 
   // ---- Searcher countries ----
-  var countryCounts = {};
-  entries.forEach(function (e) {
-    var c = e.requesterCountry || 'unknown';
-    countryCounts[c] = (countryCounts[c] || 0) + 1;
-  });
-  var countryData = topNPlusOthers(countryCounts, 8).map(function (d, i) {
+  var countryCounts = ds ? ds.countryCounts : null;
+  var countryData = countryCounts ? topNPlusOthers(countryCounts, 8).map(function (d, i) {
     return { label: (flagEmoji(d.label) ? flagEmoji(d.label) + ' ' : '') + d.label, value: d.value, color: PALETTE[i % PALETTE.length] };
-  });
+  }) : [];
   function renderCountryChart() {
     var el = document.getElementById('chart-country');
+    if (!ds) {
+      el.innerHTML = '<div class="empty">Search stats unavailable.</div>';
+      return;
+    }
     el.innerHTML = svgBarChart(countryData, { width: containerWidth(el) });
   }
   renderCountryChart();
@@ -988,6 +1047,10 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   });
   function renderCheaterChart() {
     var el = document.getElementById('chart-cheater');
+    if (!ds) {
+      el.innerHTML = '<div class="empty">Search stats unavailable.</div>';
+      return;
+    }
     el.innerHTML = withCheater.length
       ? svgBarChart(cheaterData, { width: containerWidth(el) }) + barLegendHtml(cheaterBandLegend)
       : '<div class="empty">No cheater reports computed yet.</div>';
@@ -1013,7 +1076,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     if (key === 'score') return function (e) { return normalizeScore(e.cheater.score); };
     if (key === 'outcome') return function (e) { return cheaterOutcomeRank(normalizeScore(e.cheater.score)); };
     if (key === 'banned') return function (e) { return (typeof e.cheater.bannedFriendsCount === 'number') ? e.cheater.bannedFriendsCount : null; };
-    if (key === 'friends') return function (e) { return (e.friends || []).length; };
+    if (key === 'friends') return function (e) { return (typeof e.friendCount === 'number') ? e.friendCount : 0; };
     if (key === 'computed') return function (e) {
       var ms = e.cheater.computedAt ? Date.parse(e.cheater.computedAt) : NaN;
       return isFinite(ms) ? ms : null;
@@ -1024,9 +1087,19 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     };
   }
 
+  // Static empty-state copy (restored on every render — the ds-null
+  // branch below temporarily overwrites it and must not leak).
+  var cheaterEmptyDefault = document.getElementById('cheater-empty-msg').textContent;
   function renderCheaterTable() {
     var body = document.getElementById('cheater-body');
     var emptyMsg = document.getElementById('cheater-empty-msg');
+    if (!ds) {
+      body.innerHTML = '';
+      emptyMsg.textContent = 'Search stats unavailable.';
+      emptyMsg.style.display = 'block';
+      return;
+    }
+    emptyMsg.textContent = cheaterEmptyDefault;
     var q = cheaterState.q;
     var list = !q ? withCheater : withCheater.filter(function (e) {
       var haystack = [
@@ -1048,6 +1121,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
       var flag = flagEmoji(e.profile.countryCode);
       var profileLink = safeProfileLink(e.profile.steamUrl, (flag ? flag + ' ' : '') + profileLabel);
       var banned = e.cheater.bannedFriendsCount;
+      var friendTotal = (typeof e.friendCount === 'number') ? e.friendCount : 0;
       return '<tr>' +
         '<td>' + escapeHtml(formatDate(e.searchedAt)) + '</td>' +
         '<td>' + profileLink + '</td>' +
@@ -1055,7 +1129,7 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
         '<td>' + riskBadge(score) + '</td>' +
         '<td>' + escapeHtml(cheaterOutcome(score)) + '</td>' +
         '<td>' + (typeof banned === 'number' ? banned : '<span class="muted-small">—</span>') + '</td>' +
-        '<td>' + (e.friends || []).length + '</td>' +
+        '<td>' + friendTotal + '</td>' +
         '<td>' + (e.cheater.computedAt ? escapeHtml(formatDate(e.cheater.computedAt)) : '<span class="muted-small">—</span>') + '</td>' +
         '</tr>';
     }).join('');
@@ -1075,19 +1149,30 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   });
 
   // ---- Most predicted locations ----
+  // Pre-bucketed by raw location JSON (see getDashboardStats): parse +
+  // format the top pairs client-side. Corrupt payloads skip per-row
+  // (same behavior as the old per-entry parse) — they simply never reach
+  // the top-10 the chart renders.
   var locationCounts = {};
-  entries.forEach(function (e) {
-    var g = e.locationGuess && e.locationGuess[0];
-    if (g && g.location) {
-      var locLabel = formatLocation(g.location);
-      locationCounts[locLabel] = (locationCounts[locLabel] || 0) + 1;
-    }
-  });
+  if (ds) {
+    ds.locations.forEach(function (row) {
+      try {
+        var locLabel = formatLocation(JSON.parse(row.location));
+        locationCounts[locLabel] = (locationCounts[locLabel] || 0) + row.count;
+      } catch (e) {
+        // One corrupted payload must not take the panel down.
+      }
+    });
+  }
   var locationData = topNPlusOthers(locationCounts, 10).map(function (d, i) {
     return { label: d.label, value: d.value, color: PALETTE[i % PALETTE.length] };
   });
   function renderLocationsChart() {
     var el = document.getElementById('chart-locations');
+    if (!ds) {
+      el.innerHTML = '<div class="empty">Search stats unavailable.</div>';
+      return;
+    }
     if (!locationData.length) {
       el.innerHTML = '<div class="empty">No location predictions recorded yet.</div>';
       return;
@@ -1102,35 +1187,23 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
   var TOP_GAMES_LIMIT = 20; // CONFIGURABLE
   var CS_HOUR_THRESHOLD = 300; // CONFIGURABLE
 
-  var gameStats = {};
-  var csActiveCount = 0;
-  var totalProfiles = entries.length || 0;
+  // Pre-aggregated per game (see getDashboardStats): same fields the loop
+  // below used to accumulate, so the averages sort/limit/render unchanged.
+  var gameRows = ds ? ds.games : [];
+  var csActiveCount = ds ? ds.csActiveCount : 0;
+  var totalProfiles = ds ? ds.totalProfilesForGames : 0;
 
-  entries.forEach(function (e) {
-    if (e.isCSActive) csActiveCount += 1;
-
-    var games = e.gamesSnapshot || [];
-    games.forEach(function (game) {
-      if (!gameStats[game.name]) {
-        gameStats[game.name] = { totalHours: 0, profilesCount: 0 };
-      }
-      gameStats[game.name].totalHours += Number(game.playtimeHours) || 0;
-      gameStats[game.name].profilesCount += 1;
-    });
-  });
-
-  var topGamesPerProfile = Object.keys(gameStats)
-    .map(function (name) {
-      var stats = gameStats[name];
+  var topGamesPerProfile = gameRows
+    .map(function (game) {
       return {
-        name: name,
+        name: game.name,
         avgPerProfile: totalProfiles > 0
-          ? Math.round((stats.totalHours / totalProfiles) * 10) / 10
+          ? Math.round((game.totalHours / totalProfiles) * 10) / 10
           : 0,
-        avgEngagement: stats.profilesCount > 0
-          ? Math.round((stats.totalHours / stats.profilesCount) * 10) / 10
+        avgEngagement: game.profilesCount > 0
+          ? Math.round((game.totalHours / game.profilesCount) * 10) / 10
           : 0,
-        profilesCount: stats.profilesCount,
+        profilesCount: game.profilesCount,
       };
     })
     .sort(function (a, b) { return b.avgPerProfile - a.avgPerProfile; });
@@ -1141,6 +1214,10 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
 
   function renderGameChart(games, elementId, showMetric) {
     var el = document.getElementById(elementId);
+    if (!ds) {
+      el.innerHTML = '<div class="empty">Search stats unavailable.</div>';
+      return;
+    }
     if (!games.length) {
       el.innerHTML = '<div class="empty">No games data. Run: node scripts/enrich-analytics.mjs</div>';
       return;
@@ -1178,7 +1255,11 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
 
   function renderCSActiveChart() {
     var el = document.getElementById('chart-cs-active');
-    var total = entries.length;
+    if (!ds) {
+      el.innerHTML = '<div class="empty">Search stats unavailable.</div>';
+      return;
+    }
+    var total = totalProfiles;
     var percentage = total > 0 ? Math.round((csActiveCount / total) * 100) : 0;
 
     var html = '<div class="cs-active-panel">' +
@@ -1503,30 +1584,35 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     }).join('');
   }
 
-  var profileCounts = {};
-  entries.forEach(function (e) {
-    var id = e.profile.steamId;
-    if (!profileCounts[id]) profileCounts[id] = { count: 0, meta: e.profile };
-    profileCounts[id].count += 1;
-    profileCounts[id].meta = e.profile; // keeps the most recent data
-  });
-  document.getElementById('top-profiles').innerHTML = topRankHtml(profileCounts, function (item) {
-    var flag = flagEmoji(item.meta.countryCode);
-    return (flag ? flag + ' ' : '') + (item.meta.nickname || item.meta.gcName || item.key);
-  });
-
-  var friendCounts = {};
-  entries.forEach(function (e) {
-    (e.friends || []).forEach(function (f) {
-      if (!friendCounts[f.steamId]) friendCounts[f.steamId] = { count: 0, meta: f };
-      friendCounts[f.steamId].count += 1;
-      friendCounts[f.steamId].meta = f;
+  // Pre-ranked server-side (latest meta row wins — mirrors the old
+  // last-wins overwrite); topRankHtml re-sorts + slices defensively.
+  function topEntriesToCounts(list) {
+    var counts = {};
+    list.forEach(function (row) {
+      counts[row.steamId] = {
+        count: row.count,
+        meta: {
+          nickname: row.nickname,
+          gcName: row.gcName,
+          countryCode: row.countryCode,
+        },
+      };
     });
-  });
-  document.getElementById('top-friends').innerHTML = topRankHtml(friendCounts, function (item) {
-    var flag = flagEmoji(item.meta.countryCode);
-    return (flag ? flag + ' ' : '') + (item.meta.nickname || item.meta.gcName || item.key);
-  });
+    return counts;
+  }
+  if (!ds) {
+    document.getElementById('top-profiles').innerHTML = '<li class="empty">Search stats unavailable.</li>';
+    document.getElementById('top-friends').innerHTML = '<li class="empty">Search stats unavailable.</li>';
+  } else {
+    document.getElementById('top-profiles').innerHTML = topRankHtml(topEntriesToCounts(ds.topProfiles), function (item) {
+      var flag = flagEmoji(item.meta.countryCode);
+      return (flag ? flag + ' ' : '') + (item.meta.nickname || item.meta.gcName || item.key);
+    });
+    document.getElementById('top-friends').innerHTML = topRankHtml(topEntriesToCounts(ds.topFriends), function (item) {
+      var flag = flagEmoji(item.meta.countryCode);
+      return (flag ? flag + ' ' : '') + (item.meta.nickname || item.meta.gcName || item.key);
+    });
+  }
 
   // ---------------------------------------------------------------------
   // Sortable tables (search history + cheater reports)
@@ -1648,6 +1734,16 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     }).join('');
   }
 
+  // Row-level history is a capped window (see getDashboardHistory) while
+  // every panel above aggregates all-time: filter, sort and CSV export all
+  // operate on this same window, and the note says so explicitly.
+  var historyNote = document.getElementById('history-window-note');
+  if (historyNote) {
+    historyNote.textContent = ds
+      ? 'Showing last ' + entries.length + ' of ' + ds.summary.totalSearches + ' searches (filter and export apply to this window)'
+      : 'Showing last ' + entries.length + ' searches';
+  }
+
   var historyState = { q: '', key: 'date', dir: -1 };
 
   function historyKeyFn(key) {
@@ -1709,7 +1805,11 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
         e.device || '',
         typeof e.durationMs === 'number' ? (e.durationMs / 1000).toFixed(1) : '',
         e.cheater && typeof e.cheater.score === 'number' ? normalizeScore(e.cheater.score).toFixed(1) : '',
-        (e.locationGuess && e.locationGuess[0] && e.locationGuess[0].location) || '',
+        // formatLocation, not the raw value: locationGuess[0].location is
+        // an OBJECT (cityName/stateName/...), and String(obj) would export
+        // the literal text "[object Object]". formatLocation handles the
+        // object, string and missing shapes alike.
+        (e.locationGuess && e.locationGuess[0] ? formatLocation(e.locationGuess[0].location) : ''),
         (e.friends || []).length,
       ]);
     });
@@ -1726,7 +1826,14 @@ export const ANALYTICS_DASHBOARD_TAIL = `</script>
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'steamreveal-analytics-' + new Date().toISOString().slice(0, 10) + '.csv';
+    // The export covers the history WINDOW, not the full database (see
+    // getDashboardHistory): stamp the window into the filename so a saved
+    // file can never be mistaken for a complete backup.
+    var stamp = new Date().toISOString().slice(0, 10);
+    var windowTag = ds
+      ? '-last' + entries.length + 'of' + ds.summary.totalSearches
+      : '-last' + entries.length;
+    a.download = 'steamreveal-analytics-' + stamp + windowTag + '.csv';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1750,14 +1857,20 @@ const FUNNEL_DB_MID = `</script>
 const MODAL_DB_MID = `</script>
 <script type="application/json" id="modal-stats-db">`;
 
+/** Closes the modal-stats block and opens the dashboard-stats block (joined by buildAnalyticsHtml). */
+const STATS_DB_MID = `</script>
+<script type="application/json" id="dashboard-stats-db">`;
+
 /**
  * Assembles a full analytics.html from the dashboard shell (HEAD/TAIL,
  * above) around the already-serialized JSON payloads, in order: the
  * searches array for the <script id="db"> block, the Watch aggregates
  * (or 'null' when those reads failed) for the <script id="watch-db">
  * block, the login funnel aggregates (or 'null') for the
- * <script id="login-funnel-db"> block, and the promo-modal aggregates
- * (or 'null') for the <script id="modal-stats-db"> block.
+ * <script id="login-funnel-db"> block, the promo-modal aggregates
+ * (or 'null') for the <script id="modal-stats-db"> block, and the
+ * pre-aggregated search stats (or 'null') for the
+ * <script id="dashboard-stats-db"> block.
  *
  * Deliberately takes pre-serialized strings rather than SearchRecord[]:
  * this file only knows about markup/styling/behavior, not about what a
@@ -1768,16 +1881,33 @@ const MODAL_DB_MID = `</script>
  * already imports from this file.
  */
 
-export const buildAnalyticsHtml = (
-  serializedEntriesJson: string,
-  serializedWatchJson: string = 'null',
-  serializedFunnelJson: string = 'null',
-  serializedModalsJson: string = 'null',
-): string =>
-  `${ANALYTICS_DASHBOARD_HEAD}\n${serializedEntriesJson}\n${WATCH_DB_MID}\n${serializedWatchJson}\n${FUNNEL_DB_MID}\n${serializedFunnelJson}\n${MODAL_DB_MID}\n${serializedModalsJson}\n${ANALYTICS_DASHBOARD_TAIL}`;
+/**
+ * Named JSON blocks (five same-type strings — positional args silently
+ * swapped funnel/modals/stats once already in review, so this is an
+ * object now: a swapped key is a loud type error, never a wrong panel).
+ */
+export interface DashboardHtmlBlocks {
+  entries: string;
+  watch?: string;
+  funnel?: string;
+  modals?: string;
+  stats?: string;
+}
+
+export const buildAnalyticsHtml = (blocks: DashboardHtmlBlocks): string => {
+  const {
+    entries,
+    watch = 'null',
+    funnel = 'null',
+    modals = 'null',
+    stats = 'null',
+  } = blocks;
+  return `${ANALYTICS_DASHBOARD_HEAD}\n${entries}\n${WATCH_DB_MID}\n${watch}\n${FUNNEL_DB_MID}\n${funnel}\n${MODAL_DB_MID}\n${modals}\n${STATS_DB_MID}\n${stats}\n${ANALYTICS_DASHBOARD_TAIL}`;
+};
 
 /**
  * Convenience wrapper for an empty-history dashboard — used by tests and by
  * dashboardRender.ts's renderDashboard() when there are no records at all.
  */
-export const buildEmptyAnalyticsHtml = (): string => buildAnalyticsHtml('[]');
+export const buildEmptyAnalyticsHtml = (): string =>
+  buildAnalyticsHtml({ entries: '[]' });
