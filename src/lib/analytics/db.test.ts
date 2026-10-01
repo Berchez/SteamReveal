@@ -2894,14 +2894,14 @@ describe('dashboard fast path (aggregates + capped history)', () => {
           {
             total: 6231,
             unique_profiles: 6000,
-            unique_friends: 9000,
-            total_friends: 84000,
             private_lists: 10,
             gc_matches: 20,
             avg_duration_ms: 1500,
           },
         ],
       },
+      // friends totals (dedicated single-scan statement, same snapshot)
+      { rows: [{ total_friends: 84000, unique_friends: 9000 }] },
       // timestamps
       { rows: [{ searched_at: '2026-09-30T00:00:13.840Z' }] },
       // locale / browser / device / country maps
@@ -2926,10 +2926,13 @@ describe('dashboard fast path (aggregates + capped history)', () => {
           },
         ],
       },
-      // games by volume
-      { rows: [{ name: 'Counter-Strike 2', total_hours: 50000, profiles: 2000 }] },
-      // games by engagement
-      { rows: [{ name: 'Dota 2', total_hours: 8000, profiles: 100 }] },
+      // games (single-scan union of volume + engagement top-20s)
+      {
+        rows: [
+          { name: 'Counter-Strike 2', total_hours: 50000, profile_count: 2000 },
+          { name: 'Dota 2', total_hours: 8000, profile_count: 100 },
+        ],
+      },
       // game totals
       { rows: [{ total: 6231, cs: 100 }] },
       // locations (COUNT alias is `n`, like every aggregate above)
@@ -3038,9 +3041,11 @@ describe('dashboard fast path (aggregates + capped history)', () => {
   it('getDashboardStats degrades an empty database to zeros (not null)', async () => {
     // Thirteen empty row-sets (one per batched statement): SUMs come back
     // NULL, COUNTs 0 — all coalesce to 0 and the shape stays complete.
+    // (COUNT without GROUP BY always yields one row, so the friends-agg
+    // leg is [{}] too, not [].)
     mockBatch.mockResolvedValue([
       { rows: [{}] },
-      { rows: [] },
+      { rows: [{}] },
       { rows: [] },
       { rows: [] },
       { rows: [] },
@@ -3071,7 +3076,7 @@ describe('dashboard fast path (aggregates + capped history)', () => {
     await expect(getDashboardStats()).rejects.toThrow(/db:migrate/);
   });
 
-  it('getDashboardStats memoizes the snapshot for 60s (one batch per TTL window)', async () => {
+  it('getDashboardStats memoizes the snapshot for 5min (one batch per TTL window)', async () => {
     batchStatsRows();
     const { getDashboardStats } = require('./db');
 
@@ -3091,7 +3096,7 @@ describe('dashboard fast path (aggregates + capped history)', () => {
 
     const nowSpy = jest
       .spyOn(Date, 'now')
-      .mockReturnValue(Date.now() + 61_000);
+      .mockReturnValue(Date.now() + 301_000);
     try {
       await getDashboardStats();
     } finally {
@@ -3120,6 +3125,31 @@ describe('dashboard fast path (aggregates + capped history)', () => {
     const { getDashboardStats } = require('./db');
 
     await expect(getDashboardStats()).rejects.toThrow(/db:migrate/);
+    const stats = await getDashboardStats();
+
+    expect(mockBatch).toHaveBeenCalledTimes(2);
+    expect(stats.summary.totalSearches).toBe(6231);
+  });
+
+  it('releases a hung stats read after the driver timeout (no forever-null instance)', async () => {
+    // A driver that never settles must not pin dashboardStatsInflight
+    // forever: the backstop rejects, clears the inflight, and the next
+    // load starts a fresh batch (failures are never cached).
+    mockBatch.mockReturnValue(new Promise(() => {}));
+    const { getDashboardStats, DASHBOARD_STATS_DRIVER_TIMEOUT_MS } =
+      require('./db');
+
+    jest.useFakeTimers();
+    try {
+      const pending = getDashboardStats();
+      const assertion = expect(pending).rejects.toThrow(/timed out/);
+      await jest.advanceTimersByTimeAsync(DASHBOARD_STATS_DRIVER_TIMEOUT_MS);
+      await assertion;
+    } finally {
+      jest.useRealTimers();
+    }
+
+    batchStatsRows();
     const stats = await getDashboardStats();
 
     expect(mockBatch).toHaveBeenCalledTimes(2);

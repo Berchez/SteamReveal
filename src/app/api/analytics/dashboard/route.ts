@@ -15,6 +15,7 @@ import {
   readModalStatsIsolated,
 } from '@/lib/analytics/db';
 import { renderDashboard } from '@/lib/analytics/dashboardRender';
+import { STATS_READ_TIMEOUT_MS } from './dashboardStatsConfig';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 30;
@@ -35,22 +36,10 @@ const dashboardRateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_
 const ADDITIVE_READ_TIMEOUT_MS = 4_000;
 
 /**
- * Separate, larger budget for the search-stats half. Unlike Watch/funnel/
- * modals (small tables, additive panels), the stats read scans the three
- * big child tables (friends/games/locations grow ~15/40/1 rows per search)
- * and feeds most panels on the page — it is primary content wearing a
- * fail-open coat: a throw or a timeout still degrades to the explicit
- * unavailable panels instead of 500ing, but the budget gives it room to
- * finish as the tables grow.
- *
- * Deliberately 8s, not higher: without an explicit `maxDuration` export
- * the platform may cap the function below a longer budget (Hobby-class
- * ceilings), which would 504 the WHOLE page before the fail-open could
- * fire — the exact outcome this timeout exists to prevent. Measured ~2.6s
- * on ~360k child rows, so 8s holds ~3x headroom; revisit (higher cap with
- * maxDuration, or TTL memo) if p99 approaches this ceiling.
+ * Search-stats budget (STATS_READ_TIMEOUT_MS) lives in
+ * ./dashboardStatsConfig — the rationale and the maxDuration invariant
+ * live with it. Consumed below in the stats withTimeout.
  */
-const STATS_READ_TIMEOUT_MS = 8_000;
 
 /**
  * Parses ?limit= into a clamped history window. Garbage in → default out
@@ -79,9 +68,11 @@ const parseHistoryLimit = (params: URLSearchParams): number => {
  * search-stats section via getDashboardStats, which carries its own larger
  * timeout because it feeds most panels — see STATS_READ_TIMEOUT_MS).
  *
- * The Watch, funnel, modal AND search-stats halves are fail-open (error
- * AND latency): a throw or a timeout degrades that half to null instead
- * of 500ing/delaying the primary searches page.
+ * The Watch, funnel, modal AND search-stats halves are fail-open on
+ * error AND latency: a throw or a timeout degrades that half to null
+ * instead of 500ing. (Latency fail-open saves the status code, not the
+ * TTFB — allSettled still waits out the slowest budget. See the
+ * STATS_READ_TIMEOUT_MS note above.)
  *
  * This replaces the old local analytics.html file, which only lived on the
  * machine running the proxy. The markup/styling/JS shell is
@@ -105,6 +96,17 @@ const parseHistoryLimit = (params: URLSearchParams): number => {
  */
 
 export const revalidate = 0;
+
+// The stats half may run up to STATS_READ_TIMEOUT_MS (25s); the function
+// ceiling must outlive it or the platform 504s the whole page before the
+// fail-open can degrade stats to null. 60s is within every plan's ceiling
+// (limits: https://vercel.com/docs/functions/limitations) and pins this
+// route well below the platform defaults, so one slow Turso window can't
+// burn minutes of compute per load. Ignored outside Vercel (plain Node
+// has no function ceiling). No vercel.json functions override exists for
+// this path — if one is ever added, it takes precedence over this literal
+// (Vercel precedence order).
+export const maxDuration = 60;
 
 // Remote Turso URLs (libsql://, https://) use @libsql/client's pure-JS hrana
 // transport — no native binary is loaded on this path. It still assumes the

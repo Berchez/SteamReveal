@@ -1,0 +1,91 @@
+-- =====================================================================
+-- Turso (SQLite) schema — dashboard stats read-path indexes.
+-- Migration: 019_dashboard_stats_indexes.sql
+--
+-- Idempotent twice over: CREATE INDEX IF NOT EXISTS is a safe no-op on
+-- re-run, AND scripts/migrate-db.ts tracks applied files in _migrations
+-- and never replays them. Apply with `pnpm run db:migrate` (first deploy
+-- step, same contract as every migration here, off-peak: CREATE INDEX
+-- takes a write lock while it builds on large tables).
+-- NEVER RENAME this file after it has been applied anywhere: the runner
+-- keys on filename (real incident with 007, applied under another name
+-- and then renamed).
+--
+-- Design notes:
+-- - GET /api/analytics/dashboard times out in production
+--   ("search stats dashboard timed out after 8000ms") while history still
+--   renders. readDashboardStats() in src/lib/analytics/db.ts runs its
+--   batch in one snapshot, the friends and games legs dominate (friends
+--   grows ~15 rows/search, games_snapshot ~40 rows/search).
+-- - idx_friends_steam_id is composite (steam_id, search_id): the summary
+--   friends aggregate (COUNT DISTINCT steam_id with an EXISTS guard on
+--   search_id) runs as a covering-index scan, and the top-friends
+--   GROUP BY steam_id streams in index order (no sort). The top-friends
+--   nickname/gc_name/country_code bare columns still resolve via rowid —
+--   the index does NOT cover those, it only spares the grouping + filter.
+-- - idx_games_snapshot_name is covering (name, search_id, playtime_hours):
+--   the single GROUP BY name aggregation (volume + engagement tops from
+--   one scan via ROW_NUMBER) is written as a JOIN against profiles so the
+--   planner streams this index in name order with PK probes into profiles
+--   (verified with EXPLAIN QUERY PLAN on a representative dataset) instead
+--   of probing games per profile and sorting into groups in a temp b-tree.
+--   An IN-filtered formulation does NOT use this index — it prefers the
+--   pre-existing idx_games_snapshot_search_id — so the JOIN shape is
+--   load-bearing, not stylistic.
+-- - idx_searches_searched_at serves the unbounded timestamps ORDER BY and
+--   the cheater-rows ORDER BY. Marginal by itself (searches is the smallest
+--   table, ~1 row/search) — it is hygiene for the sort, not the fix.
+--   There is no such index in 001 (only the child-table search_id indexes
+--   and PKs), so this is not a duplicate.
+-- - Write cost is real: recordSearch inserts up to 1000 friends and 1000
+--   games per search, each now maintaining one more b-tree (games names
+--   are also duplicated in the covering index). Accepted: analytics writes
+--   are fire-and-forget off the search hot path, while the dashboard read
+--   was timing out.
+-- - DEPLOY ORDER: additive indexes only — code runs identically with or
+--   without them (slower without). No query depends on the index existing.
+--
+-- - DEPLOY CHECKLIST (owner runs these against production in order):
+--   1. Off-peak window: CREATE INDEX holds a write lock while it builds
+--      on friends/games_snapshot (hundreds of thousands of rows).
+--      Analytics writes are best-effort fire-and-forget, but schedule
+--      away from peak search traffic anyway.
+--   2. Pre-check for a same-name hotfix index (a hand-created index from
+--      incident triage would make IF NOT EXISTS silently keep the wrong
+--      definition):
+--        SELECT name, sql FROM sqlite_master
+--        WHERE type = 'index'
+--          AND name IN ('idx_searches_searched_at',
+--                       'idx_friends_steam_id',
+--                       'idx_games_snapshot_name');
+--      Any row back must be dropped by hand (or the migration renamed)
+--      before proceeding — never rename this file after it applied once.
+--   3. `pnpm run db:migrate` FIRST, then deploy the code (code-first is
+--      safe too — queries run unindexed — but migrate-first means the
+--      first post-deploy dashboard hit already uses the indexes).
+--   4. Post-check on a production copy: EXPLAIN QUERY PLAN of the friends
+--      totals and game_agg legs must show the new indexes (covering scan
+--      for friends-totals, covering scan + no GROUP BY sort for games);
+--      record one before/after timing pair for the PR.
+-- =====================================================================
+
+CREATE INDEX IF NOT EXISTS idx_searches_searched_at ON searches(searched_at);
+
+CREATE INDEX IF NOT EXISTS idx_friends_steam_id ON friends(steam_id, search_id);
+
+CREATE INDEX IF NOT EXISTS idx_games_snapshot_name ON games_snapshot(name, search_id, playtime_hours);
+
+-- =====================================================================
+-- ROLLBACK (manual only — READ THIS BEFORE COPYING ANYTHING OUT)
+--
+-- The migrate runner (scripts/migrate-db.ts) executes EVERY file matching
+-- NNN_*.sql as a FORWARD migration, so a down script must NEVER live in a
+-- separate file in this directory: it would be applied as a forward
+-- migration and DROP THE INDEXES. The rollback lives here, commented out,
+-- as documentation for a human running it by hand (sqlite3 / Turso shell)
+--
+--   DROP INDEX IF EXISTS idx_searches_searched_at
+--   DROP INDEX IF EXISTS idx_friends_steam_id
+--   DROP INDEX IF EXISTS idx_games_snapshot_name
+--   DELETE FROM _migrations WHERE filename = '019_dashboard_stats_indexes.sql'
+-- =====================================================================

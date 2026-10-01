@@ -101,6 +101,11 @@ const MODAL_EVENTS_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const DASHBOARD_STATS_INDEXES_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '019_dashboard_stats_indexes.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -323,6 +328,15 @@ describe('analytics db integration against real libSQL', () => {
     // 018 carries modal_events (SponsorMe / SupportMe / login-prompt
     // engagement) — last in filename order, like production applies it.
     for (const statement of splitSqlStatements(MODAL_EVENTS_MIGRATION_SQL)) {
+      await db.executeForTests(statement);
+    }
+    // 019 carries the dashboard-stats read-path indexes (searches.searched_at,
+    // friends.steam_id, games_snapshot.name). Additive only — queries run
+    // identically without them — applied here so a syntax slip fails here,
+    // not on Turso.
+    for (const statement of splitSqlStatements(
+      DASHBOARD_STATS_INDEXES_MIGRATION_SQL,
+    )) {
       await db.executeForTests(statement);
     }
   });
@@ -2074,6 +2088,17 @@ describe('analytics db integration against real libSQL', () => {
   });
 
   describe('dashboard fast path (aggregates + capped history)', () => {
+    it('019 migration created the dashboard-stats read-path indexes', async () => {
+      const found = await db.executeForTests(
+        "SELECT name FROM sqlite_master WHERE type = 'index' AND name IN ('idx_searches_searched_at', 'idx_friends_steam_id', 'idx_games_snapshot_name') ORDER BY name",
+      );
+      expect(found.rows.map((row) => row.name).sort()).toEqual([
+        'idx_friends_steam_id',
+        'idx_games_snapshot_name',
+        'idx_searches_searched_at',
+      ]);
+    });
+
     it('getDashboardStats matches getSearchRecords-derived aggregates on real SQL', async () => {
       // Three searches exercising every normalization seam: lowercase
       // country (canonicalized), missing meta (unknown buckets), shared
@@ -2302,6 +2327,101 @@ describe('analytics db integration against real libSQL', () => {
         totalHours: 95,
         profilesCount: 1,
       });
+    });
+
+    it('matches the old two-query top-20 union at the boundary (ties, divergence, orphans)', async () => {
+      // 35 games where the volume and engagement top-20s genuinely diverge
+      // past the LIMIT cutoff (the small-shapes tests above never cut
+      // anything): E-games top both charts, V-games fill volume-only slots,
+      // S-games fill engagement-only slots, all S-games tie at 30h (name
+      // tiebreak decides), and a Ghost game lives only on an orphan search
+      // (profiles-less — must never appear). The new single-scan CTE must
+      // return exactly the union of the two retired queries, run here as
+      // the golden reference on the same snapshot.
+      const steamId = (i: number): string => `7656119801000${1000 + i}`;
+      const volGames = Array.from({ length: 20 }, (_, i) => ({
+        name: `BV${String(i + 1).padStart(2, '0')}`,
+        playtimeHours: 10,
+      }));
+      for (let s = 0; s < 5; s += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await db.recordSearch({
+          profile: { steamId: steamId(s), nickname: `BV${s}` },
+          friends: [],
+          gamesSnapshot: volGames,
+        });
+      }
+      for (let e = 0; e < 5; e += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await db.recordSearch({
+          profile: { steamId: steamId(10 + e), nickname: `BE${e}` },
+          friends: [],
+          gamesSnapshot: [
+            { name: `BE0${e + 1}`, playtimeHours: 200 },
+          ],
+        });
+      }
+      for (let t = 0; t < 10; t += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await db.recordSearch({
+          profile: { steamId: steamId(20 + t), nickname: `BS${t}` },
+          friends: [],
+          gamesSnapshot: [{ name: `BS${t + 1}`, playtimeHours: 30 }],
+        });
+      }
+      await db.executeForTests(
+        "INSERT INTO searches (id, searched_at) VALUES ('orphan-games-search', '2026-09-30T00:00:00.000Z')",
+      );
+      await db.executeForTests(
+        "INSERT INTO games_snapshot (search_id, name, playtime_hours) VALUES ('orphan-games-search', 'Ghost Game', 999)",
+      );
+
+      const stats = await db.getDashboardStats();
+
+      // Golden reference: the two retired queries, verbatim, same snapshot.
+      const runOldTop = async (orderBy: string) =>
+        db.executeForTests(
+          `SELECT name, SUM(playtime_hours) AS total_hours, COUNT(DISTINCT search_id) AS profiles FROM games_snapshot WHERE search_id IN (SELECT search_id FROM profiles) GROUP BY name ORDER BY ${orderBy} LIMIT 20`,
+        );
+      const oldVolume = await runOldTop('total_hours DESC, name ASC');
+      const oldEngagement = await runOldTop(
+        'total_hours * 1.0 / COUNT(DISTINCT search_id) DESC, name ASC',
+      );
+      const golden = new Map<string, { totalHours: number; profiles: number }>();
+      for (const row of oldVolume.rows.concat(oldEngagement.rows)) {
+        const r = row as Record<string, unknown>;
+        if (typeof r.name === 'string' && !golden.has(r.name)) {
+          golden.set(r.name, {
+            totalHours: Number(r.total_hours),
+            profiles: Number(r.profiles),
+          });
+        }
+      }
+
+      // Volume top-20 is E×5 + BV01..BV15 (20 tied at 50h → name cut);
+      // engagement top-20 is E×5 + BS×10 + BV01..BV05 (20 tied at 10);
+      // union is 5 + 15 + 10 = 30.
+      expect(golden.size).toBe(30);
+      expect(stats.games).toHaveLength(30);
+      expect(
+        new Map(
+          stats.games.map((g) => [g.name, { totalHours: g.totalHours, profiles: g.profilesCount }]),
+        ),
+      ).toEqual(
+        new Map(
+          Array.from(golden.entries()).map(([name, v]) => [
+            name,
+            { totalHours: v.totalHours, profiles: v.profiles },
+          ]),
+        ),
+      );
+      // Tie membership is exact (not just the count): BV15 makes the volume
+      // cut on name order, BV16 does not.
+      expect(stats.games.map((g) => g.name)).toContain('BV15');
+      expect(stats.games.map((g) => g.name)).not.toContain('BV16');
+      // The orphan's 999h would top every chart — its absence proves the
+      // JOIN excludes profiles-less searches like the old IN filter did.
+      expect(stats.games.map((g) => g.name)).not.toContain('Ghost Game');
     });
 
     it('drops profile-less searches everywhere (never blank lines, never ghost buckets)', async () => {

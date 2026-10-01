@@ -54,6 +54,7 @@ import type {
   PopularProfile,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
+import withTimeout from '../withTimeout';
 import { normalizeFriendsVisibility } from './friendsVisibility';
 import { normalizeCountryCode } from '../countryFlag';
 import isWithinCooldownWindow from '../watch/cooldown';
@@ -3531,18 +3532,42 @@ const toDashboardCount = (value: unknown): number => {
  * is missing — the dashboard route fail-opens the whole stats half to
  * null (withSchemaHint rewrites to the db:migrate hint).
  *
- * 60s cross-request memo + single-flight (same per-instance pattern as
+ * 5min cross-request memo + single-flight (same per-instance pattern as
  * getSteamIdentity's avatar cache and the rate limiter: NOT shared across
  * serverless instances — accepted, this page has one reader). Without it
  * every F5 during a slow window stacks another ~1M-row scan on Turso
  * (Promise.race frees the response, never the driver query), and every
- * load re-reads friends 3x + games 2x for byte-identical aggregates.
+ * load re-reads friends + games for byte-identical aggregates.
  * Failures are never cached — a down DB must retry on the next load, not
  * serve "unavailable" for a full TTL. The history half stays live (it IS
  * the primary content and is already row-capped); only these all-time
  * aggregates memoize, and the page's generatedAt exposes the staleness.
+ *
+ * TTL is 5min (not 60s): the stats batch is the heaviest read on Turso
+ * (production timed out at 8s before indexes + single-scan rewrites), and
+ * a short TTL re-ran it on every other load. Owner-only page — 5min
+ * staleness is disclosed via generatedAt.
  */
-const DASHBOARD_STATS_TTL_MS = 60_000;
+const DASHBOARD_STATS_TTL_MS = 300_000;
+
+/**
+ * Driver-level backstop for the stats batch (test seam — the route test
+ * pins the user-facing 25s budget separately). The route's withTimeout
+ * only frees the response; it never settles the shared inflight promise,
+ * so a driver that hung forever would pin dashboardStatsInflight and serve
+ * null until the instance recycled. This ceiling guarantees the inflight
+ * always settles (failures are never cached — the next load retries).
+ * Deliberately above the route's 25s budget: the route fail-open must fire
+ * first; this only bounds the hung-driver tail. Under maxDuration = 60 the
+ * function may die first — then the recycle clears the memo anyway.
+ *
+ * Known narrow window (accepted): firing only frees our wait, it does not
+ * cancel the driver query — the next load starts a second heavy batch
+ * while the first may still run on Turso. In practice the window opens
+ * past 55s and the function dies at 60s, so at most one extra batch is
+ * ever stacked; without the backstop the instance served null forever.
+ */
+export const DASHBOARD_STATS_DRIVER_TIMEOUT_MS = 55_000;
 let dashboardStatsCache: {
   stats: DashboardStats;
   expiresAt: number;
@@ -3559,14 +3584,14 @@ const readDashboardStats = async (): Promise<DashboardStats> => {
   const db = await getClient();
   const [
     summaryRows,
+    friendsAggRows,
     timestampRows,
     localeRows,
     browserRows,
     deviceRows,
     countryRows,
     cheaterRows,
-    gameVolumeRows,
-    gameEngagementRows,
+    gameRows,
     gameTotalsRows,
     locationRows,
     topProfileRows,
@@ -3577,21 +3602,25 @@ const readDashboardStats = async (): Promise<DashboardStats> => {
         // INNER JOIN profiles (not LEFT): a profile-less search is corrupt
         // input — getSearchRecords drops those rows, so the totals must
         // not count them either, or "total" and the history note diverge.
-        // Same rule inside the friends subselects (EXISTS, not a bare
-        // table scan): otherwise uniqueFriends/totalFriends — and the
-        // avg-friends denominator built from them — mix populations.
         sql: `SELECT COUNT(*) AS total,
               COUNT(DISTINCT p.steam_id) AS unique_profiles,
-              (SELECT COUNT(DISTINCT f.steam_id) FROM friends f
-                WHERE EXISTS (SELECT 1 FROM profiles p2 WHERE p2.search_id = f.search_id)) AS unique_friends,
-              (SELECT COUNT(*) FROM friends f
-                WHERE EXISTS (SELECT 1 FROM profiles p2 WHERE p2.search_id = f.search_id)) AS total_friends,
               SUM(CASE WHEN m.friends_visibility = 'private' THEN 1 ELSE 0 END) AS private_lists,
               SUM(CASE WHEN p.gc_name IS NOT NULL AND p.gc_name != '' THEN 1 ELSE 0 END) AS gc_matches,
               AVG(p.duration_ms) AS avg_duration_ms
             FROM searches s
             JOIN profiles p ON p.search_id = s.id
             LEFT JOIN search_meta m ON m.search_id = s.id`,
+      },
+      {
+        // Dedicated friends-totals statement (same batch = same snapshot
+        // as the summary above): one scan computing COUNT(*) +
+        // COUNT(DISTINCT steam_id) over the profiled-friends population
+        // (EXISTS, not a bare table scan, so orphans never mix in).
+        // Served by idx_friends_steam_id.
+        sql: `SELECT COUNT(*) AS total_friends,
+                COUNT(DISTINCT steam_id) AS unique_friends
+              FROM friends
+              WHERE EXISTS (SELECT 1 FROM profiles p2 WHERE p2.search_id = friends.search_id)`,
       },
       // Driven by profiled searches (same population as the summary
       // total, not raw searches): a profile-less orphan must not appear
@@ -3663,23 +3692,34 @@ const readDashboardStats = async (): Promise<DashboardStats> => {
             ORDER BY s.searched_at ASC, s.id ASC`,
       },
       {
-        // Top 20 by volume (avgPerProfile's denominator is constant, so
-        // this IS the per-profile top 20). Name tiebreak: repeated loads
-        // must not reshuffle equal bars. Orphan searches (no profiles row)
-        // contribute no games, same as every other population here.
-        sql: `SELECT name, SUM(playtime_hours) AS total_hours,
-              COUNT(DISTINCT search_id) AS profiles
-            FROM games_snapshot WHERE search_id IN (SELECT search_id FROM profiles) GROUP BY name
-            ORDER BY total_hours DESC, name ASC LIMIT 20`,
-      },
-      {
-        // Top 20 by engagement (needs its own ordering — not derivable
-        // from the volume list). The client unions both lists, so both
-        // charts stay exact. Same orphan exclusion as the volume list.
-        sql: `SELECT name, SUM(playtime_hours) AS total_hours,
-              COUNT(DISTINCT search_id) AS profiles
-            FROM games_snapshot WHERE search_id IN (SELECT search_id FROM profiles) GROUP BY name
-            ORDER BY total_hours * 1.0 / COUNT(DISTINCT search_id) DESC, name ASC LIMIT 20`,
+        // Single GROUP BY scan serving BOTH game charts (previously two
+        // full scans of games_snapshot differing only in ORDER BY). The
+        // CTE aggregates once per name; ROW_NUMBER ranks by volume and by
+        // engagement with the same tiebreaks the two old queries used
+        // (total_hours DESC, name ASC / engagement DESC, name ASC), and the
+        // outer filter keeps the union of both top-20s (up to 40 rows) so
+        // the client re-sort + slice stays exact (the client sorts both
+        // charts itself — see dashboardTemplate.ts topGamesPerProfile /
+        // topGamesEngagement — so payload order is irrelevant, but name
+        // order keeps repeated loads byte-stable per repo convention).
+        // Orphan searches (no profiles row) contribute no games — the JOIN
+        // is 1:1 (profiles.search_id is the PK, no fan-out), so SUM and
+        // COUNT(DISTINCT) match the old IN-filtered aggregates exactly.
+        // JOIN (not IN) on purpose: it lets the planner stream the
+        // covering index idx_games_snapshot_name in name order with PK
+        // probes into profiles, instead of probing games per profile and
+        // sorting 250k rows into groups in a temp b-tree.
+        sql: `WITH game_agg AS (
+              SELECT g.name AS name, SUM(g.playtime_hours) AS total_hours,
+                COUNT(DISTINCT g.search_id) AS profile_count
+              FROM games_snapshot g JOIN profiles p ON p.search_id = g.search_id GROUP BY g.name
+            )
+            SELECT name, total_hours, profile_count FROM (
+              SELECT name, total_hours, profile_count,
+                ROW_NUMBER() OVER (ORDER BY total_hours DESC, name ASC) AS rn_vol,
+                ROW_NUMBER() OVER (ORDER BY total_hours * 1.0 / profile_count DESC, name ASC) AS rn_eng
+              FROM game_agg
+            ) WHERE rn_vol <= 20 OR rn_eng <= 20 ORDER BY name ASC`,
       },
       {
         sql: `SELECT COUNT(*) AS total,
@@ -3738,20 +3778,21 @@ const readDashboardStats = async (): Promise<DashboardStats> => {
     return map;
   };
 
-  // Union of the two server-side top-20 lists (by volume + by engagement),
-  // deduped by name: every game either chart can render is present, so the
-  // client-side re-sort + slice stays exact while the payload caps at 40.
-  const mergeGameRows = (
-    volumeRows: Array<Record<string, unknown>>,
-    engagementRows: Array<Record<string, unknown>>,
+  // Single-scan union of the volume + engagement top-20s (see the
+  // game_agg CTE above): every game either chart can render is present,
+  // so the client-side re-sort + slice stays exact while the payload caps
+  // at 40. Deduped by name defensively (the CTE already yields one row
+  // per name — GROUP BY — so this is belt-and-braces, not load-bearing).
+  const mapGameRows = (
+    rows: Array<Record<string, unknown>>,
   ): DashboardGameRow[] => {
     const byName = new Map<string, DashboardGameRow>();
-    volumeRows.concat(engagementRows).forEach((row) => {
+    rows.forEach((row) => {
       if (typeof row.name !== 'string' || byName.has(row.name)) return;
       byName.set(row.name, {
         name: row.name,
         totalHours: toDashboardCount(row.total_hours),
-        profilesCount: toDashboardCount(row.profiles),
+        profilesCount: toDashboardCount(row.profile_count),
       });
     });
     return Array.from(byName.values());
@@ -3759,6 +3800,8 @@ const readDashboardStats = async (): Promise<DashboardStats> => {
 
   const summary = summaryRows.rows[0] as Record<string, unknown>;
   const totalSearches = toDashboardCount(summary.total);
+  const friendsAgg =
+    (friendsAggRows.rows[0] as Record<string, unknown> | undefined) ?? {};
   const gameTotals = gameTotalsRows.rows[0] as Record<string, unknown>;
 
   const toTopEntry = (row: Record<string, unknown>): DashboardTopEntry => ({
@@ -3791,8 +3834,8 @@ const readDashboardStats = async (): Promise<DashboardStats> => {
     summary: {
       totalSearches,
       uniqueProfiles: toDashboardCount(summary.unique_profiles),
-      uniqueFriends: toDashboardCount(summary.unique_friends),
-      totalFriends: toDashboardCount(summary.total_friends),
+      uniqueFriends: toDashboardCount(friendsAgg.unique_friends),
+      totalFriends: toDashboardCount(friendsAgg.total_friends),
       privateListSearches: toDashboardCount(summary.private_lists),
       gcMatches: toDashboardCount(summary.gc_matches),
       avgDurationMs:
@@ -3808,10 +3851,7 @@ const readDashboardStats = async (): Promise<DashboardStats> => {
     deviceCounts: toCountMap(deviceRows),
     countryCounts: toCountMap(countryRows),
     cheaterRows: cheaterRowsOut,
-    games: mergeGameRows(
-      gameVolumeRows.rows as Array<Record<string, unknown>>,
-      gameEngagementRows.rows as Array<Record<string, unknown>>,
-    ),
+    games: mapGameRows(gameRows.rows as Array<Record<string, unknown>>),
     totalProfilesForGames: toDashboardCount(gameTotals.total),
     csActiveCount: toDashboardCount(gameTotals.cs),
     locations: (locationRows.rows as Array<Record<string, unknown>>).map(
@@ -3838,7 +3878,11 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
     return dashboardStatsCache.stats;
   }
   if (dashboardStatsInflight === null) {
-    dashboardStatsInflight = readDashboardStats().finally(() => {
+    dashboardStatsInflight = withTimeout(
+      readDashboardStats(),
+      'dashboard stats',
+      DASHBOARD_STATS_DRIVER_TIMEOUT_MS,
+    ).finally(() => {
       dashboardStatsInflight = null;
     });
   }

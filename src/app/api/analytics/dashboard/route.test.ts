@@ -2,7 +2,20 @@
  * @jest-environment node
  */
 
-import { GET } from './route';
+import { GET, maxDuration } from './route';
+import { STATS_READ_TIMEOUT_MS } from './dashboardStatsConfig';
+
+// Test-owned policy (not production config): how far below the function
+// ceiling the stats budget must stay for the fail-open to fire instead of
+// a platform 504.
+const STATS_TIMEOUT_SAFETY_MARGIN_MS = 10_000;
+
+// Real DAL constant (this file mocks '@/lib/analytics/db', so the mock
+// would hand back whatever the factory claims — requireActual reads the
+// value the production code actually enforces).
+const { DASHBOARD_STATS_DRIVER_TIMEOUT_MS } = jest.requireActual(
+  '@/lib/analytics/db',
+) as { DASHBOARD_STATS_DRIVER_TIMEOUT_MS: number };
 
 jest.mock('@/lib/analytics/db', () => ({
   DASHBOARD_HISTORY_LIMIT: 500,
@@ -518,13 +531,13 @@ describe('GET /api/analytics/dashboard', () => {
 
   it('still renders history when the stats read times out (fail-open on latency, not just errors)', async () => {
     process.env.ANALYTICS_DASHBOARD_PASSWORD = 'secret';
-    // Never settles: the 8s withTimeout budget (not a throw) must trip the
-    // same null-stats degradation as a rejection.
+    // Never settles: the withTimeout budget from dashboardStatsConfig (not
+    // a throw) must trip the same null-stats degradation as a rejection.
     getDashboardStats.mockReturnValue(new Promise(() => {}));
     jest.useFakeTimers();
     try {
       const pending = GET(makeRequest('/api/analytics/dashboard?key=secret'));
-      await jest.advanceTimersByTimeAsync(8000);
+      await jest.advanceTimersByTimeAsync(STATS_READ_TIMEOUT_MS);
       const res = await pending;
       const html = await res.text();
 
@@ -538,6 +551,26 @@ describe('GET /api/analytics/dashboard', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  it('keeps the stats budget a safety margin below maxDuration (fail-open needs a live function)', () => {
+    // maxDuration must stay a static literal (Next.js route config), so
+    // the coupling is asserted here instead of shared in code: if someone
+    // raises STATS_READ_TIMEOUT_MS near the ceiling, the timeout would
+    // never fire before the platform 504s the whole page.
+    expect(maxDuration * 1000 - STATS_READ_TIMEOUT_MS).toBeGreaterThanOrEqual(
+      STATS_TIMEOUT_SAFETY_MARGIN_MS,
+    );
+    // Full timeout ordering across the two layers: the route fail-open
+    // (25s) must fire first, the DAL hang backstop second, and both must
+    // fit inside the function ceiling. Reordering any of the three
+    // silently breaks the degradation chain, so it is pinned here.
+    expect(STATS_READ_TIMEOUT_MS).toBeLessThan(
+      DASHBOARD_STATS_DRIVER_TIMEOUT_MS,
+    );
+    expect(DASHBOARD_STATS_DRIVER_TIMEOUT_MS).toBeLessThan(
+      maxDuration * 1000,
+    );
   });
 
   it('sends anti-leak hardening headers on the 200 (bookmarkable ?key= must not escape)', async () => {
