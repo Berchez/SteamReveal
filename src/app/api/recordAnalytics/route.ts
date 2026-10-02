@@ -5,6 +5,7 @@ import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { recordSearch, consumeAntiLoopToken, hashAntiLoopToken } from '@/lib/analytics/db';
+import { isCrawlerUserAgent } from '@/lib/analytics/crawlerTraffic';
 import { enqueueWatchNotification } from '@/lib/analytics/watchNotify';
 import { parseRecordBody } from '@/app/api/analytics/input';
 import redactBodyForLog from '@/app/api/analytics/redactBody';
@@ -63,6 +64,20 @@ export async function POST(req: Request) {
       // Keep the same shape as the "no DATABASE_URL" skip below —
       // `id: null` so callers never mistake a skip for a real record id.
       return NextResponse.json({ id: null, skipped: true }, { status: 200 });
+    }
+
+    // Crawler exclusion BEFORE the limiter (same position as the owner
+    // skip above): link-preview bots (Facebook/Twitter/Slack/Discord
+    // unfurlers) and search-engine spiders sometimes replay the beacon,
+    // and their hits are not human searches — recording them pollutes the
+    // dashboard with phantom profiles. Denylist only (isCrawlerUserAgent):
+    // unknown/empty UAs still record, so curl, node smoke scripts and
+    // privacy-stripped browsers are unaffected. Same skip shape as the
+    // owner skip — without a record id the client can't attach
+    // cheater/backfill rows either, so nothing orphans. Deliberately
+    // silent (no log): crawler hits are routine internet background noise.
+    if (isCrawlerUserAgent(req.headers.get('user-agent'))) {
+      return NextResponse.json({ id: null, skipped: true, reason: 'bot' }, { status: 200 });
     }
 
     // Public endpoint (the client posts fire-and-forget), so cap writes per IP:

@@ -48,18 +48,22 @@ const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
 const makeRequest = (
   overrides: {
     skipHeader?: string | null;
+    userAgent?: string | null;
     jsonBody?: unknown;
     jsonError?: Error;
   } = {},
 ) => {
-  const { skipHeader = null, jsonBody = {}, jsonError } = overrides;
+  const { skipHeader = null, userAgent = null, jsonBody = {}, jsonError } = overrides;
   return {
     method: 'POST',
     url: 'http://localhost:3000/api/recordAnalytics',
     headers: {
-      get: jest.fn((name: string) =>
-        name.toLowerCase() === 'x-analytics-skip-password' ? skipHeader : null,
-      ),
+      get: jest.fn((name: string) => {
+        const lower = name.toLowerCase();
+        if (lower === 'x-analytics-skip-password') return skipHeader;
+        if (lower === 'user-agent') return userAgent;
+        return null;
+      }),
     },
     json: jsonError
       ? jest.fn(() => Promise.reject(jsonError))
@@ -107,6 +111,45 @@ describe('POST /api/recordAnalytics', () => {
     expect(res.status).toBe(200);
     expect(body).toEqual({ id: null, skipped: true });
     expect(recordSearch).not.toHaveBeenCalled();
+  });
+
+  it('skips crawler User-Agents without recording (bot traffic never pollutes the dashboard)', async () => {
+    // A shared-link fetcher replaying the beacon: skipped like the owner
+    // skip — and, like it, exempt from the rate limiter (bot hits must
+    // neither write rows nor burn limiter buckets).
+    const res = await POST(
+      makeRequest({
+        userAgent: 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+        jsonBody: { profile: { steamId: '76561198000000000' } },
+      }),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ id: null, skipped: true, reason: 'bot' });
+    expect(recordSearch).not.toHaveBeenCalled();
+    expect(enqueueWatchNotification).not.toHaveBeenCalled();
+    expect(__testIsRateLimited).not.toHaveBeenCalled();
+  });
+
+  it('records normally for browser and unknown User-Agents (denylist, never allowlist)', async () => {
+    recordSearch.mockResolvedValue({ id: 'human-id' });
+
+    for (const userAgent of [
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0',
+      'curl/8.0.1',
+      null,
+    ]) {
+      const res = await POST(
+        makeRequest({
+          userAgent,
+          jsonBody: { profile: { steamId: '76561198000000000' }, friends: [] },
+        }),
+      );
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ ok: true, id: 'human-id' });
+    }
+    expect(recordSearch).toHaveBeenCalledTimes(3);
   });
 
   it('rejects with 429 when the per-IP write rate limit is hit', async () => {
