@@ -25,6 +25,8 @@ describe('parseDeleteSearchesArgs', () => {
       'mobile',
       '--locale',
       'pt',
+      '--browser',
+      'en-US',
       '--limit',
       '50',
       '--expect',
@@ -39,6 +41,7 @@ describe('parseDeleteSearchesArgs', () => {
       country: 'BR',
       device: 'mobile',
       locale: 'pt',
+      browser: 'en-US',
       expect: 3,
       matchAll: false,
       withWatchEvents: true,
@@ -105,15 +108,17 @@ describe('buildSearchesWhere', () => {
       'br',
       '--device',
       'desktop',
+      '--browser',
+      'en-US',
     ]);
     expect(filters).not.toBeNull();
 
     const { where, args } = buildSearchesWhere(filters!);
 
     expect(where).toBe(
-      'WHERE p.steam_id = ? AND UPPER(m.requester_country) = ? AND m.device = ?',
+      'WHERE p.steam_id = ? AND UPPER(m.requester_country) = ? AND m.device = ? AND m.requester_browser_language = ?',
     );
-    expect(args).toEqual(['76561198000000000', 'BR', 'desktop']);
+    expect(args).toEqual(['76561198000000000', 'BR', 'desktop', 'en-US']);
   });
 
   it('emits no WHERE for --all (explicit full-table intent)', () => {

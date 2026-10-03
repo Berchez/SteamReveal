@@ -52,6 +52,7 @@ export interface DeleteSearchesFilters {
   country: string | null;
   device: string | null;
   locale: string | null;
+  browser: string | null;
   expect: number | null;
   matchAll: boolean;
   withWatchEvents: boolean;
@@ -65,6 +66,7 @@ const VALUE_FLAGS = new Set([
   '--country',
   '--device',
   '--locale',
+  '--browser',
   '--limit',
   '--expect',
 ]);
@@ -115,6 +117,14 @@ export const parseDeleteSearchesArgs = (argv: string[]): DeleteSearchesFilters |
         ? localeRaw
         : null;
   if (localeRaw !== null && locale === null) return null;
+  const browserRaw = get('--browser');
+  const browser =
+    browserRaw === null
+      ? null
+      : browserRaw.length > 0 && browserRaw.length <= 35
+        ? browserRaw
+        : null;
+  if (browserRaw !== null && browser === null) return null;
   const limit = parsePositiveInt(get('--limit'), DEFAULT_LIMIT);
   if (limit === null) return null;
   const expectRaw = get('--expect');
@@ -133,6 +143,7 @@ export const parseDeleteSearchesArgs = (argv: string[]): DeleteSearchesFilters |
     country,
     device,
     locale,
+    browser,
     expect,
     matchAll: argv.includes('--all'),
     withWatchEvents: argv.includes('--with-watch-events'),
@@ -145,7 +156,8 @@ export const parseDeleteSearchesArgs = (argv: string[]): DeleteSearchesFilters |
     filters.until === null &&
     filters.country === null &&
     filters.device === null &&
-    filters.locale === null
+    filters.locale === null &&
+    filters.browser === null
   ) {
     return null;
   }
@@ -216,6 +228,10 @@ export const buildSearchesWhere = (
     clauses.push('m.requester_locale = ?');
     args.push(filters.locale);
   }
+  if (filters.browser !== null) {
+    clauses.push('m.requester_browser_language = ?');
+    args.push(filters.browser);
+  }
   return {
     where: clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '',
     args,
@@ -233,7 +249,7 @@ export const buildPreviewSql = (where: string): string =>
   `SELECT s.id AS id, s.searched_at AS searched_at,
      p.steam_id AS steam_id, p.nickname AS nickname,
      m.requester_country AS country, m.device AS device,
-     m.requester_locale AS locale
+     m.requester_locale AS locale, m.requester_browser_language AS browser
    ${SEARCHES_FROM_SQL}
    ${where}
    ORDER BY s.searched_at DESC, s.id DESC LIMIT ?`;
@@ -282,7 +298,7 @@ export const chunkArray = <T>(items: T[], size: number): T[][] => {
 const printUsageAndExit = (code: number): never => {
   // eslint-disable-next-line no-console
   console.error(
-    'Usage: scripts/delete-searches.ts [--steam-id 17DIGITS] [--since ISO] [--until ISO] [--country CC] [--device mobile|desktop] [--locale LOC] [--limit N>=1] [--expect N] [--all] [--with-watch-events] [--confirm]\n' +
+    'Usage: scripts/delete-searches.ts [--steam-id 17DIGITS] [--since ISO] [--until ISO] [--country CC] [--device mobile|desktop] [--locale LOC] [--browser LANG] [--limit N>=1] [--expect N] [--all] [--with-watch-events] [--confirm]\n' +
       'Dates accept YYYY-MM-DD (whole UTC day) or full ISO datetimes (prefer Z). At least one predicate (or --all) is required; unknown flags and valueless flags are rejected. Without --confirm this only lists matches (dry-run).',
   );
   process.exit(code);
