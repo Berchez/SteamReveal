@@ -6,6 +6,7 @@ import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { attachFriendGcNames } from '@/lib/analytics/db';
 import { parseFriendGcNamesBody } from '@/app/api/analytics/input';
+import { malformedBodyResponse } from '@/app/api/analytics/malformedBody';
 import redactBodyForLog from '@/app/api/analytics/redactBody';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -64,7 +65,13 @@ export async function POST(req: Request) {
     }
 
     const { DATABASE_URL } = process.env;
-    body = await req.json();
+    // Isolated parse (see recordAnalytics): only req.json() failures take
+    // the benign-noise 400+warn.
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      return malformedBodyResponse('recordAnalyticsFriends', parseError);
+    }
 
     if (!DATABASE_URL) {
       // Analytics is best-effort: without Turso configured we just skip.
@@ -97,11 +104,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, updated }, { status: 200 });
   } catch (error) {
-    if (error instanceof SyntaxError) {
-      logRouteError('recordAnalyticsFriends', sanitizeError(error));
-      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
-    }
-
     logRouteError('recordAnalyticsFriends', sanitizeError(error), {
       body: redactBodyForLog(body),
     });

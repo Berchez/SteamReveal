@@ -58,7 +58,7 @@ import path from 'path';
 
 import { sanitizeError } from './sanitizeError';
 
-export type OpsLogLevel = 'info' | 'error';
+export type OpsLogLevel = 'info' | 'warn' | 'error';
 
 const ERRORS_FILE_NAME = 'errors.log';
 const ERRORS_TRIM_TRIGGER_BYTES = 256 * 1024;

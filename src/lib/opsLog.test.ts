@@ -259,6 +259,20 @@ describe('writeOpsLog file integration (tmpdir)', () => {
     expect(errorsContent).toContain('[probe-b] ERROR: scrape blew up');
   });
 
+  it('labels warn as WARN in the day file and keeps it out of errors.log', () => {
+    // The bot's transient-infra lane logs here: traceable on disk without
+    // tripping the error budget.
+    writeOpsLog('probe-warn', 'warn', 'turso blip');
+
+    const dayFiles = fs
+      .readdirSync(dir)
+      .filter((f) => f.startsWith('probe-warn-') && f.endsWith('.log'));
+    expect(dayFiles).toHaveLength(1);
+    const dayContent = fs.readFileSync(path.join(dir, dayFiles[0]), 'utf8');
+    expect(dayContent).toContain('[probe-warn] WARN: turso blip');
+    expect(fs.existsSync(path.join(dir, 'errors.log'))).toBe(false);
+  });
+
   it('keeps errors.log bounded: append-only until the byte trigger, then a tail trim', () => {
     // Stack-carrying lines (~2KB each): ~130 of them cross the 256KB
     // trigger — a line-count target would never bind here (the P1-2 bug:

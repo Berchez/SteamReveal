@@ -148,6 +148,23 @@ describe('analytics db DAL', () => {
     );
   });
 
+  it('hints db:migrate on "has no column named" drift (Sep 2026 incident shape)', async () => {
+    // The Sep 2026 prod drift ("table search_meta has no column named
+    // friends_visibility") matches NEITHER "no such table" NOR "no such
+    // column" — without this arm the raw SQLite error propagates with no
+    // pointer at the fix.
+    mockBatch.mockRejectedValueOnce(
+      new Error(
+        'SQLITE_UNKNOWN: SQLite error: table search_meta has no column named friends_visibility',
+      ),
+    );
+    const { recordSearch } = require('./db');
+
+    await expect(recordSearch(newSearchInput)).rejects.toThrow(
+      'Analytics database schema is missing — run `pnpm run db:migrate` first.',
+    );
+  });
+
   it('hints db:migrate when attachCheaterProbability hits a missing schema', async () => {
     mockExecute.mockResolvedValueOnce({ rows: [] }); // PRAGMA foreign_keys
     mockExecute.mockRejectedValueOnce(new Error('no such table: searches'));

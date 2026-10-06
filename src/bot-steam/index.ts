@@ -48,6 +48,7 @@ import {
 } from '../lib/analytics/db';
 import { isLocalLinkHostname, loadBotConfig } from './config';
 import type { WatchBotLogger } from './logger';
+import { logBotPassError } from './transientError';
 import { WatchBot } from './bot';
 import { reconcileFriendsList } from './reconcile';
 import { handleFriendRemoved } from './friendRemoved';
@@ -124,6 +125,15 @@ const main = (): void => {
       console.log(message);
       writeOpsLog('bot', 'info', message);
     },
+    warn: (message: string): void => {
+      // Transient/infra lane (Turso blip, Steam flap): console.warn + the
+      // day file with an explicit [WARN] level — writeOpsLog duplicates
+      // solely `error` into errors.log, so warn stays out of the error
+      // budget while remaining distinguishable from info on disk.
+      // eslint-disable-next-line no-console
+      console.warn(message);
+      writeOpsLog('bot', 'warn', message);
+    },
     error: (message: string): void => {
       // eslint-disable-next-line no-console
       console.error(message);
@@ -133,15 +143,14 @@ const main = (): void => {
 
   // Single-shape poll failure logging: every pollOnce .catch below shares
   // this form, so labels live in one place and cannot drift between lanes.
+  // Transient infra (Turso/network blip, Turso-side 5xx/S3, dropped Steam
+  // session) routes to warn via logBotPassError — the next tick self-heals
+  // (claim/retry + 30min stale requeue) — while logic failures stay error.
   // Console text is byte-identical to the inlined version it replaces.
   const logPollError =
     (label: string) =>
     (error: unknown): void => {
-      logger.error(
-        `[WatchBot] ${label}: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
+      logBotPassError(logger, label, error);
     };
 
   // Declared before the bot: onConnected (below) fires the first invite

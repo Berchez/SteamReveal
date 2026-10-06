@@ -1,7 +1,7 @@
 import { createClient } from '@libsql/client';
 import { loadEnv, requireRemoteTursoToken } from '../src/lib/env';
 import { sanitizeError } from '../src/lib/sanitizeError';
-import { isTransportFailure } from '../src/lib/analytics/db';
+import { isTransientInfraError } from '../src/lib/transientInfra';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { withTimeout, isTimeoutError } = require('./smoke-timeout.cjs');
@@ -37,11 +37,21 @@ const client = createClient({
 });
 
 // The core 1:1 search tables plus the login-funnel table (015), the popup
-// table (016) and the modal table (018): a deploy that skipped
-// `pnpm run db:migrate` must fail THIS gate loudly (the write routes would
-// degrade to per-request error logs otherwise), which is the exact
-// scenario db:smoke exists to catch pre-push. The watch tables (002-011)
-// predate this check and stay out of scope here.
+// table (016), the modal table (018) and the Ban Reveal tables (012 —
+// targets, subscriptions and reveals are created atomically in one file,
+// but asserting all three keeps a partial-DDL future honest): a deploy
+// that skipped `pnpm run db:migrate` must fail THIS gate loudly (the write
+// routes would degrade to per-request error logs otherwise), which is the
+// exact scenario db:smoke exists to catch pre-push. The watch tables
+// (002-011) predate this check and stay out of scope here — EXCEPT the two
+// columns a real incident proved drift-prone
+// (bot_heartbeat.disconnected_since was applied from dirty WIP without the
+// column in Sep 2026; prod then logged `has no column named
+// disconnected_since` every 60s while this gate stayed green): those get
+// explicit PRAGMA assertions derived from EXPECTED_COLUMNS below.
+// bot_heartbeat itself IS expected (so a missing table reads as a missing
+// table, not just a missing column); the rest of the watch tables stay out
+// of scope here.
 const EXPECTED_TABLES = [
   'searches',
   'profiles',
@@ -53,7 +63,29 @@ const EXPECTED_TABLES = [
   'login_funnel_events',
   'login_popup_events',
   'modal_events',
+  'ban_watch_targets',
+  'ban_watch_subscriptions',
+  'ban_watch_reveals',
+  'bot_heartbeat',
 ];
+
+// Columns whose absence produced the Sep 2026 prod incident while every
+// table existed: bot_heartbeat WITHOUT disconnected_since (011 dirty-WIP)
+// and search_meta WITHOUT friends_visibility (014 never applied). A
+// table-presence check alone stays green for both — assert the columns.
+// To add a column, append ONE entry here; the batch statements and the
+// result mapping below derive from this list.
+const EXPECTED_COLUMNS: Array<{ table: string; column: string }> = [
+  { table: 'bot_heartbeat', column: 'disconnected_since' },
+  { table: 'search_meta', column: 'friends_visibility' },
+];
+
+// Tables needing a PRAGMA probe, derived (deduped, order-stable) — table
+// names come from our own const above, never from user input, so inline
+// interpolation is safe.
+const PRAGMA_TABLES = Array.from(
+  new Set(EXPECTED_COLUMNS.map(({ table }) => table)),
+);
 
 (async () => {
   const t0 = Date.now();
@@ -62,7 +94,7 @@ const EXPECTED_TABLES = [
   // so a recordSearch landing mid-run can't make searches != joined children
   // for a few ms and trip a false FAIL (same pattern as the DAL's
   // getSearchRecords).
-  const [countRows, joinedProfilesRows, joinedMetaRows, tablesRows] =
+  const [countRows, joinedProfilesRows, joinedMetaRows, tablesRows, ...pragmaResults] =
     await withTimeout(
       client.batch([
         { sql: 'SELECT COUNT(*) AS n FROM searches' },
@@ -73,20 +105,40 @@ const EXPECTED_TABLES = [
           sql: 'SELECT COUNT(*) AS n FROM searches s JOIN search_meta m ON m.search_id = s.id',
         },
         { sql: "SELECT name FROM sqlite_master WHERE type = 'table'" },
+        ...PRAGMA_TABLES.map((table) => ({
+          sql: `PRAGMA table_info(${table})`,
+        })),
       ]),
       DB_SMOKE_TIMEOUT_MS,
       'turso db:smoke batch',
     );
 
-  const names = new Set(tablesRows.rows.map((r: { name: unknown }) => String(r.name)));
+  const names = new Set(
+    tablesRows.rows.map((r: { name: unknown }) => String(r.name)),
+  );
   const missingTables = EXPECTED_TABLES.filter((t) => !names.has(t));
+
+  const columnSets = new Map(
+    PRAGMA_TABLES.map((table, index) => [
+      table,
+      new Set(
+        pragmaResults[index].rows.map((r: { name: unknown }) =>
+          String(r.name),
+        ),
+      ),
+    ]),
+  );
+  const missingColumns = EXPECTED_COLUMNS.filter(
+    ({ table, column }) => !columnSets.get(table)?.has(column),
+  ).map(({ table, column }) => `${table}.${column}`);
 
   const checks = {
     searchesCount: Number(countRows.rows[0].n),
     joinedProfilesCount: Number(joinedProfilesRows.rows[0].n),
     joinedMetaCount: Number(joinedMetaRows.rows[0].n),
-    schemaOk: missingTables.length === 0,
+    schemaOk: missingTables.length === 0 && missingColumns.length === 0,
     missingTables,
+    missingColumns,
     latencyMs: Date.now() - t0,
   };
 
@@ -118,8 +170,10 @@ const EXPECTED_TABLES = [
   // and a reachable-Turso outage must not block pushes. A stall (timeout)
   // skips for the same reason: it proves nothing about schema/logic, and
   // hanging the push forever is the failure mode this guard exists to kill.
+  // The predicate is the extended transient-infra one (transport + Turso
+  // 5xx/S3), so a Turso-side outage skips exactly like a downed network.
   // Genuine schema/logic failures still FAIL loudly.
-  if (isTransportFailure(e) || isTimeoutError(e)) {
+  if (isTransientInfraError(e) || isTimeoutError(e)) {
     // eslint-disable-next-line no-console
     console.log('DB SMOKE SKIPPED: Turso unreachable or stalled (timeout/transport-level failure)');
     process.exit(0);

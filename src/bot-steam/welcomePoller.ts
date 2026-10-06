@@ -28,6 +28,7 @@
 import withTimeout from '../lib/withTimeout';
 
 import type { WatchBotLogger } from './logger';
+import { logBotPassError } from './transientError';
 import {
   sendWelcomeMessage,
   type WelcomeChatClient,
@@ -358,11 +359,7 @@ export const startWelcomePoller = (
   };
   const timer = setInterval(() => {
     pollOnce().catch((error: unknown) => {
-      logger.error(
-        `[WatchBot] welcome poll pass failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
+      logBotPassError(logger, 'welcome poll pass failed', error);
     });
   }, pollIntervalMs);
   if (typeof timer.unref === 'function') {

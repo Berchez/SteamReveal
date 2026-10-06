@@ -49,6 +49,7 @@ import { hashConfirmToken } from '../lib/analytics/db';
 import type { WatchAccount } from '../lib/analytics/types';
 
 import type { WatchBotLogger } from './logger';
+import { logBotPassError } from './transientError';
 import {
   sendConfirmMessage,
   type NotifyChatClient,
@@ -538,11 +539,7 @@ export const startConfirmResendPoller = (
   };
   const timer = setInterval(() => {
     pollOnce().catch((error: unknown) => {
-      logger.error(
-        `[WatchBot] resend poll pass failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
+      logBotPassError(logger, 'resend poll pass failed', error);
     });
   }, pollIntervalMs);
   if (typeof timer.unref === 'function') {

@@ -10,6 +10,7 @@ import { subscribeBanWatcher } from '@/lib/analytics/banWatchSubscribe';
 import { resolveWatchSession } from '@/lib/watch/session';
 import withTimeout from '@/lib/withTimeout';
 import { parseCheaterBody } from '@/app/api/analytics/input';
+import { malformedBodyResponse } from '@/app/api/analytics/malformedBody';
 import redactBodyForLog from '@/app/api/analytics/redactBody';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -68,7 +69,13 @@ export async function POST(req: Request) {
     }
 
     const { DATABASE_URL } = process.env;
-    body = await req.json();
+    // Isolated parse (see recordAnalytics): only req.json() failures take
+    // the benign-noise 400+warn.
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      return malformedBodyResponse('recordAnalytics/cheater', parseError);
+    }
 
     if (!DATABASE_URL) {
       return NextResponse.json({ skipped: true }, { status: 200 });
@@ -143,11 +150,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
-    if (error instanceof SyntaxError) {
-      logRouteError('recordAnalytics/cheater', sanitizeError(error));
-      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
-    }
-
     logRouteError('recordAnalytics/cheater', sanitizeError(error), {
       body: redactBodyForLog(body),
     });

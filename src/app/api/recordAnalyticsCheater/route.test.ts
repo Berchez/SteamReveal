@@ -175,6 +175,29 @@ describe('POST /api/recordAnalyticsCheater', () => {
     expect(res.status).toBe(400);
   });
 
+  it('returns 400 + warn on malformed JSON (isolated parse, never 500s on a bad body)', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const res = await POST({
+        method: 'POST',
+        headers: { get: jest.fn(() => null) },
+        json: jest.fn().mockRejectedValue(new SyntaxError('bad')),
+      } as any);
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body.error.code).toBe('INVALID_REQUEST');
+      expect(attachCheaterProbability).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'recordAnalytics/cheater - malformed JSON body',
+        ),
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
   it('subscribes the logged-in reviewer to ban alerts (server-side, at the write)', async () => {
     attachCheaterProbability.mockResolvedValue(true);
     resolveWatchSession.mockResolvedValue({

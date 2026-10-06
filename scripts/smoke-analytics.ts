@@ -1,7 +1,7 @@
 import { createClient } from '@libsql/client';
 import { loadEnv, requireRemoteTursoToken } from '../src/lib/env';
 import { sanitizeError } from '../src/lib/sanitizeError';
-import { isTransportFailure } from '../src/lib/analytics/db';
+import { isTransientInfraError } from '../src/lib/transientInfra';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const smokeTimeout = require('./smoke-timeout.cjs');
@@ -79,12 +79,13 @@ const tursoReachable = async (): Promise<boolean> => {
     );
     return true;
   } catch (error) {
-    // Only transport-level failures (Turso down) justify skipping; non-transport
-    // errors (auth, bad query) mean the DB is reachable but misconfigured —
-    // throw so the main body's catch treats it as FAIL (no isTransportFailure
+    // Only transient-infra failures (Turso down, Turso-side 5xx/S3, network
+    // blip) justify skipping; non-transient errors (auth, bad query) mean
+    // the DB is reachable but misconfigured —
+    // throw so the main body's catch treats it as FAIL (no isTransientInfraError
     // match) rather than silently skipping. A stall (timeout) is treated like
     // a transport failure: environment problem, skip, never hang the push.
-    if (isTransportFailure(error) || isTimeoutError(error)) return false;
+    if (isTransientInfraError(error) || isTimeoutError(error)) return false;
     throw error;
   }
 };
@@ -351,7 +352,7 @@ const MARKER = `smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     console.log('ANALYTICS SMOKE PASS');
     exitCode = 0;
   } catch (error) {
-    if (isTransportFailure(error) || isTimeoutError(error)) {
+    if (isTransientInfraError(error) || isTimeoutError(error)) {
       // eslint-disable-next-line no-console
       console.log(
         'ANALYTICS SMOKE SKIPPED: Turso/dev-server stalled or became unreachable mid-smoke (timeout/transport-level failure)',

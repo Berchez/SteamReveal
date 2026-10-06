@@ -26,6 +26,7 @@
 import withTimeout from '../lib/withTimeout';
 
 import type { WatchBotLogger } from './logger';
+import { logBotPassError } from './transientError';
 import {
   sendBanAlertMessage,
   type BanAlertChatClient,
@@ -351,11 +352,7 @@ export const startBanAlertPoller = (
   };
   const timer = setInterval(() => {
     pollOnce().catch((error: unknown) => {
-      logger.error(
-        `[WatchBot] ban-alert poll pass failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
+      logBotPassError(logger, 'ban-alert poll pass failed', error);
     });
   }, pollIntervalMs);
   if (typeof timer.unref === 'function') {

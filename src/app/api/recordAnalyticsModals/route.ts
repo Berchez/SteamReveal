@@ -6,6 +6,7 @@ import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { recordModalEvent } from '@/lib/analytics/db';
 import { parseModalEventBody } from '@/app/api/analytics/input';
+import { malformedBodyResponse } from '@/app/api/analytics/malformedBody';
 import redactBodyForLog from '@/app/api/analytics/redactBody';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -63,7 +64,13 @@ export async function POST(req: Request) {
     }
 
     const { DATABASE_URL } = process.env;
-    body = await req.json();
+    // Isolated parse (see recordAnalytics): only req.json() failures take
+    // the benign-noise 400+warn.
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      return malformedBodyResponse('recordAnalytics/modals', parseError);
+    }
 
     if (!DATABASE_URL) {
       return NextResponse.json({ skipped: true }, { status: 200 });
@@ -81,11 +88,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
-    if (error instanceof SyntaxError) {
-      logRouteError('recordAnalytics/modals', sanitizeError(error));
-      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
-    }
-
     logRouteError('recordAnalytics/modals', sanitizeError(error), {
       body: redactBodyForLog(body),
     });

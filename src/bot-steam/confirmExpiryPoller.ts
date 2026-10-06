@@ -39,6 +39,7 @@ import type {
 } from '../lib/analytics/types';
 
 import type { WatchBotLogger } from './logger';
+import { logBotPassError } from './transientError';
 import {
   sendConfirmExpiredMessage,
   type NotifyChatClient,
@@ -278,11 +279,7 @@ export const startConfirmExpiryPoller = (
   };
   const timer = setInterval(() => {
     pollOnce().catch((error: unknown) => {
-      logger.error(
-        `[WatchBot] expiry scan pass failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
+      logBotPassError(logger, 'expiry scan pass failed', error);
     });
   }, pollIntervalMs);
   if (typeof timer.unref === 'function') {

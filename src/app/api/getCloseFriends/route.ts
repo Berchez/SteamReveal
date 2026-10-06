@@ -8,6 +8,7 @@ import withTimeout, { SteamCallTimeoutError } from '@/lib/withTimeout';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import logRouteError from '@/lib/logRouteError';
 import isSteamResolveFormatError from '@/lib/isSteamResolveFormatError';
+import isSteamProfileNotFoundError from '@/lib/isSteamProfileNotFoundError';
 import isSteamUnauthorizedError from '@/lib/isSteamUnauthorizedError';
 
 export const revalidate = 0;
@@ -31,6 +32,49 @@ type UserFriend = {
   friendedTimestamp: number;
   relationship: string;
 };
+
+/**
+ * Typed failures from getCloseFriends so POST answers with the right status
+ * WITHOUT textual message matching (which once risked misblaming input for
+ * another profile's upstream failure): the origin classifies, POST renders.
+ * - 'target-not-found' (400): Steam has no record for the target id itself
+ *   (typo, stale link, deleted account). Thrown ONLY by the target's own
+ *   getUserFriends wrapper — per-friend lookups swallow their errors with
+ *   a warn inside getFriendsOfFriends and can never produce this.
+ * - 'summaries-unavailable' (503): Steam answered with zero resolvable
+ *   friend summaries (deleted accounts, a Steam data gap). 503 (not 200 [])
+ *   keeps the client's abort contract (visibility UNSET → NULL analytics,
+ *   no cheater score on an empty network, retryable) — a 200 [] would be
+ *   misread as "public but friendless". Conscious trade-off: a
+ *   deterministically all-deleted network 503s persistently instead of
+ *   ever recording a false 'empty'.
+ */
+class CloseFriendsLookupError extends Error {
+  readonly status: 400 | 503;
+
+  readonly code: 'INVALID_REQUEST' | 'FRIENDS_DATA_UNAVAILABLE';
+
+  readonly publicMessage: string;
+
+  constructor(
+    kind: 'target-not-found' | 'summaries-unavailable',
+    detail: string,
+    options?: ErrorOptions,
+  ) {
+    super(detail, options);
+    this.name = 'CloseFriendsLookupError';
+    if (kind === 'target-not-found') {
+      this.status = 400;
+      this.code = 'INVALID_REQUEST';
+      this.publicMessage = 'Invalid target.';
+    } else {
+      this.status = 503;
+      this.code = 'FRIENDS_DATA_UNAVAILABLE';
+      this.publicMessage =
+        'Friends data temporarily unavailable. Please try again.';
+    }
+  }
+}
 
 const getFriendsOfFriends = async (friendList: Array<UserFriend>) => {
   const friendsOfFriends: Array<UserFriend> = [];
@@ -69,8 +113,20 @@ const getCloseFriends = async (target: string) => {
     if (err instanceof SteamCallTimeoutError) {
       throw err;
     }
+    // Classify at the origin: a "no players found" here means the TARGET
+    // id has no Steam record (client input), so throw the typed error POST
+    // matches with instanceof. `cause` preserves the original type/stack
+    // for debuggability.
+    if (isSteamProfileNotFoundError(err)) {
+      throw new CloseFriendsLookupError(
+        'target-not-found',
+        'Target has no Steam record',
+        { cause: err },
+      );
+    }
     throw new Error(
       `GettingFriends: Error getting friends of target: ${target}. ${err}`,
+      { cause: err },
     );
   }
 
@@ -111,11 +167,29 @@ const getCloseFriends = async (target: string) => {
     return [];
   }
 
-  const summaries = await withTimeout(
-    steam.getUserSummary(steamIDs),
-    'getCloseFriends: steam.getUserSummary(closestFriends)',
-    STEAM_CALL_TIMEOUT_MS,
-  );
+  let summaries;
+  try {
+    summaries = await withTimeout(
+      steam.getUserSummary(steamIDs),
+      'getCloseFriends: steam.getUserSummary(closestFriends)',
+      STEAM_CALL_TIMEOUT_MS,
+    );
+  } catch (error) {
+    if (isSteamProfileNotFoundError(error)) {
+      // Steam answered with zero resolvable summaries for the whole batch
+      // (empty `players` array for every id — deleted accounts, a Steam
+      // data gap): the limit case of the tolerant-drop path below, which
+      // already returns fewer entries when only SOME summaries resolve.
+      // Abort with 503 (not 200 []) — see CloseFriendsLookupError, whose
+      // POST branch carries the warn for sustained degradations.
+      throw new CloseFriendsLookupError(
+        'summaries-unavailable',
+        `Steam returned no resolvable summaries for ${steamIDs.length} close friend(s) of ${target}.`,
+        { cause: error },
+      );
+    }
+    throw error;
+  }
   const summariesArray = Array.isArray(summaries) ? summaries : [summaries];
 
   // Only keep entries whose Steam summary actually resolved. A friend can
@@ -242,6 +316,32 @@ export async function POST(req: Request) {
     if (isSteamResolveFormatError(error)) {
       logRouteError('getCloseFriends', error, { target: req.url });
       return errorResponse('Invalid target format.', 400, 'INVALID_REQUEST');
+    }
+
+    // Specific before general: our own typed error carries a cause whose
+    // text the matchers below could also match.
+    if (error instanceof CloseFriendsLookupError) {
+      // Client input (400, target-not-found) vs upstream gap (503,
+      // summaries-unavailable): both warn, neither pages. For
+      // target-not-found the trace must identify the profile — the POST URL
+      // carries no identity, so log the body target (JSON-quoted to
+      // neutralize control chars, truncated). Reachable ONLY from the
+      // target's own wrapper (see the class docblock), so input is never
+      // misblamed for another profile's failure.
+      if (error.code === 'INVALID_REQUEST') {
+        const rawTarget =
+          body !== null && typeof body === 'object'
+            ? (body as { target?: unknown }).target
+            : undefined;
+        const targetForLog =
+          typeof rawTarget === 'string'
+            ? JSON.stringify(rawTarget.slice(0, 120))
+            : req.url;
+        console.warn(`getCloseFriends - ${error.message}: ${targetForLog}`);
+      } else {
+        console.warn(`getCloseFriends - ${error.message}`);
+      }
+      return errorResponse(error.publicMessage, error.status, error.code);
     }
 
     logRouteError('getCloseFriends', error, { body });

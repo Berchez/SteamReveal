@@ -29,6 +29,7 @@
  */
 
 import type { WatchBotLogger } from './logger';
+import { logBotPassError } from './transientError';
 
 export interface BanSweepTargetState {
   targetSteamId: string;
@@ -244,9 +245,12 @@ export const pollBanSweepOnce = async (
   try {
     targets = await dal.listDistinctBanTargets(batchLimit);
   } catch (error) {
-    // A dead DAL must not crash the interval driver: loud error, empty pass.
+    // A dead DAL must not crash the interval driver: empty pass. Missing
+    // schema (fresh DB without `pnpm run db:migrate`) stays ERROR-loud via
+    // logBotPassError's routing; a Turso/network blip degrades to warn —
+    // the next sweep retries.
+    logBotPassError(logger, 'ban sweep listing failed', error);
     const message = error instanceof Error ? error.message : String(error);
-    logger.error(`[WatchBot] ban sweep listing failed: ${message}`);
     report.errors.push({ targetSteamId: '', message });
     report.durationMs = Date.now() - startedAt;
     return report;
@@ -354,11 +358,7 @@ export const startBanSweeper = (
   };
   const timer = setInterval(() => {
     pollOnce().catch((error: unknown) => {
-      logger.error(
-        `[WatchBot] ban sweep pass failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
+      logBotPassError(logger, 'ban sweep pass failed', error);
     });
   }, sweepIntervalMs);
   if (typeof timer.unref === 'function') {

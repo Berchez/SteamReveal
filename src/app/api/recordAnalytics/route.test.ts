@@ -318,8 +318,39 @@ describe('POST /api/recordAnalytics', () => {
     expect(res.status).toBe(400);
   });
 
+  it('logs malformed JSON at warn, never error (probes stay out of errors.log)', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const res = await POST(
+        makeRequest({ jsonError: new SyntaxError('bad') }),
+      );
+      expect(res.status).toBe(400);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('malformed JSON body'),
+      );
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
   it('returns 500 when the Turso write fails', async () => {
     recordSearch.mockRejectedValue(new Error('db down'));
+    const res = await POST(
+      makeRequest({ jsonBody: { profile: { steamId: '76561198000000000' } } }),
+    );
+    expect(res.status).toBe(500);
+  });
+
+  it('still 500s when a SyntaxError comes from downstream, not the body (isolated parse)', async () => {
+    // Pins the P1-1 contract: only req.json() failures take the benign-noise
+    // 400+warn. A SyntaxError thrown by the DAL (or anything below the
+    // parse) is a genuine bug and must stay loud.
+    recordSearch.mockRejectedValue(
+      new SyntaxError('unexpected DAL JSON failure'),
+    );
     const res = await POST(
       makeRequest({ jsonBody: { profile: { steamId: '76561198000000000' } } }),
     );

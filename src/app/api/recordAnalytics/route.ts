@@ -8,6 +8,7 @@ import { recordSearch, consumeAntiLoopToken, hashAntiLoopToken } from '@/lib/ana
 import { isCrawlerUserAgent } from '@/lib/analytics/crawlerTraffic';
 import { enqueueWatchNotification } from '@/lib/analytics/watchNotify';
 import { parseRecordBody } from '@/app/api/analytics/input';
+import { malformedBodyResponse } from '@/app/api/analytics/malformedBody';
 import redactBodyForLog from '@/app/api/analytics/redactBody';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -87,7 +88,14 @@ export async function POST(req: Request) {
       return errorResponse('Too many requests.', 429, 'RATE_LIMITED');
     }
 
-    body = await req.json();
+    // Isolated parse: ONLY a req.json() failure maps to the benign-noise
+    // 400+warn. A SyntaxError from anywhere below (parser, DAL, downstream
+    // JSON handling) is a genuine bug and stays on the loud 500 path.
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      return malformedBodyResponse('recordAnalytics', parseError);
+    }
 
     // Parse the body first to get the steamId for anti-loop token validation
     const parsedInput = parseRecordBody(body);
@@ -173,11 +181,6 @@ export async function POST(req: Request) {
     // search later, via /api/recordAnalytics/cheater.
     return NextResponse.json({ ok: true, id: record.id }, { status: 200 });
   } catch (error) {
-    if (error instanceof SyntaxError) {
-      logRouteError('recordAnalytics', sanitizeError(error));
-      return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
-    }
-
     logRouteError('recordAnalytics', sanitizeError(error), {
       body: redactBodyForLog(body),
     });

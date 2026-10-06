@@ -54,6 +54,7 @@ import type {
   PopularProfile,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
+import { isTransportFailure } from '../transientInfra';
 import withTimeout from '../withTimeout';
 import { normalizeFriendsVisibility } from './friendsVisibility';
 import { normalizeCountryCode } from '../countryFlag';
@@ -130,23 +131,18 @@ const getClient = (): Promise<Client> => {
 // message that points at the fix, leaving every other error untouched.
 // ---------------------------------------------------------------------------
 
-const SCHEMA_MISSING_PATTERN = /no such (table|column)/i;
+const SCHEMA_MISSING_PATTERN = /no such (table|column)|has no column named/i;
 
 // A client that was created fine can still die later (idle timeout, network
-// blip, Turso closing a hrana session). These are the error shapes the driver
-// produces when that happens; anything matching invalidates the memoized
-// client so the next call rebuilds it instead of serving 500s from a dead
-// connection until the container recycles.
-const CONNECTION_FAILURE_PATTERN =
-  /(?:connection|socket|session is closed|ECONNRESET|ECONNREFUSED|network|fetch failed|timeout|timed out)/i;
-
-// Classifies an error as a transport/connectivity failure (as opposed to a
-// query/logic error). Exported so the smoke scripts (db-smoke, smoke-analytics)
-// can distinguish "Turso is unreachable right now" — an environment problem
-// that a pre-push hook should SKIP, not fail the push over — from a genuine
-// analytics regression, which must still FAIL.
-export const isTransportFailure = (error: unknown): boolean =>
-  error instanceof Error && CONNECTION_FAILURE_PATTERN.test(error.message);
+// blip, Turso closing a hrana session). The predicate lives in one place —
+// src/lib/transientInfra.ts (pure, no DAL import) — so the bot pollers and
+// the pre-push smoke gates share the vocabulary. This memo-drop
+// deliberately uses the NARROW predicate (dead connection only): on a
+// Turso-backend 5xx/S3 the connection is healthy and only the backend is
+// sick, so dropping the client would add reconnect churn (plus an unclosed
+// socket) on top of every failure during an outage. Re-exported below so
+// existing importers keep compiling with unchanged (narrow) semantics.
+export { isTransportFailure };
 
 const withSchemaHint = async <T>(operation: Promise<T>): Promise<T> => {
   try {
@@ -166,7 +162,15 @@ const withSchemaHint = async <T>(operation: Promise<T>): Promise<T> => {
       );
     }
     // If a transport failure is caught here, the memoized client is stale —
-    // null it so the next call reconnects. All operations on the memo share
+    // null it so the next call reconnects. Deliberately WITHOUT closing the
+    // discarded client: withSchemaHint only sees the failed operation, never
+    // which client it ran on, so a close could land on a freshly recreated
+    // healthy client that concurrent ops are using (close kills their
+    // in-flight queries, which then reset again — a cascade during exactly
+    // the outage the reset is meant to absorb). The discarded client is
+    // always a dead connection (narrow predicate above), whose socket
+    // errors out and frees itself; the pre-existing null-only behavior
+    // never produced a leak incident. All operations on the memo share
     // this catch, so a failure handled after a concurrent call already
     // re-created the memo can null a fresh healthy client too: worst case is
     // ONE wasted reconnect on the next call (self-healing, no data impact).

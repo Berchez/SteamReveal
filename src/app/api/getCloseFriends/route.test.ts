@@ -22,6 +22,18 @@ jest.mock('steamapi', () =>
 
 jest.mock('../../../lib/getSteamApiKey');
 
+// The route limiter is module-scoped (10/60s): without this mock every POST
+// in the file shares one bucket and adding a test can 429 a later one.
+// Same pattern as recordAnalytics/route.test.ts — default allow-all; the
+// dedicated rate-limit describe below re-requires the route with the real
+// limiter via resetModules + requireActual.
+jest.mock('../../../lib/rateLimit', () => ({
+  createRateLimiter: jest
+    .fn()
+    .mockReturnValue({ isRateLimited: jest.fn(() => false) }),
+  getRequestIp: jest.fn(() => 'test-ip'),
+}));
+
 const mockedGetSteamApiKey = jest.mocked(getSteamApiKey);
 
 mockedGetSteamApiKey.mockReturnValue('fake-steam-api-key');
@@ -112,11 +124,14 @@ describe('POST /api/getCloseFriends — empty friends list', () => {
     expect(mockGetUserSummary).not.toHaveBeenCalled();
   });
 
-  it('keeps the 500 for a non-empty list whose summaries all fail to resolve (partial-case regression)', async () => {
-    // Deliberate contrast with the test above: when the target HAS friends
-    // but Steam resolves none of their summaries, that is "unknown" — not
-    // "empty" — and must NOT be silently reclassified as []. Pinning the
-    // current 500 so a future refactor can't quietly mislabel it.
+  it('aborts a non-empty list whose summaries all fail to resolve with 503 + warn (never a false empty)', async () => {
+    // Upstream gap, not "no friends": when the target HAS friends but Steam
+    // resolves NONE of their summaries (`No players found` from
+    // getUserSummary), a 200 [] would be misread as "public but
+    // friendless" (visibilityFromCloseFriends maps [] → 'empty'), polluting
+    // analytics and scoring cheater over an empty network. The 503 keeps
+    // the client's existing abort contract (visibility unset → NULL, honest
+    // friendsLoadFailed toast, retryable) without paging as a 500 incident.
     mockGetUserFriends.mockImplementation((id: string) => {
       if (id === '76561198000000000') {
         return Promise.resolve([
@@ -131,11 +146,85 @@ describe('POST /api/getCloseFriends — empty friends list', () => {
     });
     mockGetUserSummary.mockRejectedValueOnce(new Error('No players found'));
 
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const res = await POST(makeRequest({ target: 'somevanityurl' }));
+      const data = await res.json();
+
+      expect(res.status).toBe(503);
+      expect(data.error.code).toBe('FRIENDS_DATA_UNAVAILABLE');
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('no resolvable summaries'),
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('maps a deleted/nonexistent target (getUserFriends throws No players found) to 400 + warn', async () => {
+    // Prod case 76561199084954124: resolve succeeds on the in-range id,
+    // then Steam has no record — classified AT THE ORIGIN (the target's
+    // own getUserFriends wrapper throws TargetNotFoundError), never by
+    // message text at the POST catch-all. Warn carries the target itself
+    // (the POST URL has no identity): if a Steam glitch ever returns this
+    // text for a VALID profile, the trace identifies it.
+    mockGetUserFriends.mockImplementation((id: string) => {
+      if (id === '76561198000000000') {
+        return Promise.reject(new Error('No players found'));
+      }
+      return Promise.resolve([]);
+    });
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const res = await POST(makeRequest({ target: '76561199084954124' }));
+      const data = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(data.error.code).toBe('INVALID_REQUEST');
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('76561199084954124'),
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('never blames the target for a friend-of-friend lookup failure (per-friend errors stay swallowed)', async () => {
+    // getFriendsOfFriends fans out over friends' own friend lists: a single
+    // friend's getUserFriends throwing 'No players found' must not surface
+    // as 400 "Invalid target" for the VALID target — the per-friend catch
+    // warns and that friend simply counts zero mutuals.
+    mockGetUserFriends.mockImplementation((id: string) => {
+      if (id === '76561198000000000') {
+        return Promise.resolve([
+          {
+            steamID: '76561198000000001',
+            friendedTimestamp: 1,
+            relationship: 'friend',
+          },
+          {
+            steamID: '76561198000000002',
+            friendedTimestamp: 1,
+            relationship: 'friend',
+          },
+        ]);
+      }
+      if (id === '76561198000000001') {
+        return Promise.reject(new Error('No players found'));
+      }
+      return Promise.resolve([]);
+    });
+    mockGetUserSummary.mockResolvedValue([
+      { steamID: '76561198000000001', nickname: 'Alice' },
+      { steamID: '76561198000000002', nickname: 'Bob' },
+    ]);
+
     const res = await POST(makeRequest({ target: 'somevanityurl' }));
     const data = await res.json();
 
-    expect(res.status).toBe(500);
-    expect(data.error.code).toBe('INTERNAL_ERROR');
+    expect(res.status).toBe(200);
+    expect(data.closeFriends).toHaveLength(2);
   });
 });
 

@@ -13,6 +13,7 @@
  */
 
 import type { WatchBotLogger } from './logger';
+import { logBotPassError } from './transientError';
 
 export interface StaleSweepDal {
   resetStaleClaims: (olderThanMinutes: number) => Promise<number>;
@@ -63,11 +64,7 @@ export const startStaleClaimSweeper = (
 
   const timer = setInterval(() => {
     sweepStaleClaimsOnce(options).catch((error: unknown) => {
-      logger.error(
-        `[WatchBot] stale sweep failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
+      logBotPassError(logger, 'stale sweep failed', error);
     });
   }, sweepIntervalMs);
   if (typeof timer.unref === 'function') {

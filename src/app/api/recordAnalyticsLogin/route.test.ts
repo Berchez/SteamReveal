@@ -111,6 +111,28 @@ describe('POST /api/recordAnalyticsLogin', () => {
     });
   });
 
+  it('returns 400 + warn on malformed JSON (isolated parse, never 500s on a bad body)', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const res = await POST({
+        method: 'POST',
+        headers: { get: jest.fn(() => null) },
+        json: jest.fn().mockRejectedValue(new SyntaxError('bad')),
+      } as any);
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body.error.code).toBe('INVALID_REQUEST');
+      expect(recordLoginFunnelEvent).not.toHaveBeenCalled();
+      expect(recordLoginPopupEvent).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('recordAnalytics/login - malformed JSON body'),
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
   it('rejects a forged login_completed (completions are server-side only)', async () => {
     const res = await POST(
       makeRequest({
