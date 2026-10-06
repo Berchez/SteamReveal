@@ -57,7 +57,7 @@
 --        WHERE type = 'index'
 --          AND name IN ('idx_searches_searched_at',
 --                       'idx_friends_steam_id',
---                       'idx_games_snapshot_name');
+--                       'idx_games_snapshot_name')
 --      Any row back must be dropped by hand (or the migration renamed)
 --      before proceeding — never rename this file after it applied once.
 --   3. `pnpm run db:migrate` FIRST, then deploy the code (code-first is

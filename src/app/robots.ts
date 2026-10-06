@@ -17,6 +17,11 @@ import { SITE_BASE_URL } from '@/lib/seo/playerSitemap';
  * Honest limits: robots.txt is voluntary and never removes
  * already-collected data — if AI-crawler volume does not drop
  * post-deploy, enforce with a Vercel Firewall rule on the UA.
+ *
+ * Scope note for the /api/ closure below: player-page unfurls read only
+ * the SSR head (generateMetadata title/description plus og:image, which
+ * are Steam CDN URLs — external origin, outside robots.txt scope
+ * entirely), so no public asset lives under /api/ that previews need.
  */
 export default function robots(): MetadataRoute.Robots {
   return {

@@ -16,12 +16,13 @@
  * no statement nears SQLite's variable ceiling whatever --limit says.
  *
  * Children (profiles, search_meta, friends, games_snapshot,
- * location_guesses, cheater_results) go via ON DELETE CASCADE — and every
- * chunk is re-checked afterwards, aborting LOUDLY on leftovers instead of
- * trusting the FK pragma blindly. watch_events rows have no FK by design
- * (bot delivery log / ops audit) and survive unless --with-watch-events
- * is passed — they never render without a parent search (the inbox joins
- * searches).
+ * location_guesses, cheater_results) are deleted explicitly per chunk in
+ * the same transaction as their searches rows — never via ON DELETE
+ * CASCADE / PRAGMA (unreliable over hrana HTTP) — and every chunk is
+ * re-checked afterwards, aborting LOUDLY on leftovers. watch_events rows
+ * have no FK by design (bot delivery log / ops audit) and survive unless
+ * --with-watch-events is passed — they never render without a parent
+ * search (the inbox joins searches).
  *
  * Usage:
  *   ts-node -O "{\"module\": \"commonjs\"}\" scripts/delete-searches.ts \
@@ -36,6 +37,7 @@
  * silence here would be worse than noise).
  */
 import { createClient } from '@libsql/client';
+import fs from 'fs';
 import { loadEnv, requireRemoteTursoToken } from '../src/lib/env';
 import { sanitizeError } from '../src/lib/sanitizeError';
 
@@ -73,23 +75,32 @@ const VALUE_FLAGS = new Set([
 const BOOLEAN_FLAGS = new Set(['--all', '--confirm', '--with-watch-events']);
 
 /**
- * Strict argv parsing: unknown flags, value-flags without a value, and
+ * Strict argv parsing: unknown flags, valueless flags, stray tokens, and
  * out-of-range values all reject (null) instead of widening the delete.
- * A typo like `--contry BR` or a trailing `--confirm --country` must never
- * silently become a broader match on a destructive tool — fail the run and
- * print usage instead.
+ * A typo like `--contry BR`, a single-dash `-country BR`, or a trailing
+ * `--confirm --country` must never silently become a broader match on a
+ * destructive tool — fail the run and print usage instead. Bare values
+ * are only accepted right after their flag (consumed below); anywhere
+ * else they are stray input and equally fatal.
  */
 export const parseDeleteSearchesArgs = (argv: string[]): DeleteSearchesFilters | null => {
   const values = new Map<string, string>();
   for (let i = 0; i < argv.length; i += 1) {
     const token = argv[i];
-    if (!token.startsWith('--')) continue;
-    if (BOOLEAN_FLAGS.has(token)) continue;
-    if (!VALUE_FLAGS.has(token)) return null;
-    const next = argv[i + 1];
-    if (next === undefined || next.startsWith('--')) return null;
-    values.set(token, next);
-    i += 1;
+    if (token.startsWith('--')) {
+      if (BOOLEAN_FLAGS.has(token)) continue;
+      if (!VALUE_FLAGS.has(token)) return null;
+      const next = argv[i + 1];
+      if (next === undefined || next.startsWith('-')) return null;
+      values.set(token, next);
+      i += 1;
+      continue;
+    }
+    // Single-dash lookalikes (`-country`) and any other dash-led token
+    // are typos, not values (no value in this CLI starts with '-').
+    // Anything else here is a stray bare token — also fatal, never
+    // skipped: silently dropping input is how a delete widens.
+    return null;
   }
   const get = (flag: string): string | null => values.get(flag) ?? null;
 
@@ -176,23 +187,42 @@ const parsePositiveInt = (raw: string | null, fallback: number): number | null =
  * is always stored as full UTC ISO (`2026-09-10T00:00:13.840Z`). A bare
  * date would compare wrong (`--until 2026-09-10` excludes the whole 10th,
  * since every stored timestamp sorts after its own date prefix), so
- * date-only input expands to the full day in UTC. Anything that is not a
- * YYYY-MM-DD date or an ISO datetime with a `T` is rejected outright
- * (`Date.parse` alone accepts junk like `'1'` and local formats that
- * would silently mean something else). Prefer explicit `Z` datetimes.
+ * date-only input expands to the full day in UTC. Datetimes MUST carry an
+ * explicit timezone (`Z` or `±HH:MM`): a bare `2026-09-10T00:00:00`
+ * parses as server-local time and would silently shift the destructive
+ * window by the machine offset. Every accepted value is re-emitted via
+ * `toISOString()` (raw offsets and millisecond-less forms compare wrong
+ * lexicographically), and the date part is round-trip validated because
+ * V8 rolls `2026-02-31` into March 3 instead of NaN. Prefer explicit `Z`
+ * datetimes.
  */
 export const normalizeDateBound = (
   raw: string | null,
   endOfDay: boolean,
 ): string | null => {
   if (raw === null) return null;
-  let iso = raw;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-    iso = endOfDay ? `${raw}T23:59:59.999Z` : `${raw}T00:00:00.000Z`;
-  } else if (!/^\d{4}-\d{2}-\d{2}T/.test(raw)) {
+  // Calendar reality check on BOTH shapes (V8 rolls `2026-02-31` into
+  // March instead of NaN — for date-only input the rollover would
+  // silently widen the window into the next month).
+  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
+  if (!dateMatch) return null;
+  const year = Number(dateMatch[1]);
+  const month = Number(dateMatch[2]);
+  const day = Number(dateMatch[3]);
+  const probe = new Date(Date.UTC(year, month - 1, day));
+  if (
+    probe.getUTCFullYear() !== year ||
+    probe.getUTCMonth() !== month - 1 ||
+    probe.getUTCDate() !== day
+  ) {
     return null;
   }
-  return Number.isFinite(Date.parse(iso)) ? iso : null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return endOfDay ? `${raw}T23:59:59.999Z` : `${raw}T00:00:00.000Z`;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:?\d{2})$/.test(raw)) return null;
+  const ms = Date.parse(raw);
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
 };
 
 /**
@@ -261,10 +291,7 @@ export const buildTotalSql = (where: string): string =>
 // SQLite's variable-number ceiling no matter how high --limit goes.
 export const DELETE_CHUNK_IDS = 400;
 
-export const buildDeleteChunkSql = (placeholders: string): string =>
-  `DELETE FROM searches WHERE id IN (${placeholders})`;
-
-const ORPHAN_CHECK_TABLES = [
+const DELETE_CHILD_TABLES = [
   'profiles',
   'search_meta',
   'friends',
@@ -273,17 +300,47 @@ const ORPHAN_CHECK_TABLES = [
   'cheater_results',
 ];
 
-// Post-delete proof that ON DELETE CASCADE actually fired (the PRAGMA
-// goes out as its own statement because SQLite ignores PRAGMA
-// foreign_keys inside a transaction, and db.batch() is transactional —
-// so instead of trusting the pragma, every chunk is re-checked and any
-// leftover fails LOUDLY). One SUM over the child tables per id-chunk
-// (ORPHAN_CHECK_CHUNK keeps the 6× placeholder expansion well under the
-// variable ceiling).
+/**
+ * Tables allowed to reference searches beyond the six deleted children:
+ * watch_events (bot delivery/audit log, no FK by design) and
+ * login_funnel_events.search_id (best-effort correlation, no FK by
+ * design) intentionally survive a cleanup. Anything ELSE with a
+ * search_id column is schema drift the hardcoded list does not know
+ * about — the runtime probe below fails loudly instead of leaking it.
+ */
+const KNOWN_SEARCH_ID_AUDIT_TABLES = ['watch_events', 'login_funnel_events'];
+
+const KNOWN_SEARCH_ID_TABLES = new Set([
+  ...DELETE_CHILD_TABLES,
+  ...KNOWN_SEARCH_ID_AUDIT_TABLES,
+]);
+
+/**
+ * Explicit per-chunk deletes: every child table first, the searches rows
+ * last, all in ONE client.batch() (single transaction — atomic per chunk).
+ * This deliberately does NOT rely on ON DELETE CASCADE / PRAGMA
+ * foreign_keys: over hrana HTTP each execute may ride a fresh stream
+ * where a standalone PRAGMA never took, so trusting the pragma risks
+ * silent orphans. The orphan re-check below stays as the second layer
+ * (it catches schema drift, e.g. a CASCADE dropped by a bad migration).
+ */
+export const buildDeleteChunkStatements = (
+  placeholders: string,
+): Array<{ sql: string }> => [
+  ...DELETE_CHILD_TABLES.map((table) => ({
+    sql: `DELETE FROM ${table} WHERE search_id IN (${placeholders})`,
+  })),
+  { sql: `DELETE FROM searches WHERE id IN (${placeholders})` },
+];
+
+// Post-delete proof that the chunk actually landed everywhere: one SUM
+// over the child tables per id-chunk (ORPHAN_CHECK_CHUNK keeps the 6×
+// placeholder expansion well under the variable ceiling). Any leftover
+// fails LOUDLY instead of rotting silently (schema drift, partial apply).
 export const ORPHAN_CHECK_CHUNK_IDS = 150;
 
 export const buildOrphanCountsSql = (placeholders: string): string =>
-  `SELECT ${ORPHAN_CHECK_TABLES.map(
+  `SELECT ${DELETE_CHILD_TABLES.map(
     (table) => `(SELECT COUNT(*) FROM ${table} WHERE search_id IN (${placeholders}))`,
   ).join(' + ')} AS orphans`;
 
@@ -294,6 +351,200 @@ export const chunkArray = <T>(items: T[], size: number): T[][] => {
   }
   return chunks;
 };
+
+export interface DeleteSearchesByIdsResult {
+  deleted: number;
+}
+
+interface LibsqlLikeClient {
+  execute: (
+    stmt: { sql: string; args: (string | number)[] } | string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => Promise<any>;
+  batch: (
+    stmts: Array<{ sql: string; args: (string | number)[] }>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => Promise<any>;
+}
+
+/**
+ * Deletes searches by id with their children, proving every step.
+ * Exported (not inlined in main) so the full destructive flow — chunked
+ * atomic deletes, per-chunk orphan proof, unknown-table probe — runs
+ * against a real in-memory engine in delete-searches.test.ts instead of
+ * only as mocked builders. Throws loudly on any leftover; callers exit 1.
+ */
+export const deleteSearchesByIds = async (
+  client: LibsqlLikeClient,
+  ids: string[],
+  options: { withWatchEvents?: boolean } = {},
+): Promise<DeleteSearchesByIdsResult> => {
+  let deleted = 0;
+  const chunks = chunkArray(ids, DELETE_CHUNK_IDS);
+  for (let c = 0; c < chunks.length; c += 1) {
+    const chunk = chunks[c];
+    const placeholders = chunk.map(() => '?').join(', ');
+    // One batch = one transaction: children first, searches last —
+    // atomic per chunk with no PRAGMA dependence (see
+    // buildDeleteChunkStatements).
+    // eslint-disable-next-line no-await-in-loop
+    const results = await withTimeout(
+      client.batch(
+        buildDeleteChunkStatements(placeholders).map((statement) => ({
+          sql: statement.sql,
+          args: chunk,
+        })),
+      ),
+      DELETE_TIMEOUT_MS,
+      `delete-searches delete chunk ${c + 1}/${chunks.length}`,
+    );
+    deleted += Number(results[results.length - 1]?.rowsAffected ?? 0);
+    // Prove the chunk actually landed everywhere before moving on.
+    const orphanChunks = chunkArray(chunk, ORPHAN_CHECK_CHUNK_IDS);
+    // eslint-disable-next-line no-await-in-loop
+    const orphanResults: Array<{ rows: Array<{ orphans: unknown }> }> =
+      await withTimeout(
+        client.batch(
+          orphanChunks.map((orphanChunk) => {
+            const ph = orphanChunk.map(() => '?').join(', ');
+            return {
+              sql: buildOrphanCountsSql(ph),
+              // Block-major: each of the 6 subselects gets the FULL id
+              // list (id-major order only coincides for single-id chunks
+              // and false-negatives the rest).
+              args: DELETE_CHILD_TABLES.flatMap(() => orphanChunk),
+            };
+          }),
+        ),
+        DELETE_TIMEOUT_MS,
+        `delete-searches orphan check chunk ${c + 1}/${chunks.length}`,
+      );
+    const orphans = orphanResults.reduce(
+      (sum: number, r) => sum + Number(r.rows[0]?.orphans ?? 0),
+      0,
+    );
+    if (orphans > 0) {
+      throw new Error(
+        `${orphans} child rows survived in chunk ${c + 1}/${chunks.length} (schema drift? partial apply?) — aborting with later chunks untouched. Re-run the same command to retry the remainder.`,
+      );
+    }
+  }
+  if (options.withWatchEvents && ids.length > 0) {
+    // Opt-in only: watch_events has no FK (delivery/audit log) and NULL
+    // search_ids (invites/welcomes) never match IN — only rows tied to
+    // the deleted searches go.
+    const eventChunks = chunkArray(ids, DELETE_CHUNK_IDS);
+    for (let c = 0; c < eventChunks.length; c += 1) {
+      const chunk = eventChunks[c];
+      // eslint-disable-next-line no-await-in-loop
+      await withTimeout(
+        client.execute({
+          sql: `DELETE FROM watch_events WHERE search_id IN (${chunk.map(() => '?').join(', ')})`,
+          args: chunk,
+        }),
+        DELETE_TIMEOUT_MS,
+        `delete-searches watch_events chunk ${c + 1}/${eventChunks.length}`,
+      );
+    }
+  }
+  await assertNoUnknownSearchIdReferences(client, ids);
+  return { deleted };
+};
+
+/**
+ * Schema-drift net: finds every table carrying a search_id column and
+ * fails loudly when one is neither a deleted child nor a documented
+ * audit survivor AND still references the deleted ids. A future migration
+ * adding `search_id` anywhere else must make an explicit decision here
+ * (delete with the chunk? keep as audit?) instead of leaking silently —
+ * and the hardcoded DELETE_CHILD_TABLES can never silently go stale.
+ */
+export const assertNoUnknownSearchIdReferences = async (
+  client: LibsqlLikeClient,
+  ids: string[],
+): Promise<void> => {
+  const tablesResult = await client.execute(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
+  );
+  const unknown: string[] = [];
+  for (const row of tablesResult.rows as Array<{ name: unknown }>) {
+    const name = String(row.name);
+    if (KNOWN_SEARCH_ID_TABLES.has(name)) continue;
+    // eslint-disable-next-line no-await-in-loop
+    const info = await client.execute(
+      `PRAGMA table_info("${name.replace(/"/g, '""')}")`,
+    );
+    const hasSearchId = (info.rows as Array<{ name: unknown }>).some(
+      (column) => column.name === 'search_id',
+    );
+    if (hasSearchId) unknown.push(name);
+  }
+  if (unknown.length === 0) return;
+  let referencing = 0;
+  for (const chunk of chunkArray(ids, ORPHAN_CHECK_CHUNK_IDS)) {
+    const placeholders = chunk.map(() => '?').join(', ');
+    // eslint-disable-next-line no-await-in-loop
+    const counts: Array<{ rows: Array<{ n: unknown }> }> = await client.batch(
+      unknown.map((table) => ({
+        sql: `SELECT COUNT(*) AS n FROM "${table}" WHERE search_id IN (${placeholders})`,
+        args: chunk,
+      })),
+    );
+    referencing += counts.reduce(
+      (sum: number, r) => sum + Number(r.rows[0]?.n ?? 0),
+      0,
+    );
+  }
+  if (referencing > 0) {
+    throw new Error(
+      `Tables outside the delete contract still reference the deleted searches: ${unknown.join(', ')} (${referencing} rows). Decide explicitly (delete with the chunk? keep as audit?) and update KNOWN_SEARCH_ID_TABLES — refusing to leak silently.`,
+    );
+  }
+};
+
+/**
+ * Host-only view of DATABASE_URL for the pre-flight log: never the
+ * token, never the full URL (both would leak the credential into
+ * terminal scrollback/CI logs on a copy-paste).
+ */
+export const safeDatabaseHost = (databaseUrl: string): string => {
+  try {
+    const host = new URL(databaseUrl).host;
+    return host.length > 0 ? host : '(local file database)';
+  } catch {
+    return '(unparseable DATABASE_URL)';
+  }
+};
+
+/**
+ * One audit line per --confirm run (ids + filters + timestamp). Pure for
+ * testability; main appends it to .data/ (gitignored) BEFORE the deletes
+ * so even a crashed run leaves the reviewed set recoverable.
+ */
+export const formatAuditEntry = (
+  at: string,
+  host: string,
+  filters: DeleteSearchesFilters,
+  ids: string[],
+): string =>
+  JSON.stringify({
+    at,
+    host,
+    filters: {
+      steamId: filters.steamId,
+      since: filters.since,
+      until: filters.until,
+      country: filters.country,
+      device: filters.device,
+      locale: filters.locale,
+      browser: filters.browser,
+      limit: filters.limit,
+      withWatchEvents: filters.withWatchEvents,
+    },
+    ids,
+  });
+
+export const AUDIT_LOG_PATH = '.data/delete-searches-audit.log';
 
 const printUsageAndExit = (code: number): never => {
   // eslint-disable-next-line no-console
@@ -336,13 +587,12 @@ async function main(): Promise<void> {
   const confirm = process.argv.includes('--confirm');
 
   try {
-    // Own statement (NOT inside a batch/transaction): SQLite ignores
-    // PRAGMA foreign_keys mid-transaction, so this must run standalone
-    // to take effect — same pattern as the DAL's getClient().
-    await withTimeout(
-      client.execute('PRAGMA foreign_keys = ON'),
-      DELETE_TIMEOUT_MS,
-      'delete-searches pragma',
+    // Always say WHERE before touching anything: with several Turso
+    // databases around (prod/staging/local), a wrong .env must be
+    // visible in the output, not discovered after the delete.
+    // eslint-disable-next-line no-console
+    console.log(
+      `Target database host: ${safeDatabaseHost(process.env.DATABASE_URL)}`,
     );
     const { where, args } = buildSearchesWhere(filters);
     const [preview, total]: [
@@ -374,16 +624,70 @@ async function main(): Promise<void> {
       client.close();
       process.exit(1);
     }
+    if (confirm && filters.matchAll && filters.expect === null) {
+      // --all is the one unbounded shape: without --expect there is no
+      // brake against a predicate that matches more than reviewed (clock
+      // drift, a bot surge landing between dry-run and confirm). Predicated
+      // runs keep --expect optional (limit already caps them).
+      // eslint-disable-next-line no-console
+      console.error(
+        'DELETE-SEARCHES FAIL: --all --confirm requires --expect N (the reviewed count) — re-run dry-run first, then confirm with the count.',
+      );
+      client.close();
+      process.exit(1);
+    }
+    const ids: string[] = preview.rows.map((row) => row.id as string);
+    // Drift net BEFORE any delete (dry-run included): a table carrying
+    // search_id that is neither a deleted child nor a documented audit
+    // survivor, with rows tied to these ids, means the hardcoded contract
+    // is stale — fail here, with nothing removed yet.
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await assertNoUnknownSearchIdReferences(client, ids);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('DELETE-SEARCHES FAIL:', sanitizeError(error));
+      client.close();
+      process.exit(1);
+    }
     if (!confirm) {
+      if (filters.matchAll && filters.expect === null) {
+        // eslint-disable-next-line no-console
+        console.log(
+          'Dry-run with --all and no --expect: consider adding --expect N ' +
+            '(the listed count) so the --confirm run refuses a drifted set.',
+        );
+      }
       // eslint-disable-next-line no-console
       console.log('Dry-run: nothing deleted. Re-run with --confirm to delete.');
       client.close();
       process.exit(0);
     }
-    const ids: string[] = preview.rows.map((row) => row.id as string);
     if (ids.length === 0) {
       client.close();
       process.exit(0);
+    }
+    // Audit trail BEFORE the deletes: the reviewed id set + filters +
+    // target host, appended to gitignored .data/ so even a crashed or
+    // timed-out run leaves exactly what was approved recoverable.
+    try {
+      fs.mkdirSync('.data', { recursive: true });
+      fs.appendFileSync(
+        AUDIT_LOG_PATH,
+        `${formatAuditEntry(
+          new Date().toISOString(),
+          safeDatabaseHost(process.env.DATABASE_URL ?? ''),
+          filters,
+          ids,
+        )}\n`,
+      );
+    } catch {
+      // eslint-disable-next-line no-console
+      console.error(
+        'DELETE-SEARCHES FAIL: could not write the audit log — refusing to delete without a trail.',
+      );
+      client.close();
+      process.exit(1);
     }
     // NOTE: the preview and the deletes are separate snapshots — rows
     // recorded between the two land outside the captured id list, so a
@@ -391,71 +695,27 @@ async function main(): Promise<void> {
     // (a listed row deleted elsewhere first) just deletes zero rows.
     let deleted = 0;
     try {
-      const chunks = chunkArray(ids, DELETE_CHUNK_IDS);
-      for (let c = 0; c < chunks.length; c += 1) {
-        const chunk = chunks[c];
-        const placeholders = chunk.map(() => '?').join(', ');
-        // eslint-disable-next-line no-await-in-loop
-        const result = await withTimeout(
-          client.execute({
-            sql: buildDeleteChunkSql(placeholders),
-            args: chunk,
-          }),
-          DELETE_TIMEOUT_MS,
-          `delete-searches delete chunk ${c + 1}/${chunks.length}`,
-        );
-        deleted += Number(result.rowsAffected ?? 0);
-        // Prove the cascade fired for THIS chunk before moving on: any
-        // leftover fails loudly instead of rotting silently.
-        const orphanChunks = chunkArray(chunk, ORPHAN_CHECK_CHUNK_IDS);
-        // eslint-disable-next-line no-await-in-loop
-        const orphanResults: Array<{ rows: Array<{ orphans: unknown }> }> =
-          await withTimeout(
-          client.batch(
-            orphanChunks.map((orphanChunk) => {
-              const ph = orphanChunk.map(() => '?').join(', ');
-              return {
-                sql: buildOrphanCountsSql(ph),
-                args: orphanChunk.flatMap((id) =>
-                  ORPHAN_CHECK_TABLES.map(() => id),
-                ),
-              };
-            }),
-          ),
-          DELETE_TIMEOUT_MS,
-          `delete-searches orphan check chunk ${c + 1}/${chunks.length}`,
-        );
-        const orphans = orphanResults.reduce(
-          (sum: number, r) => sum + Number(r.rows[0]?.orphans ?? 0),
-          0,
-        );
-        if (orphans > 0) {
-          // eslint-disable-next-line no-console
-          console.error(
-            `DELETE-SEARCHES FAIL: ${orphans} child rows survived the cascade in chunk ${c + 1}/${chunks.length} (FK pragma did not take?) — aborting with later chunks untouched. Re-run the same command to retry the remainder.`,
-          );
-          client.close();
-          process.exit(1);
-        }
-      }
+      // eslint-disable-next-line no-await-in-loop
+      ({ deleted } = await deleteSearchesByIds(client, ids, {
+        withWatchEvents: filters.withWatchEvents,
+      }));
     } catch (error) {
       // A timeout here is ambiguous (the server may have applied the
       // DELETE after our deadline): re-count what is actually gone and
       // say so honestly instead of claiming success or failure blindly.
+      // Recounts by predicate (not by id list), so there is no variable
+      // ceiling and no truncation to misreport.
       // eslint-disable-next-line no-console
       console.error('DELETE-SEARCHES FAIL:', sanitizeError(error));
       try {
         const remaining: { rows: Array<{ n: unknown }> } = await withTimeout(
-          client.execute({
-            sql: `SELECT COUNT(*) AS n FROM searches WHERE id IN (${ids.map(() => '?').join(', ')})`,
-            args: ids.slice(0, 900),
-          }),
+          client.execute({ sql: buildTotalSql(where), args }),
           DELETE_TIMEOUT_MS,
           'delete-searches recount',
         );
         // eslint-disable-next-line no-console
         console.log(
-          `After the failure, ${Number(remaining.rows[0]?.n ?? '?')} of the ${ids.length} listed ids still exist (recount capped at 900 ids) — re-run the same command to finish; it only ever lists what is left.`,
+          `After the failure, ${Number(remaining.rows[0]?.n ?? '?')} of the predicate matches still exist — re-run the same command to finish; it only ever lists what is left.`,
         );
       } catch {
         // Recount is best-effort; the original error above is the signal.
@@ -463,29 +723,9 @@ async function main(): Promise<void> {
       client.close();
       process.exit(1);
     }
-    if (filters.withWatchEvents) {
-      // Opt-in only: watch_events has no FK (delivery/audit log) and NULL
-      // search_ids (invites/welcomes) never match IN — only rows tied to
-      // the deleted searches go.
-      const eventChunks = chunkArray(ids, DELETE_CHUNK_IDS);
-      for (let c = 0; c < eventChunks.length; c += 1) {
-        const chunk = eventChunks[c];
-        // eslint-disable-next-line no-await-in-loop
-        await withTimeout(
-          client.execute({
-            sql: `DELETE FROM watch_events WHERE search_id IN (${chunk.map(() => '?').join(', ')})`,
-            args: chunk,
-          }),
-          DELETE_TIMEOUT_MS,
-          `delete-searches watch_events chunk ${c + 1}/${eventChunks.length}`,
-        );
-      }
-      // eslint-disable-next-line no-console
-      console.log('Also removed watch_events rows tied to the deleted searches.');
-    }
     // eslint-disable-next-line no-console
     console.log(
-      `Deleted ${deleted} searches (children cascaded and verified; watch_events audit rows ${filters.withWatchEvents ? 'also removed via --with-watch-events' : 'intentionally kept'}).`,
+      `Deleted ${deleted} searches (children removed atomically per chunk and verified; watch_events audit rows ${filters.withWatchEvents ? 'also removed via --with-watch-events' : 'intentionally kept'}).`,
     );
     client.close();
     process.exit(0);

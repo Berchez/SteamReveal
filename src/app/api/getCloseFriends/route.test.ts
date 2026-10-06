@@ -161,6 +161,33 @@ describe('POST /api/getCloseFriends — empty friends list', () => {
     }
   });
 
+  it('checks the typed error before text matchers (target containing "unauthorized" keeps its own code)', async () => {
+    // The summaries-unavailable detail interpolates the raw target, so a
+    // vanity target containing 'unauthorized' would match the
+    // isSteamUnauthorizedError text pattern if instanceof ran second —
+    // misclassifying a 503 gap as 400 FRIENDS_LIST_PRIVATE. Typed first
+    // is load-bearing, not stylistic.
+    mockGetUserFriends.mockImplementation((id: string) => {
+      if (id === '76561198000000000') {
+        return Promise.resolve([
+          {
+            steamID: '76561198000000001',
+            friendedTimestamp: 1,
+            relationship: 'friend',
+          },
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+    mockGetUserSummary.mockRejectedValueOnce(new Error('No players found'));
+
+    const res = await POST(makeRequest({ target: 'unauthorized_vanity' }));
+    const data = await res.json();
+
+    expect(res.status).toBe(503);
+    expect(data.error.code).toBe('FRIENDS_DATA_UNAVAILABLE');
+  });
+
   it('maps a deleted/nonexistent target (getUserFriends throws No players found) to 400 + warn', async () => {
     // Prod case 76561199084954124: resolve succeeds on the in-range id,
     // then Steam has no record — classified AT THE ORIGIN (the target's

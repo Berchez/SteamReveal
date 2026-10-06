@@ -52,6 +52,24 @@ describe('isCrawlerUserAgent', () => {
     expect(isCrawlerUserAgent('Bytespider')).toBe(true);
   });
 
+  it('mirrors the robots.txt AI policy (training + answer agents + opt-outs)', () => {
+    // Same source (src/lib/crawlers.ts): an agent blocked from crawling
+    // must also be skipped if it fires the beacon.
+    expect(isCrawlerUserAgent('FacebookBot/1.0')).toBe(true);
+    expect(
+      isCrawlerUserAgent('Claude-User/1.0'),
+    ).toBe(true);
+    expect(isCrawlerUserAgent('Perplexity-User/1.0')).toBe(true);
+    expect(
+      isCrawlerUserAgent('meta-externalfetcher/1.1'),
+    ).toBe(true);
+    expect(isCrawlerUserAgent('CCBot/2.0')).toBe(true);
+    expect(isCrawlerUserAgent('Google-Extended')).toBe(true);
+    expect(
+      isCrawlerUserAgent('WhatsApp/2.24.5.78 Android/14'),
+    ).toBe(true);
+  });
+
   it('matches case-insensitively', () => {
     expect(isCrawlerUserAgent('FACEBOOKEXTERNALHIT/1.1')).toBe(true);
     expect(isCrawlerUserAgent('facebookcatalog/1.0')).toBe(true);

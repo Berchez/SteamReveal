@@ -21,7 +21,7 @@
 import withTimeout from '../lib/withTimeout';
 
 import type { WatchBotLogger } from './logger';
-import { logBotPassError } from './transientError';
+import { logBotPassError, markBotPassHealthy } from './transientError';
 
 export interface InvitePollerClient {
   addFriend: (steamId: string) => Promise<unknown>;
@@ -376,9 +376,14 @@ export const startInvitePoller = (
     }
   };
   const timer = setInterval(() => {
-    pollOnce().catch((error: unknown) => {
-      logBotPassError(logger, 'invite poll pass failed', error);
-    });
+    pollOnce().then(
+      () => {
+        markBotPassHealthy('invite poll pass failed');
+      },
+      (error: unknown) => {
+        logBotPassError(logger, 'invite poll pass failed', error);
+      },
+    );
   }, pollIntervalMs);
   if (typeof timer.unref === 'function') {
     timer.unref();

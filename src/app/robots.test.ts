@@ -46,13 +46,18 @@ const MUST_STAY_ALLOWED = [
 ];
 
 // Public paths every allowed crawler (preview fetchers, Googlebot) must
-// reach: home, locale homes, player pages, sitemap. robots.txt matching
-// is prefix-based per RFC 9309, mirrored here.
+// reach: home, locale homes, player pages, sitemap, and the framework
+// asset/image pipelines Googlebot needs to render (/_next/* has been
+// Next's stable prefix for a decade — asserting ALLOWED here is robust:
+// it only fails if someone disallows them, which is exactly the
+// regression this guards).
 const MUST_STAY_CRAWLABLE = [
   '/',
   '/en',
   '/en/player/76561198000000000',
   '/sitemap.xml',
+  '/_next/static/chunks/app/page.js',
+  '/_next/image?url=%2Favatar.png&w=96&q=75',
 ];
 
 type RobotsRule = {

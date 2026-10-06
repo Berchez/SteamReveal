@@ -35,11 +35,8 @@ const dashboardRateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_
  */
 const ADDITIVE_READ_TIMEOUT_MS = 4_000;
 
-/**
- * Search-stats budget (STATS_READ_TIMEOUT_MS) lives in
- * ./dashboardStatsConfig — the rationale and the maxDuration invariant
- * live with it. Consumed below in the stats withTimeout.
- */
+// Search-stats budget + rationale live in ./dashboardStatsConfig (imported
+// below); see that module — not repeated here.
 
 /**
  * Parses ?limit= into a clamped history window. Garbage in → default out

@@ -21,11 +21,12 @@ import { errorResponse } from '@/lib/apiError';
  * keep the loud 500 path — which is why each route isolates the body parse
  * in its own try/catch instead of relying on the outer catch-all.
  */
+// Named (not default) export on purpose: all five recordAnalytics* routes
+// import it by name next to their siblings (same pattern as botProfile.ts).
+// eslint-disable-next-line import/prefer-default-export
 export const malformedBodyResponse = (routeName: string, error: unknown) => {
   const kind = error instanceof Error ? error.name : typeof error;
   // eslint-disable-next-line no-console
   console.warn(`${routeName} - malformed JSON body (${kind})`);
   return errorResponse('Malformed JSON body.', 400, 'INVALID_REQUEST');
 };
-
-export default malformedBodyResponse;

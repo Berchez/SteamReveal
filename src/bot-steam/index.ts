@@ -48,7 +48,7 @@ import {
 } from '../lib/analytics/db';
 import { isLocalLinkHostname, loadBotConfig } from './config';
 import type { WatchBotLogger } from './logger';
-import { logBotPassError } from './transientError';
+import { logBotPassError, markBotPassHealthy } from './transientError';
 import { WatchBot } from './bot';
 import { reconcileFriendsList } from './reconcile';
 import { handleFriendRemoved } from './friendRemoved';
@@ -141,17 +141,23 @@ const main = (): void => {
     },
   };
 
-  // Single-shape poll failure logging: every pollOnce .catch below shares
+  // Single-shape poll failure logging: every pollOnce .then below shares
   // this form, so labels live in one place and cannot drift between lanes.
   // Transient infra (Turso/network blip, Turso-side 5xx/S3, dropped Steam
   // session) routes to warn via logBotPassError — the next tick self-heals
   // (claim/retry + 30min stale requeue) — while logic failures stay error.
-  // Console text is byte-identical to the inlined version it replaces.
-  const logPollError =
-    (label: string) =>
+  // The ok half clears the lane's consecutive-failure streak
+  // (markBotPassHealthy), so only an unbroken failure run escalates no
+  // matter how slow the lane's interval is. Console text is byte-identical
+  // to the inlined version it replaces.
+  const trackPoll = (
+    label: string,
+  ): [() => void, (error: unknown) => void] => [
+    () => markBotPassHealthy(label),
     (error: unknown): void => {
       logBotPassError(logger, label, error);
-    };
+    },
+  ];
 
   // Declared before the bot: onConnected (below) fires the first invite
   // pass, so it needs the handle — assigned further down during the same
@@ -206,7 +212,7 @@ const main = (): void => {
         const chat = client.chat as unknown as ActivationChatClient;
         return sendConfirmLink(chat, steamId, locale, config);
       },
-    ).catch(logPollError('reconcile failed'));
+    ).then(...trackPoll('reconcile failed'));
   };
 
   // sysexits EX_CONFIG: the process refuses to run with a wrong identity.
@@ -265,29 +271,29 @@ const main = (): void => {
     onConnected: () => {
       const invites = invitePoller;
       if (invites !== undefined) {
-        invites.pollOnce().catch(logPollError('post-logon invite poll failed'));
+        invites.pollOnce().then(...trackPoll('post-logon invite poll failed'));
       }
       const welcomes = welcomePoller;
       if (welcomes !== undefined) {
-        welcomes.pollOnce().catch(logPollError('post-logon welcome poll failed'));
+        welcomes.pollOnce().then(...trackPoll('post-logon welcome poll failed'));
       }
       const resends = resendPoller;
       if (resends !== undefined) {
-        resends.pollOnce().catch(logPollError('post-logon resend poll failed'));
+        resends.pollOnce().then(...trackPoll('post-logon resend poll failed'));
       }
       const expiries = expiryPoller;
       if (expiries !== undefined) {
-        expiries.pollOnce().catch(logPollError('post-logon expiry scan failed'));
+        expiries.pollOnce().then(...trackPoll('post-logon expiry scan failed'));
       }
       const notifies = notifyPoller;
       if (notifies !== undefined) {
-        notifies.pollOnce().catch(logPollError('post-logon notify poll failed'));
+        notifies.pollOnce().then(...trackPoll('post-logon notify poll failed'));
       }
       const banAlerts = banAlertPoller;
       if (banAlerts !== undefined) {
         banAlerts
           .pollOnce()
-          .catch(logPollError('post-logon ban-alert poll failed'));
+          .then(...trackPoll('post-logon ban-alert poll failed'));
       }
     },
     // WB-8 official opt-out: unfriend/block observed on the live event.
@@ -329,7 +335,7 @@ const main = (): void => {
   try {
     heartbeat.beat();
   } catch (error) {
-    logPollError('initial heartbeat write failed')(error);
+    logBotPassError(logger, 'initial heartbeat write failed', error);
   }
 
   // Turso heartbeat mirror (bot-liveness for the site): the file beat above
@@ -349,8 +355,10 @@ const main = (): void => {
     if (tursoBeatInFlight) return;
     tursoBeatInFlight = true;
     recordBotHeartbeat(bot.isConnected(), bot.getSteamId())
-      .catch((error: unknown) =>
-        logPollError('turso heartbeat write failed')(error),
+      .then(
+        () => markBotPassHealthy('turso heartbeat write failed'),
+        (error: unknown) =>
+          logBotPassError(logger, 'turso heartbeat write failed', error),
       )
       .finally(() => {
         tursoBeatInFlight = false;
@@ -375,7 +383,7 @@ const main = (): void => {
     dal: { resetStaleClaims },
     logger,
     staleWindowMinutes: config.staleClaimWindowMinutes,
-  }).catch(logPollError('initial stale sweep failed'));
+  }).then(...trackPoll('initial stale sweep failed'));
 
   invitePoller = startInvitePoller({
     client,
@@ -398,7 +406,7 @@ const main = (): void => {
   // Explicit first pass (the poller itself only schedules the interval, so
   // startup ordering stays visible here). A failure rejects into the log,
   // never into an unhandled rejection.
-  invitePoller.pollOnce().catch(logPollError('initial invite poll failed'));
+  invitePoller.pollOnce().then(...trackPoll('initial invite poll failed'));
 
   // WB-13 notify consumer: same lifecycle as the invite poller (single
   // registration at startup — reconnects only trigger pollOnce, never a
@@ -422,7 +430,7 @@ const main = (): void => {
     logger,
     isConnected: () => bot.isConnected(),
   });
-  notifyPoller.pollOnce().catch(logPollError('initial notify poll failed'));
+  notifyPoller.pollOnce().then(...trackPoll('initial notify poll failed'));
 
   // Post-click welcome consumer (click-to-activate flow): the confirm
   // route enqueues exactly when it activates, so this lane only ever
@@ -444,7 +452,7 @@ const main = (): void => {
     sendTimeoutMs: config.welcomeSendTimeoutMs,
     isConnected: () => bot.isConnected(),
   });
-  welcomePoller.pollOnce().catch(logPollError('initial welcome poll failed'));
+  welcomePoller.pollOnce().then(...trackPoll('initial welcome poll failed'));
 
   // Confirm-link resend consumer (user-awaited lane: someone pressed
   // "generate a new link", so drain fast like invite/notify, not hourly).
@@ -471,7 +479,7 @@ const main = (): void => {
     isConnected: () => bot.isConnected(),
     isFriend,
   });
-  resendPoller.pollOnce().catch(logPollError('initial resend poll failed'));
+  resendPoller.pollOnce().then(...trackPoll('initial resend poll failed'));
 
   // Confirm-link expiry scanner (hourly class): single "generate a new
   // one" notice per dead generation. Catches up after downtime on boot
@@ -489,7 +497,7 @@ const main = (): void => {
     isConnected: () => bot.isConnected(),
     isFriend,
   });
-  expiryPoller.pollOnce().catch(logPollError('initial expiry scan failed'));
+  expiryPoller.pollOnce().then(...trackPoll('initial expiry scan failed'));
 
   // Ban Reveal alert consumer (chat side of the sweep fan-out): queued by
   // the sweep below, one event per newly-banned subscription. Same
@@ -517,7 +525,7 @@ const main = (): void => {
     isConnected: () => bot.isConnected(),
     isFriend,
   });
-  banAlertPoller.pollOnce().catch(logPollError('initial ban-alert poll failed'));
+  banAlertPoller.pollOnce().then(...trackPoll('initial ban-alert poll failed'));
 
   // Ban Reveal sweep (produces work, drains nothing): distinct Steam
   // targets on a multi-hour interval, one batched GetPlayerBans call per
@@ -567,7 +575,7 @@ const main = (): void => {
     batchLimit: config.banSweepBatchLimit,
     logger,
   });
-  banSweeper.pollOnce().catch(logPollError('initial ban sweep failed'));
+  banSweeper.pollOnce().then(...trackPoll('initial ban sweep failed'));
 
   // Periodic full reconcile (backstop for missed snapshots AND for
   // click-activations that landed while the DB blipped: the confirm

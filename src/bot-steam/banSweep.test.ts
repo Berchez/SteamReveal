@@ -33,6 +33,23 @@ describe('pollBanSweepOnce', () => {
     jest.clearAllMocks();
   });
 
+  it('rejects on listing failure so the driver streak counts it (never resolve-and-silence)', async () => {
+    // Contract pin: a dead DAL must reject (the interval driver logs via
+    // logBotPassError and the consecutive-failure streak counts the pass).
+    // Resolving an empty report here would clear the streak on success and
+    // a stuck listing would warn forever without ever escalating.
+    const dal = makeDal();
+    dal.listDistinctBanTargets.mockRejectedValue(new Error('db down'));
+
+    await expect(
+      pollBanSweepOnce({
+        dal,
+        steamCaller: jest.fn(async () => new Map()),
+        logger: silentLogger,
+      }),
+    ).rejects.toThrow('db down');
+  });
+
   it('checks distinct targets in one batched call and fans out on false->true', async () => {
     const dal = makeDal();
     dal.listDistinctBanTargets.mockResolvedValue([TARGET_A]);

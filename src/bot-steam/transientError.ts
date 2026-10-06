@@ -6,29 +6,40 @@ import type { WatchBotLogger } from './logger';
 // those misses as errors would double-count one incident.
 const STEAM_FLAP_PATTERN = /(?:NoConnection|ServiceUnavailable)/i;
 
-// Sustained-outage escalation: a lone blip is warn, but N transient misses
-// of the SAME lane inside the window mean the lane is stuck (not
-// self-healing) and earn an error so errors.log keeps a signal. Windowed,
-// not consecutive-counted: logBotPassError only ever sees failures, so a
-// recovering lane naturally stops re-entering the window.
-export const TRANSIENT_ESCALATION_WINDOW_MS = 10 * 60 * 1000;
+// Sustained-outage escalation: a lone blip is warn, but N CONSECUTIVE
+// transient misses of the SAME lane mean the lane is stuck (not
+// self-healing) and earn an error so errors.log keeps a signal. Windowed
+// counting was tried first and got this wrong in both directions: slow
+// lanes (ban sweep every 6h) can never fit 5 misses in 10 minutes, so
+// they stayed warn forever; flapping lanes (fail/ok/fail) escalated
+// without being sick. Consecutive counting with reset-on-success fixes
+// both: any resolved pass clears the streak, so only an unbroken failure
+// run escalates, at exactly the lane's own pace.
 export const TRANSIENT_ESCALATION_THRESHOLD = 5;
 
-const recentTransientFailures = new Map<string, number[]>();
+const consecutiveTransientFailures = new Map<string, number>();
 
-/** Test-only seam: per-label failure histories are module state. */
+/** Test-only seam: per-label failure streaks are module state. */
 export const resetBotPassErrorCountsForTests = (): void => {
-  recentTransientFailures.clear();
+  consecutiveTransientFailures.clear();
 };
 
 const recordTransientFailure = (label: string): number => {
-  const now = Date.now();
-  const pruned = (recentTransientFailures.get(label) ?? []).filter(
-    (timestamp) => now - timestamp < TRANSIENT_ESCALATION_WINDOW_MS,
-  );
-  pruned.push(now);
-  recentTransientFailures.set(label, pruned);
-  return pruned.length;
+  const streak = (consecutiveTransientFailures.get(label) ?? 0) + 1;
+  consecutiveTransientFailures.set(label, streak);
+  return streak;
+};
+
+/**
+ * Clears a lane's transient-failure streak — call when its pass resolves
+ * (every driver pairs `.then(ok, error)` on the same label). A resolved
+ * pass is evidence of health even if it carried per-item errors (those
+ * log ERROR individually at the row level); only an unbroken run of
+ * thrown passes may escalate. Silent by design: success is the norm and
+ * must not spam the log.
+ */
+export const markBotPassHealthy = (label: string): void => {
+  consecutiveTransientFailures.delete(label);
 };
 
 /**
@@ -75,7 +86,7 @@ export const logBotPassError = (
   const recentCount = recordTransientFailure(label);
   if (recentCount >= TRANSIENT_ESCALATION_THRESHOLD) {
     logger.error(
-      `${line} (${recentCount} transient failures in the last 10m — escalated)`,
+      `${line} (${recentCount} consecutive transient failures — escalated)`,
     );
     return;
   }

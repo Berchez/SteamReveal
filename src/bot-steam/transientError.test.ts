@@ -1,6 +1,7 @@
 import {
   isBotTransientError,
   logBotPassError,
+  markBotPassHealthy,
   resetBotPassErrorCountsForTests,
 } from './transientError';
 
@@ -129,6 +130,39 @@ describe('logBotPassError (warn vs error routing)', () => {
       logBotPassError(logger, label, new Error('fetch failed'));
     }
     expect(logger.warn).toHaveBeenCalledTimes(4);
+    expect(logger.error).not.toHaveBeenCalled();
+
+    logBotPassError(logger, label, new Error('fetch failed'));
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('escalated'),
+    );
+  });
+
+  it('never escalates a flapping lane (success resets the streak)', () => {
+    // Windowed counting escalated fail/ok/fail patterns without the lane
+    // being sick; consecutive counting with reset does not.
+    const logger = makeLogger();
+    const label = 'flapping-lane';
+    for (let i = 0; i < 10; i += 1) {
+      logBotPassError(logger, label, new Error('fetch failed'));
+      markBotPassHealthy(label);
+    }
+    expect(logger.warn).toHaveBeenCalledTimes(10);
+    expect(logger.error).not.toHaveBeenCalled();
+  });
+
+  it('a success mid-streak restarts the escalation count', () => {
+    const logger = makeLogger();
+    const label = 'recovering-lane';
+    for (let i = 0; i < 4; i += 1) {
+      logBotPassError(logger, label, new Error('fetch failed'));
+    }
+    markBotPassHealthy(label);
+    for (let i = 0; i < 4; i += 1) {
+      logBotPassError(logger, label, new Error('fetch failed'));
+    }
+    // 4 + reset + 4: never 5 consecutive, so still warn-only.
+    expect(logger.warn).toHaveBeenCalledTimes(8);
     expect(logger.error).not.toHaveBeenCalled();
 
     logBotPassError(logger, label, new Error('fetch failed'));

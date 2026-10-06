@@ -33,7 +33,7 @@ import { NOTIFY_COOLDOWN_HOURS } from '../lib/analytics/watchNotify';
 import isWithinCooldownWindow from '../lib/watch/cooldown';
 
 import type { WatchBotLogger } from './logger';
-import { logBotPassError } from './transientError';
+import { logBotPassError, markBotPassHealthy } from './transientError';
 import { sendNotifyMessage, type NotifyChatClient } from './notifyMessage';
 
 export interface NotifyQueueEvent {
@@ -420,9 +420,14 @@ export const startNotifyPoller = (
     }
   };
   const timer = setInterval(() => {
-    pollOnce().catch((error: unknown) => {
-      logBotPassError(logger, 'notify poll pass failed', error);
-    });
+    pollOnce().then(
+      () => {
+        markBotPassHealthy('notify poll pass failed');
+      },
+      (error: unknown) => {
+        logBotPassError(logger, 'notify poll pass failed', error);
+      },
+    );
   }, pollIntervalMs);
   if (typeof timer.unref === 'function') {
     timer.unref();

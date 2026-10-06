@@ -287,6 +287,35 @@ export async function POST(req: Request) {
       { status: 200 },
     );
   } catch (error) {
+    // Typed first: our own error's detail interpolates the user-supplied
+    // target, so a target containing e.g. 'unauthorized' would match a
+    // text matcher below and misclassify (400-as-private instead of the
+    // intended 400/503). instanceof never consults text — check it before
+    // any message pattern.
+    if (error instanceof CloseFriendsLookupError) {
+      // Client input (400, target-not-found) vs upstream gap (503,
+      // summaries-unavailable): both warn, neither pages. For
+      // target-not-found the trace must identify the profile — the POST URL
+      // carries no identity, so log the body target (JSON-quoted to
+      // neutralize control chars, truncated). Reachable ONLY from the
+      // target's own wrapper (see the class docblock), so input is never
+      // misblamed for another profile's failure.
+      if (error.code === 'INVALID_REQUEST') {
+        const rawTarget =
+          body !== null && typeof body === 'object'
+            ? (body as { target?: unknown }).target
+            : undefined;
+        const targetForLog =
+          typeof rawTarget === 'string'
+            ? JSON.stringify(rawTarget.slice(0, 120))
+            : req.url;
+        console.warn(`getCloseFriends - ${error.message}: ${targetForLog}`);
+      } else {
+        console.warn(`getCloseFriends - ${error.message}`);
+      }
+      return errorResponse(error.publicMessage, error.status, error.code);
+    }
+
     if (isSteamUnauthorizedError(error)) {
       console.warn(
         `getCloseFriends - target's data is private: ${req.url}`,
@@ -316,32 +345,6 @@ export async function POST(req: Request) {
     if (isSteamResolveFormatError(error)) {
       logRouteError('getCloseFriends', error, { target: req.url });
       return errorResponse('Invalid target format.', 400, 'INVALID_REQUEST');
-    }
-
-    // Specific before general: our own typed error carries a cause whose
-    // text the matchers below could also match.
-    if (error instanceof CloseFriendsLookupError) {
-      // Client input (400, target-not-found) vs upstream gap (503,
-      // summaries-unavailable): both warn, neither pages. For
-      // target-not-found the trace must identify the profile — the POST URL
-      // carries no identity, so log the body target (JSON-quoted to
-      // neutralize control chars, truncated). Reachable ONLY from the
-      // target's own wrapper (see the class docblock), so input is never
-      // misblamed for another profile's failure.
-      if (error.code === 'INVALID_REQUEST') {
-        const rawTarget =
-          body !== null && typeof body === 'object'
-            ? (body as { target?: unknown }).target
-            : undefined;
-        const targetForLog =
-          typeof rawTarget === 'string'
-            ? JSON.stringify(rawTarget.slice(0, 120))
-            : req.url;
-        console.warn(`getCloseFriends - ${error.message}: ${targetForLog}`);
-      } else {
-        console.warn(`getCloseFriends - ${error.message}`);
-      }
-      return errorResponse(error.publicMessage, error.status, error.code);
     }
 
     logRouteError('getCloseFriends', error, { body });
