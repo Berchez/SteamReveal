@@ -127,7 +127,8 @@
     "benefitBanAlerts": "Оповещения о банах проверенных профилей",
     "benefitEarlyAccess": "Ранний доступ к новым функциям",
     "signInButton": "Войти через Steam",
-    "dontAskAgain": "Больше не спрашивать"
+    "dontAskAgain": "Больше не спрашивать",
+    "benefitHistory": "Ваши поиски сохраняются в вашем аккаунте, пока вы в системе"
   },
   "feedback": {
     "openButton": "Отправить отзыв",
@@ -231,6 +232,21 @@
     "watchBanAlertBody": "Профиль, который вы проверяли, отмечен как забаненный.",
     "watchBanAlertReveal": "Посмотреть забаненный профиль",
     "watchBanAlertLoading": "Открываем…",
-    "watchBanAlertError": "Не удалось показать. Повторите попытку."
+    "watchBanAlertError": "Не удалось показать. Повторите попытку.",
+    "watchHistoryButton": "Посмотреть историю",
+    "watchHistoryTitle": "Моя история поисков",
+    "watchHistoryEmpty": "Пока пусто. Поиски, выполненные после входа, появятся здесь.",
+    "watchHistoryLoading": "Загрузка истории…",
+    "watchHistoryError": "Не удалось загрузить историю.",
+    "watchHistoryRetry": "Повторить",
+    "watchHistoryLoadMore": "Загрузить ещё",
+    "watchHistoryShowing": "Показано {shown} из {total}",
+    "watchHistoryClear": "Очистить мою историю",
+    "watchHistoryClearConfirm": "Нажмите ещё раз для подтверждения — это нельзя отменить",
+    "watchHistorySessionExpired": "Сессия истекла. Войдите снова, чтобы продолжить.",
+    "watchHistoryClearError": "Не удалось очистить историю. Ваши поиски сохранены — попробуйте ещё раз.",
+    "watchHistoryOptOutNote": "Удаление бота из друзей (выход из Watch) также очищает эту историю.",
+    "watchHistoryPrivacyNote": "Здесь только поиски, выполненные после входа. Привязка к аккаунту истекает через 12 месяцев — можно очистить в любой момент ниже (сами поиски остаются в анонимной статистике; очистка не останавливает запись новых поисков, пока вы в системе).",
+    "watchHistoryEmptyOptedOut": "Здесь пусто. Вы вышли из Watch: новые поиски не сохраняются, а старые удалены при выходе."
   }
 }

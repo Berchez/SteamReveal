@@ -106,6 +106,11 @@ const DASHBOARD_STATS_INDEXES_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const SEARCHER_STEAM_ID_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '020_searcher_steam_id.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -140,6 +145,9 @@ type DbApi = {
   countSearchesSince: typeof import('./db').countSearchesSince;
   countSearchesInMonth: typeof import('./db').countSearchesInMonth;
   listProfileSearches: typeof import('./db').listProfileSearches;
+  listSearcherSearches: typeof import('./db').listSearcherSearches;
+  parseHistoryCursor: typeof import('./db').parseHistoryCursor;
+  purgeExpiredSearcherLinks: typeof import('./db').purgeExpiredSearcherLinks;
   isWithinCooldown: typeof import('./db').isWithinCooldown;
   recordLogin: typeof import('./db').recordLogin;
   recordLoginFunnelEvent: typeof import('./db').recordLoginFunnelEvent;
@@ -339,6 +347,13 @@ describe('analytics db integration against real libSQL', () => {
     )) {
       await db.executeForTests(statement);
     }
+    // 020 carries search_meta.searcher_steam_id (per-account history).
+    // Nullable with an index — applied here for the same reason.
+    for (const statement of splitSqlStatements(
+      SEARCHER_STEAM_ID_MIGRATION_SQL,
+    )) {
+      await db.executeForTests(statement);
+    }
   });
 
   beforeEach(async () => {
@@ -460,6 +475,163 @@ describe('analytics db integration against real libSQL', () => {
     );
     // Unknown values degrade to NULL, never to a mislabeled bucket.
     expect(bySteamId.get('76561198000000011')?.friendsVisibility).toBeNull();
+  });
+
+  it('recordSearch stores the searcher id; anonymous rows read back null', async () => {
+    // Attribution is atomic at INSERT (footprint subquery on accounts):
+    // ...001 needs a live ACCOUNTS row to stick (created below). A
+    // bot-swap wipes watches but keeps accounts — history survives it.
+    await db.createAccount('76561198000000001');
+    const mine = await db.recordSearch({
+      profile: { steamId: '76561198000000020', nickname: 'Target' },
+      friends: [],
+      searcherSteamId: '76561198000000001',
+    });
+    await db.recordSearch({
+      profile: { steamId: '76561198000000021' },
+      friends: [],
+    });
+    await db.recordSearch({
+      profile: { steamId: '76561198000000022' },
+      friends: [],
+      // Malformed identity degrades to anonymous, never stored corrupt.
+      searcherSteamId: 'not-a-steam-id',
+    });
+
+    const records = await db.getSearchRecords();
+    const bySteamId = new Map(records.map((r) => [r.profile.steamId, r]));
+    expect(bySteamId.get('76561198000000020')?.searcherSteamId).toBe(
+      '76561198000000001',
+    );
+    expect(mine.searcherSteamId).toBe('76561198000000001');
+    expect(bySteamId.get('76561198000000021')?.searcherSteamId).toBeNull();
+    expect(bySteamId.get('76561198000000022')?.searcherSteamId).toBeNull();
+  });
+
+  it('recordSearch stores NULL for a session id with no account row (no re-link)', async () => {
+    // The atomic contract: a valid session id whose watch rows are gone
+    // (opt-out with a surviving cookie) stores NULL in the SAME
+    // transaction — no TOCTOU, no pre-check round-trip. The returned
+    // record stays optimistic (carries the id); the stored row is what
+    // the read path sees.
+    const record = await db.recordSearch({
+      profile: { steamId: '76561198000000060' },
+      friends: [],
+      searcherSteamId: '76561198000000061',
+    });
+
+    const records = await db.getSearchRecords();
+    const bySteamId = new Map(records.map((r) => [r.profile.steamId, r]));
+    expect(bySteamId.get('76561198000000060')?.searcherSteamId).toBeNull();
+    expect(record.searcherSteamId).toBe('76561198000000061');
+    // And it never surfaces in anyone's history.
+    await expect(
+      db.listSearcherSearches('76561198000000061', 20),
+    ).resolves.toEqual({ entries: [], total: 0, nextCursor: null });
+  });
+
+  it('listSearcherSearches pages by cursor without skipping or repeating', async () => {
+    const me = '76561198000000001';
+    const other = '76561198000000002';
+    // Attribution is atomic at INSERT (footprint subquery on accounts):
+    // the searcher ids below need live ACCOUNTS rows or they store NULL.
+    await db.createAccount(me);
+    await db.createAccount(other);
+    await db.recordSearch({
+      profile: { steamId: '76561198000000030', nickname: 'First' },
+      friends: [],
+      searcherSteamId: me,
+    });
+    await db.recordSearch({
+      profile: { steamId: '76561198000000031', nickname: 'Second' },
+      friends: [],
+      searcherSteamId: me,
+    });
+    await db.recordSearch({
+      profile: { steamId: '76561198000000032', nickname: 'Third' },
+      friends: [],
+      searcherSteamId: me,
+    });
+    await db.recordSearch({
+      profile: { steamId: '76561198000000033' },
+      friends: [],
+      searcherSteamId: other,
+    });
+    await db.recordSearch({
+      profile: { steamId: '76561198000000034' },
+      friends: [],
+    });
+
+    // Other viewers and anonymous rows never leak in. Order-independent
+    // assertions: rapid inserts can share a millisecond (ORDER BY ties
+    // broken by the random id suffix), so the test pins set semantics,
+    // not sequence — plus the server-driven paging contract (opaque
+    // bookmark, total on page one only, null bookmark exhausts).
+    const first = await db.listSearcherSearches(me, 2);
+    expect(first.entries).toHaveLength(2);
+    expect(first.total).toBe(3);
+    expect(first.nextCursor).not.toBeNull();
+
+    const cursor = db.parseHistoryCursor(first.nextCursor);
+    expect(cursor).not.toBeNull();
+    const second = await db.listSearcherSearches(me, 2, cursor);
+    expect(second.entries).toHaveLength(1);
+    // Later pages skip the COUNT (the client reuses page one's total)
+    // and the null bookmark proves exhaustion (no eternal load-more).
+    expect(second.total).toBeNull();
+    expect(second.nextCursor).toBeNull();
+
+    const seen = [...first.entries, ...second.entries]
+      .map((e) => e.steamId)
+      .sort();
+    expect(seen).toEqual([
+      '76561198000000030',
+      '76561198000000031',
+      '76561198000000032',
+    ]);
+
+    const others = await db.listSearcherSearches(other, 20);
+    expect(others.entries.map((e) => e.steamId)).toEqual([
+      '76561198000000033',
+    ]);
+    expect(others.total).toBe(1);
+  });
+
+  it('purgeExpiredSearcherLinks de-attributes only searches older than the cutoff', async () => {
+    const me = '76561198000000001';
+    // Same atomic-attribution precondition as the paging test above.
+    await db.createAccount(me);
+    const oldSearch = await db.recordSearch({
+      profile: { steamId: '76561198000000050' },
+      friends: [],
+      searcherSteamId: me,
+    });
+    await db.recordSearch({
+      profile: { steamId: '76561198000000051' },
+      friends: [],
+      searcherSteamId: me,
+    });
+    // Age one row 13 months back (hand-edit: recordSearch always stamps
+    // now). searched_at is toISOString at write, so the lexicographic
+    // cutoff below orders correctly.
+    await db.executeForTests(
+      "UPDATE searches SET searched_at = '2025-09-01T00:00:00.000Z' WHERE id = ?",
+      [oldSearch.id],
+    );
+
+    const purged = await db.purgeExpiredSearcherLinks(
+      '2026-09-01T00:00:00.000Z',
+    );
+    expect(purged).toBe(1);
+
+    // The old link is cut, the fresh one survives — and the searches
+    // themselves stay visible to aggregates (only the attribution died).
+    const page = await db.listSearcherSearches(me, 20);
+    expect(page.entries.map((e) => e.steamId)).toEqual([
+      '76561198000000051',
+    ]);
+    expect(page.total).toBe(1);
+    expect(page.nextCursor).toBeNull();
   });
 
   it('attachCheaterProbability upserts on the real schema', async () => {
@@ -1474,6 +1646,11 @@ describe('analytics db integration against real libSQL', () => {
       await db.createAccount(STEAM, 'pt');
       await db.createWatchRequest(STEAM, 'pt');
       await db.issueConfirmToken(STEAM, hashFor('gone'), future);
+      await db.recordSearch({
+        profile: { steamId: '76561198000000040' },
+        friends: [],
+        searcherSteamId: STEAM,
+      });
 
       await expect(
         db.removeWatchAndAccount(STEAM),
@@ -1481,6 +1658,13 @@ describe('analytics db integration against real libSQL', () => {
 
       await expect(db.getAccount(STEAM)).resolves.toBeNull();
       await expect(db.getWatchStatus(STEAM)).resolves.toBeNull();
+      // The who-searched-whom link is cut in the same call (the search
+      // itself stays for aggregates/inboxes, which never show identity).
+      await expect(db.listSearcherSearches(STEAM, 20)).resolves.toEqual({
+        entries: [],
+        total: 0,
+        nextCursor: null,
+      });
 
       // And the next signup starts over unconfirmed (fresh consent).
       const again = await db.createAccount(STEAM, 'pt');

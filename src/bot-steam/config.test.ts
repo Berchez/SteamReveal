@@ -67,6 +67,10 @@ describe('loadBotConfig', () => {
       banAlertMaxAttempts: BOT_CONFIG_DEFAULTS.DEFAULT_BAN_ALERT_MAX_ATTEMPTS,
       banAlertSendTimeoutMs:
         BOT_CONFIG_DEFAULTS.DEFAULT_BAN_ALERT_SEND_TIMEOUT_MS,
+      historyPurgeIntervalMs:
+        BOT_CONFIG_DEFAULTS.DEFAULT_HISTORY_PURGE_INTERVAL_MS,
+      reconcileMassRemoveMax: null,
+      reconcileSwapUntilMs: null,
     });
   });
 
@@ -96,6 +100,54 @@ describe('loadBotConfig', () => {
     const config = loadBotConfig({ ...FULL_ENV });
     expect(config.banSweepIntervalMs).toBe(6 * 60 * 60 * 1000);
     expect(config.banSweepBatchLimit).toBe(100);
+  });
+
+  it('defaults the history purge to a daily pass', () => {
+    // Retention precision needs days, not minutes: one UPDATE per pass
+    // makes daily deliberately overkill-cheap.
+    const config = loadBotConfig({ ...FULL_ENV });
+    expect(config.historyPurgeIntervalMs).toBe(24 * 60 * 60 * 1000);
+  });
+
+  it('keeps the mass-removal override off unless explicitly set', () => {
+    // Null default (fail-safe): the breaker guards every pass until an
+    // operator sets an explicit numeric ceiling for a confirmed window.
+    // Numeric, not boolean: a forgotten number still caps the blast
+    // radius, a forgotten "on" would leave the guard off forever.
+    expect(loadBotConfig({ ...FULL_ENV }).reconcileMassRemoveMax).toBeNull();
+    expect(
+      loadBotConfig({ ...FULL_ENV, RECONCILE_MASS_REMOVE_MAX: '500' })
+        .reconcileMassRemoveMax,
+    ).toBe(500);
+  });
+
+  it('keeps swap mode off unless explicitly set', () => {
+    expect(loadBotConfig({ ...FULL_ENV }).reconcileSwapUntilMs).toBeNull();
+    expect(
+      loadBotConfig({ ...FULL_ENV, RECONCILE_SWAP_MODE: '1' })
+        .reconcileSwapUntilMs,
+    ).toBeNull();
+    const inAWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    expect(
+      loadBotConfig({ ...FULL_ENV, RECONCILE_SWAP_UNTIL: inAWeek.toISOString() })
+        .reconcileSwapUntilMs,
+    ).toBe(inAWeek.getTime());
+  });
+
+  it('throws naming a garbage swap instant (fail loud, never silent no-swap)', () => {
+    expect(() =>
+      loadBotConfig({ ...FULL_ENV, RECONCILE_SWAP_UNTIL: 'someday' }),
+    ).toThrow('RECONCILE_SWAP_UNTIL');
+  });
+
+  it('refuses a swap window more than 30 days out (placeholder left on)', () => {
+    // Swap windows are days; a 4-year instant is certainly a placeholder
+    // uncommented as-is or a typo — either way it would silently suspend
+    // genuine-leaver purges for years.
+    const in35Days = new Date(Date.now() + 35 * 24 * 60 * 60 * 1000);
+    expect(() =>
+      loadBotConfig({ ...FULL_ENV, RECONCILE_SWAP_UNTIL: in35Days.toISOString() }),
+    ).toThrow(/more than 30 days/);
   });
 
   it.each([

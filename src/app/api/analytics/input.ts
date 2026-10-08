@@ -128,7 +128,15 @@ const isValidLocationGuess = (value: unknown): value is LocationGuess => {
 const parseFriendsVisibility = (value: unknown): FriendsVisibility | null =>
   normalizeFriendsVisibility(value);
 
-export const parseRecordBody = (body: unknown): NewSearchInput | null => {
+// Searcher identity is NEVER taken from the body (forgeable) — the
+// route resolves it from the sealed session cookie and passes it
+// straight to the DAL. The Omit<> makes that compiler-enforced: this
+// object deliberately carries NO searcherSteamId key (a future
+// `searcherSteamId: body.x` here would be a type error, not a review
+// catch), and the route adds the session value after the spread.
+export const parseRecordBody = (
+  body: unknown,
+): Omit<NewSearchInput, 'searcherSteamId'> | null => {
   if (!isRecord(body)) return null;
 
   const { profile, friends, gamesSnapshot } = body;

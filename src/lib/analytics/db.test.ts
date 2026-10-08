@@ -123,8 +123,25 @@ describe('analytics db DAL', () => {
     );
   });
 
-  it('keeps null cityId null when absent', async () => {
+  it('writes guest searches column-less (no migration-order dependency)', async () => {
+    // Null searcher can never stick, so guests skip the column
+    // unconditionally: a pre-020 deploy records guest searches in ONE
+    // batch instead of fail+retry.
     const { recordSearch } = require('./db');
+
+    const record = await recordSearch(newSearchInput);
+
+    expect(record.searcherSteamId).toBeNull();
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+    const root = mockBatch.mock.calls[0][0].find(
+      (statement: { sql: string }) =>
+        statement.sql.includes('INSERT INTO searches'),
+    );
+    expect(root.sql).not.toContain('searcher_steam_id');
+    expect(root.args).toHaveLength(2);
+  });
+
+  it('keeps null cityId null when absent', async () => {    const { recordSearch } = require('./db');
     await recordSearch({
       profile: { steamId: '76561198000000000' },
       friends: [],
@@ -177,6 +194,183 @@ describe('analytics db DAL', () => {
         computedAt: '2026-09-05T00:00:00.000Z',
       }),
     ).rejects.toThrow(/db:migrate/);
+  });
+
+  it('records anonymously when searches lacks searcher_steam_id (020 pending)', async () => {
+    // First batch fails on the missing column, retry (anonymous) succeeds.
+    mockBatch.mockRejectedValueOnce(
+      new Error('table searches has no column named: searcher_steam_id'),
+    );
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { recordSearch } = require('./db');
+
+    const record = await recordSearch({
+      ...newSearchInput,
+      searcherSteamId: '76561198000000001',
+    });
+
+    expect(record.searcherSteamId).toBeNull();
+    expect(mockBatch).toHaveBeenCalledTimes(2);
+    // The retried batch carries the column-less searches INSERT (2 args);
+    // search_meta never had the column, so it needs no variant.
+    const retryStatements = mockBatch.mock.calls[1][0];
+    const retryRoot = retryStatements.find(
+      (statement: { sql: string }) =>
+        statement.sql.includes('INSERT INTO searches'),
+    );
+    expect(retryRoot.sql).not.toContain('searcher_steam_id');
+    expect(retryRoot.args).toHaveLength(2);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toMatch(/db:migrate/);
+
+    // A second 020-pending window in the same process stays silent
+    // (warn-once), and the test seam re-arms it.
+    const { resetMissingSearcherColumnWarnForTests } = require('./db');
+    mockBatch.mockRejectedValueOnce(
+      new Error('table searches has no column named: searcher_steam_id'),
+    );
+    await recordSearch({
+      ...newSearchInput,
+      searcherSteamId: '76561198000000001',
+    });
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    resetMissingSearcherColumnWarnForTests();
+    mockBatch.mockRejectedValueOnce(
+      new Error('table searches has no column named: searcher_steam_id'),
+    );
+    await recordSearch({
+      ...newSearchInput,
+      searcherSteamId: '76561198000000001',
+    });
+    expect(warnSpy).toHaveBeenCalledTimes(2);
+    warnSpy.mockRestore();
+  });
+
+  it('rethrows non-column errors instead of falling back to anonymous', async () => {
+    mockBatch.mockRejectedValueOnce(new Error('db down'));
+    const { recordSearch } = require('./db');
+
+    await expect(
+      recordSearch({ ...newSearchInput, searcherSteamId: '76561198000000001' }),
+    ).rejects.toThrow('db down');
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows column-mentioning errors that are not schema-missing', async () => {
+    // Names the column but is NOT a pending migration (constraint
+    // failure): falling back to anonymous would silently mis-record.
+    mockBatch.mockRejectedValueOnce(
+      new Error('SQLITE_CONSTRAINT: CHECK failed: searcher_steam_id IS NULL'),
+    );
+    const { recordSearch } = require('./db');
+
+    await expect(
+      recordSearch({ ...newSearchInput, searcherSteamId: '76561198000000001' }),
+    ).rejects.toThrow('CHECK failed');
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips the doomed first batch while the 020 miss is cached', async () => {
+    // First call pays fail+retry and arms the 60s miss cache; the next
+    // call goes column-less directly (half the write cost, same
+    // anonymous result).
+    mockBatch.mockRejectedValueOnce(
+      new Error('table searches has no column named: searcher_steam_id'),
+    );
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { recordSearch } = require('./db');
+    const input = {
+      ...newSearchInput,
+      searcherSteamId: '76561198000000001',
+    };
+
+    await expect(recordSearch(input)).resolves.toMatchObject({
+      searcherSteamId: null,
+    });
+    expect(mockBatch).toHaveBeenCalledTimes(2);
+
+    await expect(recordSearch(input)).resolves.toMatchObject({
+      searcherSteamId: null,
+    });
+    expect(mockBatch).toHaveBeenCalledTimes(3);
+    const directRoot = mockBatch.mock.calls[2][0].find(
+      (statement: { sql: string }) =>
+        statement.sql.includes('INSERT INTO searches'),
+    );
+    expect(directRoot.sql).not.toContain('searcher_steam_id');
+    // One loud warn for the whole window, not one per call.
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    warnSpy.mockRestore();
+  });
+
+  it('re-probes with the column after the miss TTL expires', async () => {
+    // Migration landing mid-window must heal by itself: past the TTL
+    // the full attempt runs again (and re-arms the cache on failure).
+    const nowSpy = jest.spyOn(Date, 'now');
+    nowSpy.mockReturnValue(1_000_000);
+    mockBatch.mockRejectedValueOnce(
+      new Error('table searches has no column named: searcher_steam_id'),
+    );
+    const { recordSearch } = require('./db');
+    const input = {
+      ...newSearchInput,
+      searcherSteamId: '76561198000000001',
+    };
+
+    await recordSearch(input);
+    expect(mockBatch).toHaveBeenCalledTimes(2);
+
+    nowSpy.mockReturnValue(1_000_000 + 61_000);
+    mockBatch.mockRejectedValueOnce(
+      new Error('table searches has no column named: searcher_steam_id'),
+    );
+    await recordSearch(input);
+    // Full attempt again (fails) + anonymous retry.
+    expect(mockBatch).toHaveBeenCalledTimes(4);
+    nowSpy.mockRestore();
+  });
+
+  it('normalizes searcherSteamId once: malformed degrades to null everywhere', async () => {
+    const { recordSearch } = require('./db');
+
+    const record = await recordSearch({
+      ...newSearchInput,
+      searcherSteamId: 'not-a-steam-id',
+    });
+
+    expect(record.searcherSteamId).toBeNull();
+    // Normalized null takes the guest (column-less) path: anonymous in
+    // one batch, never a corrupt id.
+    const root = mockBatch.mock.calls[0][0].find(
+      (statement: { sql: string }) =>
+        statement.sql.includes('INSERT INTO searches'),
+    );
+    expect(root.sql).not.toContain('searcher_steam_id');
+    expect(root.args).toHaveLength(2);
+  });
+
+  it('stores a valid searcherSteamId unchanged', async () => {
+    const { recordSearch } = require('./db');
+
+    const record = await recordSearch({
+      ...newSearchInput,
+      searcherSteamId: '76561198000000001',
+    });
+
+    expect(record.searcherSteamId).toBe('76561198000000001');
+    const root = mockBatch.mock.calls[0][0].find(
+      (statement: { sql: string }) =>
+        statement.sql.includes('INSERT INTO searches'),
+    );
+    // Atomic attribution: the id rides as the footprint-subquery arg on
+    // the searches row (resolves to the id only with a live ACCOUNTS
+    // row, else NULL — same transaction, no pre-check round-trip, no
+    // TOCTOU). search_meta carries no searcher column at all.
+    expect(root.sql).toContain(
+      'SELECT steam_id FROM accounts WHERE steam_id = ?',
+    );
+    expect(root.args[root.args.length - 1]).toBe('76561198000000001');
   });
 });
 
@@ -378,6 +572,7 @@ describe('getSearchRecords read path', () => {
       locationGuess: null,
       cheater: null,
       durationMs: 500,
+      searcherSteamId: null,
     });
   });
 
@@ -1333,26 +1528,133 @@ describe('watch/outbox DAL (Epic 1)', () => {
   it('removeWatchAndAccount deletes both rows in one batch (atomic opt-out)', async () => {
     const { removeWatchAndAccount } = require('./db');
 
-    mockBatch.mockResolvedValueOnce([{ rowsAffected: 1 }, { rowsAffected: 1 }]);
+    mockBatch.mockResolvedValueOnce([
+      { rowsAffected: 1 },
+      { rowsAffected: 1 },
+      { rowsAffected: 3 },
+    ]);
     await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
       accountDeleted: true,
       watchDeleted: true,
     });
 
     // One batch, account statement first: a single transaction, both rows
-    // go or neither does.
+    // go or neither does. The third statement cuts the who-searched-whom
+    // link (opt-out leaves no searcher attribution behind).
     expect(mockBatch).toHaveBeenCalledTimes(1);
     const statements = mockBatch.mock.calls[0][0];
-    expect(statements).toHaveLength(2);
+    expect(statements).toHaveLength(3);
     expect(String(statements[0].sql)).toContain('DELETE FROM accounts');
     expect(String(statements[1].sql)).toContain('DELETE FROM watched_profiles');
+    expect(String(statements[2].sql)).toContain(
+      'UPDATE searches SET searcher_steam_id = NULL',
+    );
+    expect(statements[2].args).toEqual([STEAM]);
 
-    mockBatch.mockResolvedValueOnce([{ rowsAffected: 0 }, { rowsAffected: 0 }]);
+    mockBatch.mockResolvedValueOnce([
+      { rowsAffected: 0 },
+      { rowsAffected: 0 },
+      { rowsAffected: 0 },
+    ]);
     await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
       accountDeleted: false,
       watchDeleted: false,
     });
     await expect(removeWatchAndAccount('short')).rejects.toThrow(/17 digits/);
+  });
+
+  it('removeWatchAndAccount still deletes when 020 is pending (degrades the de-attribution, not the opt-out)', async () => {
+    // Bot and Vercel deploy separately: the UPDATE names a column the
+    // DB may not have yet. The two deletes must still commit (the rows
+    // that matter are gone); only the history links wait for migration.
+    mockBatch.mockRejectedValueOnce(
+      new Error('table searches has no column named: searcher_steam_id'),
+    );
+    mockBatch.mockResolvedValueOnce([{ rowsAffected: 1 }, { rowsAffected: 1 }]);
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { removeWatchAndAccount } = require('./db');
+
+    await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
+      accountDeleted: true,
+      watchDeleted: true,
+    });
+
+    expect(mockBatch).toHaveBeenCalledTimes(2);
+    const retryStatements = mockBatch.mock.calls[1][0];
+    expect(retryStatements).toHaveLength(2);
+    expect(
+      retryStatements.some((statement: { sql: string }) =>
+        statement.sql.includes('searcher_steam_id'),
+      ),
+    ).toBe(false);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toMatch(
+      /removeWatchAndAccount.*db:migrate/,
+    );
+    warnSpy.mockRestore();
+  });
+
+  it('removeWatchAndAccount rethrows non-column failures with nothing committed', async () => {
+    mockBatch.mockRejectedValueOnce(new Error('db down'));
+    const { removeWatchAndAccount } = require('./db');
+
+    await expect(removeWatchAndAccount(STEAM)).rejects.toThrow('db down');
+    expect(mockBatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('deleteSearcherHistory de-attributes (never deletes) and validates the id', async () => {
+    const { deleteSearcherHistory } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 4 });
+    await expect(deleteSearcherHistory(STEAM)).resolves.toBe(4);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE searches'),
+    );
+    expect(String(update[0]?.sql ?? update[0])).toContain(
+      'SET searcher_steam_id = NULL',
+    );
+    expect(update[0].args).toEqual([STEAM]);
+
+    await expect(deleteSearcherHistory('short')).rejects.toThrow(/17 digits/);
+    expect(mockCreateClient).toHaveBeenCalledTimes(1);
+  });
+
+  it('purgeExpiredSearcherLinks de-attributes only rows older than the cutoff', async () => {
+    const { purgeExpiredSearcherLinks } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rowsAffected: 11 });
+    await expect(
+      purgeExpiredSearcherLinks('2025-10-06T00:00:00.000Z'),
+    ).resolves.toBe(11);
+
+    const update = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE searches'),
+    );
+    expect(String(update[0]?.sql ?? update[0])).toContain(
+      'SET searcher_steam_id = NULL',
+    );
+    // Plain range UPDATE on the composite partial index (no subquery):
+    // the column lives on searches, where searched_at already is.
+    expect(String(update[0]?.sql ?? update[0])).toContain(
+      'searched_at < ?',
+    );
+    expect(update[0].args).toEqual(['2025-10-06T00:00:00.000Z']);
+  });
+
+  it('purgeExpiredSearcherLinks throws on garbage cutoffs (never a silent full wipe)', async () => {
+    const { purgeExpiredSearcherLinks } = require('./db');
+
+    await expect(purgeExpiredSearcherLinks('')).rejects.toThrow(
+      /retention cutoff/,
+    );
+    await expect(purgeExpiredSearcherLinks('next Tuesday')).rejects.toThrow(
+      /retention cutoff/,
+    );
+    await expect(purgeExpiredSearcherLinks(null)).rejects.toThrow(
+      /retention cutoff/,
+    );
+    expect(mockExecute).not.toHaveBeenCalled();
   });
 
   it('getWatchStatus maps pending/active/null and collapses garbage to pending', async () => {
@@ -3239,5 +3541,87 @@ describe('dashboard fast path (aggregates + capped history)', () => {
     expect(mockBatch.mock.calls[2][0][0].args).toEqual([
       DASHBOARD_HISTORY_LIMIT,
     ]);
+  });
+});
+
+describe('parseHistoryCursor (opaque page bookmark)', () => {
+  const { parseHistoryCursor } = require('./db');
+
+  it('parses a well-formed bookmark', () => {
+    expect(
+      parseHistoryCursor('2026-09-30T00:00:00.000Z|1788564056404-tzx2nt'),
+    ).toEqual({
+      searchedAt: '2026-09-30T00:00:00.000Z',
+      searchId: '1788564056404-tzx2nt',
+    });
+  });
+
+  it('treats null, undefined and empty as the first page', () => {
+    expect(parseHistoryCursor(null)).toBeNull();
+    expect(parseHistoryCursor(undefined)).toBeNull();
+    expect(parseHistoryCursor('')).toBeNull();
+  });
+
+  it('rejects garbage (no separator, bad date, empty id)', () => {
+    expect(parseHistoryCursor('garbage')).toBeNull();
+    expect(parseHistoryCursor('|s1')).toBeNull();
+    expect(parseHistoryCursor('2026-09-30T00:00:00.000Z|')).toBeNull();
+    expect(parseHistoryCursor('not-a-date|s1')).toBeNull();
+  });
+
+  it('rejects Date.parse-able but non-ISO text (SQL compares lexicographically)', () => {
+    // Date.parse understands this; the keyset comparison would silently
+    // mis-page on it. The writer only ever emits toISOString().
+    expect(parseHistoryCursor('next Tuesday|s1')).toBeNull();
+    expect(parseHistoryCursor('30/09/2026 00:00:00|s1')).toBeNull();
+  });
+
+  it('rejects non-Zulu offsets (cursors are only ever server-built Zulu)', () => {
+    expect(parseHistoryCursor('2026-09-30T00:00:00+02:00|s1')).toBeNull();
+  });
+
+  it('rejects absurdly long ids (real ids are ~20 chars)', () => {
+    expect(
+      parseHistoryCursor(`2026-09-30T00:00:00.000Z|${'s'.repeat(65)}`),
+    ).toBeNull();
+    expect(
+      parseHistoryCursor(`2026-09-30T00:00:00.000Z|${'s'.repeat(64)}`),
+    ).not.toBeNull();
+  });
+});
+
+describe('isSearcherColumnMissing (020-pending predicate)', () => {
+  const { isSearcherColumnMissing } = require('./db');
+
+  it('matches the missing-column shape (with or without the schema hint rewrite)', () => {
+    expect(
+      isSearcherColumnMissing(
+        new Error('table searches has no column named: searcher_steam_id'),
+      ),
+    ).toBe(true);
+    expect(
+      isSearcherColumnMissing(
+        new Error(
+          'Analytics database schema is missing — run `pnpm run db:migrate` first. (Original DB error: table searches has no column named: searcher_steam_id)',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects unrelated failures — even ones naming the column', () => {
+    // A constraint/txn failure that mentions the column must NOT trigger
+    // the anonymous/degraded fallback: that path is for a pending
+    // migration only.
+    expect(
+      isSearcherColumnMissing(
+        new Error('SQLITE_CONSTRAINT: CHECK failed: searcher_steam_id IS NULL'),
+      ),
+    ).toBe(false);
+    expect(isSearcherColumnMissing(new Error('db down'))).toBe(false);
+    expect(isSearcherColumnMissing(new Error('no such table: searches'))).toBe(
+      false,
+    );
+    expect(isSearcherColumnMissing(null)).toBe(false);
+    expect(isSearcherColumnMissing('searcher_steam_id')).toBe(false);
   });
 });

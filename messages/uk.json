@@ -127,7 +127,8 @@
     "benefitBanAlerts": "Сповіщення про бани перевірених профілів",
     "benefitEarlyAccess": "Ранній доступ до нових функцій",
     "signInButton": "Увійти через Steam",
-    "dontAskAgain": "Більше не питати"
+    "dontAskAgain": "Більше не питати",
+    "benefitHistory": "Ваші пошуки зберігаються в акаунті, доки ви авторизовані"
   },
   "feedback": {
     "openButton": "Надіслати відгук",
@@ -231,6 +232,21 @@
     "watchBanAlertBody": "Профіль, який ви переглядали, позначено як забанений.",
     "watchBanAlertReveal": "Переглянути забанений профіль",
     "watchBanAlertLoading": "Показуємо…",
-    "watchBanAlertError": "Не вдалося показати. Спробуйте ще раз."
+    "watchBanAlertError": "Не вдалося показати. Спробуйте ще раз.",
+    "watchHistoryButton": "Переглянути історію",
+    "watchHistoryTitle": "Моя історія пошуків",
+    "watchHistoryEmpty": "Поки порожньо. Пошуки, виконані після входу, з'являться тут.",
+    "watchHistoryLoading": "Завантаження історії…",
+    "watchHistoryError": "Не вдалося завантажити історію.",
+    "watchHistoryRetry": "Спробувати ще раз",
+    "watchHistoryLoadMore": "Завантажити ще",
+    "watchHistoryShowing": "Показано {shown} з {total}",
+    "watchHistoryClear": "Очистити мою історію",
+    "watchHistoryClearConfirm": "Натисніть ще раз для підтвердження — це не можна скасувати",
+    "watchHistorySessionExpired": "Сесія завершилася. Увійдіть знову, щоб продовжити.",
+    "watchHistoryClearError": "Не вдалося очистити історію. Ваші пошуки збережено — спробуйте ще раз.",
+    "watchHistoryOptOutNote": "Видалення бота з друзів (вихід із Watch) також очищає цю історію.",
+    "watchHistoryPrivacyNote": "Тут лише пошуки, виконані після входу. Прив'язка до акаунту закінчується через 12 місяців — можна очистити в будь-який момент нижче (самі пошуки лишаються в анонімній статистиці; очищення не зупиняє нові пошуки, доки ви авторизовані).",
+    "watchHistoryEmptyOptedOut": "Тут порожньо. Ви вийшли з Watch: нові пошуки не зберігаються, а старі видалено при виході."
   }
 }

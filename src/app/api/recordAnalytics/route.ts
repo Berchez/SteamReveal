@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { errorResponse } from '@/lib/apiError';
 import timingSafeEqualStrings from '@/lib/timingSafeEqualStrings';
 import logRouteError from '@/lib/logRouteError';
@@ -6,6 +7,7 @@ import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
 import { recordSearch, consumeAntiLoopToken, hashAntiLoopToken } from '@/lib/analytics/db';
 import { isCrawlerUserAgent } from '@/lib/analytics/crawlerTraffic';
+import { readSearcherSteamId } from '@/lib/watch/searcherAttribution';
 import { enqueueWatchNotification } from '@/lib/analytics/watchNotify';
 import { parseRecordBody } from '@/app/api/analytics/input';
 import { malformedBodyResponse } from '@/app/api/analytics/malformedBody';
@@ -152,7 +154,14 @@ export async function POST(req: Request) {
       }
     }
 
-    const record = await recordSearch(parsedInput);
+    const record = await recordSearch({
+      ...parsedInput,
+      // Searcher identity for "my search history": resolved here from the
+      // sealed session cookie (never from the body — forgeable). Fail-open
+      // to anonymous (null): a sick session store must degrade to an
+      // unattributed search, never 500 a plain search or 401 a guest.
+      searcherSteamId: await readSearcherSteamId(cookies()),
+    });
 
     // WB-12 notify hook: AWAITED deliberately, not fire-and-forget.
     // Reason: this repo pins Next 14.2, whose next/server exports no

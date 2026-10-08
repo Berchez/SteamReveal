@@ -26,6 +26,14 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+/* Reserved scrollbar gutter while a modal locks the page scroll (toggled
+   as a class by the modal's scroll-lock effect, NOT a global rule:
+   reserving it site-wide would shift every short page). Prevents the
+   horizontal jump when the bar appears/disappears on desktop. */
+.modal-open {
+  scrollbar-gutter: stable;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

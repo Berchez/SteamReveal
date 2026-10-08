@@ -112,6 +112,27 @@ describe('WatchManager', () => {
     expect(screen.getByText('watchPendingTitle')).toBeInTheDocument();
   });
 
+  it('renders no history button (the panel owns it, in every state)', async () => {
+    // The history entry point lives on the SiteNavMenu panel — not here —
+    // so it shows without waiting for the status poll (and in the
+    // session-expired/error gates, where this panel renders a bare link).
+    // This pins that the manager never grows its own copy (which is what
+    // broke the skeleton's height-neutrality).
+    const fetchMock = fetchByUrl((url) => {
+      if (url.includes('/api/auth/signup')) return postOk();
+      return statusResponse('active');
+    });
+    render(<WatchManager steamId={STEAM_ID} />);
+    await flushPolls(1);
+
+    expect(screen.queryByText('watchHistoryButton')).not.toBeInTheDocument();
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).includes('/api/history'),
+      ),
+    ).toHaveLength(0);
+  });
+
   it('starts watching on explicit click (locale only, never a typed id)', async () => {
     const fetchMock = fetchByUrl((url) => {
       if (url.includes('/api/auth/signup')) return postOk();

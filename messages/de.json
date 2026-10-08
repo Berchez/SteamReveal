@@ -127,7 +127,8 @@
     "benefitBanAlerts": "Bann-Warnungen für geprüfte Profile",
     "benefitEarlyAccess": "Früher Zugang zu neuen Funktionen",
     "signInButton": "Mit Steam anmelden",
-    "dontAskAgain": "Nicht mehr fragen"
+    "dontAskAgain": "Nicht mehr fragen",
+    "benefitHistory": "Deine Suchen werden in deinem Konto gespeichert, solange du angemeldet bist"
   },
   "feedback": {
     "openButton": "Feedback senden",
@@ -231,6 +232,21 @@
     "watchBanAlertBody": "Ein von dir geprüftes Profil wurde als gesperrt markiert.",
     "watchBanAlertReveal": "Gesperrtes Profil ansehen",
     "watchBanAlertLoading": "Wird aufgedeckt…",
-    "watchBanAlertError": "Konnte nicht aufgedeckt werden. Versuche es erneut."
+    "watchBanAlertError": "Konnte nicht aufgedeckt werden. Versuche es erneut.",
+    "watchHistoryButton": "Verlauf ansehen",
+    "watchHistoryTitle": "Mein Suchverlauf",
+    "watchHistoryEmpty": "Noch keine Suchen. Angemeldet durchgeführte Suchen erscheinen hier.",
+    "watchHistoryLoading": "Verlauf wird geladen…",
+    "watchHistoryError": "Verlauf konnte nicht geladen werden.",
+    "watchHistoryRetry": "Erneut versuchen",
+    "watchHistoryLoadMore": "Mehr laden",
+    "watchHistoryShowing": "{shown} von {total} angezeigt",
+    "watchHistoryClear": "Meinen Verlauf löschen",
+    "watchHistoryClearConfirm": "Erneut tippen zum Bestätigen — kann nicht rückgängig gemacht werden",
+    "watchHistorySessionExpired": "Deine Sitzung ist abgelaufen. Melde dich erneut an, um fortzufahren.",
+    "watchHistoryClearError": "Verlauf konnte nicht gelöscht werden. Deine Suchen sind noch gespeichert — versuch es erneut.",
+    "watchHistoryOptOutNote": "Entfernst du den Bot aus deinen Freunden (Watch verlassen), wird auch dieser Verlauf gelöscht.",
+    "watchHistoryPrivacyNote": "Hier stehen nur Suchen mit Anmeldung. Die Verknüpfung mit deinem Konto läuft nach 12 Monaten ab — jederzeit unten löschbar (die Suchen selbst bleiben anonym erhalten; Löschen pausiert keine neuen Suchen, solange du angemeldet bist).",
+    "watchHistoryEmptyOptedOut": "Hier ist nichts. Du hast Watch verlassen: Neue Suchen werden nicht gespeichert — alte wurden beim Verlassen gelöscht."
   }
 }

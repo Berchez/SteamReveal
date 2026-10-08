@@ -16,12 +16,25 @@ import type {
  * This mirrors the guard that used to live in the JSON-file store's
  * refreshDashboard().
  *
+ * Data minimization: searcherSteamId is stripped here — no dashboard panel
+ * reads it, and the owner page source must not carry a who-searched-whom
+ * graph. (The field stays on SearchRecord for API consumers that need it.)
+ *
  * Compact (no pretty-print): the history window ships full friend rows per
  * search, so indentation would cost ~25-35% of payload for zero behavior
  * gain. View-source readability is not worth megabytes on every load.
  */
 export const serializeEntries = (entries: SearchRecord[]): string =>
-  JSON.stringify(entries).replace(/</g, '\\u003c');
+  JSON.stringify(
+    entries.map((entry) => {
+      // Shallow copy + delete (not rest-spread with an unread sibling:
+      // that trips @typescript-eslint/no-unused-vars). The field stays on
+      // SearchRecord for API consumers that need it.
+      const copy = { ...entry };
+      delete copy.searcherSteamId;
+      return copy;
+    }),
+  ).replace(/</g, '\\u003c');
 
 /**
  * Same embed escaping as serializeEntries (watch payloads carry steamIds

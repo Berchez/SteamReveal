@@ -3,6 +3,7 @@
  */
 
 import { POST } from './route';
+import { resetSearcherSessionWarnForTests } from '@/lib/watch/searcherAttribution';
 
 jest.mock('@/lib/analytics/db', () => ({
   recordSearch: jest.fn(),
@@ -12,6 +13,14 @@ jest.mock('@/lib/analytics/db', () => ({
 
 jest.mock('@/lib/analytics/watchNotify', () => ({
   enqueueWatchNotification: jest.fn(),
+}));
+
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(),
+}));
+
+jest.mock('@/lib/watch/session', () => ({
+  getSessionSteamId: jest.fn(),
 }));
 
 // Factory must not reference outer variables (TDZ: `import { POST }` runs
@@ -43,6 +52,10 @@ const { enqueueWatchNotification } = jest.requireMock(
 
 const { __testIsRateLimited } = jest.requireMock('@/lib/rateLimit') as {
   __testIsRateLimited: jest.Mock;
+};
+
+const { getSessionSteamId } = jest.requireMock('@/lib/watch/session') as {
+  getSessionSteamId: jest.Mock;
 };
 
 const makeRequest = (
@@ -87,6 +100,9 @@ describe('POST /api/recordAnalytics', () => {
     // limiter to "open" so a persistent mockReturnValue (exempt-skip test)
     // can't leak into the next test.
     __testIsRateLimited.mockReturnValue(false);
+    // Anonymous by default (overridden per test): the session read is
+    // best-effort, so most tests exercise the unattributed path.
+    getSessionSteamId.mockResolvedValue(null);
     originalDbUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = 'libsql://demo-org.turso.io';
     process.env.ANALYTICS_SKIP_PASSWORD = 'test-password';
@@ -279,6 +295,72 @@ describe('POST /api/recordAnalytics', () => {
     expect(res.status).toBe(200);
     expect(body).toEqual({ ok: true, id: 'unittest-id' });
     expect(recordSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it('attributes the search to the session identity when logged in', async () => {
+    recordSearch.mockResolvedValue({ id: 'owned-id' });
+    getSessionSteamId.mockResolvedValue('76561198000000001');
+
+    const res = await POST(
+      makeRequest({
+        jsonBody: {
+          profile: { steamId: '76561198000000000' },
+          friends: [],
+          // A forged client-side id must never win: the route ignores the
+          // body (the parser drops the field) and uses the session only.
+          searcherSteamId: '76561198000000002',
+        },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(recordSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ searcherSteamId: '76561198000000001' }),
+    );
+  });
+
+  it('records anonymously when the session read fails (fail-open, never 500)', async () => {
+    recordSearch.mockResolvedValue({ id: 'anon-id' });
+    getSessionSteamId.mockRejectedValue(new Error('seal blown'));
+
+    const res = await POST(
+      makeRequest({
+        jsonBody: {
+          profile: { steamId: '76561198000000000' },
+          friends: [],
+        },
+      }),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ ok: true, id: 'anon-id' });
+    expect(recordSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ searcherSteamId: null }),
+    );
+  });
+
+  it('logs a sick session store once per process (fail-open stays loud)', async () => {
+    // A persistently broken session store would turn every search
+    // anonymous with zero signal — the route still records (never 500s
+    // a search) but says so once, not once per beacon.
+    resetSearcherSessionWarnForTests();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    recordSearch.mockResolvedValue({ id: 'anon-id' });
+    getSessionSteamId.mockRejectedValue(new Error('seal blown'));
+    const jsonBody = {
+      profile: { steamId: '76561198000000000' },
+      friends: [],
+    };
+
+    await POST(makeRequest({ jsonBody }));
+    await POST(makeRequest({ jsonBody }));
+
+    const attributionLogs = errorSpy.mock.calls.filter((call) =>
+      String(call[0]).includes('searcher attribution skipped'),
+    );
+    expect(attributionLogs).toHaveLength(1);
+    errorSpy.mockRestore();
   });
 
   it('records a valid payload directly into Turso', async () => {

@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 import DropdownPanel from '@/app/components/DropdownPanel/DropdownPanel';
 import WatchManager from '@/app/components/WatchManager';
@@ -9,6 +11,15 @@ import {
   prefetchWatchStatus,
   type WarmWatchStatusSnapshot,
 } from '@/app/templates/Home/hooks/watch/watchStatusPrefetch';
+
+// The history modal rides OUTSIDE the navbar chunk: it renders only after
+// a click, so it loads on demand (same laziness rationale as the status
+// prefetch below — FCP/LCP never observe it). Hover/focus on the history
+// button warms the import in the intent→click gap.
+const WatchHistoryModal = dynamic(
+  () => import('@/app/components/WatchHistory'),
+  { ssr: false },
+);
 
 interface SiteNavMenuProps {
   steamId: string;
@@ -82,15 +93,49 @@ function SiteNavMenu({
   avatarAlt,
   initialWatch = null,
 }: SiteNavMenuProps) {
+  const watchTranslator = useTranslations('Watch');
   const [open, setOpen] = useState(false);
+  // Search-history modal state lives HERE (not in WatchManager): the
+  // modal is portaled to document.body, so a click inside it counts as
+  // "outside" for the dropdown's click-outside handler below. Owning it
+  // here lets opening the modal close the dropdown first — the modal then
+  // survives on its own (no unmount mid-interaction, no remount when the
+  // watch poll flips) and closing it refocuses the avatar button.
+  const [historyOpen, setHistoryOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const titleRef = useRef<HTMLParagraphElement | null>(null);
   const prevOpenRef = useRef(false);
+  // Mirror for the focus effect below: when the dropdown closes BECAUSE
+  // the history modal opened, focus must go to the modal title (its own
+  // mount effect), not back to the avatar button — otherwise the two
+  // effects fight and the button (behind the modal) wins. Updated in the
+  // open/close handlers (never during render — concurrent-safe).
+  const historyOpenRef = useRef(false);
 
   const handleToggle = () => {
     setOpen((wasOpen) => !wasOpen);
   };
+
+  const handleOpenHistory = useCallback(() => {
+    historyOpenRef.current = true;
+    setOpen(false);
+    setHistoryOpen(true);
+  }, []);
+
+  const handleCloseHistory = useCallback(() => {
+    historyOpenRef.current = false;
+    setHistoryOpen(false);
+    buttonRef.current?.focus();
+  }, []);
+
+  // Warms the history-modal chunk in the hover→click gap (pairs with the
+  // dynamic() import above). Fire-and-forget: the import cache dedupes,
+  // a rejection just means a cold click (same .catch pattern as the
+  // modal's own initial load).
+  const handleHistoryPrefetchIntent = useCallback(() => {
+    import('@/app/components/WatchHistory').catch(() => undefined);
+  }, []);
 
   // Warms the watch-status cache in the hover→click gap so the panel often
   // opens with real content instead of the skeleton. Laziness is structural,
@@ -107,7 +152,7 @@ function SiteNavMenu({
   useEffect(() => {
     if (open && !prevOpenRef.current) {
       titleRef.current?.focus();
-    } else if (!open && prevOpenRef.current) {
+    } else if (!open && prevOpenRef.current && !historyOpenRef.current) {
       buttonRef.current?.focus();
     }
     prevOpenRef.current = open;
@@ -179,8 +224,28 @@ function SiteNavMenu({
           <div className="mb-4">
             <WatchManager steamId={steamId} initialWatch={initialWatch} />
           </div>
+          {/* History lives on the PANEL (not in WatchManager): it shows in
+              every state — including session-expired/error, where the
+              manager renders a bare gate — the moment the dropdown opens
+              (no status poll to wait for), and the manager keeps its
+              height-neutral skeleton untouched (no CLS from a new row). */}
+          <div className="flex items-center justify-center">
+            <button
+              type="button"
+              onClick={handleOpenHistory}
+              onMouseEnter={handleHistoryPrefetchIntent}
+              onFocus={handleHistoryPrefetchIntent}
+              // Mobile has no hover: warm the chunk on touch-start (the
+              // synthetic mouseEnter fires too late, right before click).
+              onTouchStart={handleHistoryPrefetchIntent}
+              className="h-10 px-5 rounded-full border border-purple-500/60 text-purple-200 text-sm hover:border-purple-300"
+            >
+              {watchTranslator('watchHistoryButton')}
+            </button>
+          </div>
         </DropdownPanel>
       )}
+      {historyOpen && <WatchHistoryModal onClose={handleCloseHistory} />}
     </div>
   );
 }

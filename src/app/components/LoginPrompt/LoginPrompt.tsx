@@ -71,6 +71,7 @@ function LoginPrompt({ onClose, dontAskAgain }: LoginPromptProps) {
     'benefitWatch',
     'benefitBanAlerts',
     'benefitEarlyAccess',
+    'benefitHistory',
   ] as const;
 
   return (

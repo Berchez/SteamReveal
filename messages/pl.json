@@ -127,7 +127,8 @@
     "benefitBanAlerts": "Alerty o banach przeglądanych profili",
     "benefitEarlyAccess": "Wczesny dostęp do nowych funkcji",
     "signInButton": "Zaloguj przez Steam",
-    "dontAskAgain": "Nie pytaj ponownie"
+    "dontAskAgain": "Nie pytaj ponownie",
+    "benefitHistory": "Twoje wyszukiwania są zapisywane na koncie, dopóki trwa logowanie"
   },
   "feedback": {
     "openButton": "Wyślij opinię",
@@ -231,6 +232,21 @@
     "watchBanAlertBody": "Profil, który przeglądałeś, został oznaczony jako zbanowany.",
     "watchBanAlertReveal": "Zobacz zbanowany profil",
     "watchBanAlertLoading": "Pokazywanie…",
-    "watchBanAlertError": "Nie udało się pokazać. Spróbuj ponownie."
+    "watchBanAlertError": "Nie udało się pokazać. Spróbuj ponownie.",
+    "watchHistoryButton": "Zobacz historię",
+    "watchHistoryTitle": "Moja historia wyszukiwań",
+    "watchHistoryEmpty": "Brak wyszukiwań. Wyszukiwania wykonane po zalogowaniu pojawią się tutaj.",
+    "watchHistoryLoading": "Ładowanie historii…",
+    "watchHistoryError": "Nie udało się załadować historii.",
+    "watchHistoryRetry": "Spróbuj ponownie",
+    "watchHistoryLoadMore": "Załaduj więcej",
+    "watchHistoryShowing": "Wyświetlono {shown} z {total}",
+    "watchHistoryClear": "Wyczyść moją historię",
+    "watchHistoryClearConfirm": "Dotknij ponownie, aby potwierdzić — nie można cofnąć",
+    "watchHistorySessionExpired": "Twoja sesja wygasła. Zaloguj się ponownie, aby kontynuować.",
+    "watchHistoryClearError": "Nie udało się wyczyścić historii. Twoje wyszukiwania są nadal zapisane — spróbuj ponownie.",
+    "watchHistoryOptOutNote": "Usunięcie bota ze znajomych (opuszczenie Watch) wyczyści też tę historię.",
+    "watchHistoryPrivacyNote": "Tutaj widać tylko wyszukiwania po zalogowaniu. Powiązanie z kontem wygasa po 12 miesiącach — wyczyść je w dowolnej chwili poniżej (same wyszukiwania zostają w anonimowych statystykach; czyszczenie nie wstrzymuje nowych wyszukiwań, dopóki trwa logowanie).",
+    "watchHistoryEmptyOptedOut": "Tu pusto. Watch został opuszczony: nowe wyszukiwania nie są zapisywane, a stare usunięto przy wyjściu."
   }
 }

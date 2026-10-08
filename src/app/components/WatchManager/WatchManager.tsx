@@ -182,7 +182,9 @@ function WatchManager({
   // with no watch row must still be able to sign out (otherwise the only
   // exit is clearing site cookies by hand). The 'none' screen passes its
   // Start button as `extra`, rendered on the same row (logout left,
-  // primary action right).
+  // primary action right). (The history button lives on the SiteNavMenu
+  // panel, not here — so this footer stays the exact height the skeleton
+  // mirrors.)
   const renderFooter = (extra?: React.ReactNode) => (
     <>
       {requestError !== null && (

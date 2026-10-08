@@ -78,6 +78,13 @@ const EXPECTED_TABLES = [
 const EXPECTED_COLUMNS: Array<{ table: string; column: string }> = [
   { table: 'bot_heartbeat', column: 'disconnected_since' },
   { table: 'search_meta', column: 'friends_visibility' },
+  // searches.searcher_steam_id (020, per-account history): without it
+  // every search write falls back to anonymous and /api/history 500s —
+  // the exact "migration skipped" scenario this gate exists to catch
+  // pre-push. (The composite partial index rides in the same file and
+  // the same transaction; a missing index alone only costs perf, and
+  // the column assertion already gates the file.)
+  { table: 'searches', column: 'searcher_steam_id' },
 ];
 
 // Tables needing a PRAGMA probe, derived (deduped, order-stable) — table

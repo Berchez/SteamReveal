@@ -127,7 +127,8 @@
     "benefitBanAlerts": "Alertas de baneo en perfiles revisados",
     "benefitEarlyAccess": "Acceso anticipado a funciones nuevas",
     "signInButton": "Iniciar sesión con Steam",
-    "dontAskAgain": "No volver a preguntar"
+    "dontAskAgain": "No volver a preguntar",
+    "benefitHistory": "Tus búsquedas se guardan en tu cuenta mientras hayas iniciado sesión"
   },
   "feedback": {
     "openButton": "Enviar comentarios",
@@ -231,6 +232,21 @@
     "watchBanAlertBody": "Un perfil que revisaste fue marcado como baneado.",
     "watchBanAlertReveal": "Ver perfil baneado",
     "watchBanAlertLoading": "Revelando…",
-    "watchBanAlertError": "No se pudo revelar. Inténtalo de nuevo."
+    "watchBanAlertError": "No se pudo revelar. Inténtalo de nuevo.",
+    "watchHistoryButton": "Ver historial",
+    "watchHistoryTitle": "Mi historial de búsquedas",
+    "watchHistoryEmpty": "Sin búsquedas todavía. Las búsquedas que hagas con la sesión iniciada aparecerán aquí.",
+    "watchHistoryLoading": "Cargando historial…",
+    "watchHistoryError": "No se pudo cargar el historial.",
+    "watchHistoryRetry": "Reintentar",
+    "watchHistoryLoadMore": "Cargar más",
+    "watchHistoryShowing": "Mostrando {shown} de {total}",
+    "watchHistoryClear": "Borrar mi historial",
+    "watchHistoryClearConfirm": "Toca de nuevo para confirmar — no se puede deshacer",
+    "watchHistorySessionExpired": "Tu sesión expiró. Inicia sesión de nuevo para continuar.",
+    "watchHistoryClearError": "No se pudo borrar el historial. Tus búsquedas siguen guardadas — inténtalo de nuevo.",
+    "watchHistoryOptOutNote": "Eliminar al bot de amigos (salir de Watch) también borra este historial.",
+    "watchHistoryPrivacyNote": "Aquí solo aparecen búsquedas con sesión iniciada. El vínculo con tu cuenta caduca a los 12 meses — puedes borrarlo abajo en cualquier momento (las búsquedas siguen en totales anónimos; borrar no detiene nuevas búsquedas mientras hayas iniciado sesión).",
+    "watchHistoryEmptyOptedOut": "Nada aquí. Saliste de Watch: las búsquedas nuevas no se guardan, y las anteriores se borraron al salir."
   }
 }

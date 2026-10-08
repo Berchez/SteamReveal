@@ -127,7 +127,8 @@
     "benefitBanAlerts": "Alertas de ban em perfis que você revisou",
     "benefitEarlyAccess": "Acesso antecipado a recursos novos",
     "signInButton": "Entrar com Steam",
-    "dontAskAgain": "Não perguntar novamente"
+    "dontAskAgain": "Não perguntar novamente",
+    "benefitHistory": "Suas buscas ficam salvas na sua conta enquanto você estiver conectado"
   },
   "feedback": {
     "openButton": "Enviar feedback",
@@ -231,6 +232,21 @@
     "watchBanAlertBody": "Um perfil que você analisou foi sinalizado como banido.",
     "watchBanAlertReveal": "Ver perfil banido",
     "watchBanAlertLoading": "Revelando…",
-    "watchBanAlertError": "Não foi possível revelar. Tente de novo."
+    "watchBanAlertError": "Não foi possível revelar. Tente de novo.",
+    "watchHistoryButton": "Ver histórico",
+    "watchHistoryTitle": "Meu histórico de buscas",
+    "watchHistoryEmpty": "Nenhuma busca ainda. As buscas que você fizer logado aparecerão aqui.",
+    "watchHistoryLoading": "Carregando histórico…",
+    "watchHistoryError": "Não foi possível carregar o histórico.",
+    "watchHistoryRetry": "Tentar novamente",
+    "watchHistoryLoadMore": "Carregar mais",
+    "watchHistoryShowing": "Mostrando {shown} de {total}",
+    "watchHistoryClear": "Apagar meu histórico",
+    "watchHistoryClearConfirm": "Toque de novo para confirmar — não dá para desfazer",
+    "watchHistorySessionExpired": "Sua sessão expirou. Entre de novo para continuar.",
+    "watchHistoryClearError": "Não foi possível apagar o histórico. Suas buscas continuam salvas — tente de novo.",
+    "watchHistoryOptOutNote": "Desfazer amizade com o bot (sair do Watch) também apaga este histórico.",
+    "watchHistoryPrivacyNote": "Só aparecem aqui buscas feitas com login. O vínculo com sua conta expira após 12 meses — você pode apagá-lo abaixo a qualquer momento (as buscas seguem nos totais anônimos; apagar não pausa novas buscas com login).",
+    "watchHistoryEmptyOptedOut": "Nada aqui. Você saiu do Watch: novas buscas não são salvas — e as antigas foram apagadas na saída."
   }
 }

@@ -1,4 +1,12 @@
-import { reconcileFriendsList, type ReconcileDal } from './reconcile';
+import {
+  evaluateMassRemovalGuard,
+  isSwapWindowActive,
+  normalizeMassRemoveMax,
+  reconcileFriendsList,
+  requestSwapExemption,
+  shouldKeepSwapExemption,
+  type ReconcileDal,
+} from './reconcile';
 import type { WatchAccount } from '../lib/analytics/types';
 
 // Steam EFriendRelationship.Friend. Deliberately a literal (not imported
@@ -6,6 +14,11 @@ import type { WatchAccount } from '../lib/analytics/types';
 // this module — and its tests — never touch the Steam library.
 const FRIEND = 3;
 const STRANGER = 0;
+
+// A friend id with NO watch row: keeps snapshots non-empty (so the
+// mass-removal breaker stays out of the way) without changing what the
+// pass does to the listed watches.
+const UNRELATED_FRIEND = { '76561198000000099': FRIEND };
 
 const silentLogger = { info: jest.fn(), error: jest.fn() };
 
@@ -49,6 +62,12 @@ const makeDal = (
     removeWatchAndAccount: jest.fn(async (steamId: string) => {
       state.deactivated.push(steamId);
       return { watchDeleted: true, accountDeleted: true };
+    }),
+    // Swap-mode lane (runbook §7): watch row only, accounts + history
+    // links survive the bot-swap.
+    deactivateWatch: jest.fn(async (steamId: string) => {
+      state.deactivated.push(steamId);
+      return true;
     }),
   };
 };
@@ -250,7 +269,12 @@ describe('reconcileFriendsList', () => {
       { steamId: '76561198000000002', status: 'active' },
     ]);
 
-    const report = await reconcileFriendsList({}, FRIEND, dal, silentLogger);
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
 
     expect(report.deactivated).toEqual(['76561198000000002']);
     expect(dal.removeWatchAndAccount).toHaveBeenCalledWith(
@@ -268,7 +292,12 @@ describe('reconcileFriendsList', () => {
       new Error('turso timeout'),
     );
 
-    const report = await reconcileFriendsList({}, FRIEND, dal, silentLogger);
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
 
     // The composite is one transaction: a throw means nothing was
     // removed, the row stays listed, and the next pass retries the pair.
@@ -300,7 +329,12 @@ describe('reconcileFriendsList', () => {
   it('recovers friendships accepted while the bot was offline (appear in snapshot)', async () => {
     // First pass: user has not accepted yet — nothing happens.
     const dal = makeDal([{ steamId: '76561198000000001', status: 'pending' }]);
-    const first = await reconcileFriendsList({}, FRIEND, dal, silentLogger);
+    const first = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
     expect(first.activated).toEqual([]);
 
     // Second pass (e.g. after reconnect): the snapshot now includes them.
@@ -316,7 +350,12 @@ describe('reconcileFriendsList', () => {
   it('recovers removals that happened while the bot was offline', async () => {
     const dal = makeDal([{ steamId: '76561198000000001', status: 'active' }]);
 
-    const report = await reconcileFriendsList({}, FRIEND, dal, silentLogger);
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
 
     expect(report.deactivated).toEqual(['76561198000000001']);
   });
@@ -364,11 +403,16 @@ describe('reconcileFriendsList', () => {
     const logger = { info: jest.fn(), error: jest.fn() };
     const dal = makeDal([{ steamId: '76561198000000001', status: 'active' }]);
 
-    await reconcileFriendsList({}, FRIEND, dal, logger);
+    await reconcileFriendsList(UNRELATED_FRIEND, FRIEND, dal, logger);
 
-    expect(logger.info).toHaveBeenCalledTimes(1);
-    const line = String(logger.info.mock.calls[0][0]);
-    expect(line).toContain('friends=0');
+    // Per-removal audit line + pass summary (irreversible deletions say
+    // WHO, not just how many).
+    expect(logger.info).toHaveBeenCalledTimes(2);
+    expect(String(logger.info.mock.calls[0][0])).toContain(
+      'reconcile deactivated watch (opt-out): steamId=76561198000000001',
+    );
+    const line = String(logger.info.mock.calls[1][0]);
+    expect(line).toContain('friends=1');
     expect(line).toContain('watches=1');
     expect(line).toContain('deactivated=1');
     expect(line).toContain('durationMs=');
@@ -443,7 +487,13 @@ describe('reconcileFriendsList', () => {
       silentLogger,
       onActivated,
     );
-    await reconcileFriendsList({}, FRIEND, dal, silentLogger, onActivated);
+    await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+      onActivated,
+    );
 
     expect(onActivated).not.toHaveBeenCalled();
   });
@@ -472,6 +522,7 @@ describe('reconcileFriendsList', () => {
         watchDeleted: true,
         accountDeleted: true,
       }),
+      deactivateWatch: async () => true,
     };
     const onActivated = jest.fn();
 
@@ -491,4 +542,400 @@ describe('reconcileFriendsList', () => {
     expect(first.activated).toEqual(['76561198000000001']);
     expect(second.activated).toEqual([]);
   });
+
+  it('lets a lone candidate through on an empty snapshot (one removal is not mass)', async () => {
+    // The single-exemption: blocking a lone removal would strand genuine
+    // single opt-outs — the common churn — behind an override no operator
+    // can distinguish from a glitch. Blast radius of a wrong single: one
+    // user (and the ERROR line below would still fire for 2+).
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const dal = makeDal([
+      { steamId: '76561198000000001', status: 'active' },
+      { steamId: '76561198000000002', status: 'pending' },
+    ]);
+
+    const report = await reconcileFriendsList({}, FRIEND, dal, logger);
+
+    expect(report.massRemovalAborted).toBe(false);
+    expect(report.deactivated).toEqual(['76561198000000001']);
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledWith(
+      '76561198000000001',
+    );
+    expect(logger.error).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledTimes(2);
+  });
+
+  it('blocks on an empty snapshot once candidates are plural', async () => {
+    // The single-exemption boundary: 1 flows, 2+ on an empty snapshot
+    // trip the guard (a failed fetch reads as "everyone opted out").
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const dal = makeDal([
+      { steamId: '76561198000000001', status: 'active' },
+      { steamId: '76561198000000002', status: 'active' },
+    ]);
+
+    const report = await reconcileFriendsList({}, FRIEND, dal, logger);
+
+    expect(report.massRemovalAborted).toBe(true);
+    expect(report.deactivated).toEqual([]);
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(String(logger.error.mock.calls[0][0])).toContain(
+      'removals BLOCKED',
+    );
+  });
+
+  it('still activates while removals are blocked', async () => {    // The breaker gates ONLY the removal branch: a corrupt snapshot
+    // cannot falsely activate (that requires friends.has()), so
+    // onboarding never stalls behind it.
+    const watches = Array.from({ length: 25 }, (_, i) => ({
+      steamId: `7656119800000${String(100 + i).padStart(4, '0')}`,
+      status: 'active',
+    }));
+    watches.push({ steamId: '76561198000000001', status: 'pending' });
+    const dal = makeDal(watches);
+
+    const report = await reconcileFriendsList(
+      {
+        '76561198000000001': FRIEND,
+        '76561198000000099': FRIEND,
+      },
+      FRIEND,
+      dal,
+      silentLogger,
+    );
+
+    expect(report.massRemovalAborted).toBe(true);
+    expect(report.activated).toEqual(['76561198000000001']);
+    expect(report.deactivated).toEqual([]);
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+  });
+
+  it('stays quiet on an empty snapshot with no removal candidates', async () => {
+    // Pending-only base: nothing could be removed, so there is nothing
+    // to guard — no ERROR log every 10 min for a healthy state.
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const dal = makeDal([{ steamId: '76561198000000001', status: 'pending' }]);
+
+    const report = await reconcileFriendsList({}, FRIEND, dal, logger);
+
+    expect(report.massRemovalAborted).toBe(false);
+    expect(logger.error).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledTimes(1);
+  });
+
+  it('aborts when removals exceed max(20, 10% of the base)', async () => {
+    // 25 active watches, snapshot keeps 1 unrelated friend: 25 removals
+    // against a ceiling of max(20, ceil(25 * 10%)) = 20. A glitch hiding
+    // inside a large base trips the same guard as the empty snapshot.
+    const watches = Array.from({ length: 25 }, (_, i) => ({
+      steamId: `7656119800000${String(100 + i).padStart(4, '0')}`,
+      status: 'active',
+    }));
+    const dal = makeDal(watches);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
+
+    expect(report.massRemovalAborted).toBe(true);
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+  });
+
+  it('proceeds under the ceiling (genuine small-scale opt-outs still converge)', async () => {
+    const dal = makeDal([
+      { steamId: '76561198000000001', status: 'active' },
+      { steamId: '76561198000000002', status: 'active' },
+    ]);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
+
+    expect(report.massRemovalAborted).toBe(false);
+    expect(report.deactivated).toEqual([
+      '76561198000000001',
+      '76561198000000002',
+    ]);
+  });
+
+  it('honors massRemoveMax for an operator-confirmed wipe', async () => {
+    const dal = makeDal([{ steamId: '76561198000000001', status: 'active' }]);
+
+    const report = await reconcileFriendsList(
+      {},
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      undefined,
+      { massRemoveMax: 50 },
+    );
+
+    expect(report.massRemovalAborted).toBe(false);
+    expect(report.deactivated).toEqual(['76561198000000001']);
+  });
+  it('still blocks past a too-small override (forgotten number stays bounded)', async () => {
+    // Override of 1 with 25 candidates: all-or-nothing per pass (no
+    // partial application), so the whole set stays blocked. A forgotten
+    // override degrades to a ceiling, never to guard-off.
+    const watches = Array.from({ length: 25 }, (_, i) => ({
+      steamId: `7656119800000${String(200 + i).padStart(4, '0')}`,
+      status: 'active',
+    }));
+    const dal = makeDal(watches);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      undefined,
+      { massRemoveMax: 1 },
+    );
+
+    expect(report.massRemovalAborted).toBe(true);
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+  });
+});
+
+describe('evaluateMassRemovalGuard (pure verdict table)', () => {
+  const active = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      steamId: `7656119800000${String(300 + i).padStart(4, '0')}`,
+      status: 'active',
+    }));
+  const friendsOf = (...ids: string[]) => new Set(ids);
+
+  it.each([
+    // [name, watches, friends, override, blocked]
+    ['no watches, empty snapshot', [], new Set<string>(), null, false],
+    ['pending-only base, empty snapshot', [{ steamId: '76561198000000301', status: 'pending' }], new Set<string>(), null, false],
+    ['single candidate, empty snapshot', active(1), new Set<string>(), null, false],
+    ['single candidate, friends present', active(1), friendsOf('76561198000000099'), null, false],
+    ['two candidates under ceiling', active(2), friendsOf('76561198000000099'), null, false],
+    ['empty snapshot, 3 candidates', active(3), new Set<string>(), null, true],
+    ['25 candidates, 1 friend', active(25), friendsOf('76561198000000099'), null, true],
+    ['bare override never waives the empty arm (forgotten N)', active(3), new Set<string>(), 50, true],
+    ['override below candidates still blocks', active(25), friendsOf('76561198000000099'), 1, true],
+    ['malformed override behaves as unset', active(3), new Set<string>(), 0, true],
+  ] as Array<
+    [
+      string,
+      Array<{ steamId: string; status: string }>,
+      Set<string>,
+      number | null,
+      boolean,
+    ]
+  >)(
+    '%s',
+    (
+      _name: string,
+      watches: Array<{ steamId: string; status: string }>,
+      friends: Set<string>,
+      override: number | null,
+      blocked: boolean,
+    ) => {
+      expect(
+        evaluateMassRemovalGuard(watches, friends, override).blocked,
+      ).toBe(blocked);
+    },
+  );
+
+  it.each([
+    // A forgotten N ≥ base size must NOT switch the empty-snapshot arm
+    // off: without swapMode the guard holds no matter what N says
+    // (P1-1: old runbook example 500-on-≤250-base flowed silently).
+    ['forgotten 500, empty snapshot, 200 candidates', 200, 500, false, true],
+    ['forgotten 500, empty snapshot, 3 candidates', 3, 500, false, true],
+    // Swap mode waives the empty arm, but only up to N...
+    ['swap + within override flows', 200, 500, true, false],
+    // ...past N it still trips, override or not.
+    ['swap + over override still blocks', 600, 500, true, true],
+    ['swap without override still blocks empty', 3, null, true, true],
+  ] as Array<[string, number, number | null, boolean, boolean]>)(
+    '%s',
+    (
+      _name: string,
+      candidateCount: number,
+      override: number | null,
+      swapMode: boolean,
+      blocked: boolean,
+    ) => {
+      const watches = Array.from({ length: candidateCount }, (_, i) => ({
+        steamId: `7656119800000${String(500 + i).padStart(4, '0')}`,
+        status: 'active',
+      }));
+      expect(
+        evaluateMassRemovalGuard(watches, new Set<string>(), override, swapMode)
+          .blocked,
+      ).toBe(blocked);
+    },
+  );
+
+  it.each([
+    ['null stays null', null, null],
+    ['undefined stays null', undefined, null],
+    ['NaN stays null', Number.NaN, null],
+    ['zero stays null', 0, null],
+    ['negative stays null', -5, null],
+    ['fraction floors', 20.9, 20],
+    ['positive passes through', 500, 500],
+  ] as Array<[string, number | null | undefined, number | null]>)(
+    'normalizeMassRemoveMax: %s',
+    (
+      _name: string,
+      raw: number | null | undefined,
+      expected: number | null,
+    ) => {
+      expect(normalizeMassRemoveMax(raw)).toBe(expected);
+    },
+  );
+
+  it('reports the candidate list and the size-derived ceiling', () => {    const verdict = evaluateMassRemovalGuard(
+      [
+        ...active(30),
+        { steamId: '76561198000000099', status: 'pending' },
+        { steamId: 'not-an-id', status: 'active' },
+      ],
+      friendsOf('76561198000000099'),
+      null,
+    );
+
+    // 30 actives minus the friended one... — none friended here except
+    // the pending (not a candidate): all 30 actives are candidates.
+    expect(verdict.candidates).toHaveLength(30);
+    // max(20, ceil(32 * 10%)) = 20; 30 > 20 → blocked.
+    expect(verdict.ceiling).toBe(20);
+    expect(verdict.blocked).toBe(true);
+  });
+});
+
+describe('reconcile swap mode (runbook §7)', () => {
+  it('removes the watch but preserves the account (history survives the swap)', async () => {
+    // Bot-swap with override: non-re-added actives reset their WATCH
+    // rows so the new bot starts clean, but accounts + search-history
+    // links persist (attribution keys on accounts). Genuine unfriends
+    // (live path, normal reconcile) still take the full-removal lane.
+    const dal = makeDal([{ steamId: '76561198000000001', status: 'active' }]);
+
+    const report = await reconcileFriendsList(
+      {},
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      undefined,
+      { massRemoveMax: 50, swapMode: true },
+    );
+
+    expect(report.massRemovalAborted).toBe(false);
+    expect(report.deactivated).toEqual(['76561198000000001']);
+    expect(dal.deactivateWatch).toHaveBeenCalledWith('76561198000000001');
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+  });
+
+  it('still honors the breaker in swap mode (override gates both lanes)', async () => {
+    // Swap mode changes WHAT a removal deletes, not WHETHER the guard
+    // trips: without massRemoveMax, a suspect snapshot stays fully
+    // blocked even with swapMode on.
+    const watches = Array.from({ length: 25 }, (_, i) => ({
+      steamId: `7656119800000${String(400 + i).padStart(4, '0')}`,
+      status: 'active',
+    }));
+    const dal = makeDal(watches);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      undefined,
+      { swapMode: true },
+    );
+
+    expect(report.massRemovalAborted).toBe(true);
+    expect(dal.deactivateWatch).not.toHaveBeenCalled();
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+  });
+});
+
+describe('requestSwapExemption (one-shot arming)', () => {
+  // The host arms optimistically at request time (so back-to-back
+  // snapshots can't both read "unarmed") and rolls back unless the
+  // pass ran cleanly — modeled by the caller, pinned here per arm.
+  it.each([
+    ['window open, nothing consumed → armed', true, false, true],
+    ['window closed → never armed', false, false, false],
+    ['already consumed → never re-armed', true, true, false],
+    ['closed and consumed → never armed', false, true, false],
+  ] as Array<[string, boolean, boolean, boolean]>)(
+    '%s',
+    (
+      _name: string,
+      windowActive: boolean,
+      consumed: boolean,
+      useSwap: boolean,
+    ) => {
+      expect(requestSwapExemption(windowActive, consumed)).toBe(useSwap);
+    },
+  );
+});
+
+describe('shouldKeepSwapExemption (rollback unless clean)', () => {
+  // The host rolls the optimistic arm back unless the armed pass ran
+  // cleanly: a failed (rejected), blocked, or errored pass leaves it
+  // armed so the next pass retries with swap semantics.
+  type ErrorRow = { steamId: string; operation: string; message: string };
+  const noErrors: Array<ErrorRow> = [];
+  const boom: Array<ErrorRow> = [
+    { steamId: 'x', operation: 'removeWatch', message: 'boom' },
+  ];
+  it.each([
+    ['clean swap pass stays consumed', false, noErrors, true],
+    ['blocked pass rolls back to armed', true, noErrors, false],
+    ['pass with row errors rolls back to armed', false, boom, false],
+    ['blocked pass with errors rolls back to armed', true, boom, false],
+  ])(
+    '%s',
+    (
+      _name: string,
+      massRemovalAborted: boolean,
+      errors: Array<ErrorRow>,
+      keep: boolean,
+    ) => {
+      expect(shouldKeepSwapExemption({ massRemovalAborted, errors })).toBe(
+        keep,
+      );
+    },
+  );
+});
+
+describe('isSwapWindowActive (self-expiring override)', () => {
+  it.each([
+    ['unset means no window', 1_000_000, null, false],
+    ['undefined means no window', 1_000_000, undefined, false],
+    ['NaN means no window', 1_000_000, Number.NaN, false],
+    ['future instant is active', 1_000_000, 2_000_000, true],
+    ['exact boundary is over (strict <)', 2_000_000, 2_000_000, false],
+    ['past instant expired without a restart', 3_000_000, 2_000_000, false],
+  ] as Array<[string, number, number | null | undefined, boolean]>)(
+    '%s',
+    (
+      _name: string,
+      nowMs: number,
+      until: number | null | undefined,
+      active: boolean,
+    ) => {
+      expect(isSwapWindowActive(nowMs, until)).toBe(active);
+    },
+  );
 });

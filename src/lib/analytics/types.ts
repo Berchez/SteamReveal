@@ -99,6 +99,14 @@ export interface SearchRecord {
   cheater?: CheaterProbabilityRecord | null;
   /** Wall-clock time, in ms, that the full search took client-side. */
   durationMs?: number | null;
+  /**
+   * SteamID64 of the logged-in viewer who ran the search, resolved
+   * server-side from the session cookie (never client-supplied). Null for
+   * anonymous searches and every row predating the column — powers the
+   * per-account "my search history" panel. Privacy: owner-signed
+   * expansion beyond coarse-geo-only (see 020_searcher_steam_id.sql).
+   */
+  searcherSteamId?: string | null;
 }
 
 export type NewSearchInput = Omit<
@@ -218,6 +226,30 @@ export interface WatchNotification {
   cheaterChecked: boolean;
   /** Searcher country (search_meta.requester_country, 2-letter, uppercase). */
   requesterCountry: string | null;
+}
+
+/**
+ * "My searches" row: one recorded search RUN BY the viewer, newest first
+ * (searches.searcher_steam_id = session SteamID). The React key is
+ * searchId (searches.id PK). Null-profile rows (hand edits) are dropped
+ * by the reader, mirroring mapSearchRecord. Rows predating the column
+ * (NULL searcher) never appear — history starts at deploy.
+ *
+ * Minimal projection on purpose: nickname + cheater flag is all the
+ * modal renders (the player link is built from steamId). No URLs, no
+ * geo — less data over the wire, less to leak.
+ */
+export interface SearcherHistoryEntry {
+  /** Producing search id (searches.id). */
+  searchId: string;
+  /** When the search ran (searches.searched_at, UTC ISO). */
+  searchedAt: string;
+  /** Searched target profile id. */
+  steamId: string;
+  /** Target nickname at search time (may be null). */
+  nickname: string | null;
+  /** Whether the cheater report was opened for this search. */
+  cheaterChecked: boolean;
 }
 
 // ---------------------------------------------------------------------------

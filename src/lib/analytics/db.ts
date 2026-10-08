@@ -28,6 +28,7 @@ import type {
   WatchEventKind,
   WatchEventStatus,
   WatchNotification,
+  SearcherHistoryEntry,
   WatchedProfile,
   WatchEvent,
   WatchDashboardAccount,
@@ -54,6 +55,11 @@ import type {
   PopularProfile,
 } from './types';
 import { toSqlBool, nullableText } from './sqlHelpers';
+import {
+  HISTORY_PAGE_DEFAULT_LIMIT,
+  HISTORY_PAGE_MAX_LIMIT,
+  SEARCHER_LINK_TTL_MS,
+} from './historyLimits';
 import { isTransportFailure } from '../transientInfra';
 import withTimeout from '../withTimeout';
 import { normalizeFriendsVisibility } from './friendsVisibility';
@@ -133,6 +139,29 @@ const getClient = (): Promise<Client> => {
 
 const SCHEMA_MISSING_PATTERN = /no such (table|column)|has no column named/i;
 
+/**
+ * True when a DB error means "searches.searcher_steam_id does not
+ * exist yet" (020 pending). Shared by the recordSearch and
+ * removeWatchAndAccount fallbacks so the predicate can never drift
+ * between the two: the error must BOTH look schema-missing (the narrow
+ * arm above, not any error that happens to name the column — e.g. a
+ * typo'd SELECT elsewhere would otherwise trigger a wrong fallback)
+ * AND name this exact column. withSchemaHint rewrites the message
+ * first but appends the original, so matching still works downstream
+ * of it.
+ *
+ * TODO(020-cleanup): once 020 has run in every environment (prod Turso
+ * included — NOT just local) AND one release has passed with zero
+ * fallback warns in the logs, delete this helper, both fallbacks, and
+ * the warn-once logger, and let the column be unconditional. Until
+ * then the deploy/migrate window needs the bridge. Grep
+ * isSearcherColumnMissing to find every piece.
+ */
+export const isSearcherColumnMissing = (error: unknown): boolean =>
+  error instanceof Error &&
+  SCHEMA_MISSING_PATTERN.test(error.message) &&
+  /searcher_steam_id/i.test(error.message);
+
 // A client that was created fine can still die later (idle timeout, network
 // blip, Turso closing a hrana session). The predicate lives in one place —
 // src/lib/transientInfra.ts (pure, no DAL import) — so the bot pollers and
@@ -204,6 +233,48 @@ export const executeForTests = async (
   return withSchemaHint(args ? db.execute({ sql, args }) : db.execute(sql));
 };
 
+// Warn-once flag for the 020-pending fallbacks below (recordSearch and
+// removeWatchAndAccount): every call during the window would otherwise
+// log an identical line. Placed above its callers (no-use-before-define).
+let missingSearcherColumnWarned = false;
+
+const logMissingSearcherColumnOnce = (caller: string): void => {
+  if (missingSearcherColumnWarned) return;
+  missingSearcherColumnWarned = true;
+  // eslint-disable-next-line no-console
+  console.warn(
+    `${caller}: searches.searcher_steam_id is missing — degrading without it until \`pnpm run db:migrate\` applies 020.`,
+  );
+};
+
+/** Test-only seam: re-arm the warn-once above between tests. */
+export const resetMissingSearcherColumnWarnForTests = (): void => {
+  missingSearcherColumnWarned = false;
+};
+
+// Short-lived "column is missing" memory (deploy/migrate window only):
+// without it EVERY recordSearch during the window pays a doomed first
+// batch (up to ~2013 statements) before the fallback. While set, new
+// calls go column-less directly. 60s TTL: if the migration lands
+// mid-window, at most a minute of anonymous writes follow (self-heals;
+// the read path treats NULL as anonymous either way). Expired cache =
+// normal attempt again (which re-arms on failure).
+let searcherColumnMissingUntilMs = 0;
+const SEARCHER_COLUMN_MISS_TTL_MS = 60_000;
+
+const isSearcherColumnMissingCached = (): boolean =>
+  Date.now() < searcherColumnMissingUntilMs;
+
+const cacheSearcherColumnMissing = (caller: string): void => {
+  logMissingSearcherColumnOnce(caller);
+  searcherColumnMissingUntilMs = Date.now() + SEARCHER_COLUMN_MISS_TTL_MS;
+};
+
+/** Test-only seam: drop the miss cache between tests. */
+export const resetSearcherColumnMissingCacheForTests = (): void => {
+  searcherColumnMissingUntilMs = 0;
+};
+
 // ---------------------------------------------------------------------------
 // recordSearch — insert a completed search across all normalized tables.
 // Uses db.batch() so the entire insert is atomic (BEGIN/COMMIT/ROLLBACK).
@@ -223,24 +294,91 @@ export const recordSearch = async (
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const searchedAt = new Date().toISOString();
 
+  // Normalized ONCE so the returned record and the stored row always
+  // agree on SHAPE (malformed degrades to null, never stored corrupt):
+  // whether the id actually STICKS is decided atomically by the INSERT
+  // below (footprint subquery), so a footprintless session returns its
+  // id here but stores NULL — optimistic by one row, and harmless: the
+  // only consumer of the returned record (the route) reads record.id,
+  // and the read path treats NULL as anonymous either way.
+  const searcherSteamId =
+    typeof input.searcherSteamId === 'string' &&
+    isSteamId64(input.searcherSteamId)
+      ? input.searcherSteamId
+      : null;
+
   const record: SearchRecord = {
     id,
     searchedAt,
     cheater: null,
     ...input,
+    searcherSteamId,
   };
+
+  // Built by closures (not inline) because the 020-pending fallback
+  // below swaps exactly the searches statement: identity by reference
+  // keeps the swap from depending on array position.
+  //
+  // Attribution is a footprint SUBQUERY on the searches row itself, not
+  // a value: (SELECT steam_id FROM accounts WHERE steam_id = ?)
+  // resolves to the id when a live ACCOUNT row exists and to NULL
+  // otherwise — inside the SAME atomic batch as the insert. Accounts
+  // (not watched_profiles) is the anchor on purpose: a bot-swap wipes
+  // and rebuilds watches, but accounts persist, so history survives a
+  // swap; a genuine opt-out deletes the account row too, which stops
+  // attribution exactly where the purge cuts the old links. That kills
+  // two birds the old check-then-write had: no TOCTOU window between a
+  // footprint read and the write (an opt-out landing mid-batch loses
+  // the race to the transaction, never re-links), and no extra PK
+  // round-trip on the search write path. Guests pass NULL (subquery
+  // over NULL matches nothing — one statement shape for both lanes).
+  const searchesStatement = (withSearcher: boolean) => ({
+    // 1. Root entity (+ attribution)
+    sql: withSearcher
+      ? `INSERT INTO searches (id, searched_at, searcher_steam_id)
+            VALUES (?, ?,
+              (SELECT steam_id FROM accounts WHERE steam_id = ?))`
+      : `INSERT INTO searches (id, searched_at) VALUES (?, ?)`,
+    args: withSearcher ? [id, searchedAt, searcherSteamId] : [id, searchedAt],
+  });
+  const searchMetaStatement = () => ({
+    // 3. Search meta (1:1) — no searcher column: who-ran-the-search
+    // lives on searches (020), indexed for the history read.
+    sql: `INSERT INTO search_meta
+            (search_id, requester_locale, requester_country,
+              requester_browser_language, device, friends_visibility)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+    args: [
+      id,
+      record.requesterLocale ?? null,
+      // Normalized at write (same choke point as every read): 'br'
+      // and 'BR' must never become two buckets/flags downstream.
+      // Direct DAL callers get the same guarantee as the HTTP parser.
+      normalizeCountryCode(record.requesterCountry),
+      record.requesterBrowserLanguage ?? null,
+      record.device ?? null,
+      normalizeFriendsVisibility(record.friendsVisibility),
+    ] as (string | number | null)[],
+  });
+  // Miss-cache fast path (see above): while the 020 miss is cached,
+  // skip the doomed first batch and go column-less directly — same
+  // anonymous result as the fallback below, at half the write cost.
+  // Guests skip the column unconditionally (searcherSteamId null can
+  // never stick): their writes must not depend on migration/deploy
+  // order at all.
+  const rootStatement = searchesStatement(
+    searcherSteamId !== null && !isSearcherColumnMissingCached(),
+  );
+  const metaStatement = searchMetaStatement();
 
   const statements: Array<{ sql: string; args: (string | number | null)[] }> = [
     // 1. Root entity
-    {
-      sql: 'INSERT INTO searches (id, searched_at) VALUES (?, ?)',
-      args: [id, searchedAt],
-    },
+    rootStatement,
     // 2. Profile (1:1)
     {
       sql: `INSERT INTO profiles
             (search_id, steam_id, steam_url, nickname, gc_name,
-             country_code, state_code, city_id, is_cs_active, duration_ms)
+              country_code, state_code, city_id, is_cs_active, duration_ms)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id,
@@ -255,24 +393,7 @@ export const recordSearch = async (
         record.durationMs ?? null,
       ],
     },
-    // 3. Search meta (1:1)
-    {
-      sql: `INSERT INTO search_meta
-            (search_id, requester_locale, requester_country,
-             requester_browser_language, device, friends_visibility)
-            VALUES (?, ?, ?, ?, ?, ?)`,
-      args: [
-        id,
-        record.requesterLocale ?? null,
-        // Normalized at write (same choke point as every read): 'br'
-        // and 'BR' must never become two buckets/flags downstream.
-        // Direct DAL callers get the same guarantee as the HTTP parser.
-        normalizeCountryCode(record.requesterCountry),
-        record.requesterBrowserLanguage ?? null,
-        record.device ?? null,
-        normalizeFriendsVisibility(record.friendsVisibility),
-      ],
-    },
+    metaStatement,
   ];
 
   // 4. Friends (N:1) — the route parser already validated/trimmed these, but
@@ -319,7 +440,31 @@ export const recordSearch = async (
       });
     });
 
-  await withSchemaHint(db.batch(statements));
+  try {
+    await withSchemaHint(db.batch(statements));
+  } catch (error) {
+    // 020-pending fallback: when the column does not exist yet, retry the
+    // same atomic batch WITHOUT the searcher (anonymous) instead of
+    // failing the search — and with it, the Watch notify hook that runs
+    // after recordSearch in the route. Migration-first deploy remains the
+    // contract (this path also warns loudly once per process, so a stuck
+    // migration stays visible instead of rotting silently); the fallback
+    // only bridges the deploy/migrate window. Any OTHER error rethrows.
+    if (!isSearcherColumnMissing(error)) {
+      throw error;
+    }
+    cacheSearcherColumnMissing('recordSearch');
+    statements[statements.indexOf(rootStatement)] =
+      searchesStatement(false);
+    await withSchemaHint(db.batch(statements));
+    return { ...record, searcherSteamId: null };
+  }
+
+  // Cache-hit path returns anonymous too (the column was missing when
+  // cached — nothing was stored under this searcher).
+  if (isSearcherColumnMissingCached()) {
+    return { ...record, searcherSteamId: null };
+  }
 
   return record;
 };
@@ -1200,30 +1345,138 @@ export interface RemoveWatchResult {
  * batch rolled back — nothing was removed). A fresh opt-out cycle means
  * fresh consent: the next signup starts unconfirmed and the bot sends a
  * new link.
+ *
+ * Plus de-attribution: any searches rows carrying this steamId as
+ * searcher_steam_id are reset to NULL in the SAME batch. Opt-out must
+ * mean "no record survives" — the searches themselves stay (other
+ * panels and the target's inbox read them), but the who-searched-whom
+ * link is cut.
+ *
+ * No re-attribution residual: the iron-session cookie (30-day TTL)
+ * survives unfriending, but readSearcherSteamId only attributes sessions
+ * with a live watch footprint — and this just deleted it. A still-valid
+ * cookie therefore records anonymously until the user signs up again
+ * (fresh consent model, same as re-signup).
+ *
+ * 020-pending fallback: the de-attribution rides in the same batch, so
+ * without the column the whole opt-out would roll back (bot and Vercel
+ * deploy separately — deploy skew is realistic). When the column is
+ * missing the de-attribution is skipped and the two deletes still
+ * commit: the rows that matter (account + watch) are gone, the history
+ * links stay until the migration lands (warn-once, same as
+ * recordSearch). Any OTHER error rethrows with nothing committed.
  */
+/**
+ * Shared de-attribution statement (UPDATE ... WHERE searcher_steam_id
+ * = ?): used by BOTH deleteSearcherHistory (user clear) and
+ * removeWatchAndAccount (opt-out) so the predicate can never drift
+ * between the two call sites.
+ */
+const DEATTRIBUTE_BY_SEARCHER_SQL =
+  'UPDATE searches SET searcher_steam_id = NULL WHERE searcher_steam_id = ?';
+
 export const removeWatchAndAccount = async (
   steamId: string,
 ): Promise<RemoveWatchResult> => {
   assertSteamId64(steamId);
   const db = await getClient();
 
-  const results = await withSchemaHint(
-    db.batch([
-      {
-        sql: 'DELETE FROM accounts WHERE steam_id = ?',
-        args: [steamId],
-      },
-      {
-        sql: 'DELETE FROM watched_profiles WHERE steam_id = ?',
-        args: [steamId],
-      },
-    ]),
-  );
+  const deleteStatements = [
+    {
+      sql: 'DELETE FROM accounts WHERE steam_id = ?',
+      args: [steamId],
+    },
+    {
+      sql: 'DELETE FROM watched_profiles WHERE steam_id = ?',
+      args: [steamId],
+    },
+  ];
+
+  // Miss-cache fast path (same bridge as recordSearch): while the 020
+  // miss is cached, skip the de-attribution statement up front instead
+  // of failing one batch to discover it.
+  const batchStatements = isSearcherColumnMissingCached()
+    ? deleteStatements
+    : [
+        ...deleteStatements,
+        { sql: DEATTRIBUTE_BY_SEARCHER_SQL, args: [steamId] },
+      ];
+
+  let results;
+  try {
+    results = await withSchemaHint(db.batch(batchStatements));
+  } catch (error) {
+    if (!isSearcherColumnMissing(error)) throw error;
+    cacheSearcherColumnMissing('removeWatchAndAccount');
+    results = await withSchemaHint(db.batch(deleteStatements));
+  }
 
   return {
     accountDeleted: Number(results?.[0]?.rowsAffected) > 0,
     watchDeleted: Number(results?.[1]?.rowsAffected) > 0,
   };
+};
+
+/**
+ * "Clear my history": cuts every who-searched-whom link for one viewer
+ * (UPDATE ... SET NULL, never DELETE — the searches themselves stay for
+ * the dashboard aggregates and the targets' inboxes, which never show
+ * searcher identity). Called by DELETE /api/history (session identity)
+ * and shared with nothing else. Returns the de-attributed row count.
+ */
+export const deleteSearcherHistory = async (
+  searcherSteamId: string,
+): Promise<number> => {
+  assertSteamId64(searcherSteamId);
+  const db = await getClient();
+
+  const result = await withSchemaHint(
+    db.execute({
+      sql: DEATTRIBUTE_BY_SEARCHER_SQL,
+      args: [searcherSteamId],
+    }),
+  );
+  const count = Number(result.rowsAffected ?? 0);
+  return Number.isFinite(count) ? count : 0;
+};
+
+/**
+ * Retention purge (history TTL): cuts the who-searched-whom link on every
+ * row whose SEARCH ran before `olderThanIso`, keeping the searches
+ * themselves (aggregates and inboxes never show searcher identity, so
+ * they are unaffected). Called by the bot's daily history-purge pass —
+ * never by request handlers (no user-triggered bulk UPDATE). The cutoff
+ * is a wall-clock ISO string against searches.searched_at (always
+ * toISOString at write, so lexicographic comparison orders correctly);
+ * garbage in is a throw, never a silent full-table wipe.
+ *
+ * Plain range UPDATE: EXPLAIN shows it driving idx_searches_searched_at
+ * (old rows first — mostly anonymous) rather than the partial
+ * composite. Either way indexed, never a full scan.
+ */
+export const purgeExpiredSearcherLinks = async (
+  olderThanIso: string,
+): Promise<number> => {
+  if (
+    typeof olderThanIso !== 'string' ||
+    olderThanIso.length === 0 ||
+    !Number.isFinite(Date.parse(olderThanIso))
+  ) {
+    throw new Error(
+      'Invalid retention cutoff: expected a parseable ISO-8601 timestamp',
+    );
+  }
+  const db = await getClient();
+
+  const result = await withSchemaHint(
+    db.execute({
+      sql: `UPDATE searches SET searcher_steam_id = NULL
+            WHERE searcher_steam_id IS NOT NULL AND searched_at < ?`,
+      args: [olderThanIso],
+    }),
+  );
+  const count = Number(result.rowsAffected ?? 0);
+  return Number.isFinite(count) ? count : 0;
 };
 
 export interface EnqueueWatchEventResult {
@@ -3429,6 +3682,213 @@ const mapSearchRecord = (
     locationGuess: children.locations.get(searchId) ?? null,
     cheater,
     durationMs: toNullableNumber(row.duration_ms),
+    searcherSteamId:
+      typeof row.searcher_steam_id === 'string' &&
+      isSteamId64(row.searcher_steam_id)
+        ? (row.searcher_steam_id as string)
+        : null,
+  };
+};
+
+/**
+ * "My searches" read side — full docblock lives directly above
+ * listSearcherSearches below (JSDoc attaches to the next declaration,
+ * so it cannot sit here above the cursor/limit helpers).
+ */
+// Single source of truth lives in ./historyLimits (client-safe, no
+// server imports — the modal imports it directly instead of db.ts).
+// NOTE: no re-export here on purpose — nothing imports these from the
+// DAL, and a compat alias would suggest otherwise.
+
+export interface SearcherHistoryCursor {
+  searchedAt: string;
+  searchId: string;
+}
+
+/**
+ * Strict ISO-8601 UTC timestamp guard for history cursors. Date.parse
+ * alone accepts anything ("next Tuesday") while the SQL comparison is
+ * lexicographic — on mixed formats that silently mis-pages. searched_at
+ * is always written by toISOString (Zulu), and cursors are only ever
+ * server-built from it, so the pattern requires the Z suffix: offsets
+ * have no legitimate producer and stay rejected. Shared by
+ * parseHistoryCursor and the listSearcherSearches defensive
+ * revalidation (never trust a cursor object built by hand).
+ */
+const HISTORY_TIMESTAMP_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+
+const isHistoryTimestamp = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  HISTORY_TIMESTAMP_PATTERN.test(value) &&
+  Number.isFinite(Date.parse(value));
+
+/**
+ * Parses an opaque page cursor ("searchedAt|searchId", URL-encoded by the
+ * client). Null in, null out (first page); garbage in, null out — the
+ * ROUTE turns a provided-but-garbage cursor into a 400, the DAL treats
+ * null as "from the top". Strict by construction: ids embed wall-clock
+ * time plus randomness and are not ordered, so only the pair orders.
+ */
+export const parseHistoryCursor = (
+  cursor: string | null | undefined,
+): SearcherHistoryCursor | null => {
+  if (cursor === null || cursor === undefined || cursor === '') return null;
+  const separator = cursor.indexOf('|');
+  if (separator <= 0 || separator === cursor.length - 1) return null;
+  const searchedAt = cursor.slice(0, separator);
+  const searchId = cursor.slice(separator + 1);
+  // Search ids are `${Date.now()}-${6 base36 chars}` (~20 chars); cap
+  // defensively so a hand-forged bookmark can't smuggle kilobytes into
+  // a SQL arg (parameterized anyway — this is hygiene, not security).
+  if (
+    !isHistoryTimestamp(searchedAt) ||
+    searchId.length === 0 ||
+    searchId.length > 64
+  ) {
+    return null;
+  }
+  return { searchedAt, searchId };
+};
+
+export interface SearcherHistoryPage {
+  entries: SearcherHistoryEntry[];
+  /**
+   * Server-built bookmark for the next page (null = exhausted). The
+   * client passes it back opaquely — it never constructs the
+   * "searchedAt|searchId" format itself, so the format lives in exactly
+   * one place (parseHistoryCursor). Fetching n+1 rows also kills the
+   * "eternal load-more" case: a page can no longer come back empty while
+   * claiming more rows exist.
+   */
+  nextCursor: string | null;
+  /**
+   * All-time row total for the modal's "showing N of M" note — computed
+   * ONLY on the first page (cursor === null) and null afterwards. A
+   * COUNT(*) per "load more" is pure waste: the client already holds
+   * the total from page one.
+   */
+  total: number | null;
+}
+
+/**
+ * "My searches" read side: recorded searches RUN BY one viewer, newest
+ * first. The mirror image of listProfileSearches (which answers "who
+ * searched ME"): same shape discipline (newest-first, capped window,
+ * cheater EXISTS flag), but keyed by searches.searcher_steam_id and
+ * projecting the TARGET profile (what the viewer looked up) instead of
+ * the searcher country. Profile-less rows (hand edits) are dropped like
+ * mapSearchRecord drops them — a history row without a target renders
+ * nothing. Rows predating the column (NULL searcher) never match.
+ *
+ * Keyset pagination (NOT limit-offset): `cursor` is an opaque
+ * "searchedAt|searchId" bookmark; the next page continues strictly older
+ * (searched_at, id) pairs. Offset would skip or duplicate rows when a
+ * search lands mid-paging; keyset cannot. A limit-window cannot grow the
+ * page (the old limit-only design returned the same N rows forever once
+ * the clamp bit — load-more that never loads).
+ */
+export const listSearcherSearches = async (
+  searcherSteamId: string,
+  limit: number = HISTORY_PAGE_DEFAULT_LIMIT,
+  cursor: SearcherHistoryCursor | null = null,
+): Promise<SearcherHistoryPage> => {
+  assertSteamId64(searcherSteamId);
+  if (!Number.isFinite(limit)) {
+    throw new Error('Invalid search limit: expected a finite number');
+  }
+  if (
+    cursor !== null &&
+    (!isHistoryTimestamp(cursor.searchedAt) ||
+      typeof cursor.searchId !== 'string' ||
+      cursor.searchId.length === 0 ||
+      cursor.searchId.length > 64)
+  ) {
+    throw new Error('Invalid history cursor: expected a parsed cursor or null');
+  }
+  const n = Math.max(1, Math.min(HISTORY_PAGE_MAX_LIMIT, Math.floor(limit)));
+  const db = await getClient();
+
+  // Retention enforced AT READ, not just by the bot's daily purge: the
+  // modal promises "links expire after 12 months", and the bot can be
+  // down for weeks (crash-loop, deploy gap) while searches keep landing.
+  // Rows older than the TTL are invisible here (and uncounted) whether
+  // or not the physical purge has run yet — the purge then only reclaims
+  // what reads already hide. searched_at is toISOString at write, so the
+  // lexicographic comparison orders correctly.
+  //
+  // Index story (020): searcher_steam_id lives ON searches with the
+  // composite partial index (searcher_steam_id, searched_at DESC,
+  // id DESC) — so the filter AND the ORDER BY AND the keyset bound are
+  // all served by one COVERING index seek (verified by EXPLAIN QUERY
+  // PLAN on the real schema, Oct 2026: SEARCH s USING COVERING INDEX
+  // idx_searches_searcher, no temp B-tree). Page cost is O(page), not
+  // O(user history).
+  const retentionCutoff = new Date(Date.now() - SEARCHER_LINK_TTL_MS).toISOString();
+
+  const clauses = ['s.searcher_steam_id = ?', 's.searched_at >= ?'];
+  const args: (string | number)[] = [searcherSteamId, retentionCutoff];
+  if (cursor !== null) {
+    clauses.push(
+      '(s.searched_at < ? OR (s.searched_at = ? AND s.id < ?))',
+    );
+    args.push(cursor.searchedAt, cursor.searchedAt, cursor.searchId);
+  }
+  // n+1 probe: the extra row is never rendered — its presence alone
+  // proves a next page exists (and supplies its bookmark).
+  const pageArgs = [...args, n + 1];
+  const statements: Array<{ sql: string; args: (string | number)[] }> = [
+    {
+      sql: `SELECT s.id AS search_id, s.searched_at,
+              p.steam_id AS steam_id, p.nickname AS nickname,
+              EXISTS (
+                SELECT 1 FROM cheater_results c WHERE c.search_id = s.id
+              ) AS cheater_checked
+            FROM searches s
+            JOIN profiles p ON p.search_id = s.id
+            WHERE ${clauses.join(' AND ')}
+              AND p.steam_id IS NOT NULL AND p.steam_id != ''
+            ORDER BY s.searched_at DESC, s.id DESC LIMIT ?`,
+      args: pageArgs,
+    },
+  ];
+  // COUNT only on the first page (see SearcherHistoryPage.total): every
+  // later page reuses the client's total, so the count query runs once
+  // per modal open, not once per click. Same retention cutoff as the
+  // page: the total counts the visible population, matching
+  // "showing N of M". Range-count on the same composite index.
+  if (cursor === null) {
+    statements.push({
+      sql: `SELECT COUNT(*) AS n FROM searches s
+            JOIN profiles p ON p.search_id = s.id
+            WHERE s.searcher_steam_id = ?
+              AND s.searched_at >= ?
+              AND p.steam_id IS NOT NULL AND p.steam_id != ''`,
+      args: [searcherSteamId, retentionCutoff],
+    });
+  }
+  const results = await withSchemaHint(db.batch(statements));
+
+  const rows = results[0].rows as Array<Record<string, unknown>>;
+  const hasMore = rows.length > n;
+  const entries = rows.slice(0, n).map((record) => ({
+    searchId: record.search_id as string,
+    searchedAt: record.searched_at as string,
+    steamId: record.steam_id as string,
+    nickname: toNullableString(record.nickname),
+    cheaterChecked: Number(record.cheater_checked ?? 0) > 0,
+  }));
+  const lastRendered = entries[entries.length - 1];
+  const counted =
+    cursor === null ? Number(results[1]?.rows[0]?.n ?? 0) : null;
+  const total = counted === null || Number.isFinite(counted) ? counted : 0;
+  return {
+    entries,
+    nextCursor:
+      hasMore && lastRendered
+        ? `${lastRendered.searchedAt}|${lastRendered.searchId}`
+        : null,
+    total,
   };
 };
 
@@ -3439,6 +3899,16 @@ const mapSearchRecord = (
  * full-read contract (db.test.ts, db.integration.test.ts) and any future
  * offline/export use — do NOT point request handlers at it without a
  * LIMIT: friends/games/locations grow ~15/40/1 rows per search.
+ *
+ * Deliberate asymmetry: this keeps selecting m.searcher_steam_id (full-read
+ * contract) while getDashboardHistory does NOT — the dashboard path stays
+ * double-stripped (SQL + serializeEntries) so who-searched-whom can never
+ * reach the page source. Do not "simplify" the two SELECTs into one.
+ *
+ * No 020-pending fallback here (unlike recordSearch/removeWatchAndAccount):
+ * this has zero production callers (tests + future offline/export only),
+ * so a missing column fails LOUD with the migrate hint instead of
+ * silently returning searcher-less rows that look complete.
  */
 export const getSearchRecords = async (): Promise<SearchRecord[]> => {
   const db = await getClient();
@@ -3451,17 +3921,17 @@ export const getSearchRecords = async (): Promise<SearchRecord[]> => {
     db.batch([
       {
         sql: `
-          SELECT s.id, s.searched_at,
-                 p.steam_id, p.steam_url, p.nickname, p.gc_name,
-                 p.country_code, p.state_code, p.city_id,
-                 p.is_cs_active, p.duration_ms,
-                 m.requester_locale, m.requester_country,
-                 m.requester_browser_language, m.device,
-                 m.friends_visibility
-          FROM searches s
-          LEFT JOIN profiles p ON p.search_id = s.id
-          LEFT JOIN search_meta m ON m.search_id = s.id
-          ORDER BY s.searched_at ASC, s.id ASC
+          SELECT s.id, s.searched_at, s.searcher_steam_id,
+                  p.steam_id, p.steam_url, p.nickname, p.gc_name,
+                  p.country_code, p.state_code, p.city_id,
+                  p.is_cs_active, p.duration_ms,
+                   m.requester_locale, m.requester_country,
+                   m.requester_browser_language, m.device,
+                   m.friends_visibility
+           FROM searches s
+           LEFT JOIN profiles p ON p.search_id = s.id
+           LEFT JOIN search_meta m ON m.search_id = s.id
+           ORDER BY s.searched_at ASC, s.id ASC
         `,
       },
       { sql: 'SELECT * FROM friends ORDER BY search_id, id' },
@@ -3932,15 +4402,15 @@ export const getDashboardHistory = async (
                  p.steam_id, p.steam_url, p.nickname, p.gc_name,
                  p.country_code, p.state_code, p.city_id,
                  p.is_cs_active, p.duration_ms,
-                 m.requester_locale, m.requester_country,
-                 m.requester_browser_language, m.device,
-                 m.friends_visibility
-          FROM searches s
-          JOIN profiles p ON p.search_id = s.id
-            AND p.steam_id IS NOT NULL AND p.steam_id != ''
-          LEFT JOIN search_meta m ON m.search_id = s.id
-          ORDER BY s.searched_at DESC, s.id DESC
-          LIMIT ?`,
+                  m.requester_locale, m.requester_country,
+                  m.requester_browser_language, m.device,
+                  m.friends_visibility
+           FROM searches s
+           JOIN profiles p ON p.search_id = s.id
+             AND p.steam_id IS NOT NULL AND p.steam_id != ''
+           LEFT JOIN search_meta m ON m.search_id = s.id
+           ORDER BY s.searched_at DESC, s.id DESC
+           LIMIT ?`,
         args: [n],
       },
       {

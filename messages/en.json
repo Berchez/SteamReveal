@@ -127,7 +127,8 @@
     "benefitBanAlerts": "Ban alerts on profiles you reviewed",
     "benefitEarlyAccess": "Early access to new features, first",
     "signInButton": "Sign in with Steam",
-    "dontAskAgain": "Don't ask again"
+    "dontAskAgain": "Don't ask again",
+    "benefitHistory": "Your searches are saved to your account while signed in"
   },
   "feedback": {
     "openButton": "Send feedback",
@@ -231,6 +232,21 @@
     "watchBanAlertBody": "A profile you reviewed was flagged as banned.",
     "watchBanAlertReveal": "View banned profile",
     "watchBanAlertLoading": "Revealing…",
-    "watchBanAlertError": "Could not reveal. Try again."
+    "watchBanAlertError": "Could not reveal. Try again.",
+    "watchHistoryButton": "View history",
+    "watchHistoryTitle": "My search history",
+    "watchHistoryEmpty": "No searches yet. Searches you run while signed in will appear here.",
+    "watchHistoryLoading": "Loading history…",
+    "watchHistoryError": "Could not load history.",
+    "watchHistoryRetry": "Try again",
+    "watchHistoryLoadMore": "Load more",
+    "watchHistoryShowing": "Showing {shown} of {total}",
+    "watchHistoryClear": "Clear my history",
+    "watchHistoryClearConfirm": "Tap again to confirm — this cannot be undone",
+    "watchHistorySessionExpired": "Your session expired. Sign in again to continue.",
+    "watchHistoryClearError": "Could not clear history. Your searches are still saved — try again.",
+    "watchHistoryOptOutNote": "Unfriending the bot (leaving Watch) also clears this history.",
+    "watchHistoryPrivacyNote": "Only searches made while signed in appear here. The link to your account expires after 12 months — clear it anytime below (searches stay in anonymous totals; clearing never pauses new searches while signed in).",
+    "watchHistoryEmptyOptedOut": "No searches here. You left Watch, so new searches aren't saved — and past ones were cleared when you left."
   }
 }

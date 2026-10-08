@@ -27,6 +27,7 @@ import {
   claimNextQueuedEvents,
   clearConfirmToken,
   countInvitesSentSince,
+  deactivateWatch,
   enqueueBanAlertForSubscription,
   getAccount,
   getBanSubscriberState,
@@ -43,6 +44,7 @@ import {
   markExpireNoticed,
   recordBotHeartbeat,
   recordEventAttempt,
+  purgeExpiredSearcherLinks,
   removeWatchAndAccount,
   resetStaleClaims,
 } from '../lib/analytics/db';
@@ -50,7 +52,12 @@ import { isLocalLinkHostname, loadBotConfig } from './config';
 import type { WatchBotLogger } from './logger';
 import { logBotPassError, markBotPassHealthy } from './transientError';
 import { WatchBot } from './bot';
-import { reconcileFriendsList } from './reconcile';
+import {
+  isSwapWindowActive,
+  reconcileFriendsList,
+  requestSwapExemption,
+  shouldKeepSwapExemption,
+} from './reconcile';
 import { handleFriendRemoved } from './friendRemoved';
 import {
   handleActivation,
@@ -68,6 +75,7 @@ import { startConfirmResendPoller } from './confirmResendPoller';
 import { startStaleClaimSweeper, sweepStaleClaimsOnce } from './staleSweep';
 import { startBanAlertPoller } from './banAlertPoller';
 import { startBanSweeper, type BanVerdictByTarget } from './banSweep';
+import { startHistoryPurgePoller } from './historyPurge';
 
 loadEnv();
 
@@ -181,7 +189,27 @@ const main = (): void => {
   // The cast is contained here: @types/steam-user does not declare
   // chat.sendFriendMessage (verified present at runtime in the
   // installed v5), so the structural chat-client type carries it.
+  // Swap exemption, ONE-SHOT with optimistic arming: the first pass
+  // inside an active window arms immediately (so back-to-back snapshots
+  // can't both read "unarmed" — passes run serialized, but the decision
+  // happens at call time), and rolls back unless that pass ran cleanly
+  // in swap mode (resolved, breaker silent, no row errors). A failed,
+  // blocked, or errored pass leaves it armed for retry — the backlog is
+  // never stranded behind a consumed flag.
+  let swapExemptionConsumed = false;
   const convergeFriends = (friendsById: Record<string, number>): void => {
+    // Swap window is evaluated PER PASS (not once at boot): expiry takes
+    // effect without a restart.
+    const swapArmed = requestSwapExemption(
+      isSwapWindowActive(Date.now(), config.reconcileSwapUntilMs),
+      swapExemptionConsumed,
+    );
+    if (swapArmed) {
+      swapExemptionConsumed = true;
+      logger.warn?.(
+        '[WatchBot] swap exemption ARMED for this pass (one-shot): removals preserve accounts+history; unset RECONCILE_SWAP_UNTIL for hygiene',
+      );
+    }
     reconcileFriendsList(
       friendsById,
       SteamUser.EFriendRelationship.Friend,
@@ -189,6 +217,7 @@ const main = (): void => {
         listWatchedProfiles,
         activateWatch,
         removeWatchAndAccount,
+        deactivateWatch,
         getAccount,
       },
       logger,
@@ -212,7 +241,46 @@ const main = (): void => {
         const chat = client.chat as unknown as ActivationChatClient;
         return sendConfirmLink(chat, steamId, locale, config);
       },
-    ).then(...trackPoll('reconcile failed'));
+      { massRemoveMax: config.reconcileMassRemoveMax, swapMode: swapArmed },
+    )
+      // Chained (not the two-arg form): if the ok-half itself threw,
+      // the two-arg shape would leave it an unhandled rejection. Here
+      // both halves are non-throwing by construction, but the chain
+      // shape doesn't rely on that.
+      .then((report) => {
+        // Roll back the optimistic arm unless this exact pass ran
+        // cleanly in swap mode (resolved, breaker silent, no row
+        // errors — the predicate itself is unit-tested): failed,
+        // blocked or errored passes leave it armed so the next pass
+        // retries with swap semantics.
+        if (swapArmed && !shouldKeepSwapExemption(report)) {
+          swapExemptionConsumed = false;
+        }
+        // Consume the breaker flag: a blocked pass is a stop-the-line
+        // incident (wrong/partial snapshot), not a healthy pass. Route
+        // it to the error lane so the consecutive-failure streak
+        // escalates while the snapshot stays broken, instead of the ok
+        // half silently clearing it every 10 minutes.
+        if (report.massRemovalAborted) {
+          logBotPassError(
+            logger,
+            'reconcile failed',
+            new Error(
+              'mass-removal guard tripped — snapshot looks wrong/partial, removals blocked (see the reconcile removals BLOCKED line above)',
+            ),
+          );
+        } else {
+          markBotPassHealthy('reconcile failed');
+        }
+      })
+      .catch((error: unknown) => {
+        // Rejection path: same rollback — a pass that never resolved
+        // must not burn the exemption either.
+        if (swapArmed) {
+          swapExemptionConsumed = false;
+        }
+        return trackPoll('reconcile failed')[1](error);
+      });
   };
 
   // sysexits EX_CONFIG: the process refuses to run with a wrong identity.
@@ -499,6 +567,22 @@ const main = (): void => {
   });
   expiryPoller.pollOnce().then(...trackPoll('initial expiry scan failed'));
 
+  // Search-history retention purge (daily class): de-attributes
+  // searcher links older than 12 months (single UPDATE per pass — the
+  // searches themselves stay for aggregates/inboxes). DB-only lane, so
+  // no Steam gate: retention advances during Steam outages too.
+  // Catches up after downtime on boot via the explicit first pass.
+  // Declared const (not with the reconnect-reassigned lanes above): a
+  // DB-only pass has no post-logon trigger.
+  const historyPurgePoller = startHistoryPurgePoller({
+    dal: { purgeExpiredSearcherLinks },
+    pollIntervalMs: config.historyPurgeIntervalMs,
+    logger,
+  });
+  historyPurgePoller
+    .pollOnce()
+    .then(...trackPoll('initial history purge failed'));
+
   // Ban Reveal alert consumer (chat side of the sweep fan-out): queued by
   // the sweep below, one event per newly-banned subscription. Same
   // lifecycle as every other chat lane. No TTL by design (a ban verdict is
@@ -611,6 +695,7 @@ const main = (): void => {
     welcomePoller?.stop();
     resendPoller?.stop();
     expiryPoller?.stop();
+    historyPurgePoller.stop();
     banAlertPoller?.stop();
     banSweeper?.stop();
     bot.stop();

@@ -127,7 +127,8 @@
     "benefitBanAlerts": "Alertes de ban sur les profils examinés",
     "benefitEarlyAccess": "Accès anticipé aux nouvelles fonctionnalités",
     "signInButton": "Se connecter avec Steam",
-    "dontAskAgain": "Ne plus demander"
+    "dontAskAgain": "Ne plus demander",
+    "benefitHistory": "Vos recherches sont enregistrées sur votre compte tant que vous êtes connecté"
   },
   "feedback": {
     "openButton": "Envoyer un retour",
@@ -231,6 +232,21 @@
     "watchBanAlertBody": "Un profil que vous avez examiné a été signalé comme banni.",
     "watchBanAlertReveal": "Voir le profil banni",
     "watchBanAlertLoading": "Révélation…",
-    "watchBanAlertError": "Révélation impossible. Réessayez."
+    "watchBanAlertError": "Révélation impossible. Réessayez.",
+    "watchHistoryButton": "Voir l'historique",
+    "watchHistoryTitle": "Mon historique de recherches",
+    "watchHistoryEmpty": "Aucune recherche pour l'instant. Les recherches effectuées une fois connecté apparaîtront ici.",
+    "watchHistoryLoading": "Chargement de l'historique…",
+    "watchHistoryError": "Impossible de charger l'historique.",
+    "watchHistoryRetry": "Réessayer",
+    "watchHistoryLoadMore": "Charger plus",
+    "watchHistoryShowing": "{shown} sur {total} affichées",
+    "watchHistoryClear": "Effacer mon historique",
+    "watchHistoryClearConfirm": "Touchez à nouveau pour confirmer — irréversible",
+    "watchHistorySessionExpired": "Votre session a expiré. Reconnectez-vous pour continuer.",
+    "watchHistoryClearError": "Impossible d'effacer l'historique. Vos recherches sont toujours enregistrées — réessayez.",
+    "watchHistoryOptOutNote": "Retirer le bot de vos amis (quitter Watch) efface aussi cet historique.",
+    "watchHistoryPrivacyNote": "Seules les recherches effectuées en étant connecté apparaissent ici. Le lien avec votre compte expire après 12 mois — effacez-le à tout moment ci-dessous (les recherches restent dans les totaux anonymes; les effacer n'interrompt pas les nouvelles recherches tant que vous êtes connecté).",
+    "watchHistoryEmptyOptedOut": "Rien ici. Vous avez quitté Watch : les nouvelles recherches ne sont pas enregistrées — les anciennes ont été effacées au départ."
   }
 }

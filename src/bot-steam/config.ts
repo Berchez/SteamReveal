@@ -151,6 +151,30 @@ export interface BotConfig {
   banAlertMaxAttempts: number;
   /** Watchdog for a single sendFriendMessage call (same rationale). */
   banAlertSendTimeoutMs: number;
+  /** Search-history retention purge: how often the bot de-attributes
+   * searcher links older than SEARCHER_LINK_TTL_MS (12 months). Daily
+   * default is deliberate overkill-cheap (one UPDATE per pass): expiry
+   * precision needs days, not minutes. */
+  historyPurgeIntervalMs: number;
+  /**
+   * Mass-removal circuit-breaker override (reconcile): max removals a
+   * pass performs while set. Null (default, env unset) means no
+   * override — the breaker guards every pass. Numeric (not boolean) on
+   * purpose: a forgotten number still caps the blast radius, a
+   * forgotten boolean would leave the guard off forever. Set above the
+   * expected genuine count for the window (swap with base 300 → 500),
+   * then unset and restart.
+   */
+  reconcileMassRemoveMax: number | null;
+  /**
+   * Bot-swap window end (reconcile): epoch ms after which swap mode is
+   * over. Null (default, env unset) means no swap — removals always take
+   * the full lane. A timestamp (not a boolean) on purpose: forgetting it
+   * set expires the window by itself instead of leaving preservation on
+   * forever. Set past the expected re-add window (swap + 7 days), then
+   * unset for hygiene (expired is equivalent, but explicit is better).
+   */
+  reconcileSwapUntilMs: number | null;
 }
 
 const DEFAULT_AUTO_ACCEPT_DAILY_LIMIT = 50;
@@ -190,12 +214,44 @@ const DEFAULT_BAN_ALERT_POLL_INTERVAL_MS = 60000;
 const DEFAULT_BAN_ALERT_BATCH_LIMIT = 10;
 const DEFAULT_BAN_ALERT_MAX_ATTEMPTS = 3;
 const DEFAULT_BAN_ALERT_SEND_TIMEOUT_MS = 30000;
+const DEFAULT_HISTORY_PURGE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 const readPositiveInt = (
   raw: string | undefined,
   fallback: number,
   name: string,
 ): number => parsePositiveInt(raw, name) ?? fallback;
+
+/**
+ * Optional ISO-8601 instant env (swap window end): unset/empty means no
+ * window. Anything present-but-unparseable throws naming the variable —
+ * same fail-loud contract as parsePositiveInt (an operator typo must
+ * never silently mean "no swap" when one was intended, nor "swap" with
+ * a garbage bound). A window more than MAX_SWAP_WINDOW_MS ahead is also
+ * refused: swap windows are days, and a 4-year instant is certainly a
+ * placeholder left uncommented or a typo — either way it would silently
+ * suspend genuine-leaver purges for years.
+ */
+const MAX_SWAP_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
+const parseSwapUntilMs = (
+  raw: string | undefined,
+  name: string,
+): number | null => {
+  if (raw === undefined || raw === '') return null;
+  const parsed = Date.parse(raw);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(
+      `${name} must be a parseable ISO-8601 instant (got ${JSON.stringify(raw)})`,
+    );
+  }
+  if (parsed - Date.now() > MAX_SWAP_WINDOW_MS) {
+    throw new Error(
+      `${name} is more than 30 days ahead — refusing (likely a placeholder or typo)`,
+    );
+  }
+  return parsed;
+};
 
 const requireSecret = (value: string | undefined, name: string): string => {
   if (typeof value !== 'string' || value.length === 0) {
@@ -483,6 +539,20 @@ export const loadBotConfig = (
       DEFAULT_BAN_ALERT_SEND_TIMEOUT_MS,
       'BOT_BAN_ALERT_SEND_TIMEOUT_MS',
     ),
+    historyPurgeIntervalMs: readPositiveInt(
+      env.BOT_HISTORY_PURGE_INTERVAL_MS,
+      DEFAULT_HISTORY_PURGE_INTERVAL_MS,
+      'BOT_HISTORY_PURGE_INTERVAL_MS',
+    ),
+    reconcileMassRemoveMax:
+      parsePositiveInt(
+        env.RECONCILE_MASS_REMOVE_MAX,
+        'RECONCILE_MASS_REMOVE_MAX',
+      ) ?? null,
+    reconcileSwapUntilMs: parseSwapUntilMs(
+      env.RECONCILE_SWAP_UNTIL,
+      'RECONCILE_SWAP_UNTIL',
+    ),
   };
   // Resend throttle must be strictly less than token TTL, otherwise a
   // freshly re-issued token could be immediately throttled again.
@@ -532,4 +602,5 @@ export const BOT_CONFIG_DEFAULTS = {
   DEFAULT_BAN_ALERT_BATCH_LIMIT,
   DEFAULT_BAN_ALERT_MAX_ATTEMPTS,
   DEFAULT_BAN_ALERT_SEND_TIMEOUT_MS,
+  DEFAULT_HISTORY_PURGE_INTERVAL_MS,
 };

@@ -95,8 +95,11 @@ lives in `.env.example` under "Watch Bot"):
 | `BOT_RESEND_MIN_INTERVAL_MS`                     | `3600000` (1h)              | Min gap between two issues for one profile (spam bound) |
 | `BOT_EXPIRY_SCAN_INTERVAL_MS`                    | `3600000` (1h)              | Expired-link notice scan cadence (one notice per generation) |
 | `BOT_RECONCILE_INTERVAL_MS`                      | `600000` (10min)            | Periodic full reconcile (backstop for missed snapshots) |
+| `RECONCILE_MASS_REMOVE_MAX`                      | *(unset)*                   | Mass-removal breaker override: max removals a pass performs while set — set ABOVE the expected genuine count for a confirmed window (base 200 → `250`; note the bot caps at ~250 friends, so any N near/above that is effectively "expecting everything"), then unset and restart. Numeric on purpose: a forgotten number still caps the blast radius — BUT it never waives the empty-snapshot arm on its own (only swap mode does, up to N). While set past the window, a glitchy snapshot CAN mass-delete watches (+histories on the full-removal lane) |
+| `RECONCILE_SWAP_UNTIL`                            | *(unset)*                   | Bot-swap window end (ISO instant): while now < instant, removals delete ONLY the watch row, preserving accounts + search-history links (§7). Timestamp (not boolean) so a forgotten window expires by itself. Set with the ceiling above, unset after |
 | `BOT_STALE_SWEEP_INTERVAL_MS`                    | `600000`                  | Orphaned-claim recovery cadence                  |
 | `BOT_STALE_CLAIM_WINDOW_MINUTES`                 | `30`                        | Claims older than this get requeued              |
+| `BOT_HISTORY_PURGE_INTERVAL_MS`                  | `86400000` (24h)            | Search-history retention purge: de-attributes `searcher_steam_id` links older than 12 months (single UPDATE per pass; searches stay for aggregates/inboxes) |
 
 Shell/CI exports win over `.env` (shared `loadEnv()` semantics — same as every
 script in this repo).
@@ -160,6 +163,14 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   supervisor `ExecStartPost`): alert on non-zero exit. A stale heartbeat with
   the process alive usually means the Steam session died and the reconnect loop
   is backing off — check the logs before restarting.
+- History-retention caveat (search-history TTL): the "links expire after 12
+  months" UI promise is enforced TWICE — hidden at read time by the site
+  (holds even with the bot down), and physically purged by the bot's daily
+  pass (`[WatchBot] history purge: de-attributed=N ...`). If the bot is
+  offline for weeks, old links stay stored (invisible, not deleted) until
+  the next successful purge pass — watch for a missing `history purge`
+  line in the logs, same as any other lane going quiet. Purge failures
+  log loudly per pass and retry daily; they never block the other lanes.
 - Friend-cap alert (Steam list is finite — default 250, higher for leveled
   accounts): alert on ANY `friend-accept REFUSED` or `sweep paused` line, and
   watch the `friends=` gauge on the accept lines as it approaches
@@ -183,7 +194,17 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   `friends=` + `acceptedToday=` — the friend-count gauge for the Steam cap),
   `friend-accept REFUSED` (safety ceiling hit: friend cap or daily budget —
   operator-action incident, new onboarding is deferred, investigate the
-  request source for Sybil), `pending-accept sweep paused` (offline-arrival
+  request source for Sybil), `reconcile removals BLOCKED` (mass-removal
+  breaker tripped: wrong/partial snapshot, removals skipped this pass —
+  stop-the-line until the snapshot is sane; if it repeats every pass,
+  investigate the friendsList source, and set RECONCILE_MASS_REMOVE_MAX
+  above the expected genuine count ONLY for an operator-confirmed
+  mass-removal, then unset + restart. While blocked, genuine opt-outs
+  queue behind the guard too (watch rows AND history links persist) —
+  attend promptly; the live friend-remove path is unaffected. Tiny-base
+  note: a lone removal always flows (one is not mass), but 2+ simultaneous
+  leaves on an empty snapshot trip the guard — use the numeric override
+  for that window too), `pending-accept sweep paused` (offline-arrival
   backlog deferred to a later sweep, same incident class),
   `STEAM_BOT_STEAMID mismatch` (this process logged in as a different
   account than configured — FATAL by design: the bot stops itself and the
@@ -332,14 +353,47 @@ no site change needed during the swap. Plan B:
      from it re-inserts the watch as fresh-active (self-heal, no link
      needed) — but only if the user actually opens it and clicks through;
      silence from the user still reads as churn, so announce anyway.
-   - The new bot starts with an EMPTY friends list, so its first reconcile
-     DEACTIVATES every still-`active` watch whose user hasn't re-added yet
-     (active + not-a-friend of the new bot reads as opt-out — same DAL call
-     as an unfriend, no duplicated logic). This is correct per policy (the
-     new bot cannot message non-friends), but it means the swap visibly
-     resets the whole base: users come back via add-bot → login → active
-     directly (no link needed on the fresh lane), NOT via the old
-     invite-accept path.
+    - The new bot starts with an EMPTY friends list, so its first reconcile
+      would previously DEACTIVATE every still-`active` watch whose user
+      hasn't re-added yet. That no longer happens silently: the
+      mass-removal breaker BLOCKS the removals (ERROR line `reconcile
+      removals BLOCKED`, `massRemovalAborted` in the pass) while
+      activations/links still converge. For the swap you WANT those
+      removals (active + not-a-friend of the new bot reads as opt-out —
+      same DAL call as an unfriend), so the procedure is:
+      1. Set `RECONCILE_MASS_REMOVE_MAX` to a number comfortably ABOVE the
+         active base (e.g. base 200 → `250`; the bot caps at ~250 friends
+         so this is the practical maximum — the breaker still trips past
+         it, so a glitch during the window stays bounded) AND
+         `RECONCILE_SWAP_UNTIL` to an ISO instant past the expected
+         re-add window (e.g. swap day + 7 days), then restart. The FIRST
+         clean pass consumes a one-shot swap exemption (WARN line on
+         arming); a failed or breaker-blocked first pass does NOT consume
+         it — the next pass retries with swap semantics instead of
+         degrading to "restart the bot". Expiry needs no restart.
+      2. The next pass resets every non-re-added watch AT ONCE (one
+         event — verify `deactivated=` counts + logs; nothing "converges
+         gradually"). Histories stay intact by design (attribution keys
+         on accounts): returning users find their searches still linked.
+      3. As users re-add, they self-heal via add-bot → login → active
+         (ensureActiveWatch re-inserts the missing watch row; the kept
+         account row (with its confirmation) is reused, no re-confirm).
+      4. UNSET both vars and restart once the base stabilizes. While set
+         past the window, a glitchy snapshot can still mass-reset watches
+         (histories stay safe under swap mode, but genuine opt-outs would
+         also stop purging) — never leave them on.
+      Search histories SURVIVE the swap by design: attribution is keyed
+      on ACCOUNTS rows (not watches), and the swap deletes no accounts —
+      only genuine opt-outs (unfriend → both rows go) cut history links.
+      Users coming back find their history intact.
+      Known residual (accepted): users who genuinely leave DURING the
+      window keep a dormant accounts row (no pass revisits account-only
+      rows — reconcile iterates watches). While their session cookie
+      lives (≤30d) new searches still attribute; after that, nothing new
+      lands, and the 12-month TTL purge de-attributes the old links
+      anyway. The remnant is the bare account row. If that ever needs
+      cleaning, it is a manual `DELETE FROM accounts` (never automated —
+      re-adding must keep working).
    - Support blip is proportional to the whole active base ("who is this new
      bot? why did my watch stop?"), larger than the old pending-only blip.
      Announce the new profile URL ahead of the swap if possible.

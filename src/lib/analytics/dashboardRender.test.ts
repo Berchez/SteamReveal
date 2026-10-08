@@ -37,6 +37,15 @@ describe('serializeEntries', () => {
   it('handles an empty list', () => {
     expect(serializeEntries([])).toContain('[]');
   });
+
+  it('strips searcherSteamId (no who-searched-whom in the page source)', () => {
+    const out = serializeEntries([
+      { ...makeRecord('Alice'), searcherSteamId: '76561198000000001' },
+    ]);
+    expect(out).toContain('"nickname":"Alice"');
+    expect(out).not.toContain('searcherSteamId');
+    expect(out).not.toContain('76561198000000001');
+  });
 });
 
 describe('renderDashboard', () => {

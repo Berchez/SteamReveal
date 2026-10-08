@@ -11,6 +11,28 @@ jest.mock('@/app/components/WatchManager', () => ({
   ),
 }));
 
+// The history modal loads dynamically (outside the navbar chunk): stub
+// the module so these tests pin the panel wiring (button → open,
+// dropdown closes first, focus returns) without loading the real modal.
+jest.mock('@/app/components/WatchHistory', () => ({
+  __esModule: true,
+  default: ({ onClose }: { onClose: () => void }) => (
+    <div role="dialog">
+      <p tabIndex={-1} data-testid="history-title-stub">
+        watchHistoryTitle
+      </p>
+      <button type="button" onClick={onClose}>
+        close-history-stub
+      </button>
+    </div>
+  ),
+}));
+
+jest.mock('next-intl', () => ({
+  useLocale: () => 'en',
+  useTranslations: () => (key: string) => key,
+}));
+
 const STEAM = '76561198000000001';
 
 describe('SiteNavMenu', () => {
@@ -200,6 +222,42 @@ describe('SiteNavMenu', () => {
 
     fireEvent.mouseDown(screen.getByText('outside'));
     await act(async () => {});
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(bell).toHaveFocus();
+  });
+
+  it('opens the history modal outside the dropdown and refocuses on close', async () => {
+    // Lifecycle pin: the modal must survive the dropdown closing (a
+    // portaled click counts as "outside"), so opening it closes the
+    // dropdown first and closing it returns focus to the avatar button.
+    // The button lives on the PANEL (not in WatchManager): no status
+    // poll to wait for, and it shows in every manager state.
+    render(
+      <SiteNavMenu
+        steamId={STEAM}
+        nickname="AvatarUser"
+        avatarUrl={null}
+        avatarAlt="Profile picture of AvatarUser"
+      />,
+    );
+
+    const bell = screen.getByRole('button', {
+      name: 'Profile picture of AvatarUser',
+    });
+    fireEvent.click(bell);
+    await act(async () => {});
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('watchHistoryButton'));
+    await act(async () => {});
+
+    // Dropdown gone (single dialog now: the modal), modal title present.
+    expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    expect(screen.getByText('watchHistoryTitle')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('close-history-stub'));
+    await act(async () => {});
+
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(bell).toHaveFocus();
   });
