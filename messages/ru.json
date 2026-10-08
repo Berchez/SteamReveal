@@ -233,7 +233,7 @@
     "watchBanAlertReveal": "Посмотреть забаненный профиль",
     "watchBanAlertLoading": "Открываем…",
     "watchBanAlertError": "Не удалось показать. Повторите попытку.",
-    "watchHistoryButton": "Посмотреть историю",
+    "watchHistoryButton": "Посмотреть мою историю поиска",
     "watchHistoryTitle": "Моя история поисков",
     "watchHistoryEmpty": "Пока пусто. Поиски, выполненные после входа, появятся здесь.",
     "watchHistoryLoading": "Загрузка истории…",

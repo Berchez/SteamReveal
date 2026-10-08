@@ -233,7 +233,7 @@
     "watchBanAlertReveal": "View banned profile",
     "watchBanAlertLoading": "Revealing…",
     "watchBanAlertError": "Could not reveal. Try again.",
-    "watchHistoryButton": "View history",
+    "watchHistoryButton": "View my search history",
     "watchHistoryTitle": "My search history",
     "watchHistoryEmpty": "No searches yet. Searches you run while signed in will appear here.",
     "watchHistoryLoading": "Loading history…",

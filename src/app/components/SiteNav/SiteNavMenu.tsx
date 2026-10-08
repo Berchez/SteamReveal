@@ -229,10 +229,12 @@ function SiteNavMenu({
               manager renders a bare gate — the moment the dropdown opens
               (no status poll to wait for), and the manager keeps its
               height-neutral skeleton untouched (no CLS from a new row).
-              Rendered as a text link (not a pill button): it opens a
-              modal in place, and a link affordance reads lighter next to
-              the manager's action buttons. Kept a <button> element (not
-              an <a>): there is no navigation target — it toggles UI. */}
+              Still a text link, not a pill (it opens a modal in place and
+              must stay subordinate to the manager's filled CTAs), but a
+              STRONG one: semibold label + history icon + the descriptive
+              copy make it scannable at a glance. Kept a <button> element
+              (not an <a>): there is no navigation target — it toggles
+              UI. The icon is aria-hidden (the label carries the name). */}
           <div className="mb-1 flex items-center justify-center">
             <button
               type="button"
@@ -246,8 +248,17 @@ function SiteNavMenu({
               // 24px floor; 44px matches the manager's pill height and
               // the panel's other rows): the underline reads lighter
               // than a pill while touch keeps a full-size hit area.
-              className="inline-flex min-h-11 items-center rounded px-3 text-sm text-purple-300 underline decoration-purple-500/50 underline-offset-4 hover:text-purple-100 hover:decoration-purple-300"
+              className="inline-flex min-h-11 items-center gap-2 rounded px-3 text-sm font-semibold text-purple-300 underline decoration-purple-500/50 underline-offset-4 hover:text-purple-100 hover:decoration-purple-300"
             >
+              <svg
+                aria-hidden="true"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
+              </svg>
               {watchTranslator('watchHistoryButton')}
             </button>
           </div>
