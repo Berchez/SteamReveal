@@ -1642,7 +1642,7 @@ describe('analytics db integration against real libSQL', () => {
       );
     });
 
-    it('opt-out deletes watch AND account rows in one call (no record survives)', async () => {
+    it('opt-out deletes watch AND account rows in one call (history links preserved)', async () => {
       await db.createAccount(STEAM, 'pt');
       await db.createWatchRequest(STEAM, 'pt');
       await db.issueConfirmToken(STEAM, hashFor('gone'), future);
@@ -1658,18 +1658,31 @@ describe('analytics db integration against real libSQL', () => {
 
       await expect(db.getAccount(STEAM)).resolves.toBeNull();
       await expect(db.getWatchStatus(STEAM)).resolves.toBeNull();
-      // The who-searched-whom link is cut in the same call (the search
-      // itself stays for aggregates/inboxes, which never show identity).
-      await expect(db.listSearcherSearches(STEAM, 20)).resolves.toEqual({
-        entries: [],
-        total: 0,
-        nextCursor: null,
-      });
+      // Product decision: unfriending HIDES history (the footprint gate
+      // stops showing it) but preserves the links — they resurface with
+      // new searches on re-add. Only the explicit Clear and the TTL
+      // purge cut links. Server-side, this is the exact cycle the
+      // history route reads: getAccount null = attributing:false (the
+      // modal hides + pauses), while listSearcherSearches still owns
+      // the rows.
+      const page = await db.listSearcherSearches(STEAM, 20);
+      expect(page.entries.map((e) => e.steamId)).toEqual([
+        '76561198000000040',
+      ]);
+      expect(page.total).toBe(1);
 
       // And the next signup starts over unconfirmed (fresh consent).
       const again = await db.createAccount(STEAM, 'pt');
       expect(again.confirmedAt).toBeNull();
       expect(again.confirmTokenHash).toBeNull();
+      // Footprint restored (= attributing:true again) and the SAME
+      // rows are still there — re-add resumes exactly where it paused,
+      // never resurrects from a wipe.
+      await expect(db.getAccount(STEAM)).resolves.not.toBeNull();
+      const resumed = await db.listSearcherSearches(STEAM, 20);
+      expect(resumed.entries.map((e) => e.steamId)).toEqual([
+        '76561198000000040',
+      ]);
     });
 
     it('re-issue overwrites the pending token (old links die)', async () => {

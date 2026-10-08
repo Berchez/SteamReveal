@@ -245,8 +245,10 @@
     "watchHistoryClearConfirm": "Dotknij ponownie, aby potwierdzić — nie można cofnąć",
     "watchHistorySessionExpired": "Twoja sesja wygasła. Zaloguj się ponownie, aby kontynuować.",
     "watchHistoryClearError": "Nie udało się wyczyścić historii. Twoje wyszukiwania są nadal zapisane — spróbuj ponownie.",
-    "watchHistoryOptOutNote": "Usunięcie bota ze znajomych (opuszczenie Watch) wyczyści też tę historię.",
-    "watchHistoryPrivacyNote": "Tutaj widać tylko wyszukiwania po zalogowaniu. Powiązanie z kontem wygasa po 12 miesiącach — wyczyść je w dowolnej chwili poniżej (same wyszukiwania zostają w anonimowych statystykach; czyszczenie nie wstrzymuje nowych wyszukiwań, dopóki trwa logowanie).",
-    "watchHistoryEmptyOptedOut": "Tu pusto. Watch został opuszczony: nowe wyszukiwania nie są zapisywane, a stare usunięto przy wyjściu."
+    "watchHistoryOptOutNote": "Usunięcie bota ze znajomych ukrywa tę historię — dodaj bota ponownie, aby ją wznowić.",
+    "watchHistoryPausedNote": "Watch opuszczony, więc Twoje wyszukiwania są tu ukryte — dodaj bota ponownie, aby je zobaczyć.",
+    "watchHistoryEmptyOptedOut": "Brak zapisanych wyszukiwań. Watch opuszczony, więc nowe też są wstrzymane — dodaj bota ponownie, aby znów się zapisywały.",
+    "watchHistoryReconnectCta": "Dodaj bota do znajomych, aby wznowić tę historię",
+    "watchHistoryReconnectWaiting": "Czekamy, aż bot zaakceptuje — ta lista zaktualizuje się sama."
   }
 }

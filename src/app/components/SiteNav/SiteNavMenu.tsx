@@ -228,8 +228,12 @@ function SiteNavMenu({
               every state — including session-expired/error, where the
               manager renders a bare gate — the moment the dropdown opens
               (no status poll to wait for), and the manager keeps its
-              height-neutral skeleton untouched (no CLS from a new row). */}
-          <div className="flex items-center justify-center">
+              height-neutral skeleton untouched (no CLS from a new row).
+              Rendered as a text link (not a pill button): it opens a
+              modal in place, and a link affordance reads lighter next to
+              the manager's action buttons. Kept a <button> element (not
+              an <a>): there is no navigation target — it toggles UI. */}
+          <div className="mb-1 flex items-center justify-center">
             <button
               type="button"
               onClick={handleOpenHistory}
@@ -238,7 +242,11 @@ function SiteNavMenu({
               // Mobile has no hover: warm the chunk on touch-start (the
               // synthetic mouseEnter fires too late, right before click).
               onTouchStart={handleHistoryPrefetchIntent}
-              className="h-10 px-5 rounded-full border border-purple-500/60 text-purple-200 text-sm hover:border-purple-300"
+              // Text-link look, button-sized target (WCAG 2.5.8 AA —
+              // 24px floor; 44px matches the manager's pill height and
+              // the panel's other rows): the underline reads lighter
+              // than a pill while touch keeps a full-size hit area.
+              className="inline-flex min-h-11 items-center rounded px-3 text-sm text-purple-300 underline decoration-purple-500/50 underline-offset-4 hover:text-purple-100 hover:decoration-purple-300"
             >
               {watchTranslator('watchHistoryButton')}
             </button>

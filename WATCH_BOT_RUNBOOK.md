@@ -95,7 +95,7 @@ lives in `.env.example` under "Watch Bot"):
 | `BOT_RESEND_MIN_INTERVAL_MS`                     | `3600000` (1h)              | Min gap between two issues for one profile (spam bound) |
 | `BOT_EXPIRY_SCAN_INTERVAL_MS`                    | `3600000` (1h)              | Expired-link notice scan cadence (one notice per generation) |
 | `BOT_RECONCILE_INTERVAL_MS`                      | `600000` (10min)            | Periodic full reconcile (backstop for missed snapshots) |
-| `RECONCILE_MASS_REMOVE_MAX`                      | *(unset)*                   | Mass-removal breaker override: max removals a pass performs while set — set ABOVE the expected genuine count for a confirmed window (base 200 → `250`; note the bot caps at ~250 friends, so any N near/above that is effectively "expecting everything"), then unset and restart. Numeric on purpose: a forgotten number still caps the blast radius — BUT it never waives the empty-snapshot arm on its own (only swap mode does, up to N). While set past the window, a glitchy snapshot CAN mass-delete watches (+histories on the full-removal lane) |
+| `RECONCILE_MASS_REMOVE_MAX`                      | *(unset)*                   | Mass-removal breaker override: max removals a pass performs while set — set ABOVE the expected genuine count for a confirmed window (base 200 → `250`; note the bot caps at ~250 friends, so any N near/above that is effectively "expecting everything"), then unset and restart. Numeric on purpose: a forgotten number still caps the blast radius — BUT it never waives the empty-snapshot arm on its own (only swap mode does, up to N). While set past the window, a glitchy snapshot CAN mass-delete watches (search-history links are safe either way: they persist through every removal lane — §7) |
 | `RECONCILE_SWAP_UNTIL`                            | *(unset)*                   | Bot-swap window end (ISO instant): while now < instant, removals delete ONLY the watch row, preserving accounts + search-history links (§7). Timestamp (not boolean) so a forgotten window expires by itself. Set with the ceiling above, unset after |
 | `BOT_STALE_SWEEP_INTERVAL_MS`                    | `600000`                  | Orphaned-claim recovery cadence                  |
 | `BOT_STALE_CLAIM_WINDOW_MINUTES`                 | `30`                        | Claims older than this get requeued              |
@@ -200,7 +200,8 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   investigate the friendsList source, and set RECONCILE_MASS_REMOVE_MAX
   above the expected genuine count ONLY for an operator-confirmed
   mass-removal, then unset + restart. While blocked, genuine opt-outs
-  queue behind the guard too (watch rows AND history links persist) —
+  queue behind the guard too (watch rows persist; history links persist
+  by product decision regardless) —
   attend promptly; the live friend-remove path is unaffected. Tiny-base
   note: a lone removal always flows (one is not mass), but 2+ simultaneous
   leaves on an empty snapshot trip the guard — use the numeric override
@@ -380,12 +381,15 @@ no site change needed during the swap. Plan B:
          account row (with its confirmation) is reused, no re-confirm).
       4. UNSET both vars and restart once the base stabilizes. While set
          past the window, a glitchy snapshot can still mass-reset watches
-         (histories stay safe under swap mode, but genuine opt-outs would
-         also stop purging) — never leave them on.
-      Search histories SURVIVE the swap by design: attribution is keyed
-      on ACCOUNTS rows (not watches), and the swap deletes no accounts —
-      only genuine opt-outs (unfriend → both rows go) cut history links.
-      Users coming back find their history intact.
+         — never leave them on.
+      Search-history semantics (single source for this runbook): the
+      who-searched-whom LINKS are preserved by every removal lane — a
+      genuine unfriend (watch + account go, attribution pauses, the
+      modal hides the rows until re-add) AND a swap (account kept,
+      attribution resumes by itself). Only the user's explicit
+      "Clear my history" and the 12-month TTL ever cut links. The
+      swap's only difference is the accounts row; returning users in
+      either lane find their history intact.
       Known residual (accepted): users who genuinely leave DURING the
       window keep a dormant accounts row (no pass revisits account-only
       rows — reconcile iterates watches). While their session cookie
@@ -393,7 +397,20 @@ no site change needed during the swap. Plan B:
       lands, and the 12-month TTL purge de-attributes the old links
       anyway. The remnant is the bare account row. If that ever needs
       cleaning, it is a manual `DELETE FROM accounts` (never automated —
-      re-adding must keep working).
+      re-adding must keep working). The history-reconnect lane reaches
+      the SAME account-only state outside any swap window (reconnect →
+      unfriend while the bot is offline): the LIVE friend-remove path
+      clears it (the composite's account DELETE runs even with no watch
+      row), only the offline miss falls into this residual, with the
+      same cookie/TTL bounds. Why this stays a documented residual
+      instead of growing an account sweep into reconcile: the bare row
+      is INERT — new attribution needs the session cookie (dead ≤30d
+      into the residual), the links de-attribute at the 12-month TTL,
+      and the row itself carries only the public SteamID — while a
+      sweep would re-create the breaker's exact failure class (a
+      glitchy/empty friendsList snapshot mass-deleting accounts) on
+      the riskiest lane. If the remnant ever bothers, clean it manually
+      per the paragraph above.
    - Support blip is proportional to the whole active base ("who is this new
      bot? why did my watch stop?"), larger than the old pending-only blip.
      Announce the new profile URL ahead of the swap if possible.

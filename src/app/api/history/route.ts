@@ -12,6 +12,7 @@ import {
   parseHistoryCursor,
 } from '@/lib/analytics/db';
 import { hasAccountFootprint } from '@/lib/watch/searcherAttribution';
+import { resolveBotProfileUrl } from '@/lib/watch/botProfile';
 import { resolveWatchSession } from '@/lib/watch/session';
 
 export const runtime = 'nodejs';
@@ -126,13 +127,13 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Footprint signal for the empty state: a session with no watch row
-    // (opt-out, cookie survived) sees a truthful "you left" copy instead
-    // of "no searches yet", which would promise recordings that never
-    // come. Computed on the FIRST page only (later pages carry
-    // attributing: null and the client reuses page one — same shape
-    // discipline as total), in parallel with the page query (the two
-    // reads are independent). One indexed PK read per modal open.
+    // Footprint signal for the empty state: a session with no accounts
+    // row (opt-out, cookie survived) sees a truthful "you left" copy
+    // instead of "no searches yet", which would promise recordings
+    // that never come. Computed on the FIRST page only (later pages
+    // carry attributing: null and the client reuses page one — same
+    // shape discipline as total), in parallel with the page query (the
+    // two reads are independent). One indexed PK read per modal open.
     const [page, attributing] = await Promise.all([
       listSearcherSearches(steamId, limit, cursor),
       cursor === null ? hasAccountFootprint(steamId) : null,
@@ -146,6 +147,12 @@ export async function GET(req: Request) {
         nextCursor: page.nextCursor,
         total: page.total,
         attributing,
+        // First page, paused state only: the bot-profile link for the
+        // reconnect CTA (env-derived, public — the same URL the login
+        // waiting room shows). Ships with the same first-page-only
+        // discipline as attributing/total; null everywhere else.
+        botProfileUrl:
+          attributing === false ? resolveBotProfileUrl() : null,
       },
       { status: 200, headers: { 'Cache-Control': 'no-store' } },
     );

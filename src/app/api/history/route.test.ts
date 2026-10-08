@@ -14,6 +14,10 @@ jest.mock('@/lib/watch/searcherAttribution', () => ({
   hasAccountFootprint: jest.fn(),
 }));
 
+jest.mock('@/lib/watch/botProfile', () => ({
+  resolveBotProfileUrl: jest.fn(() => 'https://steamcommunity.com/profiles/BOT'),
+}));
+
 jest.mock('@/lib/rateLimit', () => {
   const isRateLimited = jest.fn(() => false);
   return {
@@ -154,6 +158,46 @@ describe('GET /api/history', () => {
     expect(res.status).toBe(200);
     expect(body.entries).toEqual([]);
     expect(body.attributing).toBe(false);
+    // Paused first pages also carry the bot-profile link: the reconnect
+    // CTA's href (env-derived, public — same URL the login waiting
+    // room shows) must not cost the client a second round-trip.
+    expect(body.botProfileUrl).toBe(
+      'https://steamcommunity.com/profiles/BOT',
+    );
+  });
+
+  it('omits botProfileUrl while attributing (and on later pages)', async () => {
+    hasAccountFootprint.mockResolvedValue(true);
+    listSearcherSearches.mockResolvedValue({
+      entries: [],
+      total: 3,
+      nextCursor: '2026-09-30T00:00:00.000Z|s1',
+    });
+
+    const res = await GET(makeRequest('/api/history'));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.botProfileUrl).toBeNull();
+
+    // Later pages ship null for every first-page-only field.
+    parseHistoryCursor.mockReturnValue({
+      searchedAt: '2026-09-30T00:00:00.000Z',
+      searchId: 's1',
+    });
+    listSearcherSearches.mockResolvedValue({
+      entries: [],
+      total: null,
+      nextCursor: null,
+    });
+    const later = await GET(
+      makeRequest('/api/history?cursor=2026-09-30T00%3A00%3A00.000Z%7Cs1'),
+    );
+    const laterBody = await later.json();
+
+    expect(later.status).toBe(200);
+    expect(laterBody.botProfileUrl).toBeNull();
+    expect(laterBody.attributing).toBeNull();
   });
 
   it('rejects a client-supplied steamId (identity comes from the session)', async () => {

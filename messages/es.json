@@ -245,8 +245,10 @@
     "watchHistoryClearConfirm": "Toca de nuevo para confirmar — no se puede deshacer",
     "watchHistorySessionExpired": "Tu sesión expiró. Inicia sesión de nuevo para continuar.",
     "watchHistoryClearError": "No se pudo borrar el historial. Tus búsquedas siguen guardadas — inténtalo de nuevo.",
-    "watchHistoryOptOutNote": "Eliminar al bot de amigos (salir de Watch) también borra este historial.",
-    "watchHistoryPrivacyNote": "Aquí solo aparecen búsquedas con sesión iniciada. El vínculo con tu cuenta caduca a los 12 meses — puedes borrarlo abajo en cualquier momento (las búsquedas siguen en totales anónimos; borrar no detiene nuevas búsquedas mientras hayas iniciado sesión).",
-    "watchHistoryEmptyOptedOut": "Nada aquí. Saliste de Watch: las búsquedas nuevas no se guardan, y las anteriores se borraron al salir."
+    "watchHistoryOptOutNote": "Eliminar al bot de amigos oculta este historial — agrega al bot de nuevo para retomarlo.",
+    "watchHistoryPausedNote": "Saliste de Watch, así que tus búsquedas están ocultas aquí — agrega al bot de nuevo para verlas.",
+    "watchHistoryEmptyOptedOut": "No hay búsquedas guardadas aquí por ahora. Saliste de Watch, así que las nuevas también están en pausa — agrega al bot de nuevo para que vuelvan a guardarse.",
+    "watchHistoryReconnectCta": "Agrega al bot como amigo para retomar este historial",
+    "watchHistoryReconnectWaiting": "Esperando a que el bot acepte — esta lista se actualiza sola."
   }
 }

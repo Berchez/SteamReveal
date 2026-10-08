@@ -245,8 +245,10 @@
     "watchHistoryClearConfirm": "Toque de novo para confirmar — não dá para desfazer",
     "watchHistorySessionExpired": "Sua sessão expirou. Entre de novo para continuar.",
     "watchHistoryClearError": "Não foi possível apagar o histórico. Suas buscas continuam salvas — tente de novo.",
-    "watchHistoryOptOutNote": "Desfazer amizade com o bot (sair do Watch) também apaga este histórico.",
-    "watchHistoryPrivacyNote": "Só aparecem aqui buscas feitas com login. O vínculo com sua conta expira após 12 meses — você pode apagá-lo abaixo a qualquer momento (as buscas seguem nos totais anônimos; apagar não pausa novas buscas com login).",
-    "watchHistoryEmptyOptedOut": "Nada aqui. Você saiu do Watch: novas buscas não são salvas — e as antigas foram apagadas na saída."
+    "watchHistoryOptOutNote": "Desfazer amizade com o bot esconde este histórico — adicione o bot de novo para retomá-lo.",
+    "watchHistoryPausedNote": "Você saiu do Watch, então suas buscas ficam ocultas aqui — adicione o bot de novo para vê-las.",
+    "watchHistoryEmptyOptedOut": "Nenhuma busca salva aqui por enquanto. Você saiu do Watch, então novas buscas também estão pausadas — adicione o bot de novo para voltarem a ser salvas.",
+    "watchHistoryReconnectCta": "Adicione o bot como amigo para retomar este histórico",
+    "watchHistoryReconnectWaiting": "Aguardando o bot aceitar — esta lista atualiza sozinha."
   }
 }

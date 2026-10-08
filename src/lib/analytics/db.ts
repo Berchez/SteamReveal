@@ -141,21 +141,22 @@ const SCHEMA_MISSING_PATTERN = /no such (table|column)|has no column named/i;
 
 /**
  * True when a DB error means "searches.searcher_steam_id does not
- * exist yet" (020 pending). Shared by the recordSearch and
- * removeWatchAndAccount fallbacks so the predicate can never drift
- * between the two: the error must BOTH look schema-missing (the narrow
- * arm above, not any error that happens to name the column — e.g. a
- * typo'd SELECT elsewhere would otherwise trigger a wrong fallback)
- * AND name this exact column. withSchemaHint rewrites the message
- * first but appends the original, so matching still works downstream
- * of it.
+ * exist yet" (020 pending). Shared by the recordSearch fallback (and,
+ * historically, removeWatchAndAccount's — that one is gone: opt-out
+ * no longer touches the column) so the predicate can never drift
+ * between call sites: the error must BOTH look schema-missing (the
+ * narrow arm above, not any error that happens to name the column —
+ * e.g. a typo'd SELECT elsewhere would otherwise trigger a wrong
+ * fallback) AND name this exact column. withSchemaHint rewrites the
+ * message first but appends the original, so matching still works
+ * downstream of it.
  *
  * TODO(020-cleanup): once 020 has run in every environment (prod Turso
  * included — NOT just local) AND one release has passed with zero
- * fallback warns in the logs, delete this helper, both fallbacks, and
- * the warn-once logger, and let the column be unconditional. Until
- * then the deploy/migrate window needs the bridge. Grep
- * isSearcherColumnMissing to find every piece.
+ * fallback warns in the logs, delete this helper, the recordSearch
+ * fallback, and the warn-once logger, and let the column be
+ * unconditional. Until then the deploy/migrate window needs the
+ * bridge. Grep isSearcherColumnMissing to find every piece.
  */
 export const isSearcherColumnMissing = (error: unknown): boolean =>
   error instanceof Error &&
@@ -233,9 +234,9 @@ export const executeForTests = async (
   return withSchemaHint(args ? db.execute({ sql, args }) : db.execute(sql));
 };
 
-// Warn-once flag for the 020-pending fallbacks below (recordSearch and
-// removeWatchAndAccount): every call during the window would otherwise
-// log an identical line. Placed above its callers (no-use-before-define).
+// Warn-once flag for the 020-pending recordSearch fallback below:
+// every call during the window would otherwise log an identical line.
+// Placed above its caller (no-use-before-define).
 let missingSearcherColumnWarned = false;
 
 const logMissingSearcherColumnOnce = (caller: string): void => {
@@ -324,14 +325,17 @@ export const recordSearch = async (
   // resolves to the id when a live ACCOUNT row exists and to NULL
   // otherwise — inside the SAME atomic batch as the insert. Accounts
   // (not watched_profiles) is the anchor on purpose: a bot-swap wipes
-  // and rebuilds watches, but accounts persist, so history survives a
-  // swap; a genuine opt-out deletes the account row too, which stops
-  // attribution exactly where the purge cuts the old links. That kills
-  // two birds the old check-then-write had: no TOCTOU window between a
-  // footprint read and the write (an opt-out landing mid-batch loses
-  // the race to the transaction, never re-links), and no extra PK
-  // round-trip on the search write path. Guests pass NULL (subquery
-  // over NULL matches nothing — one statement shape for both lanes).
+  // and rebuilds watches, but accounts persist, so attribution resumes
+  // by itself after a swap; a genuine opt-out deletes the account row,
+  // which stops NEW attribution on the spot and hides the old rows via
+  // the read-side footprint gate — while the OLD links persist by
+  // product decision (only the explicit Clear and the 12-month TTL
+  // purge ever cut them). That kills two birds the old check-then-write
+  // had: no TOCTOU window between a footprint read and the write (an
+  // opt-out landing mid-batch loses the race to the transaction, never
+  // re-links), and no extra PK round-trip on the search write path.
+  // Guests pass NULL (subquery over NULL matches nothing — one
+  // statement shape for both lanes).
   const searchesStatement = (withSearcher: boolean) => ({
     // 1. Root entity (+ attribution)
     sql: withSearcher
@@ -1346,34 +1350,21 @@ export interface RemoveWatchResult {
  * fresh consent: the next signup starts unconfirmed and the bot sends a
  * new link.
  *
- * Plus de-attribution: any searches rows carrying this steamId as
- * searcher_steam_id are reset to NULL in the SAME batch. Opt-out must
- * mean "no record survives" — the searches themselves stay (other
- * panels and the target's inbox read them), but the who-searched-whom
- * link is cut.
+ * History links are DELIBERATELY preserved (product decision): unfriending
+ * only HIDES the history — the modal gates on the accounts footprint and
+ * stops showing entries until the user re-adds the bot, at which point
+ * the old links (keyed by the stable SteamID) resurface together with
+ * new ones. Only the explicit "Clear my history" (deleteSearcherHistory)
+ * and the 12-month TTL purge cut links. See also deactivateWatch, the
+ * watch-only variant the swap procedure uses when even the accounts row
+ * must survive.
  *
  * No re-attribution residual: the iron-session cookie (30-day TTL)
- * survives unfriending, but readSearcherSteamId only attributes sessions
- * with a live watch footprint — and this just deleted it. A still-valid
- * cookie therefore records anonymously until the user signs up again
- * (fresh consent model, same as re-signup).
- *
- * 020-pending fallback: the de-attribution rides in the same batch, so
- * without the column the whole opt-out would roll back (bot and Vercel
- * deploy separately — deploy skew is realistic). When the column is
- * missing the de-attribution is skipped and the two deletes still
- * commit: the rows that matter (account + watch) are gone, the history
- * links stay until the migration lands (warn-once, same as
- * recordSearch). Any OTHER error rethrows with nothing committed.
+ * survives unfriending, but recordSearch attributes atomically on a
+ * live ACCOUNTS row — and this just deleted it. A still-valid cookie
+ * therefore records anonymously until the user signs up again (fresh
+ * consent model, same as re-signup).
  */
-/**
- * Shared de-attribution statement (UPDATE ... WHERE searcher_steam_id
- * = ?): used by BOTH deleteSearcherHistory (user clear) and
- * removeWatchAndAccount (opt-out) so the predicate can never drift
- * between the two call sites.
- */
-const DEATTRIBUTE_BY_SEARCHER_SQL =
-  'UPDATE searches SET searcher_steam_id = NULL WHERE searcher_steam_id = ?';
 
 export const removeWatchAndAccount = async (
   steamId: string,
@@ -1392,24 +1383,12 @@ export const removeWatchAndAccount = async (
     },
   ];
 
-  // Miss-cache fast path (same bridge as recordSearch): while the 020
-  // miss is cached, skip the de-attribution statement up front instead
-  // of failing one batch to discover it.
-  const batchStatements = isSearcherColumnMissingCached()
-    ? deleteStatements
-    : [
-        ...deleteStatements,
-        { sql: DEATTRIBUTE_BY_SEARCHER_SQL, args: [steamId] },
-      ];
-
-  let results;
-  try {
-    results = await withSchemaHint(db.batch(batchStatements));
-  } catch (error) {
-    if (!isSearcherColumnMissing(error)) throw error;
-    cacheSearcherColumnMissing('removeWatchAndAccount');
-    results = await withSchemaHint(db.batch(deleteStatements));
-  }
+  // No 020-pending handling needed here anymore: neither DELETE touches
+  // the searcher column (history links survive opt-out by product
+  // decision — only deleteSearcherHistory and the TTL purge cut them),
+  // so a pending migration cannot break this batch. withSchemaHint stays
+  // for genuinely missing tables (fresh DB without any migration).
+  const results = await withSchemaHint(db.batch(deleteStatements));
 
   return {
     accountDeleted: Number(results?.[0]?.rowsAffected) > 0,
@@ -1423,6 +1402,10 @@ export const removeWatchAndAccount = async (
  * the dashboard aggregates and the targets' inboxes, which never show
  * searcher identity). Called by DELETE /api/history (session identity)
  * and shared with nothing else. Returns the de-attributed row count.
+ *
+ * This is the ONLY user-triggered link cut (plus the TTL purge):
+ * unfriending hides history via the footprint gate but preserves the
+ * links, which resurface if the user re-adds the bot.
  */
 export const deleteSearcherHistory = async (
   searcherSteamId: string,
@@ -1432,7 +1415,7 @@ export const deleteSearcherHistory = async (
 
   const result = await withSchemaHint(
     db.execute({
-      sql: DEATTRIBUTE_BY_SEARCHER_SQL,
+      sql: 'UPDATE searches SET searcher_steam_id = NULL WHERE searcher_steam_id = ?',
       args: [searcherSteamId],
     }),
   );
@@ -2108,8 +2091,9 @@ export const getAccount = async (
 };
 
 /**
- * Login registry write (single-state model: replaces createAccount, whose
- * only caller — the signup route — no longer exists). Idempotent upsert:
+ * Login registry write (single-state model: the LOGIN path writes
+ * accounts through here — createAccount remains the writer for the
+ * signup and history-reconnect lanes). Idempotent upsert:
  * first login inserts the row (created_at pinned, never reset);
  * every login refreshes last_login_at and the locale when provided.
  * Concurrent first logins converge on one row (PK conflict → update).
@@ -3905,9 +3889,9 @@ export const listSearcherSearches = async (
  * double-stripped (SQL + serializeEntries) so who-searched-whom can never
  * reach the page source. Do not "simplify" the two SELECTs into one.
  *
- * No 020-pending fallback here (unlike recordSearch/removeWatchAndAccount):
- * this has zero production callers (tests + future offline/export only),
- * so a missing column fails LOUD with the migrate hint instead of
+ * No 020-pending fallback here (unlike recordSearch): this has zero
+ * production callers (tests + future offline/export only), so a
+ * missing column fails LOUD with the migrate hint instead of
  * silently returning searcher-less rows that look complete.
  */
 export const getSearchRecords = async (): Promise<SearchRecord[]> => {

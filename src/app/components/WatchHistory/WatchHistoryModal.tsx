@@ -8,6 +8,10 @@ import { Link, usePathname } from '@/navigation';
 import { isSteamId64 } from '@/lib/steamId';
 import type { SearcherHistoryEntry } from '@/lib/analytics/types';
 import { HISTORY_PAGE_SIZE } from '@/lib/analytics/historyLimits';
+import {
+  pendingPollDelay,
+  RECONNECT_WAIT_CAP_MS,
+} from '@/lib/watch/pendingPolicy';
 import resolveLoginNext from '@/lib/watch/loginNext';
 import { recordLoginCta } from '@/app/templates/Home/shared/analytics/loginFunnel';
 
@@ -62,6 +66,14 @@ const formatWhen = (iso: string, locale: string): string => {
  * late response can never overwrite newer state. The next-page bookmark
  * is server-built (nextCursor, passed back opaquely) — the client never
  * constructs the cursor format.
+ *
+ * Paused state (opt-out with a surviving session): shows the reconnect
+ * CTA — it opens the bot profile in a new tab and polls
+ * /api/history/reconnect (pendingPolicy cadence) until the bot's
+ * accept lets the server recreate the attribution anchor; done reloads
+ * page one so the SERVER's attributing flag drives the un-pause (no
+ * optimistic client flip). Scope note: that lane resumes history only —
+ * notifications stay off until the user Starts a watch themselves.
  */
 function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
   const translator = useTranslations('Watch');
@@ -77,6 +89,13 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
   // not promise recordings that never come). True until proven
   // otherwise — the loading spinner covers the unknown window.
   const [attributing, setAttributing] = useState(true);
+  // Bot-profile link for the paused state's reconnect CTA (first page
+  // only, alongside attributing — null when attributing, when the env
+  // lacks STEAM_BOT_STEAMID, and on later pages).
+  const [botProfileUrl, setBotProfileUrl] = useState<string | null>(null);
+  // Reconnect wait (paused state only): the CTA opened the bot profile
+  // and the poll lane below completes the resume when the bot accepts.
+  const [reconnecting, setReconnecting] = useState(false);
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [loadingMore, setLoadingMore] = useState(false);
   const [appendError, setAppendError] = useState<AppendError>(null);
@@ -103,6 +122,7 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
       nextCursor: string | null,
       totalCount: number | null,
       pageAttributing: boolean | null,
+      pageBotProfileUrl: string | null,
       append: boolean,
     ) => {
       const next = append ? [...entriesRef.current, ...page] : page;
@@ -110,10 +130,15 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
       nextCursorRef.current = nextCursor;
       setEntries(next);
       setHasMore(nextCursor !== null);
-      // The footprint ships on the first page only (later pages carry
-      // null): keep the first-page value, like total.
+      // The footprint + CTA link ship on the first page only (later
+      // pages carry null): keep the first-page values, like total.
       if (typeof pageAttributing === 'boolean') {
         setAttributing(pageAttributing);
+        setBotProfileUrl(pageBotProfileUrl);
+        // Resume landed through another lane while this wait was open
+        // (login elsewhere, bot accepted before the poll saw it): the
+        // wait is over even though no poll answered done.
+        if (pageAttributing) setReconnecting(false);
       }
       // The total ships on the first page only (later pages carry null):
       // keep the first-page count for the "showing N of M" note.
@@ -180,6 +205,7 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
           typeof body.nextCursor === 'string' ? body.nextCursor : null,
           typeof body.total === 'number' ? body.total : null,
           typeof body.attributing === 'boolean' ? body.attributing : null,
+          typeof body.botProfileUrl === 'string' ? body.botProfileUrl : null,
           append,
         );
       } catch (error) {
@@ -205,6 +231,124 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
     load(false).catch(() => undefined);
     return () => abortRef.current?.abort();
   }, [load, reloadToken]);
+
+  // Reconnect wait (paused state): the CTA opened the bot profile, now
+  // poll until the bot accepts. Mirrors the PendingLoginRoom discipline
+  // (single source: pendingPolicy owns the cadence; one GetFriendList
+  // read per tick against the shared Steam quota): immediate first hit
+  // (the accept may have landed before the click), hidden tabs skip the
+  // fetch and re-poll on return to foreground, single-flight guards a
+  // visibility ping against a fetch already in flight, network blips
+  // keep waiting (only done flips the state — and 401 hands over to
+  // the session-expired gate, the honest answer once the cookie died
+  // mid-wait). Unmount/close stops the loop: reopening re-reads page
+  // one, and the footprint fast path answers instantly if the accept
+  // landed meanwhile. StrictMode's remount only restarts it (idempotent
+  // GET, convergent completion).
+  useEffect(() => {
+    if (!reconnecting) return undefined;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let inFlight = false;
+    let scheduledWaits = 0;
+    const startedAt = Date.now();
+    const poll = async (): Promise<void> => {
+      // Next wait on the shared tier schedule (see pendingPolicy). Nested
+      // (not sibling) on purpose: a sibling helper referencing `poll`
+      // trips no-use-before-define, while everything inside `poll`'s own
+      // body sits textually after its declaration.
+      const scheduleNext = (): void => {
+        if (cancelled) return;
+        // Duration cap (parity with the login room's 30-min pending
+        // TTL): a forgotten foreground tab must not poll GetFriendList
+        // forever. Flipping back to idle re-shows the CTA below — the
+        // click restarts the wait, no dead-end state.
+        if (Date.now() - startedAt >= RECONNECT_WAIT_CAP_MS) {
+          setReconnecting(false);
+          return;
+        }
+        const delay = pendingPollDelay(scheduledWaits);
+        scheduledWaits += 1;
+        timer = setTimeout(() => {
+          poll();
+        }, delay);
+      };
+      // Single-flight: a visibility ping landing while a fetch is still
+      // outstanding skips instead of doubling it (the owner converges).
+      if (inFlight) return;
+      // Hidden tab: no fetch (shared Steam quota is not spent on an
+      // unseen screen), just stay on schedule — the visibility listener
+      // below fires an immediate poll on return.
+      if (document.visibilityState === 'hidden') {
+        scheduleNext();
+        return;
+      }
+      inFlight = true;
+      try {
+        const params = new URLSearchParams({ locale });
+        const res = await fetch(`/api/history/reconnect?${params.toString()}`, {
+          method: 'GET',
+        });
+        if (cancelled) return;
+        if (res.status === 401) {
+          // The session died mid-wait: the history itself is gone, the
+          // sign-in gate is the honest rendering (page-preserving link,
+          // same as every expired-session surface here).
+          setReconnecting(false);
+          setStatus('unauthorized');
+          return;
+        }
+        if (!res.ok) {
+          // 429/500/blip: keep waiting, retry next tick.
+          scheduleNext();
+          return;
+        }
+        const body = await res.json().catch(() => null);
+        if (cancelled || body === null || body.done !== true) {
+          scheduleNext();
+          return;
+        }
+        // Resumed: reload page one — the server-driven attributing flag
+        // flips the paused branch off (single source of truth, no
+        // optimistic client-side flip that a race could contradict).
+        setReconnecting(false);
+        setReloadToken((token) => token + 1);
+      } catch {
+        // Network blip mid-wait: retry next tick, only `done` ends it.
+        scheduleNext();
+      } finally {
+        inFlight = false;
+      }
+    };
+    const onVisibility = (): void => {
+      if (document.visibilityState === 'visible') {
+        if (timer !== null) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        poll();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    poll();
+    return () => {
+      cancelled = true;
+      if (timer !== null) clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+    // `locale` is a stable next-intl primitive for the modal's lifetime
+    // (same value the login link already reads); re-running on an
+    // identity change would only restart a healthy wait.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reconnecting, locale]);
+
+  // CTA: opens the bot profile (real navigation — the user must add the
+  // bot on Steam's side) and starts the poll above. The anchor keeps
+  // default behavior (no preventDefault): the modal stays open under
+  // the new tab, so the wait starts without any state juggling.
+  const handleReconnectClick = useCallback(() => {
+    setReconnecting(true);
+  }, []);
 
   // Scroll lock: the page behind a modal must not scroll (the modal has
   // its own scroller). Restored on unmount — no global leakage. The
@@ -314,17 +458,15 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
 
   return (
     <Portal>
-      {/* Top-anchored (items-start), NOT centered: the dialog grows from
-          min-h toward max-h as pages land, and a centered dialog would
-          re-center on every growth — moving title, close button and
-          counts minutes after the click (real CLS). Anchored, growth
-          extends downward and nothing already painted moves. */}
-      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-sm">
+      {/* Centered both ways with a FIXED height: a growing centered
+          dialog would re-center on every page load (real CLS), so the
+          dialog never grows — the list scrolls inside it instead. */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-sm">
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="watch-history-title"
-          className="relative mb-4 mt-[8dvh] flex max-h-[90dvh] min-h-[min(28rem,90dvh)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-purple-400/60 bg-[#1c1c28] px-6 pb-4 pt-6 shadow-[0_0_50px_rgba(168,85,247,0.35)]"
+          className="relative my-auto flex h-[min(32rem,84dvh)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-purple-400/60 bg-[#1c1c28] px-6 pb-4 pt-6 shadow-[0_0_50px_rgba(168,85,247,0.35)]"
         >
           <button
             onClick={onClose}
@@ -345,7 +487,7 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
           {/* Always reserved (even before load): the late-appearing line
               used to push the list down mid-read (CLS inside the modal). */}
           <p className="mb-3 h-4 text-center text-xs text-gray-400">
-            {status === 'loaded'
+            {status === 'loaded' && attributing
               ? translator('watchHistoryShowing', {
                   shown: entries.length,
                   total,
@@ -353,15 +495,6 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
               : ' '}
           </p>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {status === 'loaded' && (
-              // Collection disclosure at the point of the feature (the
-              // LoginPrompt line only reaches pre-login users — logged-in
-              // viewers meet this notice instead): what is stored, how
-              // long, how to erase.
-              <p className="mb-2 text-center text-[11px] leading-snug text-gray-500">
-                {translator('watchHistoryPrivacyNote')}
-              </p>
-            )}
             {status === 'loading' && (
               <p
                 role="status"
@@ -401,17 +534,57 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
                 </button>
               </div>
             )}
+            {status === 'loaded' && !attributing && (
+              // Paused (not cleared): unfriending hides the history until
+              // the user re-adds the bot — the links themselves persist
+              // and resurface together with new searches. TWO truthful
+              // copies, keyed on whether hidden rows exist: rows present
+              // → "your searches are hidden"; none (never had any, or a
+              // Clear just de-attributed them) → the empty copy says
+              // only what is real — nothing saved here, and new ones
+              // stay paused. No live-region on the wrapper: the waiting
+              // <p> below is the only changing content anouncee (a
+              // status role over the CTA would read the whole link out
+              // on every change).
+              <div className="flex flex-col items-center gap-3 py-8 text-center">
+                <p className="text-sm text-gray-400">
+                  {translator(
+                    entries.length > 0
+                      ? 'watchHistoryPausedNote'
+                      : 'watchHistoryEmptyOptedOut',
+                  )}
+                </p>
+                {botProfileUrl !== null && (
+                  <a
+                    href={botProfileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={handleReconnectClick}
+                    className="rounded-full bg-purple-600 px-6 py-2 text-sm font-semibold text-white hover:bg-purple-700/90"
+                  >
+                    {translator('watchHistoryReconnectCta')}
+                  </a>
+                )}
+                {/* The CTA STAYS during the wait (on purpose): if the
+                    popup was blocked, the tab got closed, or Steam
+                    failed to open, "Waiting…" alone would be a dead end
+                    — the still-visible link is the retry affordance,
+                    and it also re-arms after the duration cap below. */}
+                {reconnecting && (
+                  <p role="status" className="text-xs text-gray-400">
+                    {translator('watchHistoryReconnectWaiting')}
+                  </p>
+                )}
+              </div>
+            )}
             {status === 'loaded' &&
+              attributing &&
               (entries.length === 0 ? (
                 <p
                   role="status"
                   className="py-8 text-center text-sm text-gray-400"
                 >
-                  {translator(
-                    attributing
-                      ? 'watchHistoryEmpty'
-                      : 'watchHistoryEmptyOptedOut',
-                  )}
+                  {translator('watchHistoryEmpty')}
                 </p>
               ) : (
                 <>
@@ -491,42 +664,56 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
                       </button>
                     </div>
                   )}
-                  {clearError && (
-                    <p
-                      role="alert"
-                      className="pb-1 text-center text-xs text-red-400"
-                    >
-                      {translator('watchHistoryClearError')}
-                    </p>
-                  )}
-                  <div
-                    className="flex justify-center pb-1"
-                    aria-live="polite"
-                  >
-                    <button
-                      type="button"
-                      onClick={handleClear}
-                      disabled={clearing}
-                      className="text-xs text-gray-500 underline hover:text-gray-300 disabled:opacity-50"
-                    >
-                      {confirmingClear
-                        ? translator('watchHistoryClearConfirm')
-                        : translator('watchHistoryClear')}
-                    </button>
-                  </div>
                 </>
               ))}
-            {/* Opt-out coupling, disclosed where history is managed (also
-                on the empty state — it explains a mysteriously empty
-                history): unfriending the bot (leaving Watch) also cuts
-                these links — no silent data loss. Kept coupled by product
-                decision (opt-out means "no record survives"). */}
-            {status === 'loaded' && (
-              <p className="pb-1 text-center text-[11px] leading-snug text-gray-500">
+          </div>
+          {/* Footer, pinned to the dialog bottom (outside the scroller):
+              the destructive action and its disclosure never scroll away
+              and never move when pages append. */}
+          {status === 'loaded' && (
+            <div className="border-t border-purple-500/20 pt-3">
+              {clearError && entries.length > 0 && (
+                <p
+                  role="alert"
+                  className="pb-1 text-center text-xs text-red-400"
+                >
+                  {translator('watchHistoryClearError')}
+                </p>
+              )}
+              {/* Clear runs in BOTH the listed and the paused state: the
+                  rows are the viewer's own and stay reachable through
+                  the session for ≤30 days after an unfriend — past that
+                  window, only the TTL can cut them. Gating the erase on
+                  attributing would strip the paused viewer of the only
+                  deletion handle they get (deletion is not display).
+                  DELETE needs no footprint, just the sealed session. */}
+              {entries.length > 0 && (
+                <div
+                  className="flex justify-center pb-1"
+                  aria-live="polite"
+                >
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    disabled={clearing}
+                    className="text-xs text-gray-400 underline hover:text-gray-300 disabled:opacity-50"
+                  >
+                    {confirmingClear
+                      ? translator('watchHistoryClearConfirm')
+                      : translator('watchHistoryClear')}
+                  </button>
+                </div>
+              )}
+              {/* Unfriend-hides-history disclosure (product decision):
+                  unfriending pauses (never deletes) — entries resurface
+                  on re-add, so the loss is never silent. gray-400 keeps
+                  the disclosure above 4.5:1 on the dialog background
+                  (gray-500 reads ~3.7:1 there). */}
+              <p className="pb-1 text-center text-[11px] leading-snug text-gray-400">
                 {translator('watchHistoryOptOutNote')}
               </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </Portal>

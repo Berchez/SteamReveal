@@ -113,6 +113,9 @@ describe('WatchHistoryModal', () => {
     // Cheater flag rides next to the date, never instead of it.
     expect(screen.getByText('watchInboxCheaterChecked')).toBeInTheDocument();
     expect(screen.getAllByText(/\/2026,/)).toHaveLength(2);
+    // Footer disclosure renders in the LISTED state too (the coupling
+    // note is not an empty-state-only affordance).
+    expect(screen.getByText('watchHistoryOptOutNote')).toBeInTheDocument();
   });
 
   it('shows the empty state when nothing was recorded under this login', async () => {
@@ -123,7 +126,9 @@ describe('WatchHistoryModal', () => {
 
   it('shows the opted-out empty copy when new searches are not attributed', async () => {
     // Session alive, footprint gone: the standard "searches will appear
-    // here" would promise recordings that never come.
+    // here" would promise recordings that never come. The paused message
+    // replaces the empty state; the footer disclosure stays, since it
+    // describes exactly this situation.
     global.fetch = jest.fn(async () =>
       historyPayload([], { total: 0, attributing: false }),
     ) as unknown as typeof fetch;
@@ -134,6 +139,439 @@ describe('WatchHistoryModal', () => {
       await screen.findByText('watchHistoryEmptyOptedOut'),
     ).toBeInTheDocument();
     expect(screen.queryByText('watchHistoryEmpty')).not.toBeInTheDocument();
+    // Paused rows are hidden, so the counter has nothing honest to show
+    // either (it stays a reserved blank line, not "0 of 0").
+    expect(screen.queryByText(/watchHistoryShowing/)).not.toBeInTheDocument();
+    expect(screen.getByText('watchHistoryOptOutNote')).toBeInTheDocument();
+  });
+
+  it('still offers and runs Clear in the paused state (deletion is not display)', async () => {
+    // P2/right-to-erasure: the paused rows are the viewer's own and
+    // the DELETE lane needs only the sealed session — gating the erase
+    // on attributing would leave a leaver with no deletion handle for
+    // up to 12 months (only the TTL would remain).
+    const fetchMock = jest.fn((url: string, init?: RequestInit) => {
+      if (init?.method === 'DELETE') {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ cleared: 2 }),
+        });
+      }
+      return Promise.resolve(
+        historyPayload([entry('s1', '76561198000000002', 'Bob')], {
+          total: 1,
+          attributing: false,
+        }),
+      );
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    // Rows exist (loaded, hidden): the paused copy says so truthfully —
+    // NOT the "no searches saved" copy, which would lie both ways here.
+    expect(
+      await screen.findByText('watchHistoryPausedNote'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('watchHistoryEmptyOptedOut'),
+    ).not.toBeInTheDocument();
+    // Rows exist server-side (loaded page), so Clear is offered — even
+    // though the paused state never renders them.
+    expect(screen.getByText('watchHistoryClear')).toBeInTheDocument();
+
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(6_000_000);
+    await act(async () => {
+      fireEvent.click(screen.getByText('watchHistoryClear'));
+    });
+    nowSpy.mockReturnValue(6_000_500);
+    await act(async () => {
+      fireEvent.click(screen.getByText('watchHistoryClearConfirm'));
+    });
+    nowSpy.mockRestore();
+
+    const deleteCall = fetchMock.mock.calls.find(
+      (call) => (call[1] as RequestInit | undefined)?.method === 'DELETE',
+    );
+    expect(deleteCall).toBeDefined();
+    // Clear does not unpause (footprint is still gone), and the copy
+    // flips to the honest empty variant: rows are gone for good, so
+    // only the "new searches are paused" truth remains — never a
+    // promise that re-adding resurrects cleared data.
+    expect(
+      await screen.findByText('watchHistoryEmptyOptedOut'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('watchHistoryPausedNote'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('watchHistoryClear')).not.toBeInTheDocument();
+  });
+
+  it('offers the reconnect CTA in the paused state', async () => {
+    // The CTA mirrors the login waiting room's add-bot gesture: a real
+    // anchor to the bot profile in a new tab (the user adds the bot on
+    // Steam's side; the wait below completes the resume).
+    const BOT_URL = 'https://steamcommunity.com/profiles/76561199000000001';
+    global.fetch = jest.fn(async () =>
+      historyPayload([], {
+        total: 0,
+        attributing: false,
+        botProfileUrl: BOT_URL,
+      }),
+    ) as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    const cta = await screen.findByText('watchHistoryReconnectCta');
+    expect(cta.closest('a')).toHaveAttribute('href', BOT_URL);
+    expect(cta.closest('a')).toHaveAttribute('target', '_blank');
+  });
+
+  it('hides the reconnect CTA when the server ships no bot profile URL', async () => {
+    // Env without STEAM_BOT_STEAMID: the paused copy still explains the
+    // situation — a dead link must never render as the way out.
+    global.fetch = jest.fn(async () =>
+      historyPayload([], { total: 0, attributing: false }),
+    ) as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(
+      await screen.findByText('watchHistoryEmptyOptedOut'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('watchHistoryReconnectCta'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('starts the reconnect wait on CTA click and resumes when the bot accepts', async () => {
+    jest.useFakeTimers();
+    // Server-driven un-pause: done triggers a page-one reload whose
+    // attributing flag flips the paused branch off — no optimistic
+    // client flip a race could contradict.
+    const state = { attributing: false };
+    let reconnectCalls = 0;
+    const fetchMock = jest.fn((url: string) => {
+      const target = String(url);
+      if (target.includes('/api/history/reconnect')) {
+        reconnectCalls += 1;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ done: reconnectCalls >= 2 }),
+        });
+      }
+      return Promise.resolve(
+        historyPayload([], {
+          total: 0,
+          attributing: state.attributing,
+          botProfileUrl: 'https://steamcommunity.com/profiles/76561199000000001',
+        }),
+      );
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(
+      await screen.findByText('watchHistoryEmptyOptedOut'),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('watchHistoryReconnectCta'));
+    await act(async () => {});
+
+    // The immediate first poll answered not-yet: the wait copy shows,
+    // and the poll carries the locale (informational only). The CTA
+    // STAYS visible (popup blocked / Steam failed to open → the link is
+    // the retry affordance, never a dead-end wait).
+    expect(
+      screen.getByText('watchHistoryReconnectWaiting'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('watchHistoryReconnectCta'),
+    ).toBeInTheDocument();
+    expect(String(fetchMock.mock.calls[1][0])).toContain(
+      '/api/history/reconnect?locale=en',
+    );
+
+    // Fast-tier tick (pendingPolicy): the accept lands → done → reload
+    // with attributing:true → normal empty state, CTA and wait gone.
+    state.attributing = true;
+    await act(async () => {
+      jest.advanceTimersByTime(10_000);
+    });
+
+    expect(await screen.findByText('watchHistoryEmpty')).toBeInTheDocument();
+    expect(
+      screen.queryByText('watchHistoryEmptyOptedOut'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('watchHistoryReconnectCta'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('watchHistoryReconnectWaiting'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps the reconnect wait alive through a transient failure', async () => {
+    jest.useFakeTimers();
+    let reconnectCalls = 0;
+    const fetchMock = jest.fn((url: string) => {
+      const target = String(url);
+      if (target.includes('/api/history/reconnect')) {
+        reconnectCalls += 1;
+        if (reconnectCalls === 1) {
+          // 500/rate-limit/blip: keep waiting, retry next tick.
+          return Promise.resolve({ ok: false, status: 500 });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ done: true }),
+        });
+      }
+      return Promise.resolve(
+        historyPayload([], {
+          total: 0,
+          attributing: reconnectCalls >= 2,
+          botProfileUrl: 'https://steamcommunity.com/profiles/76561199000000001',
+        }),
+      );
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(
+      await screen.findByText('watchHistoryEmptyOptedOut'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText('watchHistoryReconnectCta'));
+    await act(async () => {});
+
+    expect(
+      screen.getByText('watchHistoryReconnectWaiting'),
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      jest.advanceTimersByTime(10_000);
+    });
+
+    expect(await screen.findByText('watchHistoryEmpty')).toBeInTheDocument();
+  });
+
+  it('hands the reconnect wait over to the sign-in gate when the session dies mid-wait', async () => {
+    const fetchMock = jest.fn((url: string) => {
+      if (String(url).includes('/api/history/reconnect')) {
+        return Promise.resolve({ ok: false, status: 401 });
+      }
+      return Promise.resolve(
+        historyPayload([], {
+          total: 0,
+          attributing: false,
+          botProfileUrl: 'https://steamcommunity.com/profiles/76561199000000001',
+        }),
+      );
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(
+      await screen.findByText('watchHistoryEmptyOptedOut'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText('watchHistoryReconnectCta'));
+    await act(async () => {});
+
+    // The history itself died with the session: the page-preserving
+    // sign-in gate, not an eternal wait.
+    expect(
+      await screen.findByText('watchHistorySessionExpired'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('watchLoginButton').closest('a'),
+    ).toHaveAttribute(
+      'href',
+      expect.stringContaining('/api/auth/steam/login?next='),
+    );
+  });
+
+  it('caps the reconnect wait and re-arms the CTA (no eternal polling)', async () => {
+    jest.useFakeTimers();
+    // A forgotten foreground tab must not poll GetFriendList forever:
+    // after RECONNECT_WAIT_CAP_MS the loop stops and the state returns
+    // to idle (CTA click restarts the wait).
+    const fetchMock = jest.fn((url: string) => {
+      if (String(url).includes('/api/history/reconnect')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ done: false }),
+        });
+      }
+      return Promise.resolve(
+        historyPayload([], {
+          total: 0,
+          attributing: false,
+          botProfileUrl: 'https://steamcommunity.com/profiles/76561199000000001',
+        }),
+      );
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(
+      await screen.findByText('watchHistoryEmptyOptedOut'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText('watchHistoryReconnectCta'));
+    await act(async () => {});
+    const countAtStart = fetchMock.mock.calls.filter((call) =>
+      String(call[0]).includes('/api/history/reconnect'),
+    ).length;
+    expect(countAtStart).toBe(1);
+
+    // Walk the clock past the cap: each 30s step flushes one poll round
+    // (fast tier exhausts within the first six steps).
+    for (let step = 0; step < 70; step += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+    }
+
+    // Cap reached: the wait ended, the CTA is the idle affordance again,
+    // and the clock no longer fires polls.
+    expect(
+      screen.queryByText('watchHistoryReconnectWaiting'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('watchHistoryReconnectCta')).toBeInTheDocument();
+    const countAtCap = fetchMock.mock.calls.filter((call) =>
+      String(call[0]).includes('/api/history/reconnect'),
+    ).length;
+    await act(async () => {
+      jest.advanceTimersByTime(60_000);
+    });
+    const countAfter = fetchMock.mock.calls.filter((call) =>
+      String(call[0]).includes('/api/history/reconnect'),
+    ).length;
+    expect(countAfter).toBe(countAtCap);
+  });
+
+  it('skips reconnect fetches while the tab is hidden and re-polls on return', async () => {
+    jest.useFakeTimers();
+    // Same Steam-quota discipline as the login room: no GetFriendList
+    // spend on a screen nobody sees; the visibilitychange listener fires
+    // an immediate poll when the tab comes back.
+    const fetchMock = jest.fn((url: string) => {
+      if (String(url).includes('/api/history/reconnect')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ done: false }),
+        });
+      }
+      return Promise.resolve(
+        historyPayload([], {
+          total: 0,
+          attributing: false,
+          botProfileUrl: 'https://steamcommunity.com/profiles/76561199000000001',
+        }),
+      );
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const reconnectCalls = (): number =>
+      fetchMock.mock.calls.filter((call) =>
+        String(call[0]).includes('/api/history/reconnect'),
+      ).length;
+
+    // jsdom's visibilityState is a prototype getter: shadow it with an
+    // own prop and DELETE it afterwards (the scroll-lock test's pattern).
+    const documentElement = document as unknown as Record<string, unknown>;
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'hidden',
+      configurable: true,
+    });
+    try {
+      render(<WatchHistoryModal onClose={jest.fn()} />);
+
+      expect(
+        await screen.findByText('watchHistoryEmptyOptedOut'),
+      ).toBeInTheDocument();
+      fireEvent.click(screen.getByText('watchHistoryReconnectCta'));
+      await act(async () => {});
+      expect(
+        screen.getByText('watchHistoryReconnectWaiting'),
+      ).toBeInTheDocument();
+
+      // Hidden: the immediate poll skipped the fetch and so does the
+      // next scheduled tick.
+      expect(reconnectCalls()).toBe(0);
+      await act(async () => {
+        jest.advanceTimersByTime(10_000);
+      });
+      expect(reconnectCalls()).toBe(0);
+
+      // Back to foreground: the listener fires an immediate poll.
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true,
+      });
+      await act(async () => {
+        fireEvent(document, new Event('visibilitychange'));
+      });
+      expect(reconnectCalls()).toBe(1);
+    } finally {
+      delete documentElement.visibilityState;
+    }
+  });
+
+  it('stops the reconnect poll on unmount (closing the modal ends the wait)', async () => {
+    jest.useFakeTimers();
+    const fetchMock = jest.fn((url: string) => {
+      if (String(url).includes('/api/history/reconnect')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ done: false }),
+        });
+      }
+      return Promise.resolve(
+        historyPayload([], {
+          total: 0,
+          attributing: false,
+          botProfileUrl: 'https://steamcommunity.com/profiles/76561199000000001',
+        }),
+      );
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const { unmount } = render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(
+      await screen.findByText('watchHistoryEmptyOptedOut'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText('watchHistoryReconnectCta'));
+    await act(async () => {});
+    const countAtUnmount = fetchMock.mock.calls.filter((call) =>
+      String(call[0]).includes('/api/history/reconnect'),
+    ).length;
+    expect(countAtUnmount).toBe(1);
+
+    unmount();
+    await act(async () => {
+      jest.advanceTimersByTime(30_000);
+      jest.advanceTimersByTime(30_000);
+    });
+
+    // The effect cleanup cleared the timer: no poll fires for a modal
+    // nobody is looking at (reopening re-reads page one, and the
+    // footprint fast path answers instantly if the accept landed).
+    const countAfter = fetchMock.mock.calls.filter((call) =>
+      String(call[0]).includes('/api/history/reconnect'),
+    ).length;
+    expect(countAfter).toBe(1);
   });
 
   it('closes the modal when navigating to a history item', async () => {
@@ -150,16 +588,6 @@ describe('WatchHistoryModal', () => {
     fireEvent.click(await screen.findByText('Bob'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('discloses collection at the point of the feature (P1-3)', async () => {
-    // The LoginPrompt line only reaches pre-login users; logged-in
-    // viewers meet this notice instead: what is stored, how long, how
-    // to erase.
-    render(<WatchHistoryModal onClose={jest.fn()} />);
-
-    expect(await screen.findByText('watchHistoryEmpty')).toBeInTheDocument();
-    expect(screen.getByText('watchHistoryPrivacyNote')).toBeInTheDocument();
   });
 
   it('scopes the scrollbar gutter while open (no site-wide shift)', async () => {
@@ -207,10 +635,11 @@ describe('WatchHistoryModal', () => {
     );
     unmount();
   });
+
   it('discloses the opt-out coupling where history is managed (P1-5)', async () => {
-    // Unfriending the bot also cuts these links (kept coupled by product
-    // decision) — the modal says so, on both the empty and the listed
-    // state, so the loss is never silent.
+    // Unfriending the bot PAUSES this history (links preserved,
+    // resurfacing on re-add — product decision) — the footer says so, on
+    // both the empty and the listed state, so the pause is never silent.
     render(<WatchHistoryModal onClose={jest.fn()} />);
 
     expect(await screen.findByText('watchHistoryEmpty')).toBeInTheDocument();
@@ -247,6 +676,12 @@ describe('WatchHistoryModal', () => {
     expect(
       await screen.findByText('watchHistorySessionExpired'),
     ).toBeInTheDocument();
+    // No destructive action under the gate: the footer (Clear + note)
+    // mounts only in the loaded state.
+    expect(screen.queryByText('watchHistoryClear')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('watchHistoryOptOutNote'),
+    ).not.toBeInTheDocument();
     const login = screen.getByText('watchLoginButton');
     // Preserves the page (same contract as WatchManager) and attributes
     // the funnel CTA.

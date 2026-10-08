@@ -57,13 +57,15 @@ import type { WatchBotLogger } from './logger';
 /**
  * Mass-removal circuit breaker — single docblock (the header above only
  * points here): a wrong/empty/partial friendsList snapshot makes every
- * active watch read as opted-out — and since the history purge rides on
- * removeWatchAndAccount, one bad snapshot would ALSO wipe search
- * histories irreversibly. The removal CANDIDATES are therefore computed
- * BEFORE any write, and only the REMOVAL branch is gated: activations
- * and confirm links proceed normally (activating requires
- * friends.has(), so a partial snapshot cannot falsely activate — it can
- * only falsely remove). A lone candidate always flows (one removal is
+ * active watch read as opted-out, silently killing notifications until
+ * each user re-adds and re-confirms. The removal CANDIDATES are
+ * therefore computed BEFORE any write, and only the REMOVAL branch is
+ * gated: activations and confirm links proceed normally (activating
+ * requires friends.has(), so a partial snapshot cannot falsely
+ * activate — it can only falsely remove). (Search-history links are
+ * NOT at stake here — unfriend preserves them by product decision;
+ * only the explicit Clear and the TTL purge cut links.)
+ * A lone candidate always flows (one removal is
  * not mass — the common single opt-out must never stall behind an
  * override). Past that, an empty snapshot or candidates past max(20,
  * 10% of the base) skip removals for the pass with an ERROR log
@@ -249,19 +251,23 @@ export interface ReconcileOptions {
    * Bot-swap mode for THIS pass (the host computes it per pass from
    * BotConfig reconcileSwapUntilMs, one-shot — never read env here):
    * removals delete ONLY the watched_profiles row (deactivateWatch),
-   * preserving the accounts row and the search-history links. Genuine
-   * unfriends (live path, normal reconcile) NEVER use this — opt-out
-   * means both rows go.
+   * preserving the accounts row — the ONLY behavioral difference left
+   * vs a genuine unfriend, since search-history links now persist
+   * through both by product decision. Genuine unfriends (live path,
+   * normal reconcile) NEVER use this — opt-out means both rows go
+   * (watch + account), which pauses attribution and hides history
+   * until re-add, but never cuts the links themselves.
    */
   swapMode?: boolean;
 }
 
 /**
  * Swap-window check (pure, tested): the window is a timestamp, not a
- * boolean, so a forgotten override expires by itself instead of leaving
- * preservation on forever (preservation-forever would silently stop
- * purging genuine leavers' histories — the exact inversion the boolean
- * was criticized for).
+ * boolean, so a forgotten override expires by itself. Preservation
+ * left on forever would keep every genuine leaver's accounts row
+ * alive — their session cookie would keep attributing new searches
+ * to an opted-out profile indefinitely, the exact privacy inversion
+ * the boolean was criticized for.
  */
 export const isSwapWindowActive = (
   nowMs: number,
@@ -445,18 +451,20 @@ const runReconcilePass = async (
         ) {
           // Opt-out while offline: the SAME composite the live
           // friend-remove path uses (one transaction — both rows go or
-          // neither does, so no user record survives an unfriend and the
-          // next signup re-confirms). Skipped wholesale while the breaker
-          // holds (logged once above, retried next pass). A failure is
-          // labeled with the single operation name; the row stays listed
-          // and the next pass retries.
+          // neither does: watch + account, so the next signup
+          // re-confirms; the search-history links persist by product
+          // decision, only Clear and the TTL cut them). Skipped
+          // wholesale while the breaker holds (logged once above,
+          // retried next pass). A failure is labeled with the single
+          // operation name; the row stays listed and the next pass
+          // retries.
           //
           // Swap mode (runbook §7) takes the OTHER lane: deactivateWatch
-          // drops only the watch row, preserving the accounts row and the
-          // search-history links. A bot-swap is involuntary for users —
-          // their histories (and their attribution, which keys on
-          // accounts) survive it; only genuine unfriends take the
-          // full-removal lane above.
+          // drops only the watch row, preserving the accounts row — the
+          // one difference that matters for history, since attribution
+          // keys on it (a swap resumes attribution by itself; a genuine
+          // unfriend pauses it until re-add). The links themselves
+          // survive either lane.
           try {
             let watchDeleted: boolean;
             if (options.swapMode === true) {

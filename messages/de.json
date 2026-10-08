@@ -245,8 +245,10 @@
     "watchHistoryClearConfirm": "Erneut tippen zum Bestätigen — kann nicht rückgängig gemacht werden",
     "watchHistorySessionExpired": "Deine Sitzung ist abgelaufen. Melde dich erneut an, um fortzufahren.",
     "watchHistoryClearError": "Verlauf konnte nicht gelöscht werden. Deine Suchen sind noch gespeichert — versuch es erneut.",
-    "watchHistoryOptOutNote": "Entfernst du den Bot aus deinen Freunden (Watch verlassen), wird auch dieser Verlauf gelöscht.",
-    "watchHistoryPrivacyNote": "Hier stehen nur Suchen mit Anmeldung. Die Verknüpfung mit deinem Konto läuft nach 12 Monaten ab — jederzeit unten löschbar (die Suchen selbst bleiben anonym erhalten; Löschen pausiert keine neuen Suchen, solange du angemeldet bist).",
-    "watchHistoryEmptyOptedOut": "Hier ist nichts. Du hast Watch verlassen: Neue Suchen werden nicht gespeichert — alte wurden beim Verlassen gelöscht."
+    "watchHistoryOptOutNote": "Entfernst du den Bot aus deinen Freunden, wird dieser Verlauf ausgeblendet — füge ihn erneut hinzu, um ihn fortzusetzen.",
+    "watchHistoryPausedNote": "Du hast Watch verlassen, deshalb sind deine Suchen hier ausgeblendet — füge den Bot erneut hinzu, um sie zu sehen.",
+    "watchHistoryEmptyOptedOut": "Derzeit sind hier keine Suchen gespeichert. Du hast Watch verlassen, deshalb werden neue Suchen ebenfalls pausiert — füge den Bot erneut hinzu, damit sie wieder gespeichert werden.",
+    "watchHistoryReconnectCta": "Füge den Bot als Freund hinzu, um diesen Verlauf fortzusetzen",
+    "watchHistoryReconnectWaiting": "Warte auf die Annahme durch den Bot — diese Liste aktualisiert sich von selbst."
   }
 }

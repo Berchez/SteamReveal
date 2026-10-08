@@ -245,8 +245,10 @@
     "watchHistoryClearConfirm": "Tap again to confirm — this cannot be undone",
     "watchHistorySessionExpired": "Your session expired. Sign in again to continue.",
     "watchHistoryClearError": "Could not clear history. Your searches are still saved — try again.",
-    "watchHistoryOptOutNote": "Unfriending the bot (leaving Watch) also clears this history.",
-    "watchHistoryPrivacyNote": "Only searches made while signed in appear here. The link to your account expires after 12 months — clear it anytime below (searches stay in anonymous totals; clearing never pauses new searches while signed in).",
-    "watchHistoryEmptyOptedOut": "No searches here. You left Watch, so new searches aren't saved — and past ones were cleared when you left."
+    "watchHistoryOptOutNote": "Unfriending the bot hides this history — add the bot again to resume it.",
+    "watchHistoryPausedNote": "You left Watch, so your searches are hidden here — add the bot again to see them.",
+    "watchHistoryEmptyOptedOut": "No searches saved here right now. You left Watch, so new searches are paused too — add the bot again for them to start saving.",
+    "watchHistoryReconnectCta": "Add the bot as a friend to resume this history",
+    "watchHistoryReconnectWaiting": "Waiting for the bot to accept — this list updates on its own."
   }
 }

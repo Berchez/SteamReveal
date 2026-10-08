@@ -6,9 +6,13 @@
  * the watch AND the signup account through the shared DAL composite
  * (`removeWatchAndAccount` — one transaction, same call the offline
  * reconcile pass uses, so the rule can never drift) and logs the outcome
- * structurally. Opt-out leaves no user record: a future re-signup starts
- * unconfirmed and gets a fresh confirm link, never silently skipping
- * confirmation on stale state.
+ * structurally. Opt-out leaves no SIGNUP record (both rows go — even
+ * when no watch row exists, e.g. after a history-only reconnect: the
+ * account DELETE is unconditional, so a reconnect → unfriend cycle ends
+ * fully clean on the live path). The search-history links persist by
+ * product decision — hidden, never deleted — and a future re-signup
+ * starts unconfirmed and gets a fresh confirm link, never silently
+ * skipping confirmation on stale state.
  *
  * A None event can also mean a sent invite that was cancelled/expired
  * server-side while the watch was still pending (never a genuine

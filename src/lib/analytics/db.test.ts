@@ -1531,7 +1531,6 @@ describe('watch/outbox DAL (Epic 1)', () => {
     mockBatch.mockResolvedValueOnce([
       { rowsAffected: 1 },
       { rowsAffected: 1 },
-      { rowsAffected: 3 },
     ]);
     await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
       accountDeleted: true,
@@ -1539,20 +1538,36 @@ describe('watch/outbox DAL (Epic 1)', () => {
     });
 
     // One batch, account statement first: a single transaction, both rows
-    // go or neither does. The third statement cuts the who-searched-whom
-    // link (opt-out leaves no searcher attribution behind).
+    // go or neither does. History links are DELIBERATELY untouched here
+    // (product decision): unfriending hides history via the footprint
+    // gate, but the links persist and resurface on re-add — only the
+    // explicit Clear and the TTL purge cut them.
     expect(mockBatch).toHaveBeenCalledTimes(1);
     const statements = mockBatch.mock.calls[0][0];
-    expect(statements).toHaveLength(3);
+    expect(statements).toHaveLength(2);
     expect(String(statements[0].sql)).toContain('DELETE FROM accounts');
     expect(String(statements[1].sql)).toContain('DELETE FROM watched_profiles');
-    expect(String(statements[2].sql)).toContain(
-      'UPDATE searches SET searcher_steam_id = NULL',
-    );
-    expect(statements[2].args).toEqual([STEAM]);
+    expect(
+      statements.some((statement: { sql: string }) =>
+        statement.sql.includes('searcher_steam_id'),
+      ),
+    ).toBe(false);
 
     mockBatch.mockResolvedValueOnce([
+      { rowsAffected: 1 },
       { rowsAffected: 0 },
+    ]);
+    // Asymmetric shape (the reconnect → unfriend cycle): an account row
+    // WITHOUT a watch still gets its account deleted — both DELETEs run
+    // unconditionally, so neither row's removal depends on the other's
+    // existence. This is what keeps the account-only state clearable on
+    // the live friend-remove path.
+    await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
+      accountDeleted: true,
+      watchDeleted: false,
+    });
+
+    mockBatch.mockResolvedValueOnce([
       { rowsAffected: 0 },
       { rowsAffected: 0 },
     ]);
@@ -1563,42 +1578,23 @@ describe('watch/outbox DAL (Epic 1)', () => {
     await expect(removeWatchAndAccount('short')).rejects.toThrow(/17 digits/);
   });
 
-  it('removeWatchAndAccount still deletes when 020 is pending (degrades the de-attribution, not the opt-out)', async () => {
-    // Bot and Vercel deploy separately: the UPDATE names a column the
-    // DB may not have yet. The two deletes must still commit (the rows
-    // that matter are gone); only the history links wait for migration.
+  it('removeWatchAndAccount needs no 020 handling (no column referenced)', async () => {
+    // Neither DELETE touches searcher_steam_id, so a pending migration
+    // can never break opt-out — the bridge lives in recordSearch only.
+    // Pinned with the REAL schema-missing message (not a generic throw)
+    // so a future re-added column statement cannot slip in a "helpful"
+    // catch-and-retry here unnoticed.
     mockBatch.mockRejectedValueOnce(
-      new Error('table searches has no column named: searcher_steam_id'),
-    );
-    mockBatch.mockResolvedValueOnce([{ rowsAffected: 1 }, { rowsAffected: 1 }]);
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const { removeWatchAndAccount } = require('./db');
-
-    await expect(removeWatchAndAccount(STEAM)).resolves.toEqual({
-      accountDeleted: true,
-      watchDeleted: true,
-    });
-
-    expect(mockBatch).toHaveBeenCalledTimes(2);
-    const retryStatements = mockBatch.mock.calls[1][0];
-    expect(retryStatements).toHaveLength(2);
-    expect(
-      retryStatements.some((statement: { sql: string }) =>
-        statement.sql.includes('searcher_steam_id'),
+      new Error(
+        'table searches has no column named: searcher_steam_id',
       ),
-    ).toBe(false);
-    expect(warnSpy).toHaveBeenCalledTimes(1);
-    expect(warnSpy.mock.calls[0][0]).toMatch(
-      /removeWatchAndAccount.*db:migrate/,
     );
-    warnSpy.mockRestore();
-  });
-
-  it('removeWatchAndAccount rethrows non-column failures with nothing committed', async () => {
-    mockBatch.mockRejectedValueOnce(new Error('db down'));
     const { removeWatchAndAccount } = require('./db');
 
-    await expect(removeWatchAndAccount(STEAM)).rejects.toThrow('db down');
+    await expect(removeWatchAndAccount(STEAM)).rejects.toThrow(
+      /searcher_steam_id/,
+    );
+    // Rethrown as-is, single attempt: no fallback batch, no warn.
     expect(mockBatch).toHaveBeenCalledTimes(1);
   });
 

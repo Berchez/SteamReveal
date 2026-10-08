@@ -264,7 +264,11 @@ describe('reconcileFriendsList', () => {
     expect(report.errors).toEqual([]);
   });
 
-  it('removes watch + account for offline opt-outs (no record survives)', async () => {
+  it('removes watch + account for offline opt-outs', async () => {
+    // The DAL call is the assert here (mocked lane); the links-
+    // preserved half of this product decision is pinned by
+    // db.integration.test.ts's opt-out test, which follows the real
+    // removeWatchAndAccount against the mocked client.
     const dal = makeDal([
       { steamId: '76561198000000002', status: 'active' },
     ]);

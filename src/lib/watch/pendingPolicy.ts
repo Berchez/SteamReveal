@@ -24,6 +24,18 @@ export const PENDING_RATE_LIMIT_WINDOW_MS = 60_000;
 export const PENDING_RATE_LIMIT_MAX = 30;
 
 /**
+ * Reconnect-wait duration cap (history modal's paused-state poll):
+ * after this long without an accept, the poll stops and the CTA
+ * re-arms (click restarts the wait). 30 minutes = parity with the
+ * login room's pending-cookie TTL, the other user-facing wait this
+ * codebase runs — two waits over the same friendship, one budget
+ * shape. Without a cap a forgotten foreground tab would poll
+ * GetFriendList forever (the per-IP limiter sheds floods, not a
+ * single patient tab).
+ */
+export const RECONNECT_WAIT_CAP_MS = 30 * 60_000;
+
+/**
  * Delay before the next poll given how many waits are already scheduled.
  * Pure (trivially testable); the component owns the counter.
  */
