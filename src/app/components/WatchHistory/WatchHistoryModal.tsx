@@ -71,9 +71,12 @@ const formatWhen = (iso: string, locale: string): string => {
  * CTA — it opens the bot profile in a new tab and polls
  * /api/history/reconnect (pendingPolicy cadence) until the bot's
  * accept lets the server recreate the attribution anchor; done reloads
- * page one so the SERVER's attributing flag drives the un-pause (no
- * optimistic client flip). Scope note: that lane resumes history only —
- * notifications stay off until the user Starts a watch themselves.
+  * page one so the SERVER's attributing flag drives the un-pause (no
+  * optimistic client flip). Scope note: that lane resumes history only —
+  * a LATER full login re-enters ensureActiveWatch, which inserts an ACTIVE
+  * watch for a row-less viewer (fresh consent model: re-friended +
+  * logged in), so "notifications stay off" holds only until the next
+  * login or an explicit Start, whichever comes first.
  */
 function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
   const translator = useTranslations('Watch');
@@ -163,7 +166,13 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
       if (append) {
         setLoadingMore(true);
         setAppendError(null);
-      } else {
+      } else if (entriesRef.current.length === 0) {
+        // First paint only: a manual reload with rows already on screen
+        // (post-resume refresh, error retry) keeps the panel + footer
+        // mounted instead of swapping everything for a spinner (flicker
+        // + footer unmount mid-read). Error/401 paths below still flip
+        // the status, so a failed reload never strands stale content
+        // without a signal.
         setStatus('loading');
       }
       try {
@@ -270,7 +279,7 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
         const delay = pendingPollDelay(scheduledWaits);
         scheduledWaits += 1;
         timer = setTimeout(() => {
-          poll();
+          poll().catch(() => undefined);
         }, delay);
       };
       // Single-flight: a visibility ping landing while a fetch is still
@@ -303,8 +312,12 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
           scheduleNext();
           return;
         }
-        const body = await res.json().catch(() => null);
-        if (cancelled || body === null || body.done !== true) {
+        const body: unknown = await res.json().catch(() => null);
+        const done =
+          typeof body === 'object' &&
+          body !== null &&
+          (body as { done?: unknown }).done === true;
+        if (cancelled || !done) {
           scheduleNext();
           return;
         }
@@ -326,11 +339,11 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
           clearTimeout(timer);
           timer = null;
         }
-        poll();
+        poll().catch(() => undefined);
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
-    poll();
+    poll().catch(() => undefined);
     return () => {
       cancelled = true;
       if (timer !== null) clearTimeout(timer);
@@ -346,6 +359,11 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
   // bot on Steam's side) and starts the poll above. The anchor keeps
   // default behavior (no preventDefault): the modal stays open under
   // the new tab, so the wait starts without any state juggling.
+  // Re-clicking mid-wait does NOT extend the duration cap: startedAt is
+  // captured once per effect run, and the effect only re-runs when
+  // `reconnecting` flips (a re-click while true is a no-op state-wise) —
+  // the cap is a fixed 30 minutes from the first click, documented, not
+  // sliding.
   const handleReconnectClick = useCallback(() => {
     setReconnecting(true);
   }, []);
@@ -485,8 +503,11 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
             {translator('watchHistoryTitle')}
           </h2>
           {/* Always reserved (even before load): the late-appearing line
-              used to push the list down mid-read (CLS inside the modal). */}
-          <p className="mb-3 h-4 text-center text-xs text-gray-400">
+              used to push the list down mid-read (CLS inside the modal).
+              Hidden on very short viewports (landscape phones): the dialog
+              is already capped at 84dvh there, and the scroller needs every
+              pixel — hiding is viewport-stable, so no dynamic shift. */}
+          <p className="mb-3 h-4 text-center text-xs text-gray-400 [@media(max-height:520px)]:hidden">
             {status === 'loaded' && attributing
               ? translator('watchHistoryShowing', {
                   shown: entries.length,
@@ -495,6 +516,16 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
               : ' '}
           </p>
           <div className="min-h-0 flex-1 overflow-y-auto">
+            {status === 'loaded' && (
+              // Collection disclosure at the point of the feature (the
+              // LoginPrompt line only reaches pre-login users — logged-in
+              // viewers meet this notice instead): what is stored, how
+              // long, how to erase. gray-400 like the footer disclosure
+              // (gray-500 reads ~3.7:1 on this background).
+              <p className="mb-2 text-center text-[11px] leading-snug text-gray-400">
+                {translator('watchHistoryPrivacyNote')}
+              </p>
+            )}
             {status === 'loading' && (
               <p
                 role="status"
@@ -538,22 +569,29 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
               // Paused (not cleared): unfriending hides the history until
               // the user re-adds the bot — the links themselves persist
               // and resurface together with new searches. TWO truthful
-              // copies, keyed on whether hidden rows exist: rows present
-              // → "your searches are hidden"; none (never had any, or a
-              // Clear just de-attributed them) → the empty copy says
-              // only what is real — nothing saved here, and new ones
-              // stay paused. No live-region on the wrapper: the waiting
-              // <p> below is the only changing content anouncee (a
+              // copies, keyed on the server's hidden ROW COUNT (the
+              // paused page ships no entries — row content stays
+              // server-side): count present → "your searches are hidden"
+              // + the count; none (never had any, or a Clear just
+              // de-attributed them) → the empty copy says only what is
+              // real — nothing saved here, and new ones stay paused. No
+              // live-region on the wrapper: the waiting
+              // <p> below is the only changing content announced (a
               // status role over the CTA would read the whole link out
               // on every change).
               <div className="flex flex-col items-center gap-3 py-8 text-center">
                 <p className="text-sm text-gray-400">
                   {translator(
-                    entries.length > 0
+                    total > 0
                       ? 'watchHistoryPausedNote'
                       : 'watchHistoryEmptyOptedOut',
                   )}
                 </p>
+                {total > 0 && (
+                  <p className="text-xs text-gray-400">
+                    {translator('watchHistoryHiddenCount', { count: total })}
+                  </p>
+                )}
                 {botProfileUrl !== null && (
                   <a
                     href={botProfileUrl}
@@ -565,6 +603,13 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
                     {translator('watchHistoryReconnectCta')}
                   </a>
                 )}
+                {/* The CTA restores history ONLY — notifications resume
+                    with a watch (Start lane) or a later login, never with
+                    the re-add alone: say so, or "resumed" reads as
+                    "watching again". */}
+                <p className="text-xs text-gray-500">
+                  {translator('watchHistoryPausedWatchNote')}
+                </p>
                 {/* The CTA STAYS during the wait (on purpose): if the
                     popup was blocked, the tab got closed, or Steam
                     failed to open, "Waiting…" alone would be a dead end
@@ -672,7 +717,8 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
               and never move when pages append. */}
           {status === 'loaded' && (
             <div className="border-t border-purple-500/20 pt-3">
-              {clearError && entries.length > 0 && (
+              {clearError &&
+                (entries.length > 0 || (!attributing && total > 0)) && (
                 <p
                   role="alert"
                   className="pb-1 text-center text-xs text-red-400"
@@ -686,8 +732,11 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
                   window, only the TTL can cut them. Gating the erase on
                   attributing would strip the paused viewer of the only
                   deletion handle they get (deletion is not display).
-                  DELETE needs no footprint, just the sealed session. */}
-              {entries.length > 0 && (
+                  DELETE needs no footprint, just the sealed session.
+                  Paused pages ship no entries (row content stays
+                  server-side), so the hidden count doubles as the
+                  affordance condition there. */}
+              {(entries.length > 0 || (!attributing && total > 0)) && (
                 <div
                   className="flex justify-center pb-1"
                   aria-live="polite"
@@ -706,12 +755,17 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
               )}
               {/* Unfriend-hides-history disclosure (product decision):
                   unfriending pauses (never deletes) — entries resurface
-                  on re-add, so the loss is never silent. gray-400 keeps
-                  the disclosure above 4.5:1 on the dialog background
-                  (gray-500 reads ~3.7:1 there). */}
-              <p className="pb-1 text-center text-[11px] leading-snug text-gray-400">
-                {translator('watchHistoryOptOutNote')}
-              </p>
+                  on re-add, so the loss is never silent. Shown in the
+                  ACTIVE states only: the paused branch carries its own
+                  copies (PausedNote/EmptyOptedOut), and repeating the
+                  same sentence twice in one panel is noise, not
+                  disclosure. gray-400 keeps the disclosure above 4.5:1
+                  on the dialog background (gray-500 reads ~3.7:1 there). */}
+              {attributing && (
+                <p className="pb-1 text-center text-[11px] leading-snug text-gray-400">
+                  {translator('watchHistoryOptOutNote')}
+                </p>
+              )}
             </div>
           )}
         </div>

@@ -127,8 +127,9 @@ describe('WatchHistoryModal', () => {
   it('shows the opted-out empty copy when new searches are not attributed', async () => {
     // Session alive, footprint gone: the standard "searches will appear
     // here" would promise recordings that never come. The paused message
-    // replaces the empty state; the footer disclosure stays, since it
-    // describes exactly this situation.
+    // replaces the empty state; the footer opt-out note stays OUT (the
+    // paused branch carries its own copies — repeating the same sentence
+    // in the footer would be noise, not disclosure).
     global.fetch = jest.fn(async () =>
       historyPayload([], { total: 0, attributing: false }),
     ) as unknown as typeof fetch;
@@ -142,7 +143,7 @@ describe('WatchHistoryModal', () => {
     // Paused rows are hidden, so the counter has nothing honest to show
     // either (it stays a reserved blank line, not "0 of 0").
     expect(screen.queryByText(/watchHistoryShowing/)).not.toBeInTheDocument();
-    expect(screen.getByText('watchHistoryOptOutNote')).toBeInTheDocument();
+    expect(screen.queryByText('watchHistoryOptOutNote')).not.toBeInTheDocument();
   });
 
   it('still offers and runs Clear in the paused state (deletion is not display)', async () => {
@@ -312,6 +313,107 @@ describe('WatchHistoryModal', () => {
     expect(
       screen.queryByText('watchHistoryReconnectWaiting'),
     ).not.toBeInTheDocument();
+  });
+
+  it('keeps the paused panel mounted (no spinner swap) while the post-resume reload is in flight', async () => {
+    jest.useFakeTimers();
+    // Paused WITH hidden rows: the footer Clear affordance is mounted.
+    // The resume reload must not swap panel + footer for a spinner.
+    let resolveReload!: (value: unknown) => void;
+    const reloadGate = new Promise((resolve) => {
+      resolveReload = resolve;
+    });
+    let historyCalls = 0;
+    const fetchMock = jest.fn((url: string) => {
+      const target = String(url);
+      if (target.includes('/api/history/reconnect')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            done: true,
+            botProfileUrl: 'https://steamcommunity.com/profiles/1',
+          }),
+        });
+      }
+      historyCalls += 1;
+      if (historyCalls === 1) {
+        return Promise.resolve(
+          historyPayload([entry('s1', '76561198000000002', 'Bob')], {
+            total: 1,
+            attributing: false,
+            botProfileUrl: 'https://steamcommunity.com/profiles/1',
+          }),
+        );
+      }
+      return reloadGate.then(() =>
+        historyPayload([entry('s1', '76561198000000002', 'Bob')], {
+          total: 1,
+          attributing: true,
+          botProfileUrl: null,
+        }),
+      );
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(await screen.findByText('watchHistoryPausedNote')).toBeInTheDocument();
+    expect(screen.getByText('watchHistoryClear')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('watchHistoryReconnectCta'));
+    // Flush the immediate poll (done) + the reload fetch start, while
+    // the page-one response is still gated: no spinner, paused copy
+    // and footer Clear stay mounted.
+    await act(async () => {});
+    expect(screen.queryByText('watchHistoryLoading')).not.toBeInTheDocument();
+    expect(screen.getByText('watchHistoryPausedNote')).toBeInTheDocument();
+    expect(screen.getByText('watchHistoryClear')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveReload(null);
+    });
+    expect(await screen.findByText('Bob')).toBeInTheDocument();
+  });
+
+  it('shows the hidden count and Clear (no row content) on paused first pages', async () => {
+    // Server strips entries when paused: the copy keys on the hidden
+    // total, the count line names the invisible rows the Clear button
+    // will erase, and the footer opt-out note stays out (the paused
+    // branch already says it — no duplicate disclosure).
+    global.fetch = jest.fn(async () =>
+      historyPayload([], {
+        total: 3,
+        attributing: false,
+        botProfileUrl: 'https://steamcommunity.com/profiles/1',
+      }),
+    ) as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(await screen.findByText('watchHistoryPausedNote')).toBeInTheDocument();
+    expect(
+      screen.getByText('watchHistoryHiddenCount {"count":3}'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('watchHistoryClear')).toBeInTheDocument();
+    expect(screen.getByText('watchHistoryPausedWatchNote')).toBeInTheDocument();
+    expect(screen.queryByText('watchHistoryOptOutNote')).not.toBeInTheDocument();
+  });
+
+  it('shows the empty paused copy without Clear or count when nothing is hidden', async () => {
+    global.fetch = jest.fn(async () =>
+      historyPayload([], {
+        total: 0,
+        attributing: false,
+        botProfileUrl: 'https://steamcommunity.com/profiles/1',
+      }),
+    ) as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(await screen.findByText('watchHistoryEmptyOptedOut')).toBeInTheDocument();
+    expect(screen.queryByText('watchHistoryClear')).not.toBeInTheDocument();
+    expect(screen.queryByText(/watchHistoryHiddenCount/)).not.toBeInTheDocument();
   });
 
   it('keeps the reconnect wait alive through a transient failure', async () => {
@@ -588,6 +690,16 @@ describe('WatchHistoryModal', () => {
     fireEvent.click(await screen.findByText('Bob'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('discloses collection at the point of the feature (P1-3)', async () => {
+    // The LoginPrompt line only reaches pre-login users; logged-in
+    // viewers meet this notice instead: what is stored, how long, how
+    // to erase.
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+
+    expect(await screen.findByText('watchHistoryEmpty')).toBeInTheDocument();
+    expect(screen.getByText('watchHistoryPrivacyNote')).toBeInTheDocument();
   });
 
   it('scopes the scrollbar gutter while open (no site-wide shift)', async () => {

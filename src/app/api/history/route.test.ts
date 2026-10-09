@@ -166,6 +166,64 @@ describe('GET /api/history', () => {
     );
   });
 
+  it('withholds row content on paused first pages (total stays as the hidden count)', async () => {
+    // The paused modal shows only the resume UI: shipping entries would
+    // expose who-searched-whom to extensions/network logs for zero UI
+    // benefit. `total` stays (drives the "N hidden searches" line and
+    // the Clear affordance) and the bookmark is nulled (no paging of
+    // hidden rows).
+    hasAccountFootprint.mockResolvedValue(false);
+    listSearcherSearches.mockResolvedValue({
+      entries: [
+        {
+          searchId: 's1',
+          searchedAt: '2026-09-30T00:00:00.000Z',
+          steamId: '76561198000000002',
+          nickname: 'Bob',
+          steamUrl: null,
+          countryCode: 'BR',
+          cheaterChecked: false,
+        },
+      ],
+      total: 3,
+      nextCursor: '2026-09-30T00:00:00.000Z|s1',
+    });
+
+    const res = await GET(makeRequest('/api/history'));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.entries).toEqual([]);
+    expect(body.total).toBe(3);
+    expect(body.nextCursor).toBeNull();
+    expect(body.attributing).toBe(false);
+  });
+
+  it('passes cursor pages through untouched (documented fail-open)', async () => {
+    // Later pages carry attributing:null (footprint is first-page-only),
+    // so the paused strip cannot apply: a direct-API cursor call for a
+    // paused viewer still returns rows. The modal never pages while
+    // paused (no bookmark ships), so this only affects hand-made calls.
+    parseHistoryCursor.mockReturnValue({
+      searchedAt: '2026-09-30T00:00:00.000Z',
+      searchId: 's9',
+    });
+    listSearcherSearches.mockResolvedValue({
+      entries: [{ searchId: 's9' }],
+      total: null,
+      nextCursor: null,
+    });
+
+    const res = await GET(
+      makeRequest('/api/history?cursor=2026-09-30T00%3A00%3A00.000Z%7Cs9'),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.entries).toHaveLength(1);
+    expect(body.attributing).toBeNull();
+  });
+
   it('omits botProfileUrl while attributing (and on later pages)', async () => {
     hasAccountFootprint.mockResolvedValue(true);
     listSearcherSearches.mockResolvedValue({

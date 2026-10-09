@@ -138,13 +138,24 @@ export async function GET(req: Request) {
       listSearcherSearches(steamId, limit, cursor),
       cursor === null ? hasAccountFootprint(steamId) : null,
     ]);
+    // Paused viewers get NO row content: the modal shows only the resume
+    // UI there, so shipping entries would expose who-searched-whom to
+    // extensions and network logs for zero UI benefit (defense in
+    // depth — the rows are the viewer's own, but the display gate
+    // belongs server-side). `total` stays as the hidden count (drives
+    // the "N hidden searches" line and the Clear affordance) and
+    // nextCursor is nulled (no paging of hidden rows — the client never
+    // requests later pages while paused; a direct-API cursor call still
+    // passes through, documented fail-open).
+    const paused = attributing === false;
     return NextResponse.json(
       {
         steamId,
-        entries: page.entries,
+        entries: paused ? [] : page.entries,
         // Server-built bookmark (null = exhausted) + first-page total;
         // later pages carry total: null and the client reuses page one.
-        nextCursor: page.nextCursor,
+        // Paused first pages null the bookmark too (see above).
+        nextCursor: paused ? null : page.nextCursor,
         total: page.total,
         attributing,
         // First page, paused state only: the bot-profile link for the

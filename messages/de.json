@@ -109,6 +109,18 @@
     "supportedFormats": "Unterstützte Formate",
     "copied": "Kopiert!"
   },
+  "Share": {
+    "label": "Dieses Profil teilen",
+    "copyLink": "Link kopieren",
+    "copied": "Kopiert!",
+    "nativeShare": "Teilen…",
+    "shareOnX": "Auf X teilen",
+    "shareOnWhatsApp": "Auf WhatsApp teilen",
+    "shareOnTelegram": "Auf Telegram teilen",
+    "share": "Teilen",
+    "shareText": "Sieh dir die öffentliche Steam-Analyse von {nickname} auf SteamReveal an",
+    "shareTextFallback": "Sieh dir diese öffentliche Steam-Analyse auf SteamReveal an"
+  },
   "SupportMe": {
     "supportTitle": "Danke, dass du die Seite nutzt! 💖",
     "supportText": "Wenn dir das Projekt hilft, kannst du es unterstützen, damit ich die Seite weiter verbessern kann.",
@@ -246,9 +258,12 @@
     "watchHistorySessionExpired": "Deine Sitzung ist abgelaufen. Melde dich erneut an, um fortzufahren.",
     "watchHistoryClearError": "Verlauf konnte nicht gelöscht werden. Deine Suchen sind noch gespeichert — versuch es erneut.",
     "watchHistoryOptOutNote": "Entfernst du den Bot aus deinen Freunden, wird dieser Verlauf ausgeblendet — füge ihn erneut hinzu, um ihn fortzusetzen.",
+    "watchHistoryPrivacyNote": "Hier stehen nur Suchen mit Anmeldung. Die Verknüpfung mit deinem Konto läuft nach 12 Monaten ab — jederzeit unten löschbar (die Suchen selbst bleiben anonym erhalten; Löschen pausiert keine neuen Suchen, solange du angemeldet bist).",
     "watchHistoryPausedNote": "Du hast Watch verlassen, deshalb sind deine Suchen hier ausgeblendet — füge den Bot erneut hinzu, um sie zu sehen.",
     "watchHistoryEmptyOptedOut": "Derzeit sind hier keine Suchen gespeichert. Du hast Watch verlassen, deshalb werden neue Suchen ebenfalls pausiert — füge den Bot erneut hinzu, damit sie wieder gespeichert werden.",
     "watchHistoryReconnectCta": "Füge den Bot als Freund hinzu, um diesen Verlauf fortzusetzen",
-    "watchHistoryReconnectWaiting": "Warte auf die Annahme durch den Bot — diese Liste aktualisiert sich von selbst."
+    "watchHistoryReconnectWaiting": "Warte auf die Annahme durch den Bot — diese Liste aktualisiert sich von selbst.",
+    "watchHistoryHiddenCount": "{count} verborgene Suchen",
+    "watchHistoryPausedWatchNote": "Das stellt nur deinen Verlauf wieder her — für Mitteilungen starte eine Beobachtung."
   }
 }

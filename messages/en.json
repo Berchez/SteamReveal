@@ -109,6 +109,18 @@
     "supportedFormats": "Supported formats",
     "copied": "Copied!"
   },
+  "Share": {
+    "label": "Share this profile",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "nativeShare": "Share…",
+    "shareOnX": "Share on X",
+    "shareOnWhatsApp": "Share on WhatsApp",
+    "shareOnTelegram": "Share on Telegram",
+    "share": "Share",
+    "shareText": "See {nickname}'s public Steam analysis on SteamReveal",
+    "shareTextFallback": "See this public Steam analysis on SteamReveal"
+  },
   "SupportMe": {
     "supportTitle": "Thanks for using the site! 💖",
     "supportText": "If the project is helping you, you can support it so I can keep improving the site.",
@@ -246,9 +258,12 @@
     "watchHistorySessionExpired": "Your session expired. Sign in again to continue.",
     "watchHistoryClearError": "Could not clear history. Your searches are still saved — try again.",
     "watchHistoryOptOutNote": "Unfriending the bot hides this history — add the bot again to resume it.",
+    "watchHistoryPrivacyNote": "Only searches made while signed in appear here. The link to your account expires after 12 months — clear it anytime below (searches stay in anonymous totals; clearing never pauses new searches while signed in).",
     "watchHistoryPausedNote": "You left Watch, so your searches are hidden here — add the bot again to see them.",
     "watchHistoryEmptyOptedOut": "No searches saved here right now. You left Watch, so new searches are paused too — add the bot again for them to start saving.",
     "watchHistoryReconnectCta": "Add the bot as a friend to resume this history",
-    "watchHistoryReconnectWaiting": "Waiting for the bot to accept — this list updates on its own."
+    "watchHistoryReconnectWaiting": "Waiting for the bot to accept — this list updates on its own.",
+    "watchHistoryHiddenCount": "{count} hidden searches",
+    "watchHistoryPausedWatchNote": "This restores your history only — to get notifications again, start a watch."
   }
 }

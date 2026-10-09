@@ -180,7 +180,12 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   (burst of throwaway accept lines), prune dead friends by hand in the Steam
   client if legitimate growth caused it, and plan the second-bot shard
   (own `ACQ_BOT_*` namespace — friendship with any other bot must never
-  satisfy the login gate, see `config.ts`).
+  satisfy the login gate, see `config.ts`). History-reconnects consume
+  the same budget: each re-add costs 1 friend slot (cap 240) + 1 daily
+  accept (50/day) WITHOUT creating a watch row, so a reconnect wave
+  fills `friends=` with watch-less friends invisible to watch-based
+  monitoring — read the cap gauge together with the login funnel, not
+  the watch count alone.
 - Durability split for the auto-accept ceilings (explicit, not a bug): the
   DAILY budget (`BOT_AUTO_ACCEPT_DAILY_LIMIT`) is IN-MEMORY per process — a
   restart/deploy resets the day's tally, so frequent restarts within one UTC
@@ -192,7 +197,9 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   slots converge without waiting for a reconnect).
 - Useful log greps: `accepted inbound friend request` (per-accept, carries
   `friends=` + `acceptedToday=` — the friend-count gauge for the Steam cap),
-  `friend-accept REFUSED` (safety ceiling hit: friend cap or daily budget —
+  `orphansSwept=` on the reconcile summary (orphan-account sweep per
+  pass — reconnect-lane residue; a persistently high count means users
+  churn faster than the 10/pass cap drains, not a bug),  `friend-accept REFUSED` (safety ceiling hit: friend cap or daily budget —
   operator-action incident, new onboarding is deferred, investigate the
   request source for Sybil), `reconcile removals BLOCKED` (mass-removal
   breaker tripped: wrong/partial snapshot, removals skipped this pass —
@@ -389,7 +396,27 @@ no site change needed during the swap. Plan B:
       attribution resumes by itself). Only the user's explicit
       "Clear my history" and the 12-month TTL ever cut links. The
       swap's only difference is the accounts row; returning users in
-      either lane find their history intact.
+      either lane find their history intact. A LATER full login re-enters
+      ensureActiveWatch, which inserts an ACTIVE watch for a row-less
+      viewer — "notifications stay off" holds only until the next login
+      or an explicit Start, whichever comes first (see the scope note on
+      WatchHistoryModal).
+      Deploy order for retention-semantics changes (site first, bot
+      second): the two processes ship separately, so a skew window is
+      unavoidable — make it the harmless one. Site-new + bot-old only
+      breaks the resume promise visibly (old bot still deletes the
+      account row); bot-new + site-old silently retains links while the
+      old UI still promises deletion (privacy-violating direction).
+      The UI copy moved from "unfriending clears" to "unfriending
+      hides": the public Privacy Policy/ToS must state the 12-month
+      retention (no such page lives in this repo — owner action).
+      Deletion for session-less ex-opt-outs (cookie dead, bot
+      unfriended): self-serve by re-adding the bot → login → history
+      → "Clear my history" (the reconnect lane rebuilds the anchor,
+      Clear needs only the sealed session). There is NO owner-side
+      per-searcher purge (`delete-searches --steam-id` targets searched
+      profiles, not searchers); the 12-month TTL is the automatic
+      backstop — say exactly that if a request arrives.
       Known residual (accepted): users who genuinely leave DURING the
       window keep a dormant accounts row (no pass revisits account-only
       rows — reconcile iterates watches). While their session cookie
@@ -402,15 +429,16 @@ no site change needed during the swap. Plan B:
       unfriend while the bot is offline): the LIVE friend-remove path
       clears it (the composite's account DELETE runs even with no watch
       row), only the offline miss falls into this residual, with the
-      same cookie/TTL bounds. Why this stays a documented residual
-      instead of growing an account sweep into reconcile: the bare row
-      is INERT — new attribution needs the session cookie (dead ≤30d
-      into the residual), the links de-attribute at the 12-month TTL,
-      and the row itself carries only the public SteamID — while a
-      sweep would re-create the breaker's exact failure class (a
-      glitchy/empty friendsList snapshot mass-deleting accounts) on
-      the riskiest lane. If the remnant ever bothers, clean it manually
-      per the paragraph above.
+      same cookie/TTL bounds. The offline miss is now swept automatically:
+      every pass lists account-only rows (`listOrphanAccounts`) and deletes
+      the ones missing from the friends snapshot through the SAME verdict
+      (skipped wholesale while the breaker holds, plus an explicit
+      empty-snapshot arm and a 10/pass cap) and the shared composite —
+      never in swap mode (accounts must survive the swap). A glitchy
+      snapshot therefore degrades to retried passes, not mass deletion,
+      and a wrongly swept row self-heals (recordLogin recreates the
+      anchor on next login; links were never touched). Per-row audit
+      lines plus the `orphansSwept=` gauge say what went.
    - Support blip is proportional to the whole active base ("who is this new
      bot? why did my watch stop?"), larger than the old pending-only blip.
      Announce the new profile URL ahead of the swap if possible.

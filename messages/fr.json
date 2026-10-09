@@ -109,6 +109,18 @@
     "supportedFormats": "Formats pris en charge",
     "copied": "Copié !"
   },
+  "Share": {
+    "label": "Partager ce profil",
+    "copyLink": "Copier le lien",
+    "copied": "Copié !",
+    "nativeShare": "Partager…",
+    "shareOnX": "Partager sur X",
+    "shareOnWhatsApp": "Partager sur WhatsApp",
+    "shareOnTelegram": "Partager sur Telegram",
+    "share": "Partager",
+    "shareText": "Voir l'analyse Steam publique de {nickname} sur SteamReveal",
+    "shareTextFallback": "Voir cette analyse Steam publique sur SteamReveal"
+  },
   "SupportMe": {
     "supportTitle": "Merci d'utiliser le site ! 💖",
     "supportText": "Si le projet vous aide, vous pouvez le soutenir pour que je continue à améliorer le site.",
@@ -246,9 +258,12 @@
     "watchHistorySessionExpired": "Votre session a expiré. Reconnectez-vous pour continuer.",
     "watchHistoryClearError": "Impossible d'effacer l'historique. Vos recherches sont toujours enregistrées — réessayez.",
     "watchHistoryOptOutNote": "Retirer le bot de vos amis masque cet historique — rajoutez-le pour le reprendre.",
+    "watchHistoryPrivacyNote": "Seules les recherches effectuées en étant connecté apparaissent ici. Le lien avec votre compte expire après 12 mois — effacez-le à tout moment ci-dessous (les recherches restent dans les totaux anonymes; les effacer n'interrompt pas les nouvelles recherches tant que vous êtes connecté).",
     "watchHistoryPausedNote": "Vous avez quitté Watch, vos recherches sont donc masquées ici — rajoutez le bot pour les revoir.",
     "watchHistoryEmptyOptedOut": "Aucune recherche enregistrée ici pour le moment. Vous avez quitté Watch, les nouvelles sont donc aussi en pause — rajoutez le bot pour qu'elles soient de nouveau enregistrées.",
     "watchHistoryReconnectCta": "Ajoutez le bot en ami pour reprendre cet historique",
-    "watchHistoryReconnectWaiting": "En attente de l'acceptation du bot — cette liste se met à jour toute seule."
+    "watchHistoryReconnectWaiting": "En attente de l'acceptation du bot — cette liste se met à jour toute seule.",
+    "watchHistoryHiddenCount": "{count} recherches masquées",
+    "watchHistoryPausedWatchNote": "Cela ne restaure que votre historique — pour recevoir des notifications, démarrez une surveillance."
   }
 }

@@ -109,6 +109,18 @@
     "supportedFormats": "Obsługiwane formaty",
     "copied": "Skopiowano!"
   },
+  "Share": {
+    "label": "Udostępnij ten profil",
+    "copyLink": "Kopiuj link",
+    "copied": "Skopiowano!",
+    "nativeShare": "Udostępnij…",
+    "shareOnX": "Udostępnij na X",
+    "shareOnWhatsApp": "Udostępnij na WhatsApp",
+    "shareOnTelegram": "Udostępnij w Telegramie",
+    "share": "Udostępnij",
+    "shareText": "Zobacz publiczną analizę Steam gracza {nickname} na SteamReveal",
+    "shareTextFallback": "Zobacz tę publiczną analizę Steam na SteamReveal"
+  },
   "SupportMe": {
     "supportTitle": "Dzięki za korzystanie ze strony! 💖",
     "supportText": "Jeśli projekt Ci pomaga, możesz go wesprzeć, abym mógł dalej ulepszać stronę.",
@@ -246,9 +258,12 @@
     "watchHistorySessionExpired": "Twoja sesja wygasła. Zaloguj się ponownie, aby kontynuować.",
     "watchHistoryClearError": "Nie udało się wyczyścić historii. Twoje wyszukiwania są nadal zapisane — spróbuj ponownie.",
     "watchHistoryOptOutNote": "Usunięcie bota ze znajomych ukrywa tę historię — dodaj bota ponownie, aby ją wznowić.",
-    "watchHistoryPausedNote": "Watch opuszczony, więc Twoje wyszukiwania są tu ukryte — dodaj bota ponownie, aby je zobaczyć.",
-    "watchHistoryEmptyOptedOut": "Brak zapisanych wyszukiwań. Watch opuszczony, więc nowe też są wstrzymane — dodaj bota ponownie, aby znów się zapisywały.",
+    "watchHistoryPrivacyNote": "Tutaj widać tylko wyszukiwania po zalogowaniu. Powiązanie z kontem wygasa po 12 miesiącach — wyczyść je w dowolnej chwili poniżej (same wyszukiwania zostają w anonimowych statystykach; czyszczenie nie wstrzymuje nowych wyszukiwań, dopóki trwa logowanie).",
+    "watchHistoryPausedNote": "Po opuszczeniu Watch Twoje wyszukiwania są tu ukryte — dodaj bota ponownie, aby je zobaczyć.",
+    "watchHistoryEmptyOptedOut": "Brak zapisanych wyszukiwań. Po opuszczeniu Watch nowe też są wstrzymane — dodaj bota ponownie, aby znów się zapisywały.",
     "watchHistoryReconnectCta": "Dodaj bota do znajomych, aby wznowić tę historię",
-    "watchHistoryReconnectWaiting": "Czekamy, aż bot zaakceptuje — ta lista zaktualizuje się sama."
+    "watchHistoryReconnectWaiting": "Czekamy, aż bot zaakceptuje — ta lista zaktualizuje się sama.",
+    "watchHistoryHiddenCount": "{count} ukrytych wyszukiwań",
+    "watchHistoryPausedWatchNote": "To przywraca tylko Twoją historię — aby otrzymywać powiadomienia, rozpocznij obserwowanie."
   }
 }

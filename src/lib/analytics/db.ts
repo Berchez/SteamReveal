@@ -239,12 +239,12 @@ export const executeForTests = async (
 // Placed above its caller (no-use-before-define).
 let missingSearcherColumnWarned = false;
 
-const logMissingSearcherColumnOnce = (caller: string): void => {
+const logMissingSearcherColumnOnce = (): void => {
   if (missingSearcherColumnWarned) return;
   missingSearcherColumnWarned = true;
   // eslint-disable-next-line no-console
   console.warn(
-    `${caller}: searches.searcher_steam_id is missing — degrading without it until \`pnpm run db:migrate\` applies 020.`,
+    'recordSearch: searches.searcher_steam_id is missing — degrading without it until `pnpm run db:migrate` applies 020.',
   );
 };
 
@@ -266,8 +266,8 @@ const SEARCHER_COLUMN_MISS_TTL_MS = 60_000;
 const isSearcherColumnMissingCached = (): boolean =>
   Date.now() < searcherColumnMissingUntilMs;
 
-const cacheSearcherColumnMissing = (caller: string): void => {
-  logMissingSearcherColumnOnce(caller);
+const cacheSearcherColumnMissing = (): void => {
+  logMissingSearcherColumnOnce();
   searcherColumnMissingUntilMs = Date.now() + SEARCHER_COLUMN_MISS_TTL_MS;
 };
 
@@ -457,7 +457,7 @@ export const recordSearch = async (
     if (!isSearcherColumnMissing(error)) {
       throw error;
     }
-    cacheSearcherColumnMissing('recordSearch');
+    cacheSearcherColumnMissing();
     statements[statements.indexOf(rootStatement)] =
       searchesStatement(false);
     await withSchemaHint(db.batch(statements));
@@ -1338,6 +1338,29 @@ export interface RemoveWatchResult {
   watchDeleted: boolean;
   accountDeleted: boolean;
 }
+
+/**
+ * Accounts with no watched_profiles row (any status) — the orphan class
+ * the history-reconnect lane introduces by design (reconnect recreates
+ * ONLY the attribution anchor, never a watch) plus swap-window remnants.
+ * The bot's reconcile pass sweeps the non-friend subset through the
+ * shared mass-removal verdict (see reconcile.ts): a lingering row keeps
+ * attributing new searches while the session cookie lives, so opt-out
+ * must stop recording even when the live friend-remove event was
+ * missed (bot offline). Read-only input for that sweep, nothing else
+ * calls this.
+ */
+export const listOrphanAccounts = async (): Promise<string[]> => {
+  const db = await getClient();
+  const rows = await withSchemaHint(
+    db.execute({
+      sql: `SELECT a.steam_id AS steam_id FROM accounts a
+            LEFT JOIN watched_profiles w ON w.steam_id = a.steam_id
+            WHERE w.steam_id IS NULL ORDER BY a.steam_id ASC`,
+    }),
+  );
+  return rows.rows.map((row) => String((row as Record<string, unknown>).steam_id ?? ''));
+};
 
 /**
  * Opt-out, the ONLY production path that removes user rows (the live

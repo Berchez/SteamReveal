@@ -109,6 +109,18 @@
     "supportedFormats": "Formatos suportados",
     "copied": "Copiado!"
   },
+  "Share": {
+    "label": "Compartilhar este perfil",
+    "copyLink": "Copiar link",
+    "copied": "Copiado!",
+    "nativeShare": "Compartilhar…",
+    "shareOnX": "Compartilhar no X",
+    "shareOnWhatsApp": "Compartilhar no WhatsApp",
+    "shareOnTelegram": "Compartilhar no Telegram",
+    "share": "Compartilhar",
+    "shareText": "Veja a análise pública de {nickname} na Steam no SteamReveal",
+    "shareTextFallback": "Veja esta análise pública da Steam no SteamReveal"
+  },
   "SupportMe": {
     "supportTitle": "Obrigado por usar o site! 💖",
     "supportText": "Se o projeto está te ajudando, você pode apoiar para que eu continue melhorando o site.",
@@ -246,9 +258,12 @@
     "watchHistorySessionExpired": "Sua sessão expirou. Entre de novo para continuar.",
     "watchHistoryClearError": "Não foi possível apagar o histórico. Suas buscas continuam salvas — tente de novo.",
     "watchHistoryOptOutNote": "Desfazer amizade com o bot esconde este histórico — adicione o bot de novo para retomá-lo.",
+    "watchHistoryPrivacyNote": "Só aparecem aqui buscas feitas com login. O vínculo com sua conta expira após 12 meses — você pode apagá-lo abaixo a qualquer momento (as buscas seguem nos totais anônimos; apagar não pausa novas buscas com login).",
     "watchHistoryPausedNote": "Você saiu do Watch, então suas buscas ficam ocultas aqui — adicione o bot de novo para vê-las.",
     "watchHistoryEmptyOptedOut": "Nenhuma busca salva aqui por enquanto. Você saiu do Watch, então novas buscas também estão pausadas — adicione o bot de novo para voltarem a ser salvas.",
     "watchHistoryReconnectCta": "Adicione o bot como amigo para retomar este histórico",
-    "watchHistoryReconnectWaiting": "Aguardando o bot aceitar — esta lista atualiza sozinha."
+    "watchHistoryReconnectWaiting": "Aguardando o bot aceitar — esta lista atualiza sozinha.",
+    "watchHistoryHiddenCount": "{count} buscas ocultas",
+    "watchHistoryPausedWatchNote": "Isso restaura só o seu histórico — para receber notificações de novo, inicie um monitoramento."
   }
 }

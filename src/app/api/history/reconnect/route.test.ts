@@ -3,6 +3,7 @@
  */
 
 import { GET } from './route';
+import { resetReconnectThrottleForTests } from '@/lib/watch/reconnectThrottle';
 
 jest.mock('next/headers', () => ({
   cookies: jest.fn(),
@@ -89,6 +90,9 @@ const bodyOf = async (res: Response) =>
 describe('GET /api/history/reconnect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Module-scoped per-viewer throttle: drop timestamps between tests
+    // or an early GET would suppress the Steam read of a later one.
+    resetReconnectThrottleForTests();
     __testIsRateLimited.mockReturnValue(false);
     resolveWatchSession.mockResolvedValue({
       status: 'authenticated',
@@ -272,6 +276,32 @@ describe('GET /api/history/reconnect', () => {
     expect(createAccount).not.toHaveBeenCalled();
   });
 
+  it('rejects a cross-site fetch while allowing missing metadata (fail-open)', async () => {
+    // Browsers always stamp fetch with Sec-Fetch-Site: a present
+    // non-same-origin value is a forged drive-by (no-cors fetch sends
+    // cookies). Missing header (curl, old browsers, bare test
+    // Requests) stays allowed — the anchor recreated is always the
+    // caller's own, and friendship is still re-proven below.
+    const crossSite = new Request(`${BASE}/api/history/reconnect`, {
+      method: 'GET',
+      headers: { 'Sec-Fetch-Site': 'cross-site' },
+    });
+    const res = await GET(crossSite);
+
+    expect(res.status).toBe(403);
+    expect(hasAccountFootprint).not.toHaveBeenCalled();
+    expect(isBotFriend).not.toHaveBeenCalled();
+
+    const sameOrigin = new Request(`${BASE}/api/history/reconnect`, {
+      method: 'GET',
+      headers: { 'Sec-Fetch-Site': 'same-origin' },
+    });
+    isBotFriend.mockResolvedValue(false);
+    const ok = await GET(sameOrigin);
+    expect(ok.status).toBe(200);
+    expect(isBotFriend).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects a client-supplied steamId (identity comes from the session)', async () => {
     const res = await GET(
       makeRequest('/api/history/reconnect?steamId=76561198000000002'),
@@ -308,5 +338,33 @@ describe('GET /api/history/reconnect', () => {
       'historyReconnect',
       expect.stringContaining('misconfigured'),
     );
+  });
+
+  it('skips the Steam read when the same viewer polls twice inside the gap', async () => {
+    // One waiter with N open tabs costs N GetFriendList reads per tick
+    // against the shared quota: the second immediate poll answers
+    // `{done:false}` without reading — the poll retries next tick.
+    isBotFriend.mockResolvedValue(false);
+
+    const first = await GET(makeRequest('/api/history/reconnect'));
+    const second = await GET(makeRequest('/api/history/reconnect'));
+
+    expect((await bodyOf(first)).done).toBe(false);
+    expect((await bodyOf(second)).done).toBe(false);
+    expect(isBotFriend).toHaveBeenCalledTimes(1);
+    expect(createAccount).not.toHaveBeenCalled();
+  });
+
+  it('reads Steam again once the per-viewer gap has passed', async () => {
+    isBotFriend.mockResolvedValue(false);
+    const nowSpy = jest.spyOn(Date, 'now');
+
+    nowSpy.mockReturnValue(1_000_000);
+    await GET(makeRequest('/api/history/reconnect'));
+    nowSpy.mockReturnValue(1_000_000 + 8_000);
+    const res = await GET(makeRequest('/api/history/reconnect'));
+
+    expect((await bodyOf(res)).done).toBe(false);
+    expect(isBotFriend).toHaveBeenCalledTimes(2);
   });
 });

@@ -46,6 +46,7 @@
     "next-intl": "^3.9.1",
     "react": "^18",
     "react-dom": "^18",
+    "react-icons": "^5.7.0",
     "react-toastify": "^10.0.5",
     "resend": "^6.6.0",
     "steam-totp": "^2.1.2",

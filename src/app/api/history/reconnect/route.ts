@@ -11,6 +11,7 @@ import { BOT_FRIENDSHIP_TIMEOUT_MS, isBotFriend } from '@/lib/steamFriendList';
 import withTimeout from '@/lib/withTimeout';
 import { createAccount } from '@/lib/analytics/db';
 import { hasAccountFootprint } from '@/lib/watch/searcherAttribution';
+import { shouldThrottleReconnectRead } from '@/lib/watch/reconnectThrottle';
 import { resolveBotProfileUrl } from '@/lib/watch/botProfile';
 import { resolveWatchSession } from '@/lib/watch/session';
 import {
@@ -86,10 +87,12 @@ const jsonNoStore = (body: ReconnectResult): NextResponse =>
  * GET mutates by design here (poll semantics, same precedent and safety
  * argument as /api/auth/steam/pending): nothing links to this URL — only
  * the modal fetches it, so prefetchers never touch it; the Lax session
- * cookie doesn't travel on cross-site subrequests; triggering it
- * cross-site could only recreate the victim's OWN history anchor (no
- * privilege transferred); and friendship is re-proven server-side on
- * every hit — the client claim is never trusted.
+ * cookie is withheld on cross-site SUBREQUESTS (fetch/XHR), though it IS
+ * sent on a cross-site top-level GET navigation (user clicking a link).
+ * Triggering it that way could only recreate the victim's OWN history
+ * anchor (no privilege transferred, no other user's state reachable);
+ * and friendship is re-proven server-side on every hit — the client
+ * claim is never trusted.
  *
  * Self-scoped like the sibling history lanes: identity comes
  * EXCLUSIVELY from the sealed session cookie (`?steamId=` is a 400, a
@@ -132,6 +135,18 @@ export async function GET(req: Request) {
     return errorResponse('Login required.', 401, 'UNAUTHENTICATED');
   }
   const { steamId } = session;
+  // Fetch-metadata CSRF layer (the modal is the only caller, via
+  // same-origin fetch): browsers stamp every fetch with Sec-Fetch-Site,
+  // so a PRESENT non-same-origin value (cross-site fetch, top-level
+  // navigation from another site) is a forged drive-by — reject it.
+  // Fail OPEN on missing (curl, old browsers, unit tests construct bare
+  // Requests): the state change only ever recreates the caller's OWN
+  // history anchor, and friendship is still re-proven below — the
+  // header upgrades the common case instead of carrying the guarantee.
+  const fetchSite = req.headers.get('sec-fetch-site');
+  if (fetchSite !== null && fetchSite !== 'same-origin') {
+    return errorResponse('Forbidden.', 403, 'FORBIDDEN');
+  }
   const botProfileUrl = resolveBotProfileUrl();
 
   // Footprint fast path: already reconnected (bot accepted while nobody
@@ -168,6 +183,16 @@ export async function GET(req: Request) {
     // null (private list) — one blip, one log line, not two.
     let friendshipThrew = false;
     try {
+      // Per-viewer throttle (reconnectThrottle): the modal polls per
+      // open tab, so one waiter with N tabs costs N GetFriendList reads
+      // per tick against the shared Steam quota. A throttled tick
+      // answers `{done:false}` without reading — the poll retries next
+      // tick (worst case adds one interval of resume latency). The
+      // footprint fast path above is deliberately NOT throttled:
+      // completion must stay instant once the row exists.
+      if (shouldThrottleReconnectRead(steamId)) {
+        return jsonNoStore({ done: false, botProfileUrl });
+      }
       isFriend = await withTimeout(
         isBotFriend(apiKey, botSteamId, steamId),
         'historyReconnect: GetFriendList',

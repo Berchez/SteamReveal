@@ -1598,6 +1598,30 @@ describe('watch/outbox DAL (Epic 1)', () => {
     expect(mockBatch).toHaveBeenCalledTimes(1);
   });
 
+  it('listOrphanAccounts returns steam_ids with no watch row (LEFT JOIN)', async () => {
+    const { listOrphanAccounts } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({
+      rows: [{ steam_id: STEAM }, { steam_id: '76561198000000002' }],
+    });
+    await expect(listOrphanAccounts()).resolves.toEqual([
+      STEAM,
+      '76561198000000002',
+    ]);
+
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    const select = mockExecute.mock.calls[1][0];
+    expect(String(select.sql)).toContain('LEFT JOIN watched_profiles');
+    expect(String(select.sql)).toContain('w.steam_id IS NULL');
+  });
+
+  it('listOrphanAccounts returns empty when every account has a watch', async () => {
+    const { listOrphanAccounts } = require('./db');
+
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    await expect(listOrphanAccounts()).resolves.toEqual([]);
+  });
+
   it('deleteSearcherHistory de-attributes (never deletes) and validates the id', async () => {
     const { deleteSearcherHistory } = require('./db');
 

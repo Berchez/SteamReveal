@@ -31,6 +31,7 @@ function UserCard({
   probability,
   itsTargetUser,
   bottomChildren,
+  topRightChildren,
   preloadedLocationInfo,
 }: {
   friend: UserSummary;
@@ -38,6 +39,11 @@ function UserCard({
   probability?: number;
   itsTargetUser: boolean;
   bottomChildren?: React.ReactNode;
+  // Corner slot (e.g. the ShareBar trigger on the target card): absolutely
+  // positioned, so it never shifts layout. The text column below reserves
+  // right padding while the slot is present so long nicknames never slide
+  // underneath it.
+  topRightChildren?: React.ReactNode;
   // When the caller already resolved the location (e.g. useHomeSearch does
   // this for the target user before this component ever mounts), pass it
   // here to skip the internal fetch entirely. Prevents a redundant
@@ -129,12 +135,15 @@ function UserCard({
 
   return (
     <div
-      className={`gap-4 flex md:flex-row flex-col items-center justify-center text-white p-4 ${
+      className={`relative gap-4 flex md:flex-row flex-col items-center justify-center text-white p-4 ${
         itsTargetUser
           ? 'text-lg md:w-[90%] w-full self-center'
           : 'text-base w-full mt-8'
       } ${glassmorphism}`}
     >
+      {topRightChildren && (
+        <div className="absolute right-3 top-3 z-10">{topRightChildren}</div>
+      )}
       {friend.avatar.medium && (
         <div className="flex flex-col items-center">
           <img
@@ -166,7 +175,7 @@ function UserCard({
         </div>
       )}
       <div
-        className={`flex flex-col w-full break-words self-start min-h-[9rem]${itsTargetUser ? ' gap-1' : ''}`}
+        className={`flex flex-col w-full break-words self-start min-h-[9rem]${itsTargetUser ? ' gap-1' : ''}${topRightChildren ? ' pr-12' : ''}`}
       >
         {hasText(friend.nickname) && (
           <p className="font-semibold">

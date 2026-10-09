@@ -109,6 +109,18 @@
     "supportedFormats": "Formatos soportados",
     "copied": "¡Copiado!"
   },
+  "Share": {
+    "label": "Compartir este perfil",
+    "copyLink": "Copiar enlace",
+    "copied": "¡Copiado!",
+    "nativeShare": "Compartir…",
+    "shareOnX": "Compartir en X",
+    "shareOnWhatsApp": "Compartir en WhatsApp",
+    "shareOnTelegram": "Compartir en Telegram",
+    "share": "Compartir",
+    "shareText": "Mira el análisis público de Steam de {nickname} en SteamReveal",
+    "shareTextFallback": "Mira este análisis público de Steam en SteamReveal"
+  },
   "SupportMe": {
     "supportTitle": "¡Gracias por usar el sitio! 💖",
     "supportText": "Si el proyecto te está ayudando, puedes apoyarlo para que pueda seguir mejorando el sitio.",
@@ -246,9 +258,12 @@
     "watchHistorySessionExpired": "Tu sesión expiró. Inicia sesión de nuevo para continuar.",
     "watchHistoryClearError": "No se pudo borrar el historial. Tus búsquedas siguen guardadas — inténtalo de nuevo.",
     "watchHistoryOptOutNote": "Eliminar al bot de amigos oculta este historial — agrega al bot de nuevo para retomarlo.",
+    "watchHistoryPrivacyNote": "Aquí solo aparecen búsquedas con sesión iniciada. El vínculo con tu cuenta caduca a los 12 meses — puedes borrarlo abajo en cualquier momento (las búsquedas siguen en totales anónimos; borrar no detiene nuevas búsquedas mientras hayas iniciado sesión).",
     "watchHistoryPausedNote": "Saliste de Watch, así que tus búsquedas están ocultas aquí — agrega al bot de nuevo para verlas.",
     "watchHistoryEmptyOptedOut": "No hay búsquedas guardadas aquí por ahora. Saliste de Watch, así que las nuevas también están en pausa — agrega al bot de nuevo para que vuelvan a guardarse.",
     "watchHistoryReconnectCta": "Agrega al bot como amigo para retomar este historial",
-    "watchHistoryReconnectWaiting": "Esperando a que el bot acepte — esta lista se actualiza sola."
+    "watchHistoryReconnectWaiting": "Esperando a que el bot acepte — esta lista se actualiza sola.",
+    "watchHistoryHiddenCount": "{count} búsquedas ocultas",
+    "watchHistoryPausedWatchNote": "Esto solo restaura tu historial — para recibir notificaciones, inicia una vigilancia."
   }
 }

@@ -29,6 +29,10 @@ const makeDal = (
   // exercising the activate path unchanged. Pass { confirmedAt: null }
   // for unconfirmed accounts, an ISO string for confirmed ones.
   accounts: Record<string, { confirmedAt: string | null } | null> = {},
+  // Orphan accounts (accounts rows with no watch row) for the sweep
+  // tests below. Empty by default: the sweep is a no-op for every
+  // pre-existing test.
+  orphans: string[] = [],
 ): ReconcileDal & {
   activated: string[];
   deactivated: string[];
@@ -63,6 +67,9 @@ const makeDal = (
       state.deactivated.push(steamId);
       return { watchDeleted: true, accountDeleted: true };
     }),
+    // Orphan sweep input (accounts with no watch row): empty by
+    // default — orphan tests pass their own list.
+    listOrphanAccounts: jest.fn(async (): Promise<string[]> => [...orphans]),
     // Swap-mode lane (runbook §7): watch row only, accounts + history
     // links survive the bot-swap.
     deactivateWatch: jest.fn(async (steamId: string) => {
@@ -526,6 +533,7 @@ describe('reconcileFriendsList', () => {
         watchDeleted: true,
         accountDeleted: true,
       }),
+      listOrphanAccounts: async () => [],
       deactivateWatch: async () => true,
     };
     const onActivated = jest.fn();
@@ -869,6 +877,110 @@ describe('reconcile swap mode (runbook §7)', () => {
     expect(report.massRemovalAborted).toBe(true);
     expect(dal.deactivateWatch).not.toHaveBeenCalled();
     expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+  });
+
+  it('sweeps non-friend orphan accounts through the shared composite', async () => {
+    // Reconnect → unfriend while the bot is offline: the live path never
+    // ran, the watch loop cannot see account-only rows, and the lingering
+    // row would keep attributing new searches. Non-friends go through
+    // removeWatchAndAccount (watch DELETE is a no-op for orphans).
+    const dal = makeDal([], {}, ['76561198000000011']);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
+
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledTimes(1);
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledWith(
+      '76561198000000011',
+    );
+    expect(report.orphanAccountsSwept).toEqual(['76561198000000011']);
+  });
+
+  it('keeps orphan accounts that are still friends (active reconnect users)', async () => {
+    // Friend + account + no watch is the HEALTHY reconnect state — the
+    // sweep only targets rows whose owner is gone from the snapshot.
+    const dal = makeDal([], {}, ['76561198000000011']);
+
+    const report = await reconcileFriendsList(
+      { ...UNRELATED_FRIEND, '76561198000000011': FRIEND },
+      FRIEND,
+      dal,
+      silentLogger,
+    );
+
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+    expect(report.orphanAccountsSwept).toEqual([]);
+  });
+
+  it('skips the orphan sweep while the breaker holds', async () => {
+    // Same verdict as the watch removals: a suspect snapshot blocks
+    // everything, orphans included — retried next pass.
+    const watches = Array.from({ length: 25 }, (_, i) => ({
+      steamId: `7656119800000${String(400 + i).padStart(4, '0')}`,
+      status: 'active',
+    }));
+    const dal = makeDal(watches, {}, ['76561198000000011']);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
+
+    expect(report.massRemovalAborted).toBe(true);
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+    expect(report.orphanAccountsSwept).toEqual([]);
+  });
+
+  it('skips the orphan sweep on an empty snapshot (glitch arm)', async () => {
+    // The watch-based verdict cannot trip with zero watches, so the
+    // sweep carries its own explicit empty-snapshot arm: an empty
+    // friendsList means the fetch failed, never a mass opt-out.
+    const dal = makeDal([], {}, ['76561198000000011']);
+
+    const report = await reconcileFriendsList({}, FRIEND, dal, silentLogger);
+
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+    expect(report.orphanAccountsSwept).toEqual([]);
+  });
+
+  it('skips the orphan sweep in swap mode (accounts must survive the swap)', async () => {
+    const dal = makeDal([], {}, ['76561198000000011']);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      undefined,
+      { swapMode: true },
+    );
+
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+    expect(report.orphanAccountsSwept).toEqual([]);
+  });
+
+  it('caps orphan deletions per pass (bounded blast radius)', async () => {
+    const orphans = Array.from({ length: 12 }, (_, i) => (
+      `7656119800000${String(500 + i).padStart(4, '0')}`
+    ));
+    const dal = makeDal([], {}, orphans);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+    );
+
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledTimes(10);
+    expect(report.orphanAccountsSwept).toHaveLength(10);
   });
 });
 

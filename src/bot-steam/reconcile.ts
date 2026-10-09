@@ -10,8 +10,12 @@
  *   - pending + friend + unconfirmed -> onConfirmLinkNeeded() (confirm
  *     link ONLY — click-to-activate: friendship alone never activates,
  *     so the watch cannot notify or toast before the link click)
- *   - active + SteamID is NOT a friend -> removeWatchAndAccount()
- *   - everything else                   -> untouched
+  *   - active + SteamID is NOT a friend -> removeWatchAndAccount()
+  *   - account with NO watch row + NOT a friend -> removeWatchAndAccount()
+  *     (orphan sweep below: reconnect-lane residue and swap remnants whose
+  *     lingering row would keep attributing new searches — same composite,
+  *     same guard verdict, capped per pass, skipped in swap mode)
+  *   - everything else                   -> untouched
  *
  * This is snapshot-driven (not polled): callers feed it the friendsList
  * snapshot on boot, reconnect, and live accept events (bot.ts forwards
@@ -87,6 +91,15 @@ import type { WatchBotLogger } from './logger';
  */
 const MASS_REMOVE_FLOOR = 20;
 const MASS_REMOVE_FRACTION = 0.1;
+
+/**
+ * Orphan-account sweep ceiling per pass: genuine orphans accumulate one
+ * unfriend at a time (reconnect → offline-miss), so double digits per
+ * 10-minute pass already absorb a bad afternoon — anything past that is
+ * either a backlog draining over a few passes (fine) or a systematic
+ * misread (bounded). Singles still flow (same philosophy as the guard).
+ */
+const ORPHAN_SWEEP_MAX_PER_PASS = 10;
 
 export interface MassRemovalVerdict {
   /** Whether removals must be skipped this pass. */
@@ -176,6 +189,12 @@ export interface ReconcileDal {
   activateWatch: (steamId: string) => Promise<boolean>;
   removeWatchAndAccount: (steamId: string) => Promise<RemoveWatchResult>;
   /**
+   * Orphan-account input for the sweep below: steam_ids with no
+   * watched_profiles row (any status). Read-only; the sweep deletes
+   * through removeWatchAndAccount (shared composite).
+   */
+  listOrphanAccounts: () => Promise<string[]>;
+  /**
    * Watch-only removal (leaves the accounts row AND the search-history
    * links intact). Used ONLY in swap mode (see ReconcileOptions): a
    * bot-swap must reset watches without destroying accounts/history.
@@ -190,6 +209,13 @@ export interface ReconcileReport {
   watches: number;
   activated: string[];
   deactivated: string[];
+  /**
+   * Orphan accounts swept this pass (account row deleted because its
+   * owner is not a friend — the lingering row would keep attributing
+   * new searches). Audit detail lives in the per-row info lines, like
+   * deactivated above.
+   */
+  orphanAccountsSwept: string[];
   /** Profiles that actually got a confirm link this pass (sent, not skipped). */
   confirmLinksSent: string[];
   skippedInvalidIds: number;
@@ -318,6 +344,7 @@ const runReconcilePass = async (
     watches: 0,
     activated: [],
     deactivated: [],
+    orphanAccountsSwept: [],
     confirmLinksSent: [],
     skippedInvalidIds: 0,
     errors: [],
@@ -506,10 +533,77 @@ const runReconcilePass = async (
     }
   }
 
+  // Orphan-account sweep (reconnect lane residue + swap remnants):
+  // accounts with no watch row are invisible to the loop above (it
+  // iterates watched_profiles), yet a lingering row keeps attributing
+  // new searches while the session cookie lives — opt-out must stop
+  // recording even when the live friend-remove event was missed (bot
+  // offline). Guarded THREE ways, not one: (1) the same breaker verdict
+  // as the watch removals (a glitchy snapshot blocks everything);
+  // (2) an explicit empty-snapshot arm (the verdict only trips on WATCH
+  // candidates, so an empty snapshot with zero watches would otherwise
+  // sweep every orphan); (3) a small per-pass cap plus friend-set
+  // membership (only non-friends are candidates). Deletion reuses the
+  // shared composite (watch DELETE is a no-op for orphans, the account
+  // goes) — wrongly swept rows self-heal (recordLogin recreates the
+  // anchor on next login; links were never touched). Skipped in swap
+  // mode (accounts must survive the swap — runbook §7).
+  if (options.swapMode !== true) {
+    let orphans: string[];
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      orphans = await dal.listOrphanAccounts();
+    } catch (error) {
+      logger.error(
+        `[WatchBot] reconcile orphan sweep skipped (list failed, retried next pass): ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      orphans = [];
+    }
+    const orphanCandidates = orphans.filter((steamId) => {
+      if (!isSteamId64(steamId)) {
+        report.skippedInvalidIds += 1;
+        return false;
+      }
+      return !friends.has(steamId);
+    });
+    if (orphanCandidates.length > 0 && (removalsBlocked || friends.size === 0)) {
+      logger.error(
+        `[WatchBot] reconcile orphan sweep BLOCKED (same guard as removals): friends=${report.friends} ` +
+          `orphanCandidates=${orphanCandidates.length} removalsBlocked=${removalsBlocked}. ` +
+          `Snapshot looks wrong/partial — orphan accounts kept, retried next pass.`,
+      );
+    } else {
+      // for..of (not .forEach/.map): per-row awaits must run SEQUENTIALLY
+      // (same precedent as the watches loop above).
+      // eslint-disable-next-line no-restricted-syntax
+      for (const steamId of orphanCandidates.slice(0, ORPHAN_SWEEP_MAX_PER_PASS)) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const { accountDeleted } = await dal.removeWatchAndAccount(steamId);
+          if (accountDeleted) {
+            report.orphanAccountsSwept.push(steamId);
+            logger.info(
+              `[WatchBot] reconcile swept orphan account (opt-out residue): steamId=${steamId}`,
+            );
+          }
+        } catch (error) {
+          report.errors.push({
+            steamId,
+            operation: 'orphanSweep',
+            message: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    }
+  }
+
   report.durationMs = Date.now() - startedAt;
   logger.info(
     `[WatchBot] reconcile done: friends=${report.friends} watches=${report.watches} ` +
       `activated=${report.activated.length} deactivated=${report.deactivated.length} ` +
+      `orphansSwept=${report.orphanAccountsSwept.length} ` +
       `linksSent=${report.confirmLinksSent.length} ` +
       `skippedInvalidIds=${report.skippedInvalidIds} errors=${report.errors.length} ` +
       `removalsBlocked=${report.massRemovalAborted} ` +
