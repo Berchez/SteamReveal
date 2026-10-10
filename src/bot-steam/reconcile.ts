@@ -14,7 +14,8 @@
   *   - account with NO watch row + NOT a friend -> removeWatchAndAccount()
   *     (orphan sweep below: reconnect-lane residue and swap remnants whose
   *     lingering row would keep attributing new searches — same composite,
-  *     same guard verdict, capped per pass, skipped in swap mode)
+  *     same guard verdict, capped per pass, skipped while the swap window
+  *     is active, live re-check at deletion time)
   *   - everything else                   -> untouched
  *
  * This is snapshot-driven (not polled): callers feed it the friendsList
@@ -48,49 +49,19 @@
  * SteamIDs arrive as strings (object keys of myFriends). Anything that is
  * not a 17-digit id is skipped and counted, never passed to the DAL.
  *
- * Mass-removal circuit breaker (one docblock below, above the
- * constants — the header only points here, details live in exactly one
- * place).
+ * Mass-removal circuit breaker lives in ./massRemovalGuard.ts (pure
+ * verdict + override normalization, details in exactly one place) —
+ * the header only points there.
  */
 
 import type { RemoveWatchResult } from '../lib/analytics/db';
 import type { WatchAccount } from '../lib/analytics/types';
 import { isSteamId64 } from '../lib/steamId';
 import type { WatchBotLogger } from './logger';
-
-/**
- * Mass-removal circuit breaker — single docblock (the header above only
- * points here): a wrong/empty/partial friendsList snapshot makes every
- * active watch read as opted-out, silently killing notifications until
- * each user re-adds and re-confirms. The removal CANDIDATES are
- * therefore computed BEFORE any write, and only the REMOVAL branch is
- * gated: activations and confirm links proceed normally (activating
- * requires friends.has(), so a partial snapshot cannot falsely
- * activate — it can only falsely remove). (Search-history links are
- * NOT at stake here — unfriend preserves them by product decision;
- * only the explicit Clear and the TTL purge cut links.)
- * A lone candidate always flows (one removal is
- * not mass — the common single opt-out must never stall behind an
- * override). Past that, an empty snapshot or candidates past max(20,
- * 10% of the base) skip removals for the pass with an ERROR log
- * (`massRemovalAborted` in the report); everything else converges. A genuinely confirmed mass-removal goes
- * through the explicit `massRemoveMax` option (BotConfig
- * `reconcileMassRemoveMax`, env RECONCILE_MASS_REMOVE_MAX=N), never
- * silently — set it only for the confirmed window, then unset and
- * restart (see the runbook bot-swap procedure).
- *
- * Floor, not pure percentage: on a tiny base (5 watches) even one
- * genuine unfriend is 20% — the percentage arm only bites once the base
- * is large enough that a glitch can hide inside it.
- *
- * Override shape (deliberately numeric, not boolean): massRemoveMax is
- * the max removals a pass will perform while set. A forgotten boolean
- * stays off-guard forever; a forgotten NUMBER still caps the blast
- * radius at N. Set it comfortably ABOVE the expected genuine count for
- * the window (swap with base 300 → 500), then unset and restart.
- */
-const MASS_REMOVE_FLOOR = 20;
-const MASS_REMOVE_FRACTION = 0.1;
+import {
+  evaluateMassRemovalGuard,
+  normalizeMassRemoveMax,
+} from './massRemovalGuard';
 
 /**
  * Orphan-account sweep ceiling per pass: genuine orphans accumulate one
@@ -100,87 +71,6 @@ const MASS_REMOVE_FRACTION = 0.1;
  * misread (bounded). Singles still flow (same philosophy as the guard).
  */
 const ORPHAN_SWEEP_MAX_PER_PASS = 10;
-
-export interface MassRemovalVerdict {
-  /** Whether removals must be skipped this pass. */
-  blocked: boolean;
-  /** Active watches missing from the snapshot (valid ids only). */
-  candidates: string[];
-  /** The size-derived ceiling (before any numeric override). */
-  ceiling: number;
-}
-
-/**
- * Pure mass-removal verdict (no I/O, no logging — trivially
- * table-testable): given the listed watches and the snapshot's friend
- * set, decide whether the removal branch may run. Callers log and gate
- * on `blocked`.
- *
- * Singles always flow: one removal is by definition not mass, and
- * blocking it strands genuine single opt-outs — the common churn,
- * e.g. the last friend leaving a tiny base — behind an override no
- * operator can distinguish from a glitch. Blast radius of a wrong
- * single: one user, and even singles leave an info audit line per
- * removal (only the ERROR escalation is skipped).
- */
-/**
- * Override normalization, shared by the guard and the log line below:
- * a finite positive number floors to itself, anything else (null,
- * undefined, NaN, zero/negative) means "no override". One definition
- * so the two can never disagree on whether an override is set.
- */
-export const normalizeMassRemoveMax = (
-  massRemoveMax: number | null | undefined,
-): number | null =>
-  typeof massRemoveMax === 'number' &&
-  Number.isFinite(massRemoveMax) &&
-  massRemoveMax > 0
-    ? Math.floor(massRemoveMax)
-    : null;
-
-export const evaluateMassRemovalGuard = (
-  watches: Array<{ steamId: string; status: string }>,
-  friends: ReadonlySet<string>,
-  massRemoveMax?: number | null,
-  swapMode?: boolean,
-): MassRemovalVerdict => {
-  const candidates = watches
-    .filter(
-      (watch) =>
-        isSteamId64(watch.steamId) &&
-        watch.status === 'active' &&
-        !friends.has(watch.steamId),
-    )
-    .map((watch) => watch.steamId);
-  const ceiling = Math.max(
-    MASS_REMOVE_FLOOR,
-    Math.ceil(watches.length * MASS_REMOVE_FRACTION),
-  );
-  // Numeric override (not boolean): N or fewer removals always flow,
-  // anything past max(ceiling, N) still trips — EXCEPT the
-  // empty-snapshot arm, which a bare number can never waive (below). A
-  // forgotten N therefore degrades to a bounded ceiling, never to
-  // guard-off. (Bounded by the FRIEND CAP in practice: the bot cannot
-  // hold more than ~250 friends, so candidates past a sane N are either
-  // a swap window or a glitch — both operator-attended states.)
-  const override = normalizeMassRemoveMax(massRemoveMax);
-  // The empty-snapshot arm is NEVER waived by the bare override: an
-  // empty friendsList with candidates present means the fetch failed,
-  // and a forgotten N ≥ base size (e.g. 500 on a ≤250 base) would
-  // otherwise switch the guard off entirely with zero log output. Only
-  // swapMode (explicit, time-boxed, separately warned per pass) waives
-  // it — and only up to N.
-  const emptyWaived =
-    swapMode === true &&
-    override !== null &&
-    candidates.length <= override;
-  const blocked =
-    candidates.length > 1 &&
-    !emptyWaived &&
-    (friends.size === 0 ||
-      candidates.length > Math.max(ceiling, override ?? 0));
-  return { blocked, candidates, ceiling };
-};
 
 export interface ReconcileDal {
   listWatchedProfiles: () => Promise<
@@ -285,6 +175,27 @@ export interface ReconcileOptions {
    * until re-add, but never cuts the links themselves.
    */
   swapMode?: boolean;
+  /**
+   * Swap WINDOW active for this pass (broader than the one-shot
+   * `swapMode` above, which is true only on the first clean pass):
+   * the orphan sweep must stay off for the WHOLE window, because every
+   * post-first pass runs with swapMode:false while users still have
+   * not re-added the bot — sweeping then would delete exactly the
+   * accounts the swap promises to preserve. The window moves slowly
+   * (hours/days), so evaluating it at call time is race-free for
+   * practical purposes (unlike the exemption flag — see index.ts).
+   */
+  swapWindowActive?: boolean;
+  /**
+   * Live friendship re-check for the orphan sweep (host-provided,
+   * reads the bot's in-memory friends map — no API cost): the pass
+   * snapshot predates the sweep's listOrphanAccounts read by N
+   * sequential row awaits, so a reconnect-created anchor for a fresh
+   * friend would otherwise read as a non-friend orphan and be deleted
+   * (silent resume-break). Absent (tests, minimal wirings) the
+   * snapshot set alone decides.
+   */
+  confirmFriend?: (steamId: string) => boolean;
 }
 
 /**
@@ -538,20 +449,27 @@ const runReconcilePass = async (
   // iterates watched_profiles), yet a lingering row keeps attributing
   // new searches while the session cookie lives — opt-out must stop
   // recording even when the live friend-remove event was missed (bot
-  // offline). Guarded THREE ways, not one: (1) the same breaker verdict
+  // offline). Guarded FOUR ways, not one: (1) the same breaker verdict
   // as the watch removals (a glitchy snapshot blocks everything);
   // (2) an explicit empty-snapshot arm (the verdict only trips on WATCH
   // candidates, so an empty snapshot with zero watches would otherwise
   // sweep every orphan); (3) a small per-pass cap plus friend-set
-  // membership (only non-friends are candidates). Deletion reuses the
+  // membership (only non-friends are candidates); (4) a live
+  // re-check at deletion time (confirmFriend reads the bot's CURRENT
+  // friends map — the pass snapshot predates the list read by N
+  // sequential row awaits, so a reconnect-created anchor for a fresh
+  // friend would otherwise read as a non-friend orphan and be deleted
+  // right after the modal reported "resumed"). Deletion reuses the
   // shared composite (watch DELETE is a no-op for orphans, the account
   // goes) — wrongly swept rows self-heal (recordLogin recreates the
-  // anchor on next login; links were never touched). Skipped in swap
-  // mode (accounts must survive the swap — runbook §7).
-  if (options.swapMode !== true) {
+  // anchor on next login; links were never touched). Skipped for the
+  // WHOLE swap window (not just swapMode passes — the exemption is
+  // one-shot, so post-first passes run normal while users still have
+  // not re-added: sweeping then would delete exactly the accounts the
+  // swap preserves — runbook §7).
+  if (options.swapMode !== true && options.swapWindowActive !== true) {
     let orphans: string[];
     try {
-      // eslint-disable-next-line no-await-in-loop
       orphans = await dal.listOrphanAccounts();
     } catch (error) {
       logger.error(
@@ -579,21 +497,34 @@ const runReconcilePass = async (
       // (same precedent as the watches loop above).
       // eslint-disable-next-line no-restricted-syntax
       for (const steamId of orphanCandidates.slice(0, ORPHAN_SWEEP_MAX_PER_PASS)) {
-        try {
-          // eslint-disable-next-line no-await-in-loop
-          const { accountDeleted } = await dal.removeWatchAndAccount(steamId);
-          if (accountDeleted) {
-            report.orphanAccountsSwept.push(steamId);
-            logger.info(
-              `[WatchBot] reconcile swept orphan account (opt-out residue): steamId=${steamId}`,
-            );
+        // Live re-check (P1-3 race): the snapshot is stale by now —
+        // a friend accepted after it (reconnect poll created the
+        // anchor in between) must not be swept. Absent checker
+        // (tests, minimal wirings) the snapshot set alone decides.
+        const refriended =
+          options.confirmFriend !== undefined &&
+          options.confirmFriend(steamId);
+        if (refriended) {
+          logger.info(
+            `[WatchBot] reconcile orphan sweep skipped (re-friended since snapshot): steamId=${steamId}`,
+          );
+        } else {
+          try {
+            // eslint-disable-next-line no-await-in-loop
+            const { accountDeleted } = await dal.removeWatchAndAccount(steamId);
+            if (accountDeleted) {
+              report.orphanAccountsSwept.push(steamId);
+              logger.info(
+                `[WatchBot] reconcile swept orphan account (opt-out residue): steamId=${steamId}`,
+              );
+            }
+          } catch (error) {
+            report.errors.push({
+              steamId,
+              operation: 'orphanSweep',
+              message: error instanceof Error ? error.message : String(error),
+            });
           }
-        } catch (error) {
-          report.errors.push({
-            steamId,
-            operation: 'orphanSweep',
-            message: error instanceof Error ? error.message : String(error),
-          });
         }
       }
     }

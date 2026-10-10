@@ -376,6 +376,29 @@ describe('WatchHistoryModal', () => {
     expect(await screen.findByText('Bob')).toBeInTheDocument();
   });
 
+  it('traps Tab focus inside the dialog (wraps both ends)', async () => {
+    // aria-modal promises the page behind is inert: Tab on the last
+    // control wraps to the first, Shift+Tab on the first wraps to the
+    // last — never leaks out.
+    global.fetch = jest.fn(async () =>
+      historyPayload([entry('s1', '76561198000000002', 'Bob')], { total: 1 }),
+    ) as unknown as typeof fetch;
+
+    render(<WatchHistoryModal onClose={jest.fn()} />);
+    await screen.findByText('Bob');
+
+    const first = screen.getByRole('button', { name: 'close' });
+    const last = screen.getByRole('button', { name: 'watchHistoryClear' });
+
+    last.focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(document.activeElement).toBe(first);
+
+    first.focus();
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(last);
+  });
+
   it('shows the hidden count and Clear (no row content) on paused first pages', async () => {
     // Server strips entries when paused: the copy keys on the hidden
     // total, the count line names the invisible rows the Clear button
@@ -813,6 +836,16 @@ describe('WatchHistoryModal', () => {
     await act(async () => {
       fireEvent.keyDown(document, { key: 'Escape' });
     });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes on the X button', async () => {
+    const onClose = jest.fn();
+    render(<WatchHistoryModal onClose={onClose} />);
+
+    await screen.findByText('watchHistoryTitle');
+    fireEvent.click(screen.getByRole('button', { name: 'close' }));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });

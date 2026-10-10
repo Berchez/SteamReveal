@@ -115,13 +115,19 @@ describe('GET /api/history', () => {
     expect(listSearcherSearches).toHaveBeenCalledWith(STEAM_ID, 10, null);
   });
 
-  it('passes a later page through untouched (null total, opaque bookmark)', async () => {
+  it('checks the footprint on every page (paused strip holds for cursor calls too)', async () => {
+    // Later pages carry the REAL attributing flag (one indexed PK read
+    // per "load more"): a viewer who unfriended mid-paging flips to the
+    // paused strip on the next page instead of leaking rows through a
+    // hand-made cursor call. Total alone keeps the first-page-only
+    // discipline (the client reuses it).
     parseHistoryCursor.mockReturnValue({
       searchedAt: '2026-09-30T00:00:00.000Z',
       searchId: 's9',
     });
+    hasAccountFootprint.mockResolvedValue(false);
     listSearcherSearches.mockResolvedValue({
-      entries: [],
+      entries: [{ searchId: 's9' }],
       total: null,
       nextCursor: null,
     });
@@ -131,15 +137,12 @@ describe('GET /api/history', () => {
     );
     const body = await res.json();
 
-    // The route is a dumb pipe for paging shape: total ships on page one
-    // only (the client reuses it), exhaustion is the null bookmark.
-    // The footprint check runs on the first page only — no PK read per
-    // "load more".
     expect(res.status).toBe(200);
+    expect(body.attributing).toBe(false);
+    expect(hasAccountFootprint).toHaveBeenCalledWith(STEAM_ID);
+    expect(body.entries).toEqual([]);
     expect(body.total).toBeNull();
     expect(body.nextCursor).toBeNull();
-    expect(body.attributing).toBeNull();
-    expect(hasAccountFootprint).not.toHaveBeenCalled();
   });
 
   it('reports attributing:false for a session without a watch footprint (opt-out)', async () => {
@@ -199,31 +202,6 @@ describe('GET /api/history', () => {
     expect(body.attributing).toBe(false);
   });
 
-  it('passes cursor pages through untouched (documented fail-open)', async () => {
-    // Later pages carry attributing:null (footprint is first-page-only),
-    // so the paused strip cannot apply: a direct-API cursor call for a
-    // paused viewer still returns rows. The modal never pages while
-    // paused (no bookmark ships), so this only affects hand-made calls.
-    parseHistoryCursor.mockReturnValue({
-      searchedAt: '2026-09-30T00:00:00.000Z',
-      searchId: 's9',
-    });
-    listSearcherSearches.mockResolvedValue({
-      entries: [{ searchId: 's9' }],
-      total: null,
-      nextCursor: null,
-    });
-
-    const res = await GET(
-      makeRequest('/api/history?cursor=2026-09-30T00%3A00%3A00.000Z%7Cs9'),
-    );
-    const body = await res.json();
-
-    expect(res.status).toBe(200);
-    expect(body.entries).toHaveLength(1);
-    expect(body.attributing).toBeNull();
-  });
-
   it('omits botProfileUrl while attributing (and on later pages)', async () => {
     hasAccountFootprint.mockResolvedValue(true);
     listSearcherSearches.mockResolvedValue({
@@ -238,7 +216,10 @@ describe('GET /api/history', () => {
     expect(res.status).toBe(200);
     expect(body.botProfileUrl).toBeNull();
 
-    // Later pages ship null for every first-page-only field.
+    // Later pages ship null for the first-page-only fields (total,
+    // bookmark), but the footprint is recomputed every page — so
+    // attributing stays a real boolean there too (the paused strip
+    // holds for cursor calls as well).
     parseHistoryCursor.mockReturnValue({
       searchedAt: '2026-09-30T00:00:00.000Z',
       searchId: 's1',
@@ -255,7 +236,7 @@ describe('GET /api/history', () => {
 
     expect(later.status).toBe(200);
     expect(laterBody.botProfileUrl).toBeNull();
-    expect(laterBody.attributing).toBeNull();
+    expect(laterBody.attributing).toBe(true);
   });
 
   it('rejects a client-supplied steamId (identity comes from the session)', async () => {

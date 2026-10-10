@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Home from '@/app/templates/Home';
 import getPlayerProfile from '@/lib/getPlayerProfile';
-import { SUPPORTED_LOCALES } from '@/locales';
+import { SITE_BASE_URL, SUPPORTED_LOCALES } from '@/locales';
 
 interface PlayerPageProps {
   params: {
@@ -41,7 +41,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `https://steam-reveal.vercel.app${canonicalPath}`,
+      canonical: `${SITE_BASE_URL}${canonicalPath}`,
       languages,
     },
     openGraph: {
@@ -53,7 +53,11 @@ export async function generateMetadata({
       images,
     },
     twitter: {
-      card: 'summary_large_image',
+      // summary (not summary_large_image): the Steam avatar tops out at
+      // 184px and large-image cards want ~300px+ wide — a small image
+      // renders poorly or gets discarded, while summary's 144px floor
+      // fits exactly.
+      card: 'summary',
       title,
       description,
       images,

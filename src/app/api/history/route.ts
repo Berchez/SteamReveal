@@ -130,23 +130,25 @@ export async function GET(req: Request) {
     // Footprint signal for the empty state: a session with no accounts
     // row (opt-out, cookie survived) sees a truthful "you left" copy
     // instead of "no searches yet", which would promise recordings
-    // that never come. Computed on the FIRST page only (later pages
-    // carry attributing: null and the client reuses page one — same
-    // shape discipline as total), in parallel with the page query (the
-    // two reads are independent). One indexed PK read per modal open.
+    // that never come. Computed on EVERY page (not just the first):
+    // the paused strip below must hold for hand-made cursor calls too,
+    // and one indexed PK read per "load more" is the same cost class
+    // as the page query it rides with. A viewer who unfriends mid-paging
+    // flips to the paused branch on the next page — truthful, not a
+    // wipe (their loaded rows stay until the reload converges).
     const [page, attributing] = await Promise.all([
       listSearcherSearches(steamId, limit, cursor),
-      cursor === null ? hasAccountFootprint(steamId) : null,
+      hasAccountFootprint(steamId),
     ]);
-    // Paused viewers get NO row content: the modal shows only the resume
-    // UI there, so shipping entries would expose who-searched-whom to
-    // extensions and network logs for zero UI benefit (defense in
-    // depth — the rows are the viewer's own, but the display gate
-    // belongs server-side). `total` stays as the hidden count (drives
-    // the "N hidden searches" line and the Clear affordance) and
-    // nextCursor is nulled (no paging of hidden rows — the client never
-    // requests later pages while paused; a direct-API cursor call still
-    // passes through, documented fail-open).
+    // Paused viewers get NO row content on ANY page: the modal shows
+    // only the resume UI there, so shipping entries would expose
+    // who-searched-whom to extensions and network logs for zero UI
+    // benefit (defense in depth — the rows are the viewer's own, but
+    // the display gate belongs server-side). `total` stays as the
+    // hidden count (drives the "N hidden searches" line and the Clear
+    // affordance) and the bookmark is nulled on paused first pages (no
+    // paging of hidden rows — the client never requests later pages
+    // while paused).
     const paused = attributing === false;
     return NextResponse.json(
       {

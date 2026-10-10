@@ -111,6 +111,11 @@ const SEARCHER_STEAM_ID_MIGRATION_SQL = fs.readFileSync(
   'utf8',
 );
 
+const HISTORY_ONLY_MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, 'migrations', '021_accounts_history_only.sql'),
+  'utf8',
+);
+
 // In-memory: one connection, one database, nothing to clean up afterwards.
 const DATABASE_URL = 'file::memory:';
 
@@ -351,6 +356,14 @@ describe('analytics db integration against real libSQL', () => {
     // Nullable with an index — applied here for the same reason.
     for (const statement of splitSqlStatements(
       SEARCHER_STEAM_ID_MIGRATION_SQL,
+    )) {
+      await db.executeForTests(statement);
+    }
+    // 021 carries accounts.history_only (reconnect-lane consent marker).
+    // Plain ALTER with a backfilled default — applied here for the same
+    // reason.
+    for (const statement of splitSqlStatements(
+      HISTORY_ONLY_MIGRATION_SQL,
     )) {
       await db.executeForTests(statement);
     }
@@ -1501,7 +1514,7 @@ describe('analytics db integration against real libSQL', () => {
           steamId: STEAM,
           status: 'active',
           locale: 'pt',
-          activatedAt: profile.requestedAt,
+          activatedAt: profile!.requestedAt,
         });
         expect(activated).toBe(true);
         await expect(db.getWatchStatus(STEAM)).resolves.toBe('active');
@@ -1511,9 +1524,9 @@ describe('analytics db integration against real libSQL', () => {
         await db.ensureActiveWatch(STEAM, 'pt');
         const second = await db.ensureActiveWatch(STEAM, 'en');
         expect(second.activated).toBe(false);
-        expect(second.profile.status).toBe('active');
+        expect(second.profile!.status).toBe('active');
         // Locale refresh still applies on re-login.
-        expect(second.profile.locale).toBe('en');
+        expect(second.profile!.locale).toBe('en');
       });
 
       it('flips legacy pending rows to active (grandfathered consent + proven friendship)', async () => {
@@ -1522,7 +1535,7 @@ describe('analytics db integration against real libSQL', () => {
 
         const { activated, profile } = await db.ensureActiveWatch(STEAM, 'pt');
         expect(activated).toBe(true);
-        expect(profile.status).toBe('active');
+        expect(profile!.status).toBe('active');
         expect(await db.getWatchStatus(STEAM)).toBe('active');
       });
 
@@ -1533,8 +1546,65 @@ describe('analytics db integration against real libSQL', () => {
 
         const { activated, profile } = await db.ensureActiveWatch(STEAM, 'pt');
         expect(activated).toBe(false);
-        expect(profile.status).toBe('pending');
+        expect(profile!.status).toBe('pending');
         expect(await db.getWatchStatus(STEAM)).toBe('pending');
+      });
+
+      it('skips the fresh insert for history-only accounts (reconnect consent is history-only)', async () => {
+        // Reconnect lane anchor: a plain later login must not silently
+        // start notifying — no watch row may exist afterwards, no
+        // activation reported, and the anchor itself is untouched.
+        await db.createAccount(STEAM, 'es', true);
+
+        const { activated, profile } = await db.ensureActiveWatch(STEAM, 'pt');
+        expect(activated).toBe(false);
+        expect(profile).toBeNull();
+        expect(await db.getWatchStatus(STEAM)).toBeNull();
+      });
+
+      it('inserts fresh for full-consent accounts even after a history-only row is gone', async () => {
+        // Opt-out cycle (both rows go) followed by a fresh login: the new
+        // anchor carries no marker, so the fresh lane activates normally.
+        await db.createAccount(STEAM, 'es', true);
+        await db.removeWatchAndAccount(STEAM);
+        await db.createAccount(STEAM, 'es');
+
+        const { activated, profile } = await db.ensureActiveWatch(STEAM, 'pt');
+        expect(activated).toBe(true);
+        expect(profile!.status).toBe('active');
+        expect(await db.getWatchStatus(STEAM)).toBe('active');
+      });
+
+      it('confirm click clears the marker so a later swap return re-arms (no silent loss)', async () => {
+        // Start lane on a reconnect anchor (history_only=1, unconfirmed):
+        // the click is explicit full consent — the marker must not
+        // outlive it, or a later bot-swap (deactivateWatch preserves the
+        // account) plus return-login would hit the fresh skip and
+        // silently drop notifications against the swap promise.
+        await db.createAccount(STEAM, 'es', true);
+        const token = 'ef'.repeat(32);
+        expect(
+          await db.issueConfirmToken(
+            STEAM,
+            db.hashConfirmToken(token),
+            new Date(Date.now() + 3600000).toISOString(),
+          ),
+        ).toBe(true);
+        expect(await db.consumeConfirmToken(db.hashConfirmToken(token))).toBe(
+          STEAM,
+        );
+        const flag = await db.executeForTests(
+          'SELECT history_only FROM accounts WHERE steam_id = ?',
+          [STEAM],
+        );
+        expect(Number(flag.rows[0].history_only)).toBe(0);
+
+        // Swap: watch row dropped, account (now full-consent) kept.
+        await db.createWatchRequest(STEAM, 'es');
+        await db.deactivateWatch(STEAM);
+        const { activated, profile } = await db.ensureActiveWatch(STEAM, 'pt');
+        expect(activated).toBe(true);
+        expect(profile!.status).toBe('active');
       });
 
       it('flips pending rows once the account confirms (click happened first)', async () => {
@@ -1554,7 +1624,7 @@ describe('analytics db integration against real libSQL', () => {
 
         const { activated, profile } = await db.ensureActiveWatch(STEAM, 'pt');
         expect(activated).toBe(true);
-        expect(profile.status).toBe('active');
+        expect(profile!.status).toBe('active');
         expect(await db.getWatchStatus(STEAM)).toBe('active');
       });
 

@@ -4,29 +4,16 @@ interface GradientButtonProps {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   children: React.ReactNode;
-  ariaLabel?: string;
-  ariaHaspopup?: 'menu';
-  ariaExpanded?: boolean;
-  ariaControls?: string;
-  buttonRef?: React.Ref<HTMLButtonElement>;
 }
 
 /**
- * Neon gradient-border button shared by the CS2 anticheat trigger
- * (MyUserSection) and the Share popover trigger (ShareBar) so both stay
- * visually identical. Extracted (not duplicated) so a style tweak lands in
- * both places at once.
+ * Neon gradient-border button for the card-level primary actions
+ * (currently the CS2 anticheat trigger in MyUserSection): extracted —
+ * not duplicated — so a style tweak lands everywhere at once. Neutral
+ * by design (no menu semantics): popover triggers with their own
+ * a11y contract (like ShareBar's) bring their own button.
  */
-function GradientButton({
-  onClick,
-  disabled,
-  children,
-  ariaLabel,
-  ariaHaspopup,
-  ariaExpanded,
-  ariaControls,
-  buttonRef,
-}: GradientButtonProps) {
+function GradientButton({ onClick, disabled, children }: GradientButtonProps) {
   return (
     <div className="relative rounded-xl p-[1px] w-fit inline-flex items-center justify-center group">
       <div
@@ -38,13 +25,8 @@ function GradientButton({
         aria-hidden="true"
       />
       <button
-        ref={buttonRef}
         onClick={onClick}
         disabled={disabled}
-        aria-label={ariaLabel}
-        aria-haspopup={ariaHaspopup}
-        aria-expanded={ariaExpanded}
-        aria-controls={ariaControls}
         className="relative z-10 px-4 py-2 text-sm font-medium text-white rounded-xl bg-[#1c0029d7] backdrop-blur-md border border-transparent group-hover:shadow-[0_0_20px_rgba(255,100,249,0.5)] transition duration-200 disabled:cursor-not-allowed disabled:opacity-60 disabled:group-hover:shadow-none"
         type="button"
       >

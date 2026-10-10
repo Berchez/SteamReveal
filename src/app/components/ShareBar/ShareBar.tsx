@@ -1,11 +1,17 @@
 'use client';
 
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { FiShare2, FiLink2, FiCheck } from 'react-icons/fi';
-import { FaWhatsapp, FaTelegramPlane, FaShareSquare } from 'react-icons/fa';
-import { FaXTwitter } from 'react-icons/fa6';
 import HoverTooltip from '@/app/components/HoverTooltip';
+import {
+  CheckIcon,
+  LinkIcon,
+  ShareNodesIcon,
+  ShareSquareIcon,
+  TelegramLogoIcon,
+  WhatsAppLogoIcon,
+  XLogoIcon,
+} from './ShareIcons';
 import {
   buildPlayerSharePath,
   buildPlayerShareUrl,
@@ -27,7 +33,6 @@ function ShareBar({ steamId, nickname }: ShareBarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
-  const menuId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const copyButtonRef = useRef<HTMLButtonElement>(null);
@@ -129,34 +134,39 @@ function ShareBar({ steamId, nickname }: ShareBarProps) {
           type="button"
           onClick={() => setIsOpen((open) => !open)}
           aria-label={t('share')}
-          aria-haspopup="menu"
+          // No aria-controls: the popover mounts only when open, so the
+          // referenced id would dangle while closed. Expanded state
+          // alone is the honest disclosure.
           aria-expanded={isOpen}
-          aria-controls={menuId}
           className="rounded-full border border-purple-500/50 bg-purple-600/30 p-2.5 text-white transition hover:border-purple-400/70 hover:bg-purple-600/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/70"
         >
-          <FaShareSquare aria-hidden="true" className="h-4 w-4" />
-        </button>
-        <HoverTooltip text={t('share')} />
-      </span>
+        <ShareSquareIcon className="h-4 w-4" />
+      </button>
+      <HoverTooltip text={t('share')} />
+    </span>
 
       {isOpen && (
         <div
-          id={menuId}
-          role="menu"
+          // Deliberately role="group", NOT role="menu": the ARIA menu
+          // pattern obliges arrow-key navigation with roving tabindex,
+          // which this popover does not implement — a menu role without
+          // it puts screen readers in the wrong interaction mode. A
+          // plain group of links/buttons keeps Tab and SR semantics
+          // honest with zero extra machinery.
+          role="group"
           aria-label={t('label')}
           className="absolute right-0 mt-2 w-56 rounded-xl border border-purple-500/30 bg-[#1c1c28]/95 py-1 shadow-xl backdrop-blur-md z-50"
         >
           <button
             ref={copyButtonRef}
             type="button"
-            role="menuitem"
             onClick={handleCopy}
             className={MENU_ITEM_CLASSNAME}
           >
             {copied ? (
-              <FiCheck aria-hidden="true" className="text-green-400" />
+              <CheckIcon className="text-green-400" />
             ) : (
-              <FiLink2 aria-hidden="true" />
+              <LinkIcon />
             )}
             {copied ? t('copied') : t('copyLink')}
           </button>
@@ -164,40 +174,36 @@ function ShareBar({ steamId, nickname }: ShareBarProps) {
             href={intents.x}
             target="_blank"
             rel="noopener noreferrer"
-            role="menuitem"
             className={MENU_ITEM_CLASSNAME}
           >
-            <FaXTwitter aria-hidden="true" />
+            <XLogoIcon />
             {t('shareOnX')}
           </a>
           <a
             href={intents.whatsApp}
             target="_blank"
             rel="noopener noreferrer"
-            role="menuitem"
             className={MENU_ITEM_CLASSNAME}
           >
-            <FaWhatsapp aria-hidden="true" />
+            <WhatsAppLogoIcon />
             {t('shareOnWhatsApp')}
           </a>
           <a
             href={intents.telegram}
             target="_blank"
             rel="noopener noreferrer"
-            role="menuitem"
             className={MENU_ITEM_CLASSNAME}
           >
-            <FaTelegramPlane aria-hidden="true" />
+            <TelegramLogoIcon />
             {t('shareOnTelegram')}
           </a>
           {canNativeShare && (
             <button
               type="button"
-              role="menuitem"
               onClick={handleNativeShare}
               className={MENU_ITEM_CLASSNAME}
             >
-              <FiShare2 aria-hidden="true" />
+              <ShareNodesIcon />
               {t('nativeShare')}
             </button>
           )}

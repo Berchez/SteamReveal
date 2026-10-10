@@ -41,8 +41,9 @@ function UserCard({
   bottomChildren?: React.ReactNode;
   // Corner slot (e.g. the ShareBar trigger on the target card): absolutely
   // positioned, so it never shifts layout. The text column below reserves
-  // right padding while the slot is present so long nicknames never slide
-  // underneath it.
+  // right padding on md+ (where the card is a row and the trigger would
+  // overlap the text — in the mobile column layout the trigger floats
+  // over empty padding) so long nicknames never slide underneath it.
   topRightChildren?: React.ReactNode;
   // When the caller already resolved the location (e.g. useHomeSearch does
   // this for the target user before this component ever mounts), pass it
@@ -175,7 +176,7 @@ function UserCard({
         </div>
       )}
       <div
-        className={`flex flex-col w-full break-words self-start min-h-[9rem]${itsTargetUser ? ' gap-1' : ''}${topRightChildren ? ' pr-12' : ''}`}
+        className={`flex flex-col w-full break-words self-start min-h-[9rem]${itsTargetUser ? ' gap-1' : ''}${topRightChildren ? ' md:pr-12' : ''}`}
       >
         {hasText(friend.nickname) && (
           <p className="font-semibold">

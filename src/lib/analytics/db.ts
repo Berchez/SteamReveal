@@ -163,6 +163,18 @@ export const isSearcherColumnMissing = (error: unknown): boolean =>
   SCHEMA_MISSING_PATTERN.test(error.message) &&
   /searcher_steam_id/i.test(error.message);
 
+/**
+ * True when a DB error means "accounts.history_only does not exist yet"
+ * (021 pending). Same narrow shape as isSearcherColumnMissing above
+ * (schema-missing pattern AND this exact column), same 021-pending
+ * fallback discipline: callers that touch the marker degrade to the old
+ * full-consent behavior until `pnpm run db:migrate` lands, loudly.
+ */
+export const isHistoryOnlyColumnMissing = (error: unknown): boolean =>
+  error instanceof Error &&
+  SCHEMA_MISSING_PATTERN.test(error.message) &&
+  /history_only/i.test(error.message);
+
 // A client that was created fine can still die later (idle timeout, network
 // blip, Turso closing a hrana session). The predicate lives in one place —
 // src/lib/transientInfra.ts (pure, no DAL import) — so the bot pollers and
@@ -251,6 +263,26 @@ const logMissingSearcherColumnOnce = (): void => {
 /** Test-only seam: re-arm the warn-once above between tests. */
 export const resetMissingSearcherColumnWarnForTests = (): void => {
   missingSearcherColumnWarned = false;
+};
+
+// Warn-once flag for the 021-pending fallbacks below (createAccount and
+// ensureActiveWatch degrade consent to full while the column is missing):
+// same discipline as the 020 bridge — degrading silently would turn a
+// skipped migration into invisible full-consent rows.
+let missingHistoryOnlyColumnWarned = false;
+
+const logMissingHistoryOnlyColumnOnce = (): void => {
+  if (missingHistoryOnlyColumnWarned) return;
+  missingHistoryOnlyColumnWarned = true;
+  // eslint-disable-next-line no-console
+  console.warn(
+    'accounts.history_only is missing — degrading consent to full until `pnpm run db:migrate` applies 021.',
+  );
+};
+
+/** Test-only seam: re-arm the warn-once above between tests. */
+export const resetHistoryOnlyColumnWarnForTests = (): void => {
+  missingHistoryOnlyColumnWarned = false;
 };
 
 // Short-lived "column is missing" memory (deploy/migrate window only):
@@ -785,7 +817,13 @@ export const createWatchRequest = async (
 };
 
 export interface EnsureActiveWatchResult {
-  profile: WatchedProfile;
+  /**
+   * The active row, or null when no watch exists AND none was created:
+   * the history-only skip below (reconnect-lane consent) reports
+   * `{profile: null, activated: false}` — login still seals, callers
+   * only owe a welcome when `activated` is true.
+   */
+  profile: WatchedProfile | null;
   /**
    * True when THIS call newly activated the row (fresh insert, or a legacy
    * pending flip) — the only case the caller enqueues a welcome for.
@@ -805,12 +843,22 @@ export interface EnsureActiveWatchResult {
  * pending — the link click (confirm route POST) stays its sole activator,
  * so a re-login can never bypass the click the user still owes.
  *
- * That predicate mirrors `activateWatch` on purpose: login proves account
- * ownership, but the pending row proves the user chose the link lane, and
- * flipping it here would reopen the exact "friendship alone activates"
- * bug §12 of the confirm plan closed. Callers seal the session either way
- * (login succeeds; only the watch state differs), and `activated=false`
- * tells them no welcome is owed.
+  * That predicate mirrors `activateWatch` on purpose: login proves account
+  * ownership, but the pending row proves the user chose the link lane, and
+  * flipping it here would reopen the exact "friendship alone activates"
+  * bug §12 of the confirm plan closed. Callers seal the session either way
+  * (login succeeds; only the watch state differs), and `activated=false`
+  * tells them no welcome is owed.
+  *
+  * History-only exemption (reconnect-lane consent): the conditional
+  * insert above carries a NOT EXISTS arm for history_only anchors, so a
+  * reconnect anchor never gains a row here in the first place — a plain
+  * later login cannot silently start notifying (+welcome). Only the
+  * START lane (pending watch + confirm click) can arm notifications for
+  * these viewers afterwards. A skipped insert (0 rows, no row found)
+  * reports `{profile: null, activated: false}`; the pre-existing race
+  * throw is preserved for the genuine concurrent-delete case, told
+  * apart by the same marker read.
  *
  * Race-safe by construction: the insert is ON CONFLICT DO NOTHING (one
  * winner), and the flip carries the confirmation gate in its own WHERE
@@ -850,15 +898,46 @@ export const ensureActiveWatch = async (
   const db = await getClient();
   const now = new Date().toISOString();
 
-  const inserted = await withSchemaHint(
-    db.execute({
-      sql: `INSERT INTO watched_profiles
-            (steam_id, status, locale, requested_at, activated_at, last_notified_at)
-            VALUES (?, 'active', ?, ?, ?, NULL)
-            ON CONFLICT(steam_id) DO NOTHING`,
-      args: [steamId, normalizeLocale(locale), now, now],
-    }),
-  );
+  // History-only honor folded INTO the insert (single statement, no
+  // window): the reconnect anchor consented to attribution, not
+  // notifications — a plain unconditional insert here would leave an
+  // ACTIVE row visible between statements (and permanently if the
+  // function died mid-flight), silently starting notifications
+  // (+welcome) and breaking the lane's "history only" promise. The NOT
+  // EXISTS arm skips the insert exactly for history_only anchors
+  // (legacy rows backfill 0 = full consent); rowsAffected tells which
+  // happened. 021-pending (no such column) falls back to the
+  // unconditional insert = old full-consent behavior, loudly (warn
+  // below) — never fail a login over a pending migration.
+  let inserted;
+  try {
+    inserted = await withSchemaHint(
+      db.execute({
+        sql: `INSERT INTO watched_profiles
+              (steam_id, status, locale, requested_at, activated_at, last_notified_at)
+              SELECT ?, 'active', ?, ?, ?, NULL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM accounts WHERE steam_id = ? AND history_only = 1
+              )
+              ON CONFLICT(steam_id) DO NOTHING`,
+        args: [steamId, normalizeLocale(locale), now, now, steamId],
+      }),
+    );
+  } catch (error) {
+    if (!isHistoryOnlyColumnMissing(error)) {
+      throw error;
+    }
+    logMissingHistoryOnlyColumnOnce();
+    inserted = await withSchemaHint(
+      db.execute({
+        sql: `INSERT INTO watched_profiles
+              (steam_id, status, locale, requested_at, activated_at, last_notified_at)
+              VALUES (?, 'active', ?, ?, ?, NULL)
+              ON CONFLICT(steam_id) DO NOTHING`,
+        args: [steamId, normalizeLocale(locale), now, now],
+      }),
+    );
+  }
   if (Number(inserted.rowsAffected) > 0) {
     return {
       profile: {
@@ -881,6 +960,34 @@ export const ensureActiveWatch = async (
     }),
   );
   if (existing.rows.length === 0) {
+    // Either the history-only skip above (no row by design) or a
+    // concurrent delete racing us (a row WAS there at insert time).
+    // The marker read tells them apart — and doubles as the 021 probe
+    // for this path. A genuine race keeps its historic throw (fail the
+    // login loudly rather than strand a watchless session silently);
+    // a 021-pending column-missing here means the fallback insert ran
+    // unconditionally above, so absence can only be the genuine race.
+    let historyOnly = false;
+    try {
+      const flag = await withSchemaHint(
+        db.execute({
+          sql: 'SELECT history_only FROM accounts WHERE steam_id = ?',
+          args: [steamId],
+        }),
+      );
+      historyOnly =
+        Number(
+          (flag.rows[0] as Record<string, unknown> | undefined)
+            ?.history_only ?? 0,
+        ) === 1;
+    } catch (error) {
+      if (!isHistoryOnlyColumnMissing(error)) {
+        throw error;
+      }
+    }
+    if (historyOnly) {
+      return { profile: null, activated: false };
+    }
     throw new Error('ensureActiveWatch lost a concurrent race unexpectedly');
   }
   const current = toWatchedProfile(existing.rows[0] as Record<string, unknown>);
@@ -2059,24 +2166,56 @@ export const hashConfirmToken = (token: string): string => sha256Hex(token);
  * Creates the account row. Idempotent like createWatchRequest: an existing
  * row (confirmed or not) is returned untouched — re-signup never resets
  * confirmation state and concurrent signups cannot duplicate the row.
+ *
+ * `historyOnly` marks reconnect-lane anchors (history attribution ONLY,
+ * never notifications — see ensureActiveWatch): the history-reconnect
+ * route passes true, every other caller leaves the default false. There
+ * is deliberately NO reset-to-false on re-signup here: a stale marker is
+ * behaviorally inert (it only gates ensureActiveWatch's fresh-insert,
+ * and any lane that reaches that gate with a marker row already owns a
+ * watch or goes through the confirm lane — both ignore the flag), so an
+ * extra conditional write would buy nothing.
+ *
+ * 021-pending fallback (same discipline as the 020 bridge in
+ * recordSearch): when the column does not exist yet, insert without the
+ * marker instead of failing the signup/reconnect — the row degrades to
+ * full-consent until `pnpm run db:migrate` lands.
  */
 export const createAccount = async (
   steamId: string,
   locale?: string | null,
+  historyOnly: boolean = false,
 ): Promise<WatchAccount> => {
   assertSteamId64(steamId);
   const db = await getClient();
   const now = new Date().toISOString();
+  const flag = historyOnly ? 1 : 0;
 
-  await withSchemaHint(
-    db.execute({
-      sql: `INSERT INTO accounts
-            (steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale)
-            VALUES (?, ?, NULL, NULL, NULL, ?)
-            ON CONFLICT(steam_id) DO NOTHING`,
-      args: [steamId, now, normalizeLocale(locale)],
-    }),
-  );
+  try {
+    await withSchemaHint(
+      db.execute({
+        sql: `INSERT INTO accounts
+              (steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale, history_only)
+              VALUES (?, ?, NULL, NULL, NULL, ?, ?)
+              ON CONFLICT(steam_id) DO NOTHING`,
+        args: [steamId, now, normalizeLocale(locale), flag],
+      }),
+    );
+  } catch (error) {
+    if (!isHistoryOnlyColumnMissing(error)) {
+      throw error;
+    }
+    logMissingHistoryOnlyColumnOnce();
+    await withSchemaHint(
+      db.execute({
+        sql: `INSERT INTO accounts
+              (steam_id, created_at, confirmed_at, confirm_token_hash, confirm_expires_at, locale)
+              VALUES (?, ?, NULL, NULL, NULL, ?)
+              ON CONFLICT(steam_id) DO NOTHING`,
+        args: [steamId, now, normalizeLocale(locale)],
+      }),
+    );
+  }
 
   const row = await withSchemaHint(
     db.execute({
@@ -2120,6 +2259,8 @@ export const getAccount = async (
  * first login inserts the row (created_at pinned, never reset);
  * every login refreshes last_login_at and the locale when provided.
  * Concurrent first logins converge on one row (PK conflict → update).
+ * Explicitly preserves history_only (only consumeConfirmToken clears
+ * it): a login must never upgrade a history-only anchor on its own.
  */
 export const recordLogin = async (
   steamId: string,
@@ -2682,18 +2823,45 @@ export const consumeConfirmToken = async (
   const db = await getClient();
   const now = new Date().toISOString();
 
-  const updated = await withSchemaHint(
-    db.execute({
-      sql: `UPDATE accounts
-            SET confirmed_at = ?, confirm_token_hash = NULL, confirm_expires_at = NULL
-            WHERE confirm_token_hash = ?
-              AND confirmed_at IS NULL
-              AND confirm_expires_at IS NOT NULL
-              AND confirm_expires_at > ?
-            RETURNING steam_id`,
-      args: [now, tokenHash, now],
-    }),
-  );
+  let updated;
+  try {
+    updated = await withSchemaHint(
+      db.execute({
+        // history_only = 0: the link click is explicit full consent (the
+        // Start lane), so a reconnect marker never outlives it — without
+        // this, a confirmed-then-swapped account would hit
+        // ensureActiveWatch's fresh skip on return and silently lose
+        // notifications against the swap promise (runbook §7).
+        sql: `UPDATE accounts
+              SET confirmed_at = ?, confirm_token_hash = NULL, confirm_expires_at = NULL, history_only = 0
+              WHERE confirm_token_hash = ?
+                AND confirmed_at IS NULL
+                AND confirm_expires_at IS NOT NULL
+                AND confirm_expires_at > ?
+              RETURNING steam_id`,
+        args: [now, tokenHash, now],
+      }),
+    );
+  } catch (error) {
+    // 021-pending fallback (same bridge as createAccount/ensure): the
+    // click must still confirm without the marker column.
+    if (!isHistoryOnlyColumnMissing(error)) {
+      throw error;
+    }
+    logMissingHistoryOnlyColumnOnce();
+    updated = await withSchemaHint(
+      db.execute({
+        sql: `UPDATE accounts
+              SET confirmed_at = ?, confirm_token_hash = NULL, confirm_expires_at = NULL
+              WHERE confirm_token_hash = ?
+                AND confirmed_at IS NULL
+                AND confirm_expires_at IS NOT NULL
+                AND confirm_expires_at > ?
+              RETURNING steam_id`,
+        args: [now, tokenHash, now],
+      }),
+    );
+  }
   if (updated.rows.length === 0) return null;
   return String((updated.rows[0] as Record<string, unknown>).steam_id);
 };

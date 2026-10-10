@@ -910,6 +910,71 @@ describe('watch/outbox DAL (Epic 1)', () => {
     expect(account.createdAt).toBe('2026-09-01T00:00:00.000Z');
   });
 
+  it('createAccount stores the history-only marker for the reconnect lane', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-08T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'pt',
+        },
+      ],
+    });
+
+    const { createAccount } = require('./db');
+    await createAccount(STEAM, 'pt', true);
+
+    const insert = mockExecute.mock.calls.find((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO accounts'),
+    );
+    expect(String(insert[0]?.sql ?? insert[0])).toContain('history_only');
+    expect(insert[0]?.args).toContain(1);
+  });
+
+  it('createAccount inserts without the marker when 021 is pending (fallback)', async () => {
+    // Pre-migration DB: the flagged INSERT fails with a column-missing
+    // error — retry marker-less (full-consent row) instead of failing
+    // the signup/reconnect. Same bridge discipline as the 020 fallback
+    // in recordSearch. Queue order mirrors the DAL calls (PRAGMA needs
+    // no entry — like every other test in this file): flagged INSERT
+    // (rejects), fallback INSERT (ignored), SELECT (the row).
+    mockExecute.mockRejectedValueOnce(
+      new Error('table accounts has no column named: history_only'),
+    );
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({
+      rows: [
+        {
+          steam_id: STEAM,
+          created_at: '2026-09-08T00:00:00.000Z',
+          confirmed_at: null,
+          confirm_token_hash: null,
+          confirm_expires_at: null,
+          locale: 'pt',
+        },
+      ],
+    });
+
+    const { createAccount } = require('./db');
+    const account = await createAccount(STEAM, 'pt', true);
+
+    expect(account.steamId).toBe(STEAM);
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO accounts'),
+    );
+    expect(inserts).toHaveLength(2);
+    expect(String(inserts[0][0]?.sql ?? inserts[0][0])).toContain(
+      'history_only',
+    );
+    expect(String(inserts[1][0]?.sql ?? inserts[1][0])).not.toContain(
+      'history_only',
+    );
+  });
+
   it('recordLogin upserts (first insert, then last_login_at refresh) and maps the row', async () => {
     mockExecute.mockResolvedValueOnce({ rows: [] });
     mockExecute.mockResolvedValueOnce({
@@ -956,7 +1021,7 @@ describe('watch/outbox DAL (Epic 1)', () => {
     expect(mockExecute).not.toHaveBeenCalled();
   });
 
-  it('ensureActiveWatch inserts fresh profiles straight to active (no follow-up reads)', async () => {
+  it('ensureActiveWatch inserts fresh profiles straight to active (conditional insert, no follow-up reads)', async () => {
     mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
 
     const { ensureActiveWatch } = require('./db');
@@ -973,9 +1038,12 @@ describe('watch/outbox DAL (Epic 1)', () => {
     const insert = mockExecute.mock.calls.find((call) =>
       String(call[0]?.sql ?? call[0]).includes('INSERT INTO watched_profiles'),
     );
+    // Single atomic statement: the history-only honor folds into the
+    // insert (no window between a write and a compensating read/delete).
     expect(String(insert[0]?.sql ?? insert[0])).toContain(
-      "VALUES (?, 'active'",
+      'WHERE NOT EXISTS',
     );
+    expect(String(insert[0]?.sql ?? insert[0])).toContain('history_only = 1');
     // Winner path: the INSERT decided everything — no follow-up reads.
     // (Cold-start PRAGMA counts as a call too; asserting on statement
     // SHAPE, not raw totals, keeps this decoupled from that plumbing.)
@@ -991,6 +1059,89 @@ describe('watch/outbox DAL (Epic 1)', () => {
         .startsWith('UPDATE'),
     );
     expect(updates).toHaveLength(0);
+    const deletes = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0])
+        .trimStart()
+        .startsWith('DELETE'),
+    );
+    expect(deletes).toHaveLength(0);
+  });
+
+  it('ensureActiveWatch skips the insert for history-only accounts (no row, no welcome)', async () => {
+    // Reconnect-lane anchor (history attribution only): the NOT EXISTS
+    // arm filters the insert to zero rows, the absent-row read finds no
+    // watch, and the marker read reports history_only — reported as
+    // no-watch, no activation, no compensating DELETE anywhere.
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [{ history_only: 1 }] });
+
+    const { ensureActiveWatch } = require('./db');
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(false);
+    expect(profile).toBeNull();
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watched_profiles'),
+    );
+    expect(inserts).toHaveLength(1);
+    const deletes = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0])
+        .trimStart()
+        .startsWith('DELETE'),
+    );
+    expect(deletes).toHaveLength(0);
+  });
+
+  it('ensureActiveWatch keeps the historic throw for a genuine concurrent delete', async () => {
+    // Zero rows + absent row + NO marker: something deleted the row
+    // between our insert attempt and the read (the skip path above is
+    // excluded by the marker read) — fail the login loudly rather than
+    // strand a watchless session silently, exactly as before.
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 0 });
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+    mockExecute.mockResolvedValueOnce({ rows: [] });
+
+    const { ensureActiveWatch } = require('./db');
+
+    await expect(ensureActiveWatch(STEAM, 'pt')).rejects.toThrow(
+      /lost a concurrent race/,
+    );
+  });
+
+  it('ensureActiveWatch degrades to full-consent when the marker column is pending (021)', async () => {
+    // Pre-migration DB: the conditional INSERT fails with a
+    // column-missing error — fall back to the unconditional insert (old
+    // semantics), loudly (warn-once, same discipline as the 020 bridge).
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    mockExecute.mockRejectedValueOnce(
+      new Error('table accounts has no column named: history_only'),
+    );
+    mockExecute.mockResolvedValueOnce({ rows: [], rowsAffected: 1 });
+
+    const {
+      ensureActiveWatch,
+      resetHistoryOnlyColumnWarnForTests,
+    } = require('./db');
+    resetHistoryOnlyColumnWarnForTests();
+    const { profile, activated } = await ensureActiveWatch(STEAM, 'pt');
+
+    expect(activated).toBe(true);
+    expect(profile).toMatchObject({ steamId: STEAM, status: 'active' });
+    const inserts = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('INSERT INTO watched_profiles'),
+    );
+    expect(inserts).toHaveLength(2);
+    expect(String(inserts[0][0]?.sql ?? inserts[0][0])).toContain(
+      'WHERE NOT EXISTS',
+    );
+    expect(String(inserts[1][0]?.sql ?? inserts[1][0])).not.toContain(
+      'history_only',
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('history_only is missing'),
+    );
+    warn.mockRestore();
   });
 
   it('ensureActiveWatch is idempotent on active rows (activated=false, locale refreshed)', async () => {
@@ -1313,12 +1464,35 @@ describe('watch/outbox DAL (Epic 1)', () => {
     expect(sql).toContain('confirmed_at IS NULL');
     expect(sql).toContain('confirm_expires_at > ?');
     expect(sql).toContain('RETURNING steam_id');
+    // The click is explicit full consent: a reconnect marker never
+    // outlives it (swap promise — a confirmed-then-swapped account must
+    // re-arm notifications on return, not hit the fresh skip).
+    expect(sql).toContain('history_only = 0');
 
     mockExecute.mockResolvedValueOnce({ rows: [] });
     await expect(consumeConfirmToken(hash)).resolves.toBeNull();
 
     await expect(consumeConfirmToken('not-hex')).rejects.toThrow(
       /confirm token hash/,
+    );
+  });
+
+  it('consumeConfirmToken confirms without the marker when 021 is pending (fallback)', async () => {
+    const { consumeConfirmToken } = require('./db');
+    const hash = 'ab'.repeat(32);
+
+    mockExecute.mockRejectedValueOnce(
+      new Error('table accounts has no column named: history_only'),
+    );
+    mockExecute.mockResolvedValueOnce({ rows: [{ steam_id: STEAM }] });
+    await expect(consumeConfirmToken(hash)).resolves.toBe(STEAM);
+
+    const updates = mockExecute.mock.calls.filter((call) =>
+      String(call[0]?.sql ?? call[0]).includes('UPDATE accounts'),
+    );
+    expect(updates).toHaveLength(2);
+    expect(String(updates[1][0]?.sql ?? updates[1][0])).not.toContain(
+      'history_only',
     );
   });
 

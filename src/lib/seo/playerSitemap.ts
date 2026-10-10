@@ -17,11 +17,12 @@
 
 import type { MetadataRoute } from 'next';
 
-import { SUPPORTED_LOCALES } from '../../locales';
+import { SUPPORTED_LOCALES, SITE_BASE_URL } from '../../locales';
 import type { PopularProfile } from '../analytics/types';
 
-/** Canonical site origin (same literal as layout metadataBase). */
-export const SITE_BASE_URL = 'https://steam-reveal.vercel.app';
+/** Canonical site origin (single source: src/locales.ts). Re-exported so
+ * sitemap/robots callers keep importing from here. */
+export { SITE_BASE_URL };
 
 /** Profiles graduate into the sitemap at this demand threshold. */
 export const SITEMAP_MIN_SEARCHES = 3;

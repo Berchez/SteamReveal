@@ -45,13 +45,15 @@ describe('ShareBar', () => {
     jest.restoreAllMocks();
   });
 
-  it('renders a single trigger with the menu closed', () => {
+  it('renders a single trigger with the popover closed', () => {
     render(<ShareBar steamId="123" nickname="foo" />);
     const trigger = screen.getByRole('button', { name: 'Share' });
-    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
+    // Plain disclosure button (no menu semantics — the popover is a
+    // group of links/buttons, see ShareBar): expanded/controls only.
+    expect(trigger).not.toHaveAttribute('aria-haspopup');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(
-      screen.queryByRole('menu', { name: 'Share this profile' }),
+      screen.queryByRole('group', { name: 'Share this profile' }),
     ).not.toBeInTheDocument();
   });
 
@@ -59,27 +61,27 @@ describe('ShareBar', () => {
     render(<ShareBar steamId="123" nickname="foo" />);
     fireEvent.click(screen.getByRole('button', { name: 'Share' }));
     expect(
-      screen.getByRole('menu', { name: 'Share this profile' }),
+      screen.getByRole('group', { name: 'Share this profile' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Share on X' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Share on X' })).toHaveAttribute(
       'href',
       expect.stringContaining('x.com/intent/post'),
     );
     expect(
-      screen.getByRole('menuitem', { name: 'Share on WhatsApp' }),
+      screen.getByRole('link', { name: 'Share on WhatsApp' }),
     ).toHaveAttribute('href', expect.stringContaining('wa.me'));
     expect(
-      screen.getByRole('menuitem', { name: 'Share on Telegram' }),
+      screen.getByRole('link', { name: 'Share on Telegram' }),
     ).toHaveAttribute('href', expect.stringContaining('t.me/share/url'));
   });
 
   it('shows Copied! inside the copy item after copying', async () => {
     render(<ShareBar steamId="123" />);
     fireEvent.click(screen.getByRole('button', { name: 'Share' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Copy link' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
     await waitFor(() => {
       expect(
-        screen.getByRole('menuitem', { name: 'Copied!' }),
+        screen.getByRole('button', { name: 'Copied!' }),
       ).toBeInTheDocument();
     });
   });
@@ -89,11 +91,11 @@ describe('ShareBar', () => {
     const trigger = screen.getByRole('button', { name: 'Share' });
     fireEvent.click(trigger);
     expect(
-      screen.getByRole('menu', { name: 'Share this profile' }),
+      screen.getByRole('group', { name: 'Share this profile' }),
     ).toBeInTheDocument();
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(
-      screen.queryByRole('menu', { name: 'Share this profile' }),
+      screen.queryByRole('group', { name: 'Share this profile' }),
     ).not.toBeInTheDocument();
     expect(document.activeElement).toBe(trigger);
   });
@@ -102,11 +104,11 @@ describe('ShareBar', () => {
     render(<ShareBar steamId="123" />);
     fireEvent.click(screen.getByRole('button', { name: 'Share' }));
     expect(
-      screen.getByRole('menu', { name: 'Share this profile' }),
+      screen.getByRole('group', { name: 'Share this profile' }),
     ).toBeInTheDocument();
     fireEvent.mouseDown(document.body);
     expect(
-      screen.queryByRole('menu', { name: 'Share this profile' }),
+      screen.queryByRole('group', { name: 'Share this profile' }),
     ).not.toBeInTheDocument();
   });
 
@@ -114,7 +116,7 @@ describe('ShareBar', () => {
     render(<ShareBar steamId="123" />);
     fireEvent.click(screen.getByRole('button', { name: 'Share' }));
     expect(
-      screen.queryByRole('menuitem', { name: 'Share…' }),
+      screen.queryByRole('button', { name: 'Share…' }),
     ).not.toBeInTheDocument();
   });
 
@@ -130,7 +132,7 @@ describe('ShareBar', () => {
     render(<ShareBar steamId="123" />);
     fireEvent.click(screen.getByRole('button', { name: 'Share' }));
     expect(
-      screen.getByRole('menuitem', { name: 'Share…' }),
+      screen.getByRole('button', { name: 'Share…' }),
     ).toBeInTheDocument();
   });
 

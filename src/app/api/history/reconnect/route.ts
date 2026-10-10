@@ -6,6 +6,7 @@ import getSteamApiKey from '@/lib/getSteamApiKey';
 import logRouteError from '@/lib/logRouteError';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { createRateLimiter, getRequestIp } from '@/lib/rateLimit';
+import checkSameOrigin from '@/lib/watch/csrf';
 import { isSteamId64 } from '@/lib/steamId';
 import { BOT_FRIENDSHIP_TIMEOUT_MS, isBotFriend } from '@/lib/steamFriendList';
 import withTimeout from '@/lib/withTimeout';
@@ -40,7 +41,7 @@ type ReconnectResult = {
 };
 
 /**
- * JSON responses never cache (poll semantics + a state-changing GET):
+ * JSON responses never cache (poll semantics + a state-changing POST):
  * neither the browser nor any intermediary may store or replay them.
  */
 const jsonNoStore = (body: ReconnectResult): NextResponse =>
@@ -56,16 +57,17 @@ const jsonNoStore = (body: ReconnectResult): NextResponse =>
  * waiting room, minus the OpenID dance (the sealed session already
  * proves account ownership).
  *
- * Scope — HISTORY ONLY, by design: completion recreates the ACCOUNTS row
- * (the attribution anchor whose absence made the modal pause), never a
- * watch. Re-activating notifications stays on the explicit Start lane
- * (signup → invite → confirm link → click), so the click-to-activate
- * consent gate for watches is untouched — friendship alone resumes
- * exactly what friendship alone paused: attribution. A LATER full login
- * re-enters the existing login flow unchanged (for a friend,
- * ensureActiveWatch activates as it always has — nothing this lane adds
- * or removes there); a reconnect user who never logs in simply stays
- * friend + account + no watch, and WatchManager shows Start.
+  * Scope — HISTORY ONLY, by design: completion recreates the ACCOUNTS row
+  * (marked history-only — see createAccount) never a watch.
+  * Re-activating notifications stays on the explicit Start lane
+  * (signup → invite → confirm link → click), so the click-to-activate
+  * consent gate for watches is untouched — friendship alone resumes
+  * exactly what friendship alone paused: attribution. A LATER full login
+  * re-enters the existing login flow unchanged, EXCEPT that
+  * ensureActiveWatch honors the history-only marker (no fresh ACTIVE
+  * insert for these accounts — the lane's promise holds across logins);
+  * a reconnect user who never logs in simply stays friend + account +
+  * no watch, and WatchManager shows Start.
  *
  * State machine, all server-side (the client only renders):
  * - footprint already exists → `{done:true}` WITHOUT a Steam read:
@@ -84,15 +86,18 @@ const jsonNoStore = (body: ReconnectResult): NextResponse =>
  *   retrying cannot help until the env is fixed; the wait just looks
  *   slow, which is the honest rendering of an ops problem.
  *
- * GET mutates by design here (poll semantics, same precedent and safety
- * argument as /api/auth/steam/pending): nothing links to this URL — only
- * the modal fetches it, so prefetchers never touch it; the Lax session
- * cookie is withheld on cross-site SUBREQUESTS (fetch/XHR), though it IS
- * sent on a cross-site top-level GET navigation (user clicking a link).
- * Triggering it that way could only recreate the victim's OWN history
- * anchor (no privilege transferred, no other user's state reachable);
- * and friendship is re-proven server-side on every hit — the client
- * claim is never trusted.
+ * POST (not GET) on purpose: this lane MUTATES (recreates the
+ * attribution anchor), and a state-changing GET invites prefetchers
+ * plus a whole class of CSRF reasoning — POST removes it outright.
+ * Same precedent as /api/auth/steam/pending's poll semantics (immediate
+ * first hit, idempotent completion), minus the OpenID dance. CSRF pin
+ * is checkSameOrigin (same as signup/logout and history DELETE):
+ * fail-closed is safe here because the ONLY legitimate caller is the
+ * modal's same-origin fetch, and browsers always send Origin on POST
+ * fetches. Friendship is still re-proven server-side on every hit —
+ * the client claim is never trusted, and triggering it cross-site
+ * could only recreate the victim's OWN history anchor (no privilege
+ * transferred).
  *
  * Self-scoped like the sibling history lanes: identity comes
  * EXCLUSIVELY from the sealed session cookie (`?steamId=` is a 400, a
@@ -100,11 +105,18 @@ const jsonNoStore = (body: ReconnectResult): NextResponse =>
  * language + row bookkeeping; normalizeLocale inside the DAL coerces
  * junk to null — it can never be load-bearing).
  */
-export async function GET(req: Request) {
-  // App Router only routes GET here; kept as defense-in-depth (and so unit
-  // tests can invoke GET() directly with other methods).
-  if (req.method !== 'GET') {
+export async function POST(req: Request) {
+  // App Router only routes POST here; kept as defense-in-depth (and so unit
+  // tests can invoke POST() directly with other methods).
+  if (req.method !== 'POST') {
     return errorResponse('Method not allowed.', 405, 'METHOD_NOT_ALLOWED');
+  }
+
+  // CSRF pin BEFORE anything stateful (same as history DELETE): the
+  // iron-session cookie is SameSite=Lax and cross-site POSTs already
+  // arrive cookieless — this pins same-origin callers in code anyway.
+  if (!checkSameOrigin(req)) {
+    return errorResponse('Forbidden.', 403, 'FORBIDDEN');
   }
 
   if (reconnectRateLimiter.isRateLimited(getRequestIp(req))) {
@@ -135,18 +147,6 @@ export async function GET(req: Request) {
     return errorResponse('Login required.', 401, 'UNAUTHENTICATED');
   }
   const { steamId } = session;
-  // Fetch-metadata CSRF layer (the modal is the only caller, via
-  // same-origin fetch): browsers stamp every fetch with Sec-Fetch-Site,
-  // so a PRESENT non-same-origin value (cross-site fetch, top-level
-  // navigation from another site) is a forged drive-by — reject it.
-  // Fail OPEN on missing (curl, old browsers, unit tests construct bare
-  // Requests): the state change only ever recreates the caller's OWN
-  // history anchor, and friendship is still re-proven below — the
-  // header upgrades the common case instead of carrying the guarantee.
-  const fetchSite = req.headers.get('sec-fetch-site');
-  if (fetchSite !== null && fetchSite !== 'same-origin') {
-    return errorResponse('Forbidden.', 403, 'FORBIDDEN');
-  }
   const botProfileUrl = resolveBotProfileUrl();
 
   // Footprint fast path: already reconnected (bot accepted while nobody
@@ -223,11 +223,13 @@ export async function GET(req: Request) {
 
     // ---- Friendship proven: recreate the attribution anchor ----
     // Idempotent (existing row returned untouched), so concurrent tabs
-    // and a racing login converge on one row. The unconfirmed fresh row
-    // only affects the confirm-link lane (watches) — attribution checks
-    // existence alone.
+    // and a racing login converge on one row. Marked history-only: the
+    // anchor consents to attribution, never to notifications (a later
+    // login's ensureActiveWatch skips the fresh ACTIVE insert for it).
+    // The unconfirmed fresh row only affects the confirm-link lane
+    // (watches) — attribution checks existence alone.
     const localeParam = params.get('locale');
-    await createAccount(steamId, localeParam);
+    await createAccount(steamId, localeParam, true);
     return jsonNoStore({ done: true, botProfileUrl });
   } catch (error) {
     // Transient DB failure on the write: keep waiting (next tick retries

@@ -1,0 +1,24 @@
+-- =====================================================================
+-- Accounts history-only marker for the history-reconnect lane.
+-- Migration: 021_accounts_history_only.sql
+--
+-- Replay-safe at the SQL level? NO — plain ALTER TABLE (like 010/011-era
+-- ALTERs): the runner applies the whole file + the _migrations row in ONE
+-- batch transaction, so a crash rolls everything back together and a
+-- retry replays cleanly. NEVER RENAME this file after it has been applied
+-- anywhere. DDL below is frozen for the same reason (applied migrations
+-- are invisible to the runner — no checksums — so a DDL edit silently
+-- forks applied DBs from fresh ones).
+--
+-- Why a marker (not behavior): the reconnect lane recreates ONLY the
+-- attribution anchor (createAccount), never a watch. A later full login
+-- re-enters ensureActiveWatch, whose fresh lane inserts an ACTIVE watch
+-- for row-less viewers — without the marker, "reconnect restores history
+-- only" would silently stop holding at the next login (notifications +
+-- welcome for a user who never clicked Start). history_only=1 exempts
+-- exactly that insert; every other lane ignores the flag. Legacy rows
+-- backfill to 0 (old semantics: full consent), so the migration is a
+-- no-op for existing users. Apply with `pnpm run db:migrate`.
+-- =====================================================================
+
+ALTER TABLE accounts ADD COLUMN history_only INTEGER NOT NULL DEFAULT 0;

@@ -73,10 +73,10 @@ const formatWhen = (iso: string, locale: string): string => {
  * accept lets the server recreate the attribution anchor; done reloads
   * page one so the SERVER's attributing flag drives the un-pause (no
   * optimistic client flip). Scope note: that lane resumes history only —
-  * a LATER full login re-enters ensureActiveWatch, which inserts an ACTIVE
-  * watch for a row-less viewer (fresh consent model: re-friended +
-  * logged in), so "notifications stay off" holds only until the next
-  * login or an explicit Start, whichever comes first.
+  * the recreated anchor is marked history-only, so even a later full
+  * login cannot silently arm notifications (ensureActiveWatch skips the
+  * fresh ACTIVE insert for it); they resume exclusively through the
+  * Start lane (pending watch + confirm click).
  */
 function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
   const translator = useTranslations('Watch');
@@ -133,8 +133,11 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
       nextCursorRef.current = nextCursor;
       setEntries(next);
       setHasMore(nextCursor !== null);
-      // The footprint + CTA link ship on the first page only (later
-      // pages carry null): keep the first-page values, like total.
+      // The footprint + CTA link ship on EVERY page (cheap PK read the
+      // server runs per request): latest wins if the viewer unfriends
+      // mid-paging (truthful flip to paused, loaded rows stay until the
+      // reload converges). Total alone keeps the first-page-only
+      // discipline below.
       if (typeof pageAttributing === 'boolean') {
         setAttributing(pageAttributing);
         setBotProfileUrl(pageBotProfileUrl);
@@ -296,7 +299,7 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
       try {
         const params = new URLSearchParams({ locale });
         const res = await fetch(`/api/history/reconnect?${params.toString()}`, {
-          method: 'GET',
+          method: 'POST',
         });
         if (cancelled) return;
         if (res.status === 401) {
@@ -408,9 +411,40 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
     return () => clearTimeout(timer);
   }, [confirmingClear]);
 
+  // Dialog node for the focus trap below (callback refs would also
+  // work; a plain ref suffices — the dialog mounts once per modal).
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !event.repeat) onClose();
+      if (event.key === 'Escape' && !event.repeat) {
+        onClose();
+        return;
+      }
+      // Focus trap: Tab must cycle INSIDE the dialog, never leak to the
+      // page behind (aria-modal promises that). Only mounted, enabled
+      // controls participate — branches render exclusively, so the query
+      // sees exactly the visible set (no visibility filter needed, which
+      // would also break under jsdom where layout is always zero).
+      if (event.key !== 'Tab') return;
+      const root = dialogRef.current;
+      if (!root) return;
+      const items = Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled])',
+        ),
+      );
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (event.shiftKey && (active === first || !root.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => {
@@ -484,6 +518,7 @@ function WatchHistoryModal({ onClose }: WatchHistoryModalProps) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="watch-history-title"
+          ref={dialogRef}
           className="relative my-auto flex h-[min(32rem,84dvh)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-purple-400/60 bg-[#1c1c28] px-6 pb-4 pt-6 shadow-[0_0_50px_rgba(168,85,247,0.35)]"
         >
           <button

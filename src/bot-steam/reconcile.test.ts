@@ -1,12 +1,14 @@
 import {
-  evaluateMassRemovalGuard,
   isSwapWindowActive,
-  normalizeMassRemoveMax,
   reconcileFriendsList,
   requestSwapExemption,
   shouldKeepSwapExemption,
   type ReconcileDal,
 } from './reconcile';
+import {
+  evaluateMassRemovalGuard,
+  normalizeMassRemoveMax,
+} from './massRemovalGuard';
 import type { WatchAccount } from '../lib/analytics/types';
 
 // Steam EFriendRelationship.Friend. Deliberately a literal (not imported
@@ -964,6 +966,50 @@ describe('reconcile swap mode (runbook §7)', () => {
 
     expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
     expect(report.orphanAccountsSwept).toEqual([]);
+  });
+
+  it('skips the orphan sweep while the swap WINDOW is active even past the one-shot', async () => {
+    // The exemption is one-shot (first clean pass only): post-first
+    // passes run with swapMode:false while users still have not
+    // re-added the bot — sweeping then would delete exactly the
+    // accounts the swap preserves. The window flag covers them.
+    const dal = makeDal([], {}, ['76561198000000011']);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      undefined,
+      { swapMode: false, swapWindowActive: true },
+    );
+
+    expect(dal.removeWatchAndAccount).not.toHaveBeenCalled();
+    expect(report.orphanAccountsSwept).toEqual([]);
+  });
+
+  it('skips orphans that re-friended after the snapshot (live re-check)', async () => {
+    // Reconnect race: the modal poll created the anchor after the pass
+    // snapshot, and the accept landed before the sweep's list read —
+    // deleting it would silently break a just-reported resume.
+    const dal = makeDal([], {}, ['76561198000000011', '76561198000000012']);
+
+    const report = await reconcileFriendsList(
+      UNRELATED_FRIEND,
+      FRIEND,
+      dal,
+      silentLogger,
+      undefined,
+      undefined,
+      { confirmFriend: (steamId: string) => steamId === '76561198000000011' },
+    );
+
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledTimes(1);
+    expect(dal.removeWatchAndAccount).toHaveBeenCalledWith(
+      '76561198000000012',
+    );
+    expect(report.orphanAccountsSwept).toEqual(['76561198000000012']);
   });
 
   it('caps orphan deletions per pass (bounded blast radius)', async () => {

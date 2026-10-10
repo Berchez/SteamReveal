@@ -12,7 +12,7 @@ import SiteNav, {
   siteNavContainerClassName,
 } from '@/app/components/SiteNav/SiteNav';
 import { WATCH_SESSION_COOKIE } from '@/lib/watch/sessionCookie';
-import { LOCALE_PATHS } from '../../locales';
+import { LOCALE_PATHS, SITE_BASE_URL } from '../../locales';
 
 const shouldLoadVercelTelemetry = process.env.VERCEL_ENV === 'production';
 
@@ -57,18 +57,21 @@ interface RootLayoutProps {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://steam-reveal.vercel.app/'),
+  metadataBase: new URL(SITE_BASE_URL),
   alternates: {
-    canonical: 'https://steam-reveal.vercel.app/en',
+    canonical: `${SITE_BASE_URL}/en`,
     languages: {
-      'en-US': LOCALE_PATHS.en,
-      'pt-BR': LOCALE_PATHS.pt,
-      'ru-RU': LOCALE_PATHS.ru,
-      'de-DE': LOCALE_PATHS.de,
-      'es-ES': LOCALE_PATHS.es,
-      'fr-FR': LOCALE_PATHS.fr,
-      'uk-UA': LOCALE_PATHS.uk,
-      'pl-PL': LOCALE_PATHS.pl,
+      // Bare language codes (no region subtags), matching the player
+      // page's own alternates: mixing `en` here with `en-US` there
+      // would read as inconsistent clusters to crawlers.
+      en: LOCALE_PATHS.en,
+      pt: LOCALE_PATHS.pt,
+      ru: LOCALE_PATHS.ru,
+      de: LOCALE_PATHS.de,
+      es: LOCALE_PATHS.es,
+      fr: LOCALE_PATHS.fr,
+      uk: LOCALE_PATHS.uk,
+      pl: LOCALE_PATHS.pl,
     },
   },
   keywords: [

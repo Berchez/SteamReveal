@@ -162,7 +162,7 @@ export interface BotConfig {
    * override — the breaker guards every pass. Numeric (not boolean) on
    * purpose: a forgotten number still caps the blast radius, a
    * forgotten boolean would leave the guard off forever. Set above the
-   * expected genuine count for the window (swap with base 300 → 500),
+   * expected genuine count for the window (swap with base 200 → 250),
    * then unset and restart.
    */
   reconcileMassRemoveMax: number | null;
@@ -234,11 +234,22 @@ const readPositiveInt = (
  */
 const MAX_SWAP_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
+// Strict full-length UTC instant (what Date.toISOString() emits):
+// Date.parse is lenient in V8 (accepts non-ISO shapes like partial
+// dates), so the regex pins the shape first and Date.parse below only
+// validates the calendar itself (month 13+ still NaNs there).
+const STRICT_ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+
 const parseSwapUntilMs = (
   raw: string | undefined,
   name: string,
 ): number | null => {
   if (raw === undefined || raw === '') return null;
+  if (!STRICT_ISO_INSTANT.test(raw)) {
+    throw new Error(
+      `${name} must be a full ISO-8601 UTC instant (YYYY-MM-DDTHH:mm:ss.sssZ, got ${JSON.stringify(raw)})`,
+    );
+  }
   const parsed = Date.parse(raw);
   if (!Number.isFinite(parsed)) {
     throw new Error(

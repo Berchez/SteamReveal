@@ -199,7 +199,8 @@ First logon from a new IP almost always needs a **manual Steam Guard approval**:
   `friends=` + `acceptedToday=` — the friend-count gauge for the Steam cap),
   `orphansSwept=` on the reconcile summary (orphan-account sweep per
   pass — reconnect-lane residue; a persistently high count means users
-  churn faster than the 10/pass cap drains, not a bug),  `friend-accept REFUSED` (safety ceiling hit: friend cap or daily budget —
+  churn faster than the 10/pass cap drains, not a bug),
+  `friend-accept REFUSED` (safety ceiling hit: friend cap or daily budget —
   operator-action incident, new onboarding is deferred, investigate the
   request source for Sybil), `reconcile removals BLOCKED` (mass-removal
   breaker tripped: wrong/partial snapshot, removals skipped this pass —
@@ -396,11 +397,11 @@ no site change needed during the swap. Plan B:
       attribution resumes by itself). Only the user's explicit
       "Clear my history" and the 12-month TTL ever cut links. The
       swap's only difference is the accounts row; returning users in
-      either lane find their history intact. A LATER full login re-enters
-      ensureActiveWatch, which inserts an ACTIVE watch for a row-less
-      viewer — "notifications stay off" holds only until the next login
-      or an explicit Start, whichever comes first (see the scope note on
-      WatchHistoryModal).
+      either lane find their history intact. Reconnect-created anchors
+      carry history_only=1, which exempts them from ensureActiveWatch's
+      fresh ACTIVE insert — a later full login cannot silently arm
+      notifications for them; only the Start lane (pending watch +
+      confirm click) can.
       Deploy order for retention-semantics changes (site first, bot
       second): the two processes ship separately, so a skew window is
       unavoidable — make it the harmless one. Site-new + bot-old only
@@ -413,10 +414,13 @@ no site change needed during the swap. Plan B:
       Deletion for session-less ex-opt-outs (cookie dead, bot
       unfriended): self-serve by re-adding the bot → login → history
       → "Clear my history" (the reconnect lane rebuilds the anchor,
-      Clear needs only the sealed session). There is NO owner-side
-      per-searcher purge (`delete-searches --steam-id` targets searched
-      profiles, not searchers); the 12-month TTL is the automatic
-      backstop — say exactly that if a request arrives.
+      Clear needs only the sealed session). Owner-side erasure for
+      requests arriving through any other channel:
+      `pnpm run db:delete-searcher-history -- --searcher-steam-id
+      <17-digit-id> [--expect N] [--confirm]` (dry-run by default;
+      `delete-searches --steam-id` targets searched profiles, not
+      searchers). The 12-month TTL remains the automatic backstop —
+      state exactly these three options if a request arrives.
       Known residual (accepted): users who genuinely leave DURING the
       window keep a dormant accounts row (no pass revisits account-only
       rows — reconcile iterates watches). While their session cookie

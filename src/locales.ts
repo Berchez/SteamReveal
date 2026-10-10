@@ -16,3 +16,12 @@ export const LOCALE_PATHS: Record<SupportedLocale, string> = {
   uk: '/uk',
   pl: '/pl',
 };
+
+/**
+ * Canonical site origin — SINGLE source for metadataBase, canonicals,
+ * hreflang alternates and the sitemap (all must agree on one host, or
+ * crawlers read the alternates as inconsistent). The alternates stay
+ * RELATIVE and resolve against metadataBase (see [locale]/layout.tsx),
+ * which points here.
+ */
+export const SITE_BASE_URL = 'https://steam-reveal.vercel.app';

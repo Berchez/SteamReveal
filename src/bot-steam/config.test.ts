@@ -140,6 +140,15 @@ describe('loadBotConfig', () => {
     ).toThrow('RECONCILE_SWAP_UNTIL');
   });
 
+  it('rejects parseable-but-not-strict instants (V8 Date.parse leniency)', () => {
+    // '2026-10-09' parses fine in V8 (UTC midnight) but is not a full
+    // instant — without the strict shape check it would silently mean
+    // something the operator did not write.
+    expect(() =>
+      loadBotConfig({ ...FULL_ENV, RECONCILE_SWAP_UNTIL: '2026-10-09' }),
+    ).toThrow('RECONCILE_SWAP_UNTIL');
+  });
+
   it('refuses a swap window more than 30 days out (placeholder left on)', () => {
     // Swap windows are days; a 4-year instant is certainly a placeholder
     // uncommented as-is or a typo — either way it would silently suspend

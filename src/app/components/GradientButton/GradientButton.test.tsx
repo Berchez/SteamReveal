@@ -24,25 +24,4 @@ describe('GradientButton', () => {
     fireEvent.click(button);
     expect(onClick).not.toHaveBeenCalled();
   });
-
-  it('forwards menu-trigger a11y attributes and the ref', () => {
-    const ref = React.createRef<HTMLButtonElement>();
-    render(
-      <GradientButton
-        onClick={() => undefined}
-        ariaLabel="Share"
-        ariaHaspopup="menu"
-        ariaExpanded
-        ariaControls="share-menu"
-        buttonRef={ref}
-      >
-        Share
-      </GradientButton>,
-    );
-    const button = screen.getByRole('button', { name: 'Share' });
-    expect(button).toHaveAttribute('aria-haspopup', 'menu');
-    expect(button).toHaveAttribute('aria-expanded', 'true');
-    expect(button).toHaveAttribute('aria-controls', 'share-menu');
-    expect(ref.current).toBe(button);
-  });
 });

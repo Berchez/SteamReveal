@@ -201,6 +201,18 @@ const main = (): void => {
   const convergeFriends = (friendsById: Record<string, number>): void => {
     // Swap window is evaluated PER PASS (not once at boot): expiry takes
     // effect without a restart.
+    // KNOWN ORDERING LIMIT (not fixed here on purpose): swapArmed is
+    // decided at CALL time while passes execute serialized — a pass
+    // enqueued while an earlier pass holds the arm runs with a stale
+    // swapMode if that earlier pass then fails (its rollback lands
+    // after). Narrow window in practice (active swap + overlapping
+    // snapshots + failed first pass + override set), and the proper fix
+    // is structural (resolve the mode inside the serialized chain via a
+    // getter + move arming/rollback there, with a harness for
+    // convergeFriends) — a follow-up, not a drive-by: this file has no
+    // unit coverage and the swap path is operator-attended. The orphan
+    // sweep below does NOT share the hole (it keys on the slow-moving
+    // swapWindowActive flag, evaluated at the same call site).
     const swapArmed = requestSwapExemption(
       isSwapWindowActive(Date.now(), config.reconcileSwapUntilMs),
       swapExemptionConsumed,
@@ -243,7 +255,20 @@ const main = (): void => {
         const chat = client.chat as unknown as ActivationChatClient;
         return sendConfirmLink(chat, steamId, locale, config);
       },
-      { massRemoveMax: config.reconcileMassRemoveMax, swapMode: swapArmed },
+      {
+        massRemoveMax: config.reconcileMassRemoveMax,
+        swapMode: swapArmed,
+        // Window (not the one-shot): the orphan sweep must stay off for
+        // the whole swap, evaluated per pass like swapArmed above — the
+        // window moves slowly, so call-time evaluation is race-free here.
+        swapWindowActive: isSwapWindowActive(
+          Date.now(),
+          config.reconcileSwapUntilMs,
+        ),
+        // Live map read (no API cost): the orphan sweep's race guard
+        // against friends accepted after the pass snapshot.
+        confirmFriend: isFriend,
+      },
     )
       // Chained (not the two-arg form): if the ok-half itself threw,
       // the two-arg shape would leave it an unhandled rejection. Here

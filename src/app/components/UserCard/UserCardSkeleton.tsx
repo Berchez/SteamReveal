@@ -44,7 +44,14 @@ function UserCardSkeleton({ itsTargetUser }: { itsTargetUser: boolean }) {
         )}
       </div>
 
-      <div className="flex flex-col w-full break-words gap-y-2">
+      {/* Text column mirrors the real card's pr-12 for the target user:
+          the ShareBar trigger overlays the card's top-right corner, so the
+          real text reserves right padding — without the same reserve here
+          a long nickname would re-wrap on skeleton→card swap (CLS).
+          Friend cards never host the trigger, so theirs stays full-width. */}
+      <div
+        className={`flex flex-col w-full break-words gap-y-2 ${itsTargetUser ? 'md:pr-12' : ''}`}
+      >
         {/* nickname — always present in the real card */}
         <div className="h-5 bg-gray-500 rounded-md animate-pulse w-3/4" />
 

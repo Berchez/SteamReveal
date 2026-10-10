@@ -79,12 +79,16 @@ const EXPECTED_COLUMNS: Array<{ table: string; column: string }> = [
   { table: 'bot_heartbeat', column: 'disconnected_since' },
   { table: 'search_meta', column: 'friends_visibility' },
   // searches.searcher_steam_id (020, per-account history): without it
-  // every search write falls back to anonymous and /api/history 500s —
+  // every search write falls back to anonymous and /api/history 500s -
   // the exact "migration skipped" scenario this gate exists to catch
   // pre-push. (The composite partial index rides in the same file and
   // the same transaction; a missing index alone only costs perf, and
   // the column assertion already gates the file.)
   { table: 'searches', column: 'searcher_steam_id' },
+  // accounts.history_only (021, reconnect-lane consent marker): without
+  // it the consent lanes degrade to full-consent — same gate class as
+  // the column above.
+  { table: 'accounts', column: 'history_only' },
 ];
 
 // Tables needing a PRAGMA probe, derived (deduped, order-stable) — table
