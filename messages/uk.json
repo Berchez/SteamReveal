@@ -15,7 +15,8 @@
     "probability": "Ймовірність",
     "url": "URL",
     "reliability": "Надійність",
-    "searchFriend": "Шукати"
+    "searchFriend": "Шукати",
+    "gcNameLocked": "GC Name доступний після входу."
   },
   "LocationCard": {
     "providedByUser": "Вказано користувачем:",
@@ -33,6 +34,8 @@
     "userInfo": "Інформація про користувача",
     "userPossibleLocation": "Можливе місцезнаходження користувача",
     "friendsIRL": "Друзі IRL",
+    "gcUpsellTitle": "Відкрийте решту GC Names",
+    "gcUpsellDescription": "Увійдіть через Steam, щоб побачити решту GC Names ({count}).",
     "friendsPrivateTitle": "Список друзів приватний",
     "friendsPrivateDescription": "Цей гравець приховав свій список друзів, тому близькі друзі та тріангуляція місцезнаходження недоступні для цього пошуку.",
     "friendsPrivateStillWorks": "Все одно доступно: картка профілю, самостійно вказане місцезнаходження та ручна античит-перевірка CS2 (менш надійна без друзів).",

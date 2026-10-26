@@ -1,6 +1,11 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest } from 'next/server';
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './locales';
+import {
+  WATCH_SESSION_COOKIE,
+  WATCH_SESSION_HINT_COOKIE,
+  WATCH_SESSION_TTL_SECONDS,
+} from './lib/watch/sessionCookie';
 
 export default function middleware(request: NextRequest) {
   const localeMiddleware = createMiddleware({
@@ -10,14 +15,31 @@ export default function middleware(request: NextRequest) {
 
   const response = localeMiddleware(request);
 
-  // Vercel Header with country (ex: 'BR', 'US', 'FR')
-  const country =
-    request.headers.get('x-vercel-ip-country') ||
-    request.geo?.country || // Next.js geo API (Edge only)
-    'UNKNOWN';
+  // Keep the non-HttpOnly presence hint in sync for sessions sealed before
+  // this cookie existed, and clear stale hints after logout/expiry. Only
+  // requests carrying a session (or a stale hint) get a Set-Cookie header,
+  // so anonymous ISR responses remain CDN-cacheable.
+  const hasSession = request.cookies.has(WATCH_SESSION_COOKIE);
+  const hasHint =
+    request.cookies.get(WATCH_SESSION_HINT_COOKIE)?.value === '1';
+  const cookieOptions = {
+    httpOnly: false,
+    sameSite: 'lax' as const,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  };
 
-  // Send country to front via custom header
-  response.headers.set('x-user-country', country);
+  if (hasSession && !hasHint) {
+    response.cookies.set(WATCH_SESSION_HINT_COOKIE, '1', {
+      ...cookieOptions,
+      maxAge: WATCH_SESSION_TTL_SECONDS,
+    });
+  } else if (!hasSession && hasHint) {
+    response.cookies.set(WATCH_SESSION_HINT_COOKIE, '', {
+      ...cookieOptions,
+      maxAge: 0,
+    });
+  }
 
   return response;
 }

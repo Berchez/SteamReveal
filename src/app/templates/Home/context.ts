@@ -1,5 +1,5 @@
 import type { MutableRefObject } from 'react';
-import { createContext } from 'react';
+import { createContext, useContext } from 'react';
 import { CheaterDataType } from '@/@types/cheaterDataType';
 import { isLoadingType } from '@/@types/isLoadingType';
 import { closeFriendsDataIWant } from '@/@types/closeFriendsDataIWant';
@@ -47,3 +47,8 @@ export const HomeDataContext = createContext<HomeDataContextType | null>(null);
 export const HomeActionsContext = createContext<HomeActionsContextType | null>(
   null,
 );
+
+export const SessionHintContext = createContext(false);
+
+export const useLikelyLoggedIn = (): boolean =>
+  useContext(SessionHintContext);

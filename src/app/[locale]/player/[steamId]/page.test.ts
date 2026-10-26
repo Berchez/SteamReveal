@@ -13,6 +13,7 @@ jest.mock('../../../../lib/getPlayerProfile', () => ({
 }));
 
 jest.mock('next-intl/server', () => ({
+  setRequestLocale: jest.fn(),
   getTranslations: jest.fn(async () => (key: string, vars?: any) => {
     const map: Record<string, string> = {
       title: `Analyze ${vars?.nickname}'s Steam Profile`,

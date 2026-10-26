@@ -101,9 +101,9 @@ const readWatchSeed = async (
  * rejects either. This is the last-resort net for programming errors and
  * transport surprises in global chrome.
  *
- * Cost note (accepted): reading the session here opts the whole layout out
- * of static rendering — inherent to ANY session-aware navbar, not to the
- * Steam call. The Steam round-trip itself is bounded instead: per-instance
+ * Cost note (accepted): this resolution runs in /api/site-nav instead of
+ * the root layout, so per-user session reads never opt player pages out of
+ * static/ISR rendering. The Steam round-trip itself is bounded instead: per-instance
  * 10-min TTL memo (nulls included, so outages stay cheap), 4s timeout, and
  * only for logged-in navigations. The watch seed adds two indexed PK reads
  * (watch status + account, one parallel round) for the same audience —
@@ -138,9 +138,9 @@ export const resolveSiteNavState = async (
     if (steamId === null) {
       // Bot-liveness gate (logged-out cluster only): hide the sign-in
       // button while the bot is offline. This is the ONLY logged-out DB
-      // read in the layout — memoized (~1 read/min/instance) and
-      // fail-open (never hides on a DB/transport blip), so the cost and
-      // the blast radius stay bounded.
+      // read in the navbar state path — memoized (~1 read/min/instance)
+      // and fail-open (never hides on a DB/transport blip), so the cost
+      // and the blast radius stay bounded.
       return toLoggedOutState();
     }
     // Identity (Steam network round-trip, the long pole) and the watch

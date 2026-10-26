@@ -6,6 +6,7 @@ import type { FriendsVisibility } from '@/lib/analytics/types';
 // Local binding for recordAnalytics below; the re-export keeps the other
 // importers' paths working.
 import getAnalyticsSkipHeaders from '@/lib/analytics/skipHeaders';
+import { getClientCountry } from '@/lib/clientCountry';
 
 // ---- Analytics helpers ---------------------------------------------------
 
@@ -33,13 +34,7 @@ export const getRequesterDevice = (): 'mobile' | 'desktop' | null => {
     : 'desktop';
 };
 
-export const getRequesterCountry = (): string | null => {
-  if (typeof document === 'undefined') {
-    return null;
-  }
-
-  return document.body.getAttribute('data-country');
-};
+export const getRequesterCountry = (): string | null => getClientCountry();
 
 export const getRequesterBrowserLanguage = (): string | null => {
   if (typeof navigator === 'undefined') {

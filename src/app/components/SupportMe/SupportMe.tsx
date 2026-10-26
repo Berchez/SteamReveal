@@ -2,6 +2,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useModalAnalytics } from '@/app/templates/Home/shared/analytics/useModalAnalytics';
+import { getClientCountry } from '@/lib/clientCountry';
 
 interface SupportMeProps {
   onClose: () => void;
@@ -31,7 +32,7 @@ export default function SupportMe({ onClose, dontAskAgain }: SupportMeProps) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const country = document.body.getAttribute('data-country');
+    const country = getClientCountry();
     const isPT = locale?.toLowerCase().startsWith('pt');
     const isBrazilVar = country === 'BR' || isPT;
     setIsBrazil(isBrazilVar);

@@ -1,33 +1,58 @@
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { setFriendGcName } from '@/app/templates/Home/shared/analytics/friendGcNameStore';
+import { setGcServiceStatus } from '@/app/templates/Home/shared/analytics/gcServiceStatus';
+import { getClientCountry } from '@/lib/clientCountry';
 
 interface GamersClubNameResponse {
   steamId: string;
   gcName: string | null;
+  /**
+   * True when the lookup could not run at all (the local scraper proxy is
+   * offline or misconfigured). Distinct from "the player has no GC
+   * profile" — the UI holds back the sign-in upsell while this is true.
+   */
+  unavailable?: boolean;
 }
 
 interface UseGamersClubNameState {
   name: string | null;
   isLoading: boolean;
   error: string | null;
+  unavailable: boolean;
 }
 
-const useGamersClubName = (steamId: string): UseGamersClubNameState => {
+interface UseGamersClubNameOptions {
+  /**
+   * Lets the caller opt out of the request entirely (e.g. a logged-out
+   * friend card that hides GC Name behind the sign-in upsell). Keeping
+   * this as an option — instead of a conditional hook call — preserves
+   * the Rules of Hooks and still guarantees zero network calls.
+   */
+  enabled?: boolean;
+}
+
+const useGamersClubName = (
+  steamId: string,
+  { enabled = true }: UseGamersClubNameOptions = {},
+): UseGamersClubNameState => {
   const locale = useLocale();
   const [name, setName] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled && Boolean(steamId));
   const [error, setError] = useState<string | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
-    const country = document.body.getAttribute('data-country');
+    const country = getClientCountry();
     const isPT = locale?.toLowerCase().startsWith('pt');
     const isBrazil = country === 'BR' || isPT;
 
-    // Skip the request entirely for an empty Steam ID.
-    if (!steamId) {
+    // Skip the request entirely for an empty Steam ID or when the caller
+    // explicitly disabled the lookup (logged-out premium gating).
+    if (!steamId || !enabled) {
       setName(null);
       setError(null);
+      setUnavailable(false);
       setIsLoading(false);
       return undefined;
     }
@@ -62,6 +87,12 @@ const useGamersClubName = (steamId: string): UseGamersClubNameState => {
             setFriendGcName(steamId, data.gcName);
           }
           setName(data.gcName);
+          // The API answered, so the scraper is reachable — even when the
+          // answer is "no profile". Only an unreachable proxy counts as
+          // unavailable.
+          const isUnavailable = data.unavailable === true;
+          setUnavailable(isUnavailable);
+          setGcServiceStatus(isUnavailable ? 'unavailable' : 'available');
         }
       })
       .catch((fetchError) => {
@@ -71,6 +102,9 @@ const useGamersClubName = (steamId: string): UseGamersClubNameState => {
         if (!cancelled) {
           setError(String(fetchError));
           setName(null);
+          // Our own API could not be reached — the GC feature cannot work.
+          setUnavailable(true);
+          setGcServiceStatus('unavailable');
         }
       })
       .finally(() => {
@@ -84,9 +118,9 @@ const useGamersClubName = (steamId: string): UseGamersClubNameState => {
     return () => {
       cancelled = true;
     };
-  }, [steamId]);
+  }, [enabled, locale, steamId]);
 
-  return { name, isLoading, error };
+  return { name, isLoading, error, unavailable };
 };
 
 export default useGamersClubName;

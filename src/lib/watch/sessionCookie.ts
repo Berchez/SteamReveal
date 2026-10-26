@@ -10,6 +10,18 @@
 
 export const WATCH_SESSION_COOKIE = 'steamreveal_watch_session';
 
+/** 30 days, shared by the sealed session and its non-HttpOnly hint. */
+export const WATCH_SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+/**
+ * Non-HttpOnly presence hint. It carries no identity or privilege — only
+ * "a session cookie probably exists" — so server layouts can stay static
+ * while client islands choose between the logged-out and logged-in chrome
+ * before the real session is resolved. The sealed cookie remains the only
+ * authentication source.
+ */
+export const WATCH_SESSION_HINT_COOKIE = 'steamreveal_watch_session_hint';
+
 /**
  * One-shot login-CSRF nonce cookie (see the login/callback routes).
  * Short-lived (minutes), cleared on every callback hit — success or fail.

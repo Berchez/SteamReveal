@@ -162,17 +162,48 @@ describe('getRequesterDevice', () => {
 });
 
 describe('getRequesterCountry', () => {
+  const originalLanguage = Object.getOwnPropertyDescriptor(
+    navigator,
+    'language',
+  );
+
+  const setCountryCookie = (country: string | null) => {
+    document.cookie = 'steamreveal_country=; Max-Age=0; path=/';
+    if (country) {
+      document.cookie = `steamreveal_country=${country}; path=/`;
+    }
+  };
+
   afterEach(() => {
-    document.body.removeAttribute('data-country');
+    setCountryCookie(null);
+    if (originalLanguage) {
+      Object.defineProperty(navigator, 'language', originalLanguage);
+    }
   });
 
-  it('reads the data-country attribute off document.body', () => {
-    document.body.setAttribute('data-country', 'BR');
+  it('reads the country cookie', () => {
+    setCountryCookie('BR');
 
     expect(getRequesterCountry()).toBe('BR');
   });
 
-  it('returns null when the attribute is not set', () => {
+  it('falls back to the region in navigator.language', () => {
+    setCountryCookie(null);
+    Object.defineProperty(navigator, 'language', {
+      value: 'pt-BR',
+      configurable: true,
+    });
+
+    expect(getRequesterCountry()).toBe('BR');
+  });
+
+  it('returns null when neither the cookie nor a language region is available', () => {
+    setCountryCookie(null);
+    Object.defineProperty(navigator, 'language', {
+      value: 'en',
+      configurable: true,
+    });
+
     expect(getRequesterCountry()).toBeNull();
   });
 

@@ -1,9 +1,14 @@
+'use client';
+
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import MAX_CLOSE_FRIENDS from '@/lib/closeFriendsLimits';
 import type { FriendsVisibility } from '@/lib/analytics/types';
 import UserCard from '@/app/components/UserCard';
 import UserCardSkeleton from '@/app/components/UserCard/UserCardSkeleton';
+import { useLikelyLoggedIn } from '@/app/templates/Home/context';
+import { useGcServiceStatus } from '@/app/templates/Home/shared/analytics/gcServiceStatus';
+import GamersClubBanner from './GamersClubBanner';
 import { closeFriendsDataIWant } from '../../../../../@types/closeFriendsDataIWant';
 
 type FriendsSectionProps = {
@@ -33,6 +38,12 @@ function FriendsSection({
   friendsVisibility,
 }: FriendsSectionProps) {
   const translator = useTranslations('Index');
+  const likelyLoggedIn = useLikelyLoggedIn();
+  // The GC Name upsell only makes sense while the scraper is reachable:
+  // with the local proxy offline no card can show a GC Name, so the banner
+  // would be selling a feature that cannot work. 'unknown' (no lookup has
+  // finished yet) keeps the banner visible.
+  const gcServiceStatus = useGcServiceStatus();
 
   // Settled-but-empty lists render an explained empty state instead of a
   // bare header: private (Steam refused) and genuinely-empty are different
@@ -97,15 +108,32 @@ function FriendsSection({
         {translator('friendsIRL')}
       </h1>
       {closeFriendsJson
-        ? closeFriendsJson.map((f) => (
-            <UserCard
-              friend={f.friend}
-              count={f.count}
-              probability={f.probability}
-              itsTargetUser={false}
-              key={f.friend.steamID}
-            />
-          ))
+        ? closeFriendsJson.map((f, index) => {
+            // Logged-out premium gate: target-independent cards 0 and 1
+            // keep GC Name; everything after the banner is locked. Signed-in
+            // visitors unlock the whole list. Index-based (not data-based)
+            // so the first two visible friends always match the banner copy.
+            const allowGcName = likelyLoggedIn || index < 2;
+            return (
+              <React.Fragment key={f.friend.steamID}>
+                <UserCard
+                  friend={f.friend}
+                  count={f.count}
+                  probability={f.probability}
+                  itsTargetUser={false}
+                  allowGcName={allowGcName}
+                />
+                {!likelyLoggedIn &&
+                  index === 1 &&
+                  gcServiceStatus !== 'unavailable' &&
+                  closeFriendsJson.length > 2 && (
+                    <GamersClubBanner
+                      lockedCount={closeFriendsJson.length - 2}
+                    />
+                  )}
+              </React.Fragment>
+            );
+          })
         : skeletonUUIDs.map((uuid) => (
             <UserCardSkeleton itsTargetUser={false} key={uuid} />
           ))}

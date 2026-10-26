@@ -15,7 +15,8 @@
     "probability": "Вероятность",
     "url": "URL",
     "reliability": "Надежность",
-    "searchFriend": "Поиск"
+    "searchFriend": "Поиск",
+    "gcNameLocked": "GC Name доступен после входа."
   },
   "LocationCard": {
     "providedByUser": "Указано пользователем:",
@@ -33,6 +34,8 @@
     "userInfo": "Информация об игроке",
     "userPossibleLocation": "Возможное местоположение игрока",
     "friendsIRL": "Друзья в реальной жизни",
+    "gcUpsellTitle": "Откройте оставшиеся GC Names",
+    "gcUpsellDescription": "Войдите через Steam, чтобы увидеть оставшиеся GC Names ({count}).",
     "friendsPrivateTitle": "Список друзей скрыт",
     "friendsPrivateDescription": "Этот игрок скрыл список друзей, поэтому близкие друзья и триангуляция местоположения недоступны для этого поиска.",
     "friendsPrivateStillWorks": "По-прежнему доступно: карточка профиля, указанное местоположение и ручная проверка античита CS2 (менее надёжна без друзей).",

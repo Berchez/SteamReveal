@@ -15,7 +15,8 @@
     "probability": "Prawdopodobieństwo",
     "url": "URL",
     "reliability": "Wiarygodność",
-    "searchFriend": "Szukaj"
+    "searchFriend": "Szukaj",
+    "gcNameLocked": "GC Name jest dostępny po zalogowaniu."
   },
   "LocationCard": {
     "providedByUser": "Podane przez użytkownika:",
@@ -33,6 +34,8 @@
     "userInfo": "Informacje o użytkowniku",
     "userPossibleLocation": "Możliwa lokalizacja użytkownika",
     "friendsIRL": "Znajomi IRL",
+    "gcUpsellTitle": "Odblokuj pozostałe GC Names",
+    "gcUpsellDescription": "Zaloguj się przez Steam, aby zobaczyć pozostałe GC Names ({count}).",
     "friendsPrivateTitle": "Lista znajomych jest prywatna",
     "friendsPrivateDescription": "Ten gracz ukrył swoją listę znajomych, więc bliscy znajomi i triangulacja lokalizacji są niedostępne w tym wyszukiwaniu.",
     "friendsPrivateStillWorks": "Nadal dostępne: karta profilu, zadeklarowana lokalizacja oraz ręczna recenzja antycheat CS2 (mniej wiarygodna bez znajomych).",

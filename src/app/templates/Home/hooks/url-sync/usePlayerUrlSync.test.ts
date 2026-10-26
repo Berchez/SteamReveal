@@ -1,11 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
-import { useSearchParams } from 'next/navigation';
 
 import usePlayerUrlSync from './usePlayerUrlSync';
-
-jest.mock('next/navigation', () => ({
-  useSearchParams: jest.fn(),
-}));
 
 // IMPORTANT: mocking '@/navigation' directly does NOT intercept the real
 // import inside usePlayerUrlSync.ts — the alias gets rewritten to its real
@@ -34,12 +29,10 @@ jest.mock('./navigationParams', () => ({
   default: ['ownedParam'],
 }));
 
-const mockUseSearchParams = useSearchParams as jest.Mock;
-
 describe('usePlayerUrlSync', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSearchParams.mockReturnValue(new URLSearchParams());
+    window.history.replaceState(null, '', '/en');
   });
 
   describe('buildPlayerHref (exercised via navigateToPlayer)', () => {
@@ -69,8 +62,10 @@ describe('usePlayerUrlSync', () => {
     });
 
     it('preserves non-owned query params (utm tags, referral, feature flags)', () => {
-      mockUseSearchParams.mockReturnValue(
-        new URLSearchParams('utm_source=twitter&ref=abc'),
+      window.history.replaceState(
+        null,
+        '',
+        '/en?utm_source=twitter&ref=abc',
       );
       const { result } = renderHook(() => usePlayerUrlSync(jest.fn(() => 1)));
 
@@ -85,8 +80,10 @@ describe('usePlayerUrlSync', () => {
     });
 
     it('strips NAVIGATION_OWNED_PARAMS before building the href', () => {
-      mockUseSearchParams.mockReturnValue(
-        new URLSearchParams('ownedParam=shouldBeDropped&keep=me'),
+      window.history.replaceState(
+        null,
+        '',
+        '/en?ownedParam=shouldBeDropped&keep=me',
       );
       const { result } = renderHook(() => usePlayerUrlSync(jest.fn(() => 1)));
 

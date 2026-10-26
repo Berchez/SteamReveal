@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import getErrorMessage from './getErrorMessage';
 import withRetry from './withRetry';
-import { getCachedGcName, setCachedGcName } from './gcNameCache';
+import { getCachedGcName, isGcNameEntryStale, setCachedGcName } from './gcNameCache';
 
 const BASE_URL = 'https://gamersclub.com.br';
 
@@ -364,33 +364,74 @@ const describeScrapeError = (error: unknown): string => {
 };
 
 /**
+ * Name lookup that also says whether a null result is a CONFIRMED miss.
+ *
+ * The distinction is required by the Vercel route's 3-day cache: a
+ * confirmed miss (GamersClub returned 2xx with no player) is safe to cache;
+ * a null caused by `allowScrape=false`, a timeout, a missing cookie, or a
+ * parser break is not, otherwise one transient failure would pin the card
+ * to "no GC profile" for days.
+ */
+export type GamersClubNameResult = {
+  name: string | null;
+  notFound: boolean;
+};
+
+/**
  * Fetches and scrapes the public name from a GamersClub profile.
  * @param steamId - The Steam ID (can be in any format)
  * @param allowScrape - Whether to perform a fresh scrape if not in cache
  * @returns The player's public name or null if not found
  */
-const scrapeGamersClubName = async (
+const scrapeGamersClubNameWithStatus = async (
   steamId: string,
   allowScrape = true,
-): Promise<string | null> => {
+): Promise<GamersClubNameResult> => {
   const cached = getCachedGcName(steamId);
-  if (cached) {
+  // A cached entry past the freshness window (30 days) is still a valid hit,
+  // but it is re-scraped here whenever scraping is allowed — the refresh is
+  // a local proxy call (free), while the Vercel route keeps its own 3-day
+  // cache in front, so this costs at most one GamersClub request per player
+  // per 30 days.
+  const stale = cached !== null && isGcNameEntryStale(cached);
+  if (cached && (!stale || !allowScrape)) {
     console.debug(
       `[GamersClub] Cache hit for Steam ID ${steamId}: ${cached.name ?? '(not found)'}`,
     );
-    return cached.name;
+    return { name: cached.name, notFound: cached.name === null };
   }
 
   if (!allowScrape) {
     console.debug(
       `[GamersClub] Cache miss for Steam ID ${steamId} and scraping is disabled.`,
     );
-    return null;
+    return { name: null, notFound: false };
   }
 
   try {
     const profile = await scrapeGamersClubProfile(steamId);
-    return profile?.name ?? null;
+    if (!profile) {
+      // A refresh that couldn't be completed must not throw away the last
+      // known good answer — keep serving the stale entry instead of
+      // pretending the player has no GamersClub profile.
+      if (cached) {
+        return { name: cached.name, notFound: cached.name === null };
+      }
+      return { name: null, notFound: false };
+    }
+    if (profile.name !== null) {
+      return { name: profile.name, notFound: false };
+    }
+
+    // A null profile name is only a confirmed miss when the scrape wrote a
+    // null cache entry. The parser-miss branch deliberately writes nothing,
+    // so checking the cache here keeps this status honest without widening
+    // GamersClubProfile (the ban flow only needs name/ban fields).
+    const refreshed = getCachedGcName(steamId);
+    return {
+      name: null,
+      notFound: refreshed !== null && refreshed.name === null,
+    };
   } catch (error) {
     // Network errors, timeouts, missing cookie, non-retryable 4xx, etc.
     // None of these are a confirmed outcome, so nothing gets cached here.
@@ -398,8 +439,19 @@ const scrapeGamersClubName = async (
       `GamersClub scraping error for Steam ID ${steamId}:`,
       describeScrapeError(error),
     );
-    return null;
+    if (cached) {
+      return { name: cached.name, notFound: cached.name === null };
+    }
+    return { name: null, notFound: false };
   }
+};
+
+const scrapeGamersClubName = async (
+  steamId: string,
+  allowScrape = true,
+): Promise<string | null> => {
+  const result = await scrapeGamersClubNameWithStatus(steamId, allowScrape);
+  return result.name;
 };
 
 /**
@@ -425,5 +477,9 @@ const scrapeGamersClubBan = async (
   }
 };
 
-export { scrapeGamersClubBan, scrapeGamersClubProfile };
+export {
+  scrapeGamersClubBan,
+  scrapeGamersClubNameWithStatus,
+  scrapeGamersClubProfile,
+};
 export default scrapeGamersClubName;

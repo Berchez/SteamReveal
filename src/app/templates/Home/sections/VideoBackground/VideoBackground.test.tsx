@@ -2,6 +2,7 @@ import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VideoBackground from './VideoBackground';
+import { SessionHintContext } from '../../context';
 
 jest.mock('next/image', () => {
   const MockImage = (props: {
@@ -64,6 +65,43 @@ describe('VideoBackground', () => {
     advanceTimers();
 
     expect(document.querySelector('video')).toBeInTheDocument();
+  });
+
+  it('serves the lite loop to visitors without a session hint', () => {
+    setReadyState('complete');
+
+    render(
+      <SessionHintContext.Provider value={false}>
+        <VideoBackground />
+      </SessionHintContext.Provider>,
+    );
+
+    advanceTimers();
+
+    const sources = Array.from(
+      document.querySelectorAll('video source'),
+    ).map((source) => source.getAttribute('src'));
+    expect(sources).toEqual(['/videos/short-bg-lite.mp4']);
+  });
+
+  it('serves the full loop to logged-in visitors', () => {
+    setReadyState('complete');
+
+    render(
+      <SessionHintContext.Provider value={true}>
+        <VideoBackground />
+      </SessionHintContext.Provider>,
+    );
+
+    advanceTimers();
+
+    const sources = Array.from(
+      document.querySelectorAll('video source'),
+    ).map((source) => source.getAttribute('src'));
+    expect(sources).toEqual([
+      '/videos/short-bg.webm',
+      '/videos/short-bg.mp4',
+    ]);
   });
 
   it('starts the idle timer right away when the document has already finished loading', () => {

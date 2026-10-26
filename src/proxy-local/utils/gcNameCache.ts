@@ -22,7 +22,18 @@ import path from 'path';
 const CACHE_FILE = path.resolve(__dirname, 'gcNameCache.data.json');
 const TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
 
-type CacheEntry = {
+/**
+ * Freshness window: an entry older than this is still a valid cache HIT
+ * (it survives until the 90-day hard TTL), but it is no longer considered
+ * FRESH — the next lookup is allowed to re-scrape GamersClub and refresh
+ * the entry. Without this window a nickname change would only show up
+ * after 90 days; with it, the name is refreshed at most once per player
+ * per 30 days, and that single scrape happens on the local proxy (free),
+ * not on Vercel (the route's own 3-day cache sits in front of it).
+ */
+const REFRESH_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+export type CacheEntry = {
   name: string | null;
   cachedAt: number; // epoch ms
 };
@@ -133,6 +144,14 @@ export const getCachedGcName = (steamId: string): CacheEntry | null => {
 
   return entry;
 };
+
+/**
+ * True when the entry is past the freshness window and should be
+ * re-scraped on the next allowed lookup. Entries past the hard TTL are
+ * evicted by getCachedGcName before this is ever consulted.
+ */
+export const isGcNameEntryStale = (entry: CacheEntry): boolean =>
+  Date.now() - entry.cachedAt > REFRESH_MS;
 
 /**
  * Stores a lookup result. Callers are responsible for only calling this

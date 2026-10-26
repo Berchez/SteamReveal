@@ -1,14 +1,20 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { HomeDataContext, HomeActionsContext } from './context';
+import {
+  HomeDataContext,
+  HomeActionsContext,
+  SessionHintContext,
+} from './context';
 import useHome from './hooks/useHome';
+import { useSessionHint } from './useSessionHint';
 
 export default function HomeProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const isLikelyLoggedIn = useSessionHint();
   const {
     closeFriendsJson,
     friendsVisibility,
@@ -100,10 +106,12 @@ export default function HomeProvider({
   );
 
   return (
-    <HomeActionsContext.Provider value={actionsValue}>
-      <HomeDataContext.Provider value={dataValue}>
-        {children}
-      </HomeDataContext.Provider>
-    </HomeActionsContext.Provider>
+    <SessionHintContext.Provider value={isLikelyLoggedIn}>
+      <HomeActionsContext.Provider value={actionsValue}>
+        <HomeDataContext.Provider value={dataValue}>
+          {children}
+        </HomeDataContext.Provider>
+      </HomeActionsContext.Provider>
+    </SessionHintContext.Provider>
   );
 }

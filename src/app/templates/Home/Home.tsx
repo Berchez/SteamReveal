@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useContext, useLayoutEffect } from 'react';
+import React, { Suspense, useContext, useLayoutEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 
@@ -12,6 +12,7 @@ import QueryToast from '@/app/components/QueryToast';
 import PendingLoginRoom from '@/app/components/PendingLoginRoom';
 
 import { HomeDataContext, HomeActionsContext } from './context';
+import AntiLoopTokenCapture from './AntiLoopTokenCapture';
 import VideoBackground from './sections/VideoBackground';
 import MyUserSection from './sections/MyUserSection';
 import WelcomeText from './sections/WelcomeText';
@@ -124,6 +125,9 @@ export default function Home({
 
   return (
     <main data-testid="home" className="max-h-dvh">
+      <Suspense fallback={null}>
+        <AntiLoopTokenCapture />
+      </Suspense>
       <VideoBackground />
       {/* One-shot landing toasts: /api/watch/confirm (?confirmed=ok|error)
           and the failed Steam callback leg (?auth=error). The toast strips

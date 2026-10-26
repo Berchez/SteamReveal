@@ -15,7 +15,8 @@
     "probability": "Probability",
     "url": "URL",
     "reliability": "Reliability",
-    "searchFriend": "Search"
+    "searchFriend": "Search",
+    "gcNameLocked": "GC Name is available after signing in."
   },
   "LocationCard": {
     "providedByUser": "Provided by user:",
@@ -33,6 +34,8 @@
     "userInfo": "User info",
     "userPossibleLocation": "User possible location",
     "friendsIRL": "Friends IRL",
+    "gcUpsellTitle": "Unlock the remaining GC Names",
+    "gcUpsellDescription": "Sign in with Steam to see the remaining GC Names ({count}).",
     "friendsPrivateTitle": "Friends list is private",
     "friendsPrivateDescription": "This player hid their friends list, so close friends and location triangulation are unavailable for this search.",
     "friendsPrivateStillWorks": "Still available: profile card, self-declared location, and the manual CS2 anticheat review (less reliable without friends).",

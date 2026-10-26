@@ -47,7 +47,7 @@ describe('SupportMe component', () => {
       };
       return translations[key];
     });
-    document.body.setAttribute('data-country', 'BR');
+    document.cookie = 'steamreveal_country=BR; path=/';
     // jsdom ships no navigator.clipboard: without this the copy-button
     // click logs a (caught) console.error. The beacon fires before the
     // clipboard attempt by design, so the mock only silences noise.
@@ -58,7 +58,7 @@ describe('SupportMe component', () => {
   });
 
   afterEach(() => {
-    document.body.removeAttribute('data-country');
+    document.cookie = 'steamreveal_country=; Max-Age=0; path=/';
     jest.clearAllMocks();
   });
 

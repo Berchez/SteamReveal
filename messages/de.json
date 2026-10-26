@@ -15,7 +15,8 @@
     "probability": "Wahrscheinlichkeit",
     "url": "URL",
     "reliability": "Zuverlässigkeit",
-    "searchFriend": "Suchen"
+    "searchFriend": "Suchen",
+    "gcNameLocked": "Der GC-Name ist nach der Anmeldung verfügbar."
   },
   "LocationCard": {
     "providedByUser": "Vom Benutzer angegeben:",
@@ -33,6 +34,8 @@
     "userInfo": "Spielerinfo",
     "userPossibleLocation": "Möglicher Standort des Spielers",
     "friendsIRL": "Freunde im echten Leben",
+    "gcUpsellTitle": "Die restlichen GC-Namen freischalten",
+    "gcUpsellDescription": "Melde dich bei Steam an, um die restlichen GC-Namen zu sehen ({count}).",
     "friendsPrivateTitle": "Private Freundesliste",
     "friendsPrivateDescription": "Dieser Spieler hat seine Freundesliste verborgen, daher sind enge Freunde und Standort-Triangulation für diese Suche nicht verfügbar.",
     "friendsPrivateStillWorks": "Weiterhin verfügbar: Profilkarte, selbst angegebener Standort und der manuelle CS2-Anticheat-Review (ohne Freunde weniger zuverlässig).",

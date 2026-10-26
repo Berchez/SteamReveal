@@ -5,6 +5,7 @@ import { UserSummary } from 'steamapi';
 
 import NAVIGATION_OWNED_PARAMS from '@/app/templates/Home/hooks/url-sync/navigationParams';
 import { getLocationDetails } from '@/app/templates/Home/hooks/search/homeUtils';
+import { useLikelyLoggedIn } from '@/app/templates/Home/context';
 import { Link } from '@/navigation';
 
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
@@ -25,19 +26,17 @@ const SIZE_CONFIG = {
 const hasText = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0;
 
-function UserCard({
-  friend,
-  count,
-  probability,
-  itsTargetUser,
-  bottomChildren,
-  topRightChildren,
-  preloadedLocationInfo,
-}: {
+type UserCardProps = {
   friend: UserSummary;
   count?: number;
   probability?: number;
   itsTargetUser: boolean;
+  /**
+   * Premium gating: logged-out visitors see the first two friend cards with
+   * GC Name, then the rest render a compact lock chip. The target card is
+   * always exempt (its GC Name is part of the core search result).
+   */
+  allowGcName?: boolean;
   bottomChildren?: React.ReactNode;
   // Corner slot (e.g. the ShareBar trigger on the target card): absolutely
   // positioned, so it never shifts layout. The text column below reserves
@@ -51,17 +50,32 @@ function UserCard({
   // getLocationDetails call and its own loading flicker. Friend cards don't
   // have this pre-resolved, so they keep fetching internally as before.
   preloadedLocationInfo?: LocationInfoType;
-}) {
+};
+
+function UserCardView({
+  friend,
+  count,
+  probability,
+  itsTargetUser,
+  bottomChildren,
+  topRightChildren,
+  preloadedLocationInfo,
+  allowGcName = true,
+  searchParams,
+}: UserCardProps & { searchParams?: URLSearchParams | null }) {
   const { countryCode, stateCode, cityID, steamID } = friend;
 
   const translator = useTranslations('UserCard');
+  const likelyLoggedIn = useLikelyLoggedIn();
+  const gcNameAllowed = allowGcName || itsTargetUser;
   const { name: gcName, isLoading: isLoadingGcName } = useGamersClubName(
     steamID ?? '',
+    { enabled: gcNameAllowed },
   );
+  const gcNameLocked = !gcNameAllowed;
 
   const sizes = itsTargetUser ? SIZE_CONFIG.target : SIZE_CONFIG.friend;
 
-  const searchParams = useSearchParams();
   const friendHref = useMemo(() => {
     if (!friend.steamID) {
       return undefined;
@@ -160,6 +174,7 @@ function UserCard({
           {!itsTargetUser && friendHref && (
             <Link
               href={friendHref}
+              prefetch={likelyLoggedIn ? undefined : false}
               className="inline-flex items-center justify-center w-[60px] py-1 mt-2 text-purple-300 font-semibold text-sm rounded-full border border-purple-600/40 bg-purple-600 bg-opacity-10 hover:bg-opacity-20"
               aria-label={`${translator('searchFriend')} ${friend.nickname}`}
             >
@@ -202,6 +217,29 @@ function UserCard({
                 )}
               </>
             )}
+          </p>
+        )}
+
+        {gcNameLocked && (
+          <p
+            data-testid="gc-name-locked"
+            title={translator('gcNameLocked')}
+            aria-label={translator('gcNameLocked')}
+            className="inline-flex w-fit items-center gap-1 rounded-full border border-purple-600/40 bg-purple-900/30 px-2 py-0.5 text-xs font-semibold text-purple-200"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="h-3.5 w-3.5"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 1a4 4 0 0 0-4 4v3H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V5a4 4 0 0 0-4-4Zm2 7V5a2 2 0 1 0-4 0v3h4Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            GC Name
           </p>
         )}
 
@@ -254,4 +292,20 @@ function UserCard({
   );
 }
 
-export default UserCard;
+function FriendUserCard(props: UserCardProps) {
+  const searchParams = useSearchParams();
+  return <UserCardView {...props} searchParams={searchParams} />;
+}
+
+export default function UserCard(props: UserCardProps) {
+  const { itsTargetUser } = props;
+
+  // The target card is part of the ISR-rendered HTML. Only friend cards need
+  // the current query string for their "open friend" links, so they carry
+  // the useSearchParams suspension; the target branch never suspends.
+  return itsTargetUser ? (
+    <UserCardView {...props} searchParams={null} />
+  ) : (
+    <FriendUserCard {...props} />
+  );
+}

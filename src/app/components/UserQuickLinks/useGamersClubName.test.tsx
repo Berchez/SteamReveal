@@ -4,6 +4,10 @@ import {
   clearFriendGcNames,
   getFriendGcName,
 } from '@/app/templates/Home/shared/analytics/friendGcNameStore';
+import {
+  getGcServiceStatus,
+  resetGcServiceStatus,
+} from '@/app/templates/Home/shared/analytics/gcServiceStatus';
 
 jest.mock('next-intl', () => ({
   useLocale: () => mockUseLocale(),
@@ -14,10 +18,10 @@ const mockUseLocale = jest.fn(() => 'pt');
 const mockFetch = jest.fn();
 
 const setCountry = (country: string | null) => {
+  document.cookie =
+    'steamreveal_country=; Max-Age=0; path=/';
   if (country) {
-    document.body.setAttribute('data-country', country);
-  } else {
-    document.body.removeAttribute('data-country');
+    document.cookie = `steamreveal_country=${country}; path=/`;
   }
 };
 
@@ -32,6 +36,7 @@ describe('useGamersClubName', () => {
 
   beforeEach(() => {
     clearFriendGcNames();
+    resetGcServiceStatus();
     mockFetch.mockReset();
     mockUseLocale.mockReturnValue('pt');
     // fetch is a global, swapped for a mock per test
@@ -103,6 +108,62 @@ describe('useGamersClubName', () => {
     expect(mockFetch).not.toHaveBeenCalled();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
+  });
+
+  it('skips the request entirely when disabled (logged-out premium gate)', async () => {
+    const { result } = renderHook(() =>
+      useGamersClubName(steamId, { enabled: false }),
+    );
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(result.current).toEqual({
+      name: null,
+      isLoading: false,
+      error: null,
+      unavailable: false,
+    });
+  });
+
+  it('reports the GC scraper as unavailable when the API says so', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        steamId,
+        gcName: null,
+        unavailable: true,
+      }),
+    });
+
+    const { result } = renderHook(() => useGamersClubName(steamId));
+
+    await waitFor(() => expect(result.current.unavailable).toBe(true));
+    expect(getGcServiceStatus()).toBe('unavailable');
+  });
+
+  it('reports the GC scraper as available when the API answers', async () => {
+    jsonResponse(null);
+
+    const { result } = renderHook(() => useGamersClubName(steamId));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.unavailable).toBe(false);
+    expect(getGcServiceStatus()).toBe('available');
+  });
+
+  it('starts fetching when enabled flips from false to true', async () => {
+    jsonResponse('aliceCS');
+
+    const { rerender, result } = renderHook(
+      ({ enabled }: { enabled: boolean }) =>
+        useGamersClubName(steamId, { enabled }),
+      { initialProps: { enabled: false } },
+    );
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    rerender({ enabled: true });
+
+    await waitFor(() => expect(result.current.name).toBe('aliceCS'));
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
   it('a cancelled (steamId-changed) response never writes stale state or the store', async () => {

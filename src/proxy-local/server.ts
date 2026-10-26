@@ -9,8 +9,9 @@ import { loadEnv } from '../lib/env';
 import { installCrashHandlers, writeOpsLog } from '../lib/opsLog';
 import { sanitizeError } from '../lib/sanitizeError';
 import { isSteamId64 } from '../lib/steamId';
-import scrapeGamersClubName, {
+import {
   scrapeGamersClubBan,
+  scrapeGamersClubNameWithStatus,
 } from './utils/scrapeGamersClubName';
 
 // Load environment variables before setting up the server. loadEnv() follows
@@ -48,6 +49,7 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
     );
 
     let name: string | null = null;
+    let notFound = false;
     let banned = false;
     let banReason: string | null = null;
     let sessions: number | null = null;
@@ -66,12 +68,18 @@ app.get('/api/gamersclub/:steamId', async (req: Request, res: Response) => {
       banReason = banProfile.banReason;
       sessions = banProfile.sessions;
     } else {
-      name = await scrapeGamersClubName(steamId, allowScrape);
+      const result = await scrapeGamersClubNameWithStatus(
+        steamId,
+        allowScrape,
+      );
+      name = result.name;
+      notFound = result.notFound;
     }
 
     return res.status(200).json({
       steamId,
       name,
+      notFound,
       banned,
       banReason,
       sessions,

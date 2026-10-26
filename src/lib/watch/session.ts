@@ -19,11 +19,24 @@ import { getIronSession, type CookieStore } from 'iron-session';
 
 import { isSteamId64 } from '@/lib/steamId';
 
-import { WATCH_SESSION_COOKIE, type WatchSessionData } from './sessionCookie';
+import {
+  WATCH_SESSION_COOKIE,
+  WATCH_SESSION_HINT_COOKIE,
+  WATCH_SESSION_TTL_SECONDS,
+  type WatchSessionData,
+} from './sessionCookie';
+
+export { WATCH_SESSION_TTL_SECONDS } from './sessionCookie';
 
 /** 30 days, in the units each consumer needs. */
-export const WATCH_SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 export const WATCH_SESSION_TTL_MS = WATCH_SESSION_TTL_SECONDS * 1000;
+
+const sessionHintCookieOptions = () => ({
+  httpOnly: false,
+  sameSite: 'lax' as const,
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
+});
 
 /**
  * Sealing password from env. Throws loudly when missing/short:
@@ -113,6 +126,10 @@ export const saveWatchSession = async (
   );
   Object.assign(session, createSessionData(steamId));
   await session.save();
+  cookieStore.set(WATCH_SESSION_HINT_COOKIE, '1', {
+    ...sessionHintCookieOptions(),
+    maxAge: WATCH_SESSION_TTL_SECONDS,
+  });
 };
 
 /** Clears the session cookie (logout). Never throws for absent cookies. */
@@ -124,6 +141,10 @@ export const destroyWatchSession = async (
     sessionOptions(),
   );
   await session.destroy();
+  cookieStore.set(WATCH_SESSION_HINT_COOKIE, '', {
+    ...sessionHintCookieOptions(),
+    maxAge: 0,
+  });
 };
 
 export type SessionResolution =

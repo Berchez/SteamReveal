@@ -32,6 +32,7 @@ import {
 } from './homeUtils';
 
 import { getCachedSearch, setCachedSearch } from '../../shared/cache/homeCache';
+import { getCapturedAntiLoopToken } from '../../antiLoopToken';
 
 import {
   recordAnalytics,
@@ -641,7 +642,7 @@ const useHomeSearch = ({
             durationMs: Date.now() - startedAt,
             antiLoopToken: antiLoopTokenSentRef.current
               ? undefined
-              : antiLoopToken,
+              : (antiLoopToken ?? getCapturedAntiLoopToken()),
             friendsVisibility: resolvedVisibility,
           },
         );

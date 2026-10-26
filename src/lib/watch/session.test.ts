@@ -158,25 +158,41 @@ describe('saveWatchSession / destroyWatchSession', () => {
     process.env.SESSION_SECRET = 'y'.repeat(40);
   });
 
-  it('writes id + expiry and saves', async () => {
+  it('writes id + expiry, saves, and seeds the presence hint', async () => {
     const save = jest.fn(async () => undefined);
     const session: Record<string, unknown> = { save };
+    const store = makeStore();
     mockGetIronSession.mockResolvedValue(session);
 
-    await saveWatchSession(makeStore(), STEAM);
+    await saveWatchSession(store, STEAM);
 
     expect(session.steamId).toBe(STEAM);
     expect(typeof session.expiresAt).toBe('number');
     expect(save).toHaveBeenCalledTimes(1);
+    expect(store.set).toHaveBeenCalledWith(
+      'steamreveal_watch_session_hint',
+      '1',
+      expect.objectContaining({
+        httpOnly: false,
+        path: '/',
+        maxAge: 30 * 24 * 60 * 60,
+      }),
+    );
   });
 
-  it('destroys the session on logout', async () => {
+  it('destroys the session and clears the presence hint on logout', async () => {
     const destroy = jest.fn(async () => undefined);
+    const store = makeStore();
     mockGetIronSession.mockResolvedValue({ destroy });
 
-    await destroyWatchSession(makeStore());
+    await destroyWatchSession(store);
 
     expect(destroy).toHaveBeenCalledTimes(1);
+    expect(store.set).toHaveBeenCalledWith(
+      'steamreveal_watch_session_hint',
+      '',
+      expect.objectContaining({ maxAge: 0, path: '/' }),
+    );
   });
 });
 

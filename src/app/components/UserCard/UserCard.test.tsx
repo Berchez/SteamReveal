@@ -7,6 +7,7 @@ import UserCard from './UserCard';
 import { UserSummary } from 'steamapi';
 import useGamersClubName from '../UserQuickLinks/useGamersClubName';
 import { getLocationDetails } from '@/app/templates/Home/hooks/search/homeUtils';
+import { SessionHintContext } from '@/app/templates/Home/context';
 
 jest.mock('next-intl', () => ({
   useTranslations: jest.fn(),
@@ -38,8 +39,12 @@ jest.mock('next/navigation', () => ({
 // regardless of where `@/navigation.ts` actually lives on disk.
 jest.mock('next-intl/navigation', () => ({
   createNavigation: () => ({
-    Link: ({ href, children, ...rest }: any) => (
-      <a href={href} {...rest}>
+    Link: ({ href, children, prefetch, ...rest }: any) => (
+      <a
+        href={href}
+        data-prefetch={prefetch === false ? 'false' : 'default'}
+        {...rest}
+      >
         {children}
       </a>
     ),
@@ -61,6 +66,7 @@ describe('UserCard Component', () => {
       url: 'Url',
       reliability: 'Reliability',
       searchFriend: 'Search friend',
+      gcNameLocked: 'GC Name locked',
     };
     return translations[key];
   };
@@ -253,6 +259,90 @@ describe('UserCard Component', () => {
       expect(
         screen.queryByRole('link', { name: /Search friend/i }),
       ).not.toBeInTheDocument();
+    });
+
+    it('disables prefetch for visitors without a session hint', async () => {
+      (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams(''));
+
+      await act(async () => {
+        render(
+          <SessionHintContext.Provider value={false}>
+            <UserCard friend={mockFriend} itsTargetUser={false} />
+          </SessionHintContext.Provider>,
+        );
+      });
+
+      expect(
+        screen.getByRole('link', { name: /Search friend/i }),
+      ).toHaveAttribute('data-prefetch', 'false');
+    });
+
+    it('keeps the default prefetch for logged-in visitors', async () => {
+      (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams(''));
+
+      await act(async () => {
+        render(
+          <SessionHintContext.Provider value={true}>
+            <UserCard friend={mockFriend} itsTargetUser={false} />
+          </SessionHintContext.Provider>,
+        );
+      });
+
+      expect(
+        screen.getByRole('link', { name: /Search friend/i }),
+      ).toHaveAttribute('data-prefetch', 'default');
+    });
+  });
+
+  // ---------------------------------------------------------------------
+  // GC Name premium gate
+  // ---------------------------------------------------------------------
+  describe('GC Name premium gate', () => {
+    it('always enables the GC Name lookup for the target card', async () => {
+      await act(async () => {
+        render(
+          <UserCard
+            friend={mockFriend}
+            itsTargetUser={true}
+            allowGcName={false}
+          />,
+        );
+      });
+
+      expect(useGamersClubName).toHaveBeenCalledWith('12345', {
+        enabled: true,
+      });
+      expect(screen.queryByTestId('gc-name-locked')).not.toBeInTheDocument();
+    });
+
+    it('disables the lookup and renders a lock chip for a gated friend card', async () => {
+      await act(async () => {
+        render(
+          <UserCard
+            friend={mockFriend}
+            itsTargetUser={false}
+            allowGcName={false}
+          />,
+        );
+      });
+
+      expect(useGamersClubName).toHaveBeenCalledWith('12345', {
+        enabled: false,
+      });
+      expect(screen.getByTestId('gc-name-locked')).toHaveTextContent(
+        'GC Name',
+      );
+    });
+
+    it('keeps the lookup enabled and renders no lock chip when allowed', async () => {
+      await act(async () => {
+        render(<UserCard friend={mockFriend} itsTargetUser={false} />);
+      });
+
+      expect(useGamersClubName).toHaveBeenCalledWith('12345', {
+        enabled: true,
+      });
+      expect(screen.queryByTestId('gc-name-locked')).not.toBeInTheDocument();
     });
   });
 

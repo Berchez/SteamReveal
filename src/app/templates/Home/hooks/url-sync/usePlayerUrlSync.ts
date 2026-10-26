@@ -1,7 +1,5 @@
 import { useCallback, useRef } from 'react';
 
-import { useSearchParams } from 'next/navigation';
-
 import { useRouter } from '@/navigation';
 
 import NAVIGATION_OWNED_PARAMS from './navigationParams';
@@ -20,22 +18,21 @@ import NAVIGATION_OWNED_PARAMS from './navigationParams';
 const usePlayerUrlSync = (reserveNewRun: () => number) => {
   const router = useRouter();
 
-  const searchParams = useSearchParams();
+  const buildPlayerHref = useCallback((steamId: string) => {
+    // Read at call time (user click), never during render: useSearchParams
+    // would suspend HomeProvider and block ISR prerendering.
+    const searchParams =
+      typeof window === 'undefined' ? '' : window.location.search;
+    const params = new URLSearchParams(searchParams);
 
-  const buildPlayerHref = useCallback(
-    (steamId: string) => {
-      const params = new URLSearchParams(searchParams.toString());
+    NAVIGATION_OWNED_PARAMS.forEach((key) => params.delete(key));
 
-      NAVIGATION_OWNED_PARAMS.forEach((key) => params.delete(key));
+    const query = params.toString();
 
-      const query = params.toString();
+    const path = `/player/${encodeURIComponent(steamId)}`;
 
-      const path = `/player/${encodeURIComponent(steamId)}`;
-
-      return query ? `${path}?${query}` : path;
-    },
-    [searchParams],
-  );
+    return query ? `${path}?${query}` : path;
+  }, []);
 
   const navigateToPlayer = useCallback(
     (steamId: string) => {

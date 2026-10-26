@@ -1,9 +1,17 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import Home from '@/app/templates/Home';
 import getPlayerProfile from '@/lib/getPlayerProfile';
 import { SITE_BASE_URL, SUPPORTED_LOCALES } from '@/locales';
+
+export const revalidate = 21600;
+
+// Every Steam profile is generated on demand; an empty list opts the dynamic
+// route into the ISR/prerender cache instead of per-request SSR.
+export function generateStaticParams() {
+  return [];
+}
 
 interface PlayerPageProps {
   params: {
@@ -15,6 +23,7 @@ interface PlayerPageProps {
 export async function generateMetadata({
   params: { locale, steamId },
 }: PlayerPageProps): Promise<Metadata> {
+  setRequestLocale(locale);
   const profile = await getPlayerProfile(steamId);
   const t = await getTranslations({ locale, namespace: 'Metadata.Player' });
 
@@ -66,8 +75,9 @@ export async function generateMetadata({
 }
 
 export default async function PlayerPage({
-  params: { steamId },
+  params: { locale, steamId },
 }: PlayerPageProps) {
+  setRequestLocale(locale);
   const initialProfile = await getPlayerProfile(steamId);
 
   return <Home initialProfile={initialProfile} />;

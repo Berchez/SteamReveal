@@ -142,6 +142,46 @@ describe('gcNameCache', () => {
     });
   });
 
+  describe('freshness window', () => {
+    it('treats an entry older than 30 days as stale (needs a refresh)', () => {
+      const { isGcNameEntryStale } = freshModule();
+
+      expect(
+        isGcNameEntryStale({
+          name: 'Old Name',
+          cachedAt: Date.now() - (31 * 24 * 60 * 60 * 1000),
+        }),
+      ).toBe(true);
+    });
+
+    it('treats an entry younger than 30 days as fresh', () => {
+      const { isGcNameEntryStale } = freshModule();
+
+      expect(
+        isGcNameEntryStale({
+          name: 'Recent Name',
+          cachedAt: Date.now() - (29 * 24 * 60 * 60 * 1000),
+        }),
+      ).toBe(false);
+    });
+
+    it('still serves a stale entry as a cache hit (only the 90-day TTL evicts it)', () => {
+      const staleTimestamp = Date.now() - (31 * 24 * 60 * 60 * 1000);
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          '76561198000000000': { name: 'Old Name', cachedAt: staleTimestamp },
+        }),
+      );
+
+      const { getCachedGcName, isGcNameEntryStale } = freshModule();
+      const entry = getCachedGcName('76561198000000000');
+
+      expect(entry?.name).toBe('Old Name');
+      expect(isGcNameEntryStale(entry!)).toBe(true);
+    });
+  });
+
   describe('malformed data on disk', () => {
     it('drops an entry with a non-numeric cachedAt instead of treating it as never-expiring', () => {
       mockExistsSync.mockReturnValue(true);

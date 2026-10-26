@@ -45,21 +45,25 @@ export const loginTestUser = async (page: Page, steamId: string) => {
   if (!res.ok()) {
     throw new Error(`test-login failed: HTTP ${res.status()}`);
   }
-  const setCookie = res.headers()['set-cookie'];
-  if (!setCookie) {
+  const setCookies = res
+    .headersArray()
+    .filter((header) => header.name.toLowerCase() === 'set-cookie');
+  if (setCookies.length === 0) {
     throw new Error('test-login answered without a session cookie');
   }
-  const [pair] = setCookie.split(';');
-  const separator = pair.indexOf('=');
   // Host from the login response URL, not a hardcoded 'localhost': the
-  // cookie must belong to wherever the suite actually runs (baseURL).
+  // cookies must belong to wherever the suite actually runs (baseURL).
   const hostname = new URL(res.url()).hostname;
-  await page.context().addCookies([
-    {
-      name: pair.slice(0, separator),
-      value: pair.slice(separator + 1),
-      domain: hostname,
-      path: '/',
-    },
-  ]);
+  await page.context().addCookies(
+    setCookies.map(({ value }) => {
+      const [pair] = value.split(';');
+      const separator = pair.indexOf('=');
+      return {
+        name: pair.slice(0, separator),
+        value: pair.slice(separator + 1),
+        domain: hostname,
+        path: '/',
+      };
+    }),
+  );
 };

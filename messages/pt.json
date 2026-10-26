@@ -15,7 +15,8 @@
     "probability": "Probabilidade",
     "url": "URL",
     "reliability": "Confiabilidade",
-    "searchFriend": "Buscar"
+    "searchFriend": "Buscar",
+    "gcNameLocked": "O GC Name fica disponível depois de entrar."
   },
   "LocationCard": {
     "providedByUser": "Fornecido pelo usuário:",
@@ -31,6 +32,8 @@
     "searchTitle": "Procure por um jogador Steam",
     "inputSearchPlaceholder": "Procure um jogador (ID do Steam / Link do perfil do Steam / URL personalizado do Steam)",
     "friendsIRL": "Amigos na vida real",
+    "gcUpsellTitle": "Desbloqueie os GC Names restantes",
+    "gcUpsellDescription": "Entre com a Steam para ver os GC Names restantes ({count}).",
     "friendsPrivateTitle": "Lista de amigos privada",
     "friendsPrivateDescription": "Este jogador ocultou a lista de amigos, então amigos próximos e triangulação de localização estão indisponíveis nesta busca.",
     "friendsPrivateStillWorks": "Ainda disponível: cartão de perfil, localização declarada e a análise manual CS2 anticheat (menos confiável sem amigos).",

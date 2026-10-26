@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
+import { useLikelyLoggedIn } from '@/app/templates/Home/context';
 import {
   isVideoAllowed,
   type VideoBackgroundConnection,
@@ -27,6 +28,7 @@ const cancelPending = (win: IdleAwareWindow, pendingId: number | null) => {
 
 function VideoBackground() {
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  const likelyLoggedIn = useLikelyLoggedIn();
 
   useEffect(() => {
     const win = window as IdleAwareWindow;
@@ -115,8 +117,14 @@ function VideoBackground() {
           className="object-cover w-screen h-screen brightness-90"
           poster="/images/background.webp"
         >
-          <source src="/videos/short-bg.webm" type="video/webm" />
-          <source src="/videos/short-bg.mp4" type="video/mp4" />
+          {likelyLoggedIn ? (
+            <>
+              <source src="/videos/short-bg.webm" type="video/webm" />
+              <source src="/videos/short-bg.mp4" type="video/mp4" />
+            </>
+          ) : (
+            <source src="/videos/short-bg-lite.mp4" type="video/mp4" />
+          )}
         </video>
       ) : (
         <Image

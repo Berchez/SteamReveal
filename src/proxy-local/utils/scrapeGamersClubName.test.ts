@@ -13,10 +13,15 @@
 import axios from 'axios';
 import scrapeGamersClubName, {
   scrapeGamersClubBan,
+  scrapeGamersClubNameWithStatus,
   DEFAULT_GAMERSCLUB_USER_AGENT,
 } from './scrapeGamersClubName';
 import { resetRateLimiter, setMinDelay, setMaxDelay } from './rateLimit';
-import { getCachedGcName, setCachedGcName } from './gcNameCache';
+import {
+  getCachedGcName,
+  isGcNameEntryStale,
+  setCachedGcName,
+} from './gcNameCache';
 
 jest.mock('axios');
 jest.mock('./getErrorMessage', () => ({
@@ -35,6 +40,7 @@ jest.mock('./gcNameCache', () => ({
   __esModule: true,
   getCachedGcName: jest.fn(),
   setCachedGcName: jest.fn(),
+  isGcNameEntryStale: jest.fn(() => false),
 }));
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -43,6 +49,9 @@ const mockedGetCachedGcName = getCachedGcName as jest.MockedFunction<
 >;
 const mockedSetCachedGcName = setCachedGcName as jest.MockedFunction<
   typeof setCachedGcName
+>;
+const mockedIsGcNameEntryStale = isGcNameEntryStale as jest.MockedFunction<
+  typeof isGcNameEntryStale
 >;
 
 jest.setTimeout(10000);
@@ -80,6 +89,8 @@ describe('scrapeGamersClubName', () => {
     // otherwise — otherwise a stray `undefined` return would be treated
     // as falsy/miss anyway, but being explicit keeps intent clear.
     mockedGetCachedGcName.mockReturnValue(null);
+    // Entries are fresh unless a test says otherwise.
+    mockedIsGcNameEntryStale.mockReturnValue(false);
 
     // jest.mock('axios') replaces axios.isAxiosError with a plain jest.fn()
     // (it's normally a type guard provided by the real library), so it
@@ -130,6 +141,131 @@ describe('scrapeGamersClubName', () => {
 
       expect(name).toBeNull();
       expect(mockedAxios.get).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cache/status result (notFound signal for the Vercel cache)', () => {
+    it('marks a cached null as a confirmed not-found', async () => {
+      mockedGetCachedGcName.mockReturnValueOnce({
+        name: null,
+        cachedAt: Date.now(),
+      });
+
+      const result = await scrapeGamersClubNameWithStatus(STEAM_ID);
+
+      expect(result).toEqual({ name: null, notFound: true });
+      expect(mockedAxios.get).not.toHaveBeenCalled();
+    });
+
+    it('does NOT mark an allowScrape=false cache miss as not-found', async () => {
+      mockedGetCachedGcName.mockReturnValue(null);
+
+      const result = await scrapeGamersClubNameWithStatus(STEAM_ID, false);
+
+      expect(result).toEqual({ name: null, notFound: false });
+      expect(mockedAxios.get).not.toHaveBeenCalled();
+    });
+
+    it('marks a GamersClub-confirmed miss as not-found after caching it', async () => {
+      mockedGetCachedGcName
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce({ name: null, cachedAt: Date.now() });
+      mockedAxios.get.mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        data: '',
+      });
+
+      const result = await scrapeGamersClubNameWithStatus(STEAM_ID);
+
+      expect(result).toEqual({ name: null, notFound: true });
+      expect(mockedSetCachedGcName).toHaveBeenCalledWith(STEAM_ID, null);
+    });
+
+    it('does NOT mark a parser miss (profile loaded, no Nome field) as not-found', async () => {
+      mockedGetCachedGcName.mockReturnValue(null);
+      mockedAxios.get
+        .mockResolvedValueOnce({
+          status: 307,
+          headers: { location: '/player/123' },
+          data: '',
+        })
+        .mockResolvedValueOnce({
+          status: 200,
+          headers: {},
+          data: '<div class="gc-list-item"><h6>Outro</h6></div>',
+        });
+
+      const result = await scrapeGamersClubNameWithStatus(STEAM_ID);
+
+      expect(result).toEqual({ name: null, notFound: false });
+      expect(mockedSetCachedGcName).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('stale entries (freshness window)', () => {
+    it('re-scrapes a stale entry when scraping is allowed and caches the fresh name', async () => {
+      mockedGetCachedGcName.mockReturnValue({
+        name: 'Old Nickname',
+        cachedAt: Date.now() - 31 * 24 * 60 * 60 * 1000,
+      });
+      mockedIsGcNameEntryStale.mockReturnValue(true);
+      mockedAxios.get
+        .mockResolvedValueOnce({
+          status: 307,
+          headers: { location: '/player/123' },
+          data: '',
+        })
+        .mockResolvedValueOnce({
+          status: 200,
+          headers: {},
+          data: `
+            <div class="gc-list-item">
+              <h6 class="gc-list-title">Nome</h6>
+              <p class="gc-list-text">New Nickname</p>
+            </div>
+          `,
+        });
+
+      const result = await scrapeGamersClubNameWithStatus(STEAM_ID);
+
+      expect(result).toEqual({ name: 'New Nickname', notFound: false });
+      expect(mockedAxios.get).toHaveBeenCalledTimes(2);
+      expect(mockedSetCachedGcName).toHaveBeenCalledWith(
+        STEAM_ID,
+        'New Nickname',
+      );
+    });
+
+    it('serves the stale entry as-is when scraping is disabled', async () => {
+      mockedGetCachedGcName.mockReturnValue({
+        name: 'Old Nickname',
+        cachedAt: Date.now() - 31 * 24 * 60 * 60 * 1000,
+      });
+      mockedIsGcNameEntryStale.mockReturnValue(true);
+
+      const result = await scrapeGamersClubNameWithStatus(STEAM_ID, false);
+
+      expect(result).toEqual({ name: 'Old Nickname', notFound: false });
+      expect(mockedAxios.get).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the stale entry when the refresh fails', async () => {
+      mockedGetCachedGcName.mockReturnValue({
+        name: 'Old Nickname',
+        cachedAt: Date.now() - 31 * 24 * 60 * 60 * 1000,
+      });
+      mockedIsGcNameEntryStale.mockReturnValue(true);
+      // Missing cookie -> the refresh throws before any request goes out.
+      delete process.env.GAMERSCLUB_SESSION_COOKIE;
+
+      const result = await scrapeGamersClubNameWithStatus(STEAM_ID);
+
+      // A failed refresh must not turn into "no GC profile" — the last
+      // known good name is still the best answer we have.
+      expect(result).toEqual({ name: 'Old Nickname', notFound: false });
+      expect(mockedAxios.get).not.toHaveBeenCalled();
+      expect(mockedSetCachedGcName).not.toHaveBeenCalled();
     });
   });
 
