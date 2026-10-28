@@ -58,11 +58,22 @@ const friend = (steamID: string) =>
 
 describe('FriendsSection — private/empty empty-states', () => {
   it('renders skeletons while the list is unresolved', () => {
-    render(<FriendsSection closeFriendsJson={undefined} />);
+    render(
+      <FriendsSection closeFriendsJson={undefined} profileReady={true} />,
+    );
     expect(screen.getAllByTestId('friend-skeleton').length).toBeGreaterThan(0);
     expect(
       screen.queryByTestId('friends-private-empty-state'),
     ).not.toBeInTheDocument();
+  });
+
+  it('renders no skeleton pool before the profile is known', () => {
+    // The pool is a ~6500px block. Keeping it out of the server-rendered
+    // HTML (the profile is only known client-side) keeps the first paint
+    // small; it appears right after the seed, when the location section
+    // above already reserves its final height, so nothing on screen moves.
+    render(<FriendsSection closeFriendsJson={undefined} />);
+    expect(screen.queryAllByTestId('friend-skeleton')).toHaveLength(0);
   });
 
   it('renders friend cards for a public list', () => {

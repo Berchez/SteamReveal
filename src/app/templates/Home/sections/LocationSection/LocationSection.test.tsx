@@ -38,13 +38,11 @@ const renderWithIntl = (ui: React.ReactElement) =>
   );
 
 describe('LocationSection', () => {
-  it('renders the skeleton even when idle (no data, not loading), so the section never collapses to zero height', () => {
-    // The section must not unmount during the `!data && !isLoading` window
-    // (before the fetch kicks off / between resets): collapsing to zero
-    // height on first paint banked a full-section layout shift when the
-    // content landed. Home.tsx only mounts this section when hasNoDataYet is
-    // false, so the heading + skeleton here can never leak onto the home
-    // empty state. `isLoading` is ignored by design.
+  it('renders the heading without a skeleton once nothing is pending (e.g. an invalid player)', () => {
+    // Nothing is loading and no location resolved: the section settles on
+    // its heading only. It used to keep an eternal skeleton here, which the
+    // e2e suite catches on the invalid-player route (a skeleton spinning
+    // forever is a worse failure than a short section).
     const { getByText, container } = renderWithIntl(
       <LocationSection
         possibleLocationJson={undefined}
@@ -53,6 +51,9 @@ describe('LocationSection', () => {
     );
 
     expect(getByText('User possible location')).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-testid="location-skeleton-map"]'),
+    ).not.toBeInTheDocument();
     expect(
       container.querySelector('[data-testid="location-skeleton-provided"]'),
     ).not.toBeInTheDocument();
@@ -65,17 +66,21 @@ describe('LocationSection', () => {
     // produces possibleLocationJson) even starts. This test asserts the
     // section stays mounted for as long as ITS OWN loading flag says so,
     // regardless of what stage friends/other data are at.
-    const { getByText } = renderWithIntl(
+    const { getByText, container } = renderWithIntl(
       <LocationSection
         possibleLocationJson={undefined}
         targetInfoJson={{
           profileInfo: { steamID: '123' } as UserSummary,
           targetLocationInfo: {},
         }}
+        isLoadingLocation
       />,
     );
 
     expect(getByText('User possible location')).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-testid="location-skeleton-map"]'),
+    ).toBeInTheDocument();
   });
 
   it("gives the skeleton a fresh key per player so a new player never inherits the previous one's locked shape", () => {
@@ -86,6 +91,7 @@ describe('LocationSection', () => {
           profileInfo: { steamID: 'player-a' } as UserSummary,
           targetLocationInfo: {},
         }}
+        isLoadingLocation
       />,
     );
 
@@ -105,6 +111,7 @@ describe('LocationSection', () => {
               country: { code: 'BR', name: 'Brazil' },
             },
           }}
+          isLoadingLocation
         />
       </NextIntlClientProvider>,
     );
@@ -131,6 +138,7 @@ describe('LocationSection', () => {
           },
         }}
         friendsVisibility="private"
+        isLoadingLocation
       />,
     );
     expect(

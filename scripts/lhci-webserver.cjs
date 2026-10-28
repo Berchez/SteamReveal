@@ -50,9 +50,52 @@ const WARM_TARGETS = [
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// A page fetch compiles the SERVER code only. The client chunks are separate
+// requests: the browser asks for them while it loads, and in dev the server
+// compiles each one ON DEMAND - seconds of latency the first time. The
+// dynamically imported sections (LocationSection/FriendsSection) are
+// therefore not ready when hydration starts, React swaps them for the
+// dynamic() fallback, and they pop back in when the chunk finally lands.
+// That unmount/remount is dev-compile noise (it does not happen in a
+// production build, where the chunks are preloaded), and it wrecks the
+// player-page CLS: the friends section is a ~6500px block, so the late
+// remount pushes it out of the viewport and banks ~0.37 of layout shift.
+//
+// Warming the chunks explicitly is what the comment above always meant to
+// happen: fetch every script/preload the page references so the dev server
+// has them compiled before the audit starts.
+async function warmClientChunks(pageUrl) {
+  const html = await fetch(pageUrl, {
+    method: 'GET',
+    redirect: 'manual',
+    signal: AbortSignal.timeout(20000),
+  }).then((res) => (res.ok ? res.text() : ''));
+
+  const urls = new Set();
+  const scriptSrc = /<script[^>]+src="([^"]+)"/g;
+  const preloadHref = /<link[^>]+rel="preload"[^>]+href="([^"]+)"/g;
+  for (const match of html.matchAll(scriptSrc)) urls.add(match[1]);
+  for (const match of html.matchAll(preloadHref)) urls.add(match[1]);
+
+  await Promise.all(
+    [...urls]
+      .filter((src) => src.startsWith('/'))
+      .map((src) =>
+        fetch(new URL(src, pageUrl).toString(), {
+          method: 'GET',
+          signal: AbortSignal.timeout(30000),
+        }).catch(() => undefined),
+      ),
+  );
+  return urls.size;
+}
+
 async function warmUp() {
   for (const url of WARM_TARGETS) {
     try {
+      if (!url.includes('/api/')) {
+        await warmClientChunks(url);
+      }
       await fetch(url, {
         method: 'GET',
         redirect: 'manual',

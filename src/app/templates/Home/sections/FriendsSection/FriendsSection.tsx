@@ -8,6 +8,7 @@ import UserCard from '@/app/components/UserCard';
 import UserCardSkeleton from '@/app/components/UserCard/UserCardSkeleton';
 import { useLikelyLoggedIn } from '@/app/templates/Home/context';
 import { useGcServiceStatus } from '@/app/templates/Home/shared/analytics/gcServiceStatus';
+import SectionTitle from '@/app/templates/Home/sections/SectionTitle';
 import GamersClubBanner from './GamersClubBanner';
 import { closeFriendsDataIWant } from '../../../../../@types/closeFriendsDataIWant';
 
@@ -19,6 +20,17 @@ type FriendsSectionProps = {
    * Drives the empty-state copy.
    */
   friendsVisibility?: FriendsVisibility;
+  /**
+   * True once the target's profile is known (the client resolved it). The
+   * skeleton pool is a ~6500px block, and the profile is only known
+   * client-side (the server-rendered player page has no session data), so
+   * this keeps that block out of the server-rendered HTML: the first paint
+   * stays small instead of shipping twenty skeleton cards' worth of markup.
+   * The pool appears right after the profile seed, by which point the
+   * location section above already reserves its final height, so nothing
+   * that is on screen has to move when it shows up.
+   */
+  profileReady?: boolean;
 };
 
 // Skeleton pool matches the product cap for this list: the route trims the
@@ -28,14 +40,21 @@ type FriendsSectionProps = {
 // skeleton→data swap height-neutral for the typical profile instead of
 // growing the section by a dozen cards when the list lands. Importing the
 // shared constant keeps this auto-synced if the cap ever changes.
-const skeletonUUIDs = Array.from(
+//
+// The keys are INDEX-based on purpose: `crypto.randomUUID()` produced a
+// different key set on the server and on the client, so React threw the
+// server-rendered pool away and rebuilt it on hydration - the whole
+// ~6500px block collapsed and grew again, which is a layout shift of its
+// own (and it also broke the hydration of the cards below it).
+const skeletonKeys = Array.from(
   { length: MAX_CLOSE_FRIENDS },
-  () => crypto.randomUUID(),
+  (_, index) => `friends-skeleton-${index}`,
 );
 
 function FriendsSection({
   closeFriendsJson,
   friendsVisibility,
+  profileReady = false,
 }: FriendsSectionProps) {
   const translator = useTranslations('Index');
   const likelyLoggedIn = useLikelyLoggedIn();
@@ -104,9 +123,7 @@ function FriendsSection({
     // keeping mb-12 too would stack 48+48=96px instead of the collapsed 48px
     // this gap has always been. See Home.tsx footer comment.
     <div data-testid="friends-section" className="w-full">
-      <h1 className="text-2xl font-bold text-gray-100">
-        {translator('friendsIRL')}
-      </h1>
+      <SectionTitle translationKey="friendsIRL" />
       {closeFriendsJson
         ? closeFriendsJson.map((f, index) => {
             // Logged-out premium gate: target-independent cards 0 and 1
@@ -134,8 +151,9 @@ function FriendsSection({
               </React.Fragment>
             );
           })
-        : skeletonUUIDs.map((uuid) => (
-            <UserCardSkeleton itsTargetUser={false} key={uuid} />
+        : profileReady &&
+          skeletonKeys.map((skeletonKey) => (
+            <UserCardSkeleton itsTargetUser={false} key={skeletonKey} />
           ))}
       {closeFriendsJson && closeFriendsJson.length === 0 && renderEmptyState()}
     </div>

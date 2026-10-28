@@ -16,14 +16,19 @@ Object.defineProperty(globalThis, 'crypto', {
 const LocationCardSkeleton = require('./LocationCardSkeleton').default;
 
 describe('LocationCardSkeleton', () => {
-  it('does not render the "provided by user" line or a map placeholder when providedLocation starts empty', () => {
+  it('does not render the "provided by user" line when providedLocation starts empty, but always reserves the map area', () => {
     const { queryByTestId } = render(
       <LocationCardSkeleton providedLocation={{}} />,
     );
 
     expect(queryByTestId('location-skeleton-provided')).not.toBeInTheDocument();
 
-    expect(queryByTestId('location-skeleton-map')).not.toBeInTheDocument();
+    // The map area is reserved unconditionally: it is the biggest block of
+    // the card and the final card only renders it for some profiles, so a
+    // conditional placeholder made this section grow by ~460px whenever the
+    // location lookup landed - sliding the friends block below it out of
+    // the viewport (the biggest layout shift on the player page).
+    expect(queryByTestId('location-skeleton-map')).toBeInTheDocument();
   });
 
   it('keeps its initial (empty) shape when providedLocation resolves later on the SAME instance', () => {
@@ -48,7 +53,7 @@ describe('LocationCardSkeleton', () => {
 
     expect(queryByTestId('location-skeleton-provided')).not.toBeInTheDocument();
 
-    expect(queryByTestId('location-skeleton-map')).not.toBeInTheDocument();
+    expect(queryByTestId('location-skeleton-map')).toBeInTheDocument();
   });
 
   it('reflects providedLocation immediately when it is already resolved on first render (non-seeded path)', () => {

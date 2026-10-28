@@ -8,7 +8,12 @@ import { hasSelfDeclaredLocation } from './LocationCard';
 // `.slice(0, 3)`). A 3-row skeleton keeps the swap height-neutral for the
 // average profile, so the location card doesn't visibly grow when it
 // resolves.
-const skeletonUUIDs = Array.from({ length: 3 }, () => crypto.randomUUID());
+//
+// The keys are INDEX-based on purpose: `crypto.randomUUID()` produced a
+// different key set on the server and on the client, so React threw the
+// server-rendered skeleton away and rebuilt it on hydration - the card
+// collapsed and grew again, which is a layout shift of its own.
+const skeletonKeys = ['location-skeleton-0', 'location-skeleton-1', 'location-skeleton-2'];
 type ProvidedLocation = {
   cityName?: string;
   stateName?: string;
@@ -31,10 +36,19 @@ function LocationCardSkeleton({
   // starts as `{}` and is enriched asynchronously a moment later, while this
   // exact skeleton instance is still mounted. If the shape were recomputed
   // from live props on every render, that later enrichment would add a
-  // "provided by user" line and a 400px map placeholder to an
-  // already-visible skeleton. That's a self-inflicted layout shift, and it
-  // was happening on effectively every seeded page load (i.e. most
-  // navigations on this site).
+  // "provided by user" line to an already-visible skeleton: a smaller
+  // shift, but the same class of bug.
+  //
+  // The 400px map area is a DIFFERENT case and is deliberately NOT
+  // conditional: it is always reserved, because it is the single biggest
+  // block in this card and the final card only renders it for some
+  // profiles. A conditional placeholder meant the section grew by ~460px
+  // whenever the location lookup (a dynamically imported country dataset,
+  // so it lands whenever the network lets it) told us the profile has a
+  // city. That growth slid the whole friends block below it out of the
+  // viewport and banked the largest layout shift on the player page.
+  // Reserving the space unconditionally pins the section's height from the
+  // first paint, whatever the profile turns out to be.
   //
   // Locking the shape via a lazy useState initializer (runs once, on this
   // instance's first render only) fixes it — paired with LocationSection
@@ -48,13 +62,12 @@ function LocationCardSkeleton({
   // late (e.g. cityName resolving after stateName+countryCode were already
   // present) would pop a new paragraph into the already-visible "provided by
   // user" line: a smaller shift, but the same class of bug.
-  const [{ hasProvidedLocation, willShowMap, lockedProvided }] = useState(
+  const [{ hasProvidedLocation, lockedProvided }] = useState(
     () => ({
       // Same rule as LocationCard (shared helper): a country-only profile
       // must lock the provided shape here too, or the skeleton and the
       // final card would disagree (self-inflicted layout shift).
       hasProvidedLocation: hasSelfDeclaredLocation(providedLocation),
-      willShowMap: Boolean(providedLocation?.cityName),
       lockedProvided: { ...(providedLocation ?? {}) },
     }),
   );
@@ -83,10 +96,10 @@ function LocationCardSkeleton({
         </div>
       )}
       <div className="flex flex-col">
-        {skeletonUUIDs.map((uuid) => (
+        {skeletonKeys.map((skeletonKey) => (
           <div
             className="flex md:items-center md:justify-between md:flex-row flex-col mb-2 animate-pulse"
-            key={uuid}
+            key={skeletonKey}
           >
             <div className="flex items-center gap-x-2">
               <div className="w-6 h-4 bg-gray-500" />
@@ -99,14 +112,12 @@ function LocationCardSkeleton({
           </div>
         ))}
       </div>
-      {willShowMap && (
-        <div
-          className="my-6 pt-6 border-t border-gray-100/20 animate-pulse"
-          data-testid="location-skeleton-map"
-        >
-          <div className="w-full h-[400px] rounded-lg bg-gray-500/40" />
-        </div>
-      )}
+      <div
+        className="my-6 pt-6 border-t border-gray-100/20 animate-pulse"
+        data-testid="location-skeleton-map"
+      >
+        <div className="w-full h-[400px] rounded-lg bg-gray-500/40" />
+      </div>
     </div>
   );
 }

@@ -19,8 +19,20 @@ import MyUserSection from './sections/MyUserSection';
 import WelcomeText from './sections/WelcomeText';
 import SupportedFormatsSection from './sections/SupportedFormatsSection';
 
-const LocationSection = dynamic(() => import('./sections/LocationSection'));
-const FriendsSection = dynamic(() => import('./sections/FriendsSection'));
+// The two player sections are part of the server-rendered page, so they are
+// NOT code-split: while a next/dynamic chunk is in flight next/dynamic
+// renders the `loading` fallback instead of the server-rendered markup, the
+// section disappears from the DOM and pops back in when the chunk lands.
+// On the player page that unmount/remount is a layout shift of its own, and
+// worse, the late mount drops the section's skeleton (which grows the
+// location card by ~800px) onto a page that already shows the ~6500px
+// friends skeleton block - the friends section is then pushed out of the
+// viewport, which is the single biggest CLS contributor on the page.
+// Rendered in place, the skeleton and the friends block appear in the same
+// commit as the profile, so nothing that is already on screen moves.
+import LocationSection from './sections/LocationSection';
+import FriendsSection from './sections/FriendsSection';
+
 const CheaterReport = dynamic(() => import('./sections/CheaterReport'));
 const PostHeroSections = dynamic(() => import('./sections/PostHeroSections'));
 const SponsorMe = dynamic(() => import('@/app/components/SponsorMe'), {
@@ -234,10 +246,13 @@ export default function Home({
               possibleLocationJson={possibleLocationJson}
               targetInfoJson={targetInfoJson}
               friendsVisibility={friendsVisibility}
+              isLoadingProfile={isLoading.myCard}
+              isLoadingLocation={isLoading.location}
             />
             <FriendsSection
               closeFriendsJson={closeFriendsJson}
               friendsVisibility={friendsVisibility}
+              profileReady={Boolean(targetInfoJson)}
             />
           </div>
         )}

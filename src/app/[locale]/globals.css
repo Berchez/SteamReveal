@@ -60,4 +60,24 @@ body {
   .animate-fade-in-out {
     animation: fadeInOut 1.5s ease-in-out;
   }
+
+  /* The location map's entrance (fade + slight zoom). It used to be a
+     framer-motion <motion.div>, but the map is rendered inside the player
+     section that ships in the initial bundle, and pulling framer-motion in
+     for one 300ms transition costs ~40kB gzipped on EVERY page. The CSS
+     keyframe is the same motion, at zero bytes of JS. */
+  @keyframes mapFadeZoom {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-map-fade-zoom {
+    animation: mapFadeZoom 300ms ease-out;
+  }
 }
