@@ -2,6 +2,7 @@
 
 import React, { Suspense, useContext, useLayoutEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import targetInfoJsonType, {
@@ -77,6 +78,21 @@ export default function Home({
   const translator = useTranslations('Index');
   const currentYear = new Date().getFullYear();
 
+  // The player route is an ISR page: its static shell is generated without
+  // any per-request session data, so `targetInfoJson` is undefined on the
+  // first paint and `hasNoDataYet` is true - Home would paint the HOME hero
+  // (vertically centered, with the welcome/supported-formats sections) and
+  // then swap the whole page for the player layout once the client data
+  // landed. That frame-to-frame swap is the "empty-frame -> skeleton -> data
+  // collapse" the LHCI CLS gate measures: the representative run measured
+  // ~0.62 (budget 0.30) on this tree, against ~0.25 on the pre-ISR tree.
+  // A player URL must paint the player layout from the first byte - the
+  // sections mount with their skeletons and fill in place - so the hero
+  // branch is reserved for the home route.
+  const pathname = usePathname();
+  const isPlayerRoute = pathname?.includes('/player/') ?? false;
+  const showHomeHero = hasNoDataYet && !isPlayerRoute;
+
   // LCP fix: on the very first render — server-side AND the client's
   // first paint before any layout effect has run — `targetInfoJson` from
   // context is still `undefined` (its initial state comes from the
@@ -119,7 +135,7 @@ export default function Home({
   // also carries no bottom padding: the footer must end flush with the
   // page, and wrapper bottom padding would leave a body-background gap
   // below the full-bleed bar on short pages.
-  const wrapperClassName = hasNoDataYet
+  const wrapperClassName = showHomeHero
     ? 'flow-root absolute top-1/2 transform -translate-y-1/2 pb-8 md:pb-12'
     : 'flex flex-col relative';
 
@@ -164,7 +180,7 @@ export default function Home({
           block carries the page's only <h1>, so SEO and screen readers
           keep the heading on mobile while nothing paints. sm:not-sr-only
           restores the visible hero on sm+ untouched. */}
-      {hasNoDataYet && (
+      {showHomeHero && (
         <div className="sr-only sm:not-sr-only">
           <WelcomeText />
         </div>
@@ -175,9 +191,9 @@ export default function Home({
           MyUserSection's mt-[15vh] clears the bar (see the load-bearing
           comment there). sm+ restores desktop spacing untouched. */}
       <div
-        className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 md:px-12 ${hasNoDataYet ? 'pt-8 md:pt-12' : 'pt-20 sm:pt-8 md:pt-12'} text-white z-20 ${wrapperClassName}`}
+        className={`h-full w-full min-h-screen bg-no-repeat bg-cover px-4 md:px-12 ${showHomeHero ? 'pt-8 md:pt-12' : 'pt-20 sm:pt-8 md:pt-12'} text-white z-20 ${wrapperClassName}`}
       >
-        <div className={hasNoDataYet ? 'min-h-[70dvh]' : undefined}>
+        <div className={showHomeHero ? 'min-h-[70dvh]' : undefined}>
           {/* mt-[max(15vh,80px)] is LOAD-BEARING on mobile beyond visual
               rhythm: it is also what clears the fixed navbar bar (~60px
               incl. padding), since the fresh branch keeps the wrapper at
@@ -192,11 +208,11 @@ export default function Home({
             isLoading={isLoading.myCard}
             onChangeTarget={onChangeTarget}
             targetValue={targetValue}
-            className={hasNoDataYet ? 'mt-[max(15vh,80px)] sm:mt-[25vh]' : ''}
+            className={showHomeHero ? 'mt-[max(15vh,80px)] sm:mt-[25vh]' : ''}
           />
-          {hasNoDataYet && <SupportedFormatsSection />}
+          {showHomeHero && <SupportedFormatsSection />}
         </div>
-        {hasNoDataYet && <PostHeroSections />}
+        {showHomeHero && <PostHeroSections />}
         {isReportOpen && (
           <CheaterReport
             cheaterData={cheaterData}
@@ -206,7 +222,7 @@ export default function Home({
             friendsVisibility={friendsVisibility}
           />
         )}
-        {!hasNoDataYet && (
+        {!showHomeHero && (
           // flex-1 + mt-8 (NOT my-8): this block absorbs leftover vertical
           // space to pin the footer down on short pages. Dropping mb-8 keeps
           // the sections→footer gap identical to the old collapsed
