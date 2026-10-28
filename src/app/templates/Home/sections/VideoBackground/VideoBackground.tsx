@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLikelyLoggedIn } from '@/app/templates/Home/context';
 import {
   isVideoAllowed,
@@ -29,6 +29,36 @@ const cancelPending = (win: IdleAwareWindow, pendingId: number | null) => {
 function VideoBackground() {
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
   const likelyLoggedIn = useLikelyLoggedIn();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // The decorative loop is the most expensive thing on the page: every
+  // frame it changes the backdrop that every glass card re-blurs (the
+  // UserCard/LocationCard/ReportBox use backdrop-filter), so the GPU
+  // recomputes those blurs on every frame of the video. Browsers do NOT
+  // stop decoding a background video on their own (they only throttle
+  // requestAnimationFrame), so a tab left in the background keeps burning
+  // that work. The loop is paused by hand while the document is hidden and
+  // resumed when it comes back - the poster frame is what the visitor sees
+  // anyway, so nothing changes visually.
+  useEffect(() => {
+    if (!shouldLoadVideo) return undefined;
+
+    const onVisibilityChange = () => {
+      const video = videoRef.current;
+      if (video === null) return;
+      if (document.hidden) {
+        video.pause();
+      } else {
+        // Autoplay can still be refused (the browser may block a resume
+        // without a user gesture); a rejected promise must not surface.
+        video.play().catch(() => undefined);
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [shouldLoadVideo]);
 
   useEffect(() => {
     const win = window as IdleAwareWindow;
@@ -109,6 +139,7 @@ function VideoBackground() {
     <div className="fixed inset-0 z-0 pointer-events-none">
       {shouldLoadVideo ? (
         <video
+          ref={videoRef}
           loop
           preload="none"
           autoPlay

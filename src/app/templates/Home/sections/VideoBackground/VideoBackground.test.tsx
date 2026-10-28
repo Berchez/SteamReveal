@@ -151,6 +151,46 @@ describe('VideoBackground', () => {
     expect(document.querySelector('video')).toBeNull();
   });
 
+  it('pauses the loop while the document is hidden and resumes it when it comes back', () => {
+    setReadyState('complete');
+    const play = jest.fn().mockResolvedValue(undefined);
+    const pause = jest.fn();
+    Object.defineProperty(window.HTMLMediaElement.prototype, 'play', {
+      configurable: true,
+      value: play,
+    });
+    Object.defineProperty(window.HTMLMediaElement.prototype, 'pause', {
+      configurable: true,
+      value: pause,
+    });
+
+    render(<VideoBackground />);
+    advanceTimers();
+
+    const video = document.querySelector('video');
+    expect(video).not.toBeNull();
+
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      value: true,
+    });
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(pause).toHaveBeenCalled();
+
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      value: false,
+    });
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(play).toHaveBeenCalled();
+
+    delete (document as { hidden?: unknown }).hidden;
+  });
+
   it('stays on the poster when the user prefers reduced motion', () => {
     setReadyState('loading');
     Object.defineProperty(window, 'matchMedia', {
