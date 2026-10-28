@@ -16,6 +16,8 @@ jest.mock('next/image', () => {
   return MockImage;
 });
 
+const nativeMatchMedia = window.matchMedia;
+
 const setReadyState = (value: string) => {
   Object.defineProperty(document, 'readyState', {
     configurable: true,
@@ -49,6 +51,13 @@ describe('VideoBackground', () => {
   afterEach(() => {
     delete (document as { readyState?: unknown }).readyState;
     delete (navigator as { connection?: unknown }).connection;
+    // The reduced-motion test replaces window.matchMedia with a stub; the
+    // stub must not survive into the next test (a leaked "matches: true"
+    // would silently disable the video everywhere after it).
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: nativeMatchMedia,
+    });
     jest.restoreAllMocks();
     jest.useRealTimers();
   });
@@ -149,46 +158,6 @@ describe('VideoBackground', () => {
 
     expect(screen.getByAltText('background')).toBeInTheDocument();
     expect(document.querySelector('video')).toBeNull();
-  });
-
-  it('pauses the loop while the document is hidden and resumes it when it comes back', () => {
-    setReadyState('complete');
-    const play = jest.fn().mockResolvedValue(undefined);
-    const pause = jest.fn();
-    Object.defineProperty(window.HTMLMediaElement.prototype, 'play', {
-      configurable: true,
-      value: play,
-    });
-    Object.defineProperty(window.HTMLMediaElement.prototype, 'pause', {
-      configurable: true,
-      value: pause,
-    });
-
-    render(<VideoBackground />);
-    advanceTimers();
-
-    const video = document.querySelector('video');
-    expect(video).not.toBeNull();
-
-    Object.defineProperty(document, 'hidden', {
-      configurable: true,
-      value: true,
-    });
-    act(() => {
-      document.dispatchEvent(new Event('visibilitychange'));
-    });
-    expect(pause).toHaveBeenCalled();
-
-    Object.defineProperty(document, 'hidden', {
-      configurable: true,
-      value: false,
-    });
-    act(() => {
-      document.dispatchEvent(new Event('visibilitychange'));
-    });
-    expect(play).toHaveBeenCalled();
-
-    delete (document as { hidden?: unknown }).hidden;
   });
 
   it('stays on the poster when the user prefers reduced motion', () => {

@@ -7,6 +7,7 @@ import {
   isVideoAllowed,
   type VideoBackgroundConnection,
 } from './videoLoadDecision';
+import usePauseWhenHidden from './usePauseWhenHidden';
 
 type IdleAwareWindow = Window & {
   requestIdleCallback?: (callback: () => void) => number;
@@ -34,31 +35,12 @@ function VideoBackground() {
   // The decorative loop is the most expensive thing on the page: every
   // frame it changes the backdrop that every glass card re-blurs (the
   // UserCard/LocationCard/ReportBox use backdrop-filter), so the GPU
-  // recomputes those blurs on every frame of the video. Browsers do NOT
-  // stop decoding a background video on their own (they only throttle
-  // requestAnimationFrame), so a tab left in the background keeps burning
-  // that work. The loop is paused by hand while the document is hidden and
-  // resumed when it comes back - the poster frame is what the visitor sees
-  // anyway, so nothing changes visually.
-  useEffect(() => {
-    if (!shouldLoadVideo) return undefined;
-
-    const onVisibilityChange = () => {
-      const video = videoRef.current;
-      if (video === null) return;
-      if (document.hidden) {
-        video.pause();
-      } else {
-        // Autoplay can still be refused (the browser may block a resume
-        // without a user gesture); a rejected promise must not surface.
-        video.play().catch(() => undefined);
-      }
-    };
-
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    return () =>
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-  }, [shouldLoadVideo]);
+  // recomputes those blurs on every frame of the video. Browsers differ on
+  // how much a backgrounded video costs them (some throttle the decode,
+  // some keep painting it), so the loop is paused by hand while the tab is
+  // hidden - the visitor sees the poster frame anyway, so nothing changes
+  // visually - and while the visitor asks for reduced motion.
+  usePauseWhenHidden(videoRef, shouldLoadVideo);
 
   useEffect(() => {
     const win = window as IdleAwareWindow;

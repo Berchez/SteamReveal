@@ -87,8 +87,11 @@ body {
    glass card (backdrop-filter), so those repaints are the one animation
    the page runs forever with no end. Visitors who asked their OS to cut
    animations get the same gradient, frozen - it is decoration, not
-   information. Kept outside @layer so it wins over Tailwind's utility
-   (unlayered rules beat layered ones). */
+   information.
+   ORDER MATTERS: this block lives AFTER @tailwind utilities (both rules
+   have the same specificity - a single class - so the one that comes last
+   in the stylesheet wins). Moving it above the utilities would silently
+   re-enable the animation for reduced-motion visitors. */
 @media (prefers-reduced-motion: reduce) {
   .animate-gradient-spin {
     animation: none;

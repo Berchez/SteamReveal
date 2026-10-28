@@ -27,6 +27,30 @@ test.describe('Background & preconnect', () => {
     );
     await expect(preconnect).toHaveCount(1);
   });
+
+  test('Reduced-motion visitors get the gradient without its infinite animation', async ({
+    page,
+  }) => {
+    // The probe element is injected instead of hunting for a real one: the
+    // class is what the rule targets, and the page's own data decides which
+    // cards happen to render a gradient right now.
+    const animationName = async () =>
+      page.evaluate(() => {
+        const probe = document.createElement('span');
+        probe.className = 'animate-gradient-spin';
+        document.body.appendChild(probe);
+        const name = getComputedStyle(probe).animationName;
+        probe.remove();
+        return name;
+      });
+
+    await page.goto('/en');
+    expect(await animationName()).toBe('gradient-spin');
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/en');
+    expect(await animationName()).toBe('none');
+  });
 });
 
 test('Browser language is accessible from navigator API', async ({ page }) => {
