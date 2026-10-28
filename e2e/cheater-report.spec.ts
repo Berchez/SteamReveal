@@ -272,6 +272,9 @@ test.describe('Cheater Report', () => {
     const reportBox = page.locator(
       '.bg-purple-900.border-2:not(.border-white)',
     );
-    await expect(reportBox).toBeVisible({ timeout: 20000 });
+    // The chunk that carries the report is fetched AFTER the click, on the
+    // same throttled pipe: it can take 40-55s to arrive, so a 20s assertion
+    // window fails on a loaded machine even though the import works.
+    await expect(reportBox).toBeVisible({ timeout: 60000 });
   });
 });
