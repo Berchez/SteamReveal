@@ -16,7 +16,8 @@
     "url": "URL",
     "reliability": "Надійність",
     "searchFriend": "Шукати",
-    "gcNameLocked": "GC Name доступний після входу."
+    "gcNameLocked": "GC Name доступний після входу.",
+    "gcNameUnlockCta": "Увійдіть, щоб розблокувати"
   },
   "LocationCard": {
     "providedByUser": "Вказано користувачем:",

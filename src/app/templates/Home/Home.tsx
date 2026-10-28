@@ -2,7 +2,6 @@
 
 import React, { Suspense, useContext, useLayoutEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import targetInfoJsonType, {
@@ -101,9 +100,16 @@ export default function Home({
   // A player URL must paint the player layout from the first byte - the
   // sections mount with their skeletons and fill in place - so the hero
   // branch is reserved for the home route.
-  const pathname = usePathname();
-  const isPlayerRoute = pathname?.includes('/player/') ?? false;
-  const showHomeHero = hasNoDataYet && !isPlayerRoute;
+  //
+  // `hasNoDataYet` is exactly "we have no profile AND we are not loading
+  // one": on a player route it is FALSE from the first paint (the profile
+  // request is in flight, so the player layout + skeletons paint right
+  // away) and only becomes TRUE if that request FAILED (an invalid Steam
+  // id). That failure used to leave a hybrid page: the home's search box
+  // under the player's location/friends headings. Now it settles on the
+  // home state - the search box plus the hero - which is what the visitor
+  // can actually use.
+  const showHomeHero = hasNoDataYet;
 
   // LCP fix: on the very first render — server-side AND the client's
   // first paint before any layout effect has run — `targetInfoJson` from

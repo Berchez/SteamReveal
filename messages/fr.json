@@ -16,7 +16,8 @@
     "url": "URL",
     "reliability": "Fiabilité",
     "searchFriend": "Rechercher",
-    "gcNameLocked": "Le GC Name est disponible après connexion."
+    "gcNameLocked": "Le GC Name est disponible après connexion.",
+    "gcNameUnlockCta": "Connectez-vous pour débloquer"
   },
   "LocationCard": {
     "providedByUser": "Fourni par l'utilisateur :",

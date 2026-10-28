@@ -1,4 +1,4 @@
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { UserSummary } from 'steamapi';
@@ -6,7 +6,9 @@ import { UserSummary } from 'steamapi';
 import NAVIGATION_OWNED_PARAMS from '@/app/templates/Home/hooks/url-sync/navigationParams';
 import { getLocationDetails } from '@/app/templates/Home/hooks/search/homeUtils';
 import { useLikelyLoggedIn } from '@/app/templates/Home/context';
-import { Link } from '@/navigation';
+import { Link, usePathname } from '@/navigation';
+import resolveLoginNext from '@/lib/watch/loginNext';
+import { recordLoginCta } from '@/app/templates/Home/shared/analytics/loginFunnel';
 
 import { LocationInfoType } from '@/@types/targetInfoJsonType';
 import UserQuickLinks from '../UserQuickLinks';
@@ -66,6 +68,7 @@ function UserCardView({
   const { countryCode, stateCode, cityID, steamID } = friend;
 
   const translator = useTranslations('UserCard');
+  const locale = useLocale();
   const likelyLoggedIn = useLikelyLoggedIn();
   const gcNameAllowed = allowGcName || itsTargetUser;
   const { name: gcName, isLoading: isLoadingGcName } = useGamersClubName(
@@ -129,9 +132,21 @@ function UserCardView({
   const gcNameClassName =
     'font-bold bg-[linear-gradient(90deg,#ff3b30,#ff9500,#ffcc00,#34c759,#00c7be,#30b0c7,#5856d6,#af52de)] bg-[length:200%_auto] bg-clip-text text-transparent animate-gradient-spin';
 
+  // The locked-GC-Name chip is a LOGIN CTA, not a dead label: clicking it
+  // starts the same Steam OpenID flow the navbar's sign-in pill starts, and
+  // `next` keeps the visitor on the page they are looking at. The chip
+  // lives INSIDE the real-name row (the same line the GC Name itself
+  // renders on) so the two states of that row look alike: a name there, or
+  // a locked chip there.
+  const pathname = usePathname();
+  const loginHref = `/api/auth/steam/login?next=${encodeURIComponent(
+    resolveLoginNext(pathname, locale),
+  )}`;
+
   const hasRealName = hasText(friend.realName);
   const hasGcName = hasText(gcName);
-  const showRealNameRow = hasRealName || hasGcName || isLoadingGcName;
+  const showRealNameRow =
+    hasRealName || hasGcName || isLoadingGcName || gcNameLocked;
   const showGcNameSecond = hasRealName && (hasGcName || isLoadingGcName);
 
   let realNamePrimary: React.ReactNode = null;
@@ -200,9 +215,11 @@ function UserCardView({
         )}
         {showRealNameRow && (
           <p className="flex items-center flex-wrap gap-x-2">
-            <span>
-              {translator('realName')}: {realNamePrimary}
-            </span>
+            {(hasRealName || hasGcName || isLoadingGcName) && (
+              <span>
+                {translator('realName')}: {realNamePrimary}
+              </span>
+            )}
 
             {showGcNameSecond && (
               <>
@@ -217,29 +234,43 @@ function UserCardView({
                 )}
               </>
             )}
-          </p>
-        )}
 
-        {gcNameLocked && (
-          <p
-            data-testid="gc-name-locked"
-            title={translator('gcNameLocked')}
-            aria-label={translator('gcNameLocked')}
-            className="inline-flex w-fit items-center gap-1 rounded-full border border-purple-600/40 bg-purple-900/30 px-2 py-0.5 text-xs font-semibold text-purple-200"
-          >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="h-3.5 w-3.5"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 1a4 4 0 0 0-4 4v3H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V5a4 4 0 0 0-4-4Zm2 7V5a2 2 0 1 0-4 0v3h4Z"
-                clipRule="evenodd"
-              />
-            </svg>
-            GC Name
+            {gcNameLocked && (
+              <>
+                {(hasRealName || hasGcName || isLoadingGcName) && (
+                  <span className="text-gray-400 text-sm" aria-hidden="true">
+                    |
+                  </span>
+                )}
+                <a
+                  data-testid="gc-name-locked"
+                  href={loginHref}
+                  onClick={() => {
+                    recordLoginCta();
+                  }}
+                  title={translator('gcNameLocked')}
+                  aria-label={`${translator('gcNameLocked')} ${translator('gcNameUnlockCta')}`}
+                  className="inline-flex w-fit items-center gap-1 rounded-full border border-purple-600/40 bg-purple-900/30 px-2 py-0.5 text-xs font-semibold text-purple-200 hover:border-purple-400/80 hover:bg-purple-900/50"
+                >
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="h-3.5 w-3.5"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 1a4 4 0 0 0-4 4v3H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V5a4 4 0 0 0-4-4Zm2 7V5a2 2 0 1 0-4 0v3h4Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  GC Name
+                  <span className="font-normal text-purple-300/90">
+                    · {translator('gcNameUnlockCta')}
+                  </span>
+                </a>
+              </>
+            )}
           </p>
         )}
 

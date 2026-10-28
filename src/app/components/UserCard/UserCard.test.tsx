@@ -11,6 +11,7 @@ import { SessionHintContext } from '@/app/templates/Home/context';
 
 jest.mock('next-intl', () => ({
   useTranslations: jest.fn(),
+  useLocale: jest.fn(() => 'en'),
 }));
 
 jest.mock('../../templates/Home/hooks/search/homeUtils', () => ({
@@ -37,23 +38,28 @@ jest.mock('next/navigation', () => ({
 // `createNavigation` (from the plain, unaliased `next-intl/navigation`
 // package) — mocking that package instead guarantees interception
 // regardless of where `@/navigation.ts` actually lives on disk.
-jest.mock('next-intl/navigation', () => ({
-  createNavigation: () => ({
-    Link: ({ href, children, prefetch, ...rest }: any) => (
-      <a
-        href={href}
-        data-prefetch={prefetch === false ? 'false' : 'default'}
-        {...rest}
-      >
-        {children}
-      </a>
-    ),
-    redirect: jest.fn(),
-    usePathname: jest.fn(),
-    useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
-    getPathname: jest.fn(),
-  }),
-}));
+jest.mock('next-intl/navigation', () => {
+  const usePathname = jest.fn(() => '/player/12345');
+  return {
+    __esModule: true,
+    usePathname,
+    createNavigation: () => ({
+      Link: ({ href, children, prefetch, ...rest }: any) => (
+        <a
+          href={href}
+          data-prefetch={prefetch === false ? 'false' : 'default'}
+          {...rest}
+        >
+          {children}
+        </a>
+      ),
+      redirect: jest.fn(),
+      usePathname,
+      useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
+      getPathname: jest.fn(),
+    }),
+  };
+});
 
 global.fetch = jest.fn();
 
@@ -67,6 +73,7 @@ describe('UserCard Component', () => {
       reliability: 'Reliability',
       searchFriend: 'Search friend',
       gcNameLocked: 'GC Name locked',
+      gcNameUnlockCta: 'Sign in to unlock',
     };
     return translations[key];
   };
@@ -98,6 +105,15 @@ describe('UserCard Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useTranslations as jest.Mock).mockReturnValue(mockTranslator);
+    // The lock chip builds its Steam-login href from the current route, so
+    // the mocked navigation needs a pathname (the real one strips the locale
+    // prefix, like next-intl's usePathname does). The mock module is read
+    // through requireMock because next-intl/navigation does not export
+    // usePathname itself (the created navigation does).
+    const mockedNavigation = jest.requireMock('next-intl/navigation') as {
+      usePathname: jest.Mock;
+    };
+    mockedNavigation.usePathname.mockReturnValue('/player/12345');
     (getLocationDetails as jest.Mock).mockResolvedValue({
       city: { name: 'San Francisco' },
       state: { name: 'California' },
@@ -332,6 +348,45 @@ describe('UserCard Component', () => {
       expect(screen.getByTestId('gc-name-locked')).toHaveTextContent(
         'GC Name',
       );
+    });
+
+    it('renders the lock chip as a Steam-login link that keeps the visitor on this page', async () => {
+      await act(async () => {
+        render(
+          <UserCard
+            friend={mockFriend}
+            itsTargetUser={false}
+            allowGcName={false}
+          />,
+        );
+      });
+
+      const chip = screen.getByTestId('gc-name-locked');
+      expect(chip.tagName).toBe('A');
+      expect(chip).toHaveAttribute(
+        'href',
+        '/api/auth/steam/login?next=%2Fen%2Fplayer%2F12345',
+      );
+      expect(chip).toHaveTextContent('Sign in to unlock');
+    });
+
+    it('keeps the lock chip on the same row as the real name', async () => {
+      await act(async () => {
+        render(
+          <UserCard
+            friend={mockFriend}
+            itsTargetUser={false}
+            allowGcName={false}
+          />,
+        );
+      });
+
+      const chip = screen.getByTestId('gc-name-locked');
+      const realName = screen.getByText(/Real Name: John Doe/i);
+      const row = realName.closest('p');
+
+      expect(row).not.toBeNull();
+      expect(row).toContainElement(chip);
     });
 
     it('keeps the lookup enabled and renders no lock chip when allowed', async () => {

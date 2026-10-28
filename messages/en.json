@@ -16,7 +16,8 @@
     "url": "URL",
     "reliability": "Reliability",
     "searchFriend": "Search",
-    "gcNameLocked": "GC Name is available after signing in."
+    "gcNameLocked": "GC Name is available after signing in.",
+    "gcNameUnlockCta": "Sign in to unlock"
   },
   "LocationCard": {
     "providedByUser": "Provided by user:",

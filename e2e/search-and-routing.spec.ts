@@ -142,11 +142,21 @@ test.describe('Search & Routing', () => {
     await expect(page.locator('text=User-no-such-target')).toHaveCount(0);
   });
 
-  test('Invalid player does not leave skeletons visible', async ({ page }) => {
+  test('Invalid player settles on the home state instead of a hybrid page', async ({
+    page,
+  }) => {
     await page.goto('/en/player/no-such-target');
-    await page.waitForTimeout(1000);
 
+    // The player route paints the player layout first (the profile request
+    // is in flight), then the request fails. The page must settle on ONE
+    // state: the home (search box + hero). It used to settle on a hybrid -
+    // the home's search input under the player's location/friends headings -
+    // because the hero branch was reserved for the home route even after the
+    // profile resolution had failed.
+    await expect(page.getByRole('textbox')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('text=User-no-such-target')).toHaveCount(0);
+    await expect(page.getByTestId('location-section')).toHaveCount(0);
+    await expect(page.getByTestId('friends-section')).toHaveCount(0);
     await expectNoLocationSkeletons(page);
   });
 

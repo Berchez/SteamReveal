@@ -1,5 +1,5 @@
 /**
- * Guards the next/image remote allowlist for Steam avatar CDN hosts.
+ * Guards the next/image delivery contract for Steam avatar CDN hosts.
  *
  * Why this exists: SiteNavMenu renders next/image with avatarUrl straight
  * from the Steam Web API (avatars.steamstatic.com). A domain missing from
@@ -8,6 +8,13 @@
  * next/image optimization, and the e2e suite runs DEV_TEST_MODE, which
  * serves a data: URI mock avatar. This test pins the allowlist so
  * removing the host breaks the build instead of production logins.
+ *
+ * The allowlist only matters while the images go through the optimizer.
+ * This deployment cannot use it (Vercel answers every /_next/image request
+ * with HTTP 402 - image optimization is not in the plan/quota), so the
+ * images are served unoptimized and the second assertion below keeps
+ * that explicit: if someone re-enables the optimizer, the allowlist has
+ * to be complete again BEFORE the first 402-free request goes out.
  *
  * If the images config ever migrates to remotePatterns, update the
  * reader below (fail LOUD here, not silently).
@@ -21,11 +28,11 @@ import path from 'path';
 // which need no allowlist entry.
 const STEAM_AVATAR_HOSTS = ['avatars.steamstatic.com'];
 
+const readNextConfig = (): string =>
+  fs.readFileSync(path.join(__dirname, 'next.config.mjs'), 'utf8');
+
 const readImageDomains = (): string[] => {
-  const source = fs.readFileSync(
-    path.join(__dirname, 'next.config.mjs'),
-    'utf8',
-  );
+  const source = readNextConfig();
   // Scoped to the images: block (a bare /domains:/ would also match an
   // unrelated key like i18n.domains), and stopped at the first ] INSIDE
   // that block (no nested arrays live there).
@@ -45,6 +52,16 @@ describe('next/image remote allowlist (Steam avatars)', () => {
   it('allows every Steam avatar CDN host the app can render', () => {
     expect(readImageDomains()).toEqual(
       expect.arrayContaining(STEAM_AVATAR_HOSTS),
+    );
+  });
+
+  it('does not route images through the optimizer this deployment cannot pay for', () => {
+    // /_next/image answers 402 in production (the optimizer is not in the
+    // plan), so every image must be delivered unoptimized. If the plan ever
+    // includes image optimization, flip this back to false AND keep the
+    // allowlist assertion above green.
+    expect(/images\s*:\s*\{[^}]*?unoptimized\s*:\s*true/.test(readNextConfig())).toBe(
+      true,
     );
   });
 });
