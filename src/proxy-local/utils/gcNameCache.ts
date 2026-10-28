@@ -33,9 +33,26 @@ const TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
  */
 const REFRESH_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
+/**
+ * Freshness window for a CONFIRMED miss ("GamersClub says this player has
+ * no profile"). Shorter than the name window on purpose: a miss is the
+ * answer most likely to be wrong — GamersClub's search endpoint sometimes
+ * answers 2xx ("no player") for a player that DOES exist — and a wrong miss
+ * is exactly what silently hides a GC name from a card.
+ */
+const MISS_REFRESH_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 export type CacheEntry = {
   name: string | null;
   cachedAt: number; // epoch ms
+  /**
+   * True only when the outcome was CONFIRMED by GamersClub itself (a name
+   * parsed out of the profile page, or an explicit "no player" answer).
+   * `false`/absent means UNCONFIRMED: the entry may be a failed scrape
+   * frozen in place by an older build, so it must never be reported as a
+   * confirmed miss and must be re-validated on the next allowed scrape.
+   */
+  confirmed?: boolean;
 };
 
 // Using a Map instead of a plain object indexed by steamId: steamId comes
@@ -51,7 +68,23 @@ const isValidEntry = (value: unknown): value is CacheEntry =>
   (typeof (value as CacheEntry).name === 'string' ||
     (value as CacheEntry).name === null) &&
   typeof (value as CacheEntry).cachedAt === 'number' &&
-  Number.isFinite((value as CacheEntry).cachedAt);
+  Number.isFinite((value as CacheEntry).cachedAt) &&
+  ((value as CacheEntry).confirmed === undefined ||
+    typeof (value as CacheEntry).confirmed === 'boolean');
+
+/**
+ * Brings an entry loaded from disk up to the current schema.
+ *
+ * Legacy entries (written before the `confirmed` flag existed) carry no
+ * proof of anything: a legacy NULL may be a transient failure that an older
+ * build cached as a miss, so it is treated as UNCONFIRMED and re-validated
+ * on the next allowed scrape. A legacy NAME is a positive signal — the
+ * profile page was actually fetched and parsed — so it stays confirmed.
+ */
+const normalizeEntry = (entry: CacheEntry): CacheEntry => ({
+  ...entry,
+  confirmed: entry.confirmed ?? entry.name !== null,
+});
 
 /**
  * Loads the cache from disk, validating each entry's shape and dropping
@@ -74,7 +107,7 @@ const loadFromDisk = (): CacheShape => {
     Object.entries(parsed as Record<string, unknown>).forEach(
       ([steamId, entry]) => {
         if (isValidEntry(entry)) {
-          map.set(steamId, entry);
+          map.set(steamId, normalizeEntry(entry));
         } else {
           console.warn(
             `[gcNameCache] Dropping malformed cache entry for ${steamId}`,
@@ -149,19 +182,35 @@ export const getCachedGcName = (steamId: string): CacheEntry | null => {
  * True when the entry is past the freshness window and should be
  * re-scraped on the next allowed lookup. Entries past the hard TTL are
  * evicted by getCachedGcName before this is ever consulted.
+ *
+ * An UNCONFIRMED null is ALWAYS stale: it carries no proof that the player
+ * really has no GamersClub profile, so the next allowed scrape must retry
+ * it instead of serving "no profile" from the cache. A confirmed miss is
+ * re-validated on the shorter MISS_REFRESH_MS window, and a name on the
+ * regular REFRESH_MS window.
  */
-export const isGcNameEntryStale = (entry: CacheEntry): boolean =>
-  Date.now() - entry.cachedAt > REFRESH_MS;
+export const isGcNameEntryStale = (entry: CacheEntry): boolean => {
+  if (entry.name === null && entry.confirmed !== true) return true;
+  const windowMs = entry.name === null ? MISS_REFRESH_MS : REFRESH_MS;
+  return Date.now() - entry.cachedAt > windowMs;
+};
 
 /**
- * Stores a lookup result. Callers are responsible for only calling this
- * with a CONFIRMED outcome — a real name, or a confirmed "not found" on
- * GamersClub. Never call this for timeouts, network errors, or ambiguous
- * parsing failures; see scrapeGamersClubName.ts for where each outcome is
- * decided.
+ * Stores a lookup result.
+ *
+ * A name is always a confirmed outcome, so `confirmed` defaults to true
+ * for it. A null is NOT: the default is UNCONFIRMED, and only the caller
+ * that actually got GamersClub's explicit "no player" answer may pass
+ * `confirmed = true`. Never call this for timeouts, network errors, or
+ * ambiguous parsing failures; see scrapeGamersClubName.ts for where each
+ * outcome is decided.
  */
-export const setCachedGcName = (steamId: string, name: string | null): void => {
-  cache.set(steamId, { name, cachedAt: Date.now() });
+export const setCachedGcName = (
+  steamId: string,
+  name: string | null,
+  confirmed: boolean = name !== null,
+): void => {
+  cache.set(steamId, { name, cachedAt: Date.now(), confirmed });
   persistToDisk();
 };
 

@@ -135,6 +135,7 @@ describe('scrapeGamersClubName', () => {
       mockedGetCachedGcName.mockReturnValue({
         name: null,
         cachedAt: Date.now(),
+        confirmed: true,
       });
 
       const name = await scrapeGamersClubName(STEAM_ID);
@@ -149,11 +150,28 @@ describe('scrapeGamersClubName', () => {
       mockedGetCachedGcName.mockReturnValueOnce({
         name: null,
         cachedAt: Date.now(),
+        confirmed: true,
       });
 
       const result = await scrapeGamersClubNameWithStatus(STEAM_ID);
 
       expect(result).toEqual({ name: null, notFound: true });
+      expect(mockedAxios.get).not.toHaveBeenCalled();
+    });
+
+    it('does NOT mark an UNCONFIRMED cached null as a confirmed not-found', async () => {
+      mockedGetCachedGcName.mockReturnValueOnce({
+        name: null,
+        cachedAt: Date.now(),
+        confirmed: false,
+      });
+
+      const result = await scrapeGamersClubNameWithStatus(STEAM_ID, false);
+
+      // A cached null that was never confirmed by GamersClub means "we don't
+      // know", not "this player has no profile" — reporting it as a miss
+      // would pin the card to "no GC profile" for the route's 3-day cache.
+      expect(result).toEqual({ name: null, notFound: false });
       expect(mockedAxios.get).not.toHaveBeenCalled();
     });
 
@@ -169,7 +187,11 @@ describe('scrapeGamersClubName', () => {
     it('marks a GamersClub-confirmed miss as not-found after caching it', async () => {
       mockedGetCachedGcName
         .mockReturnValueOnce(null)
-        .mockReturnValueOnce({ name: null, cachedAt: Date.now() });
+        .mockReturnValueOnce({
+          name: null,
+          cachedAt: Date.now(),
+          confirmed: true,
+        });
       mockedAxios.get.mockResolvedValueOnce({
         status: 200,
         headers: {},
@@ -179,7 +201,9 @@ describe('scrapeGamersClubName', () => {
       const result = await scrapeGamersClubNameWithStatus(STEAM_ID);
 
       expect(result).toEqual({ name: null, notFound: true });
-      expect(mockedSetCachedGcName).toHaveBeenCalledWith(STEAM_ID, null);
+      // The miss is cached as CONFIRMED — that is the only way it may be
+      // reported upstream as "this player has no GamersClub profile".
+      expect(mockedSetCachedGcName).toHaveBeenCalledWith(STEAM_ID, null, true);
     });
 
     it('does NOT mark a parser miss (profile loaded, no Nome field) as not-found', async () => {
@@ -379,7 +403,7 @@ describe('scrapeGamersClubName', () => {
 
     expect(name).toBeNull();
     expect(mockedAxios.get).toHaveBeenCalledTimes(1);
-    expect(mockedSetCachedGcName).toHaveBeenCalledWith(STEAM_ID, null);
+    expect(mockedSetCachedGcName).toHaveBeenCalledWith(STEAM_ID, null, true);
   });
 
   it('does NOT cache when the search returns an unexpected/ambiguous status', async () => {

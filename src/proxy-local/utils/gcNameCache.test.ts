@@ -75,6 +75,7 @@ describe('gcNameCache', () => {
 
       const entry = getCachedGcName('76561198000000000');
       expect(entry?.name).toBe('Jöhn Test');
+      expect(entry?.confirmed).toBe(true);
       expect(mockWriteFile).toHaveBeenCalled();
 
       const [, writtenContent] = mockWriteFile.mock.calls[0] as [
@@ -90,13 +91,24 @@ describe('gcNameCache', () => {
     it('stores and retrieves a confirmed null (not found) distinctly from a miss', () => {
       const { getCachedGcName, setCachedGcName } = freshModule();
 
-      setCachedGcName('76561198000000001', null);
+      setCachedGcName('76561198000000001', null, true);
 
       const entry = getCachedGcName('76561198000000001');
       // A real cache HIT with name: null — must be distinguishable from
       // getCachedGcName returning null for "nothing cached at all".
       expect(entry).not.toBeNull();
       expect(entry?.name).toBeNull();
+      expect(entry?.confirmed).toBe(true);
+    });
+
+    it('stores an UNCONFIRMED null by default (a failed scrape must not become a miss)', () => {
+      const { getCachedGcName, setCachedGcName } = freshModule();
+
+      setCachedGcName('76561198000000002', null);
+
+      const entry = getCachedGcName('76561198000000002');
+      expect(entry?.name).toBeNull();
+      expect(entry?.confirmed).toBe(false);
     });
 
     it('returns null for a Steam ID that was never cached', () => {
@@ -179,6 +191,85 @@ describe('gcNameCache', () => {
 
       expect(entry?.name).toBe('Old Name');
       expect(isGcNameEntryStale(entry!)).toBe(true);
+    });
+  });
+
+  describe('confirmed vs unconfirmed outcomes', () => {
+    it('always treats an unconfirmed null as stale (it must be re-validated)', () => {
+      const { isGcNameEntryStale } = freshModule();
+
+      expect(
+        isGcNameEntryStale({
+          name: null,
+          cachedAt: Date.now(),
+          confirmed: false,
+        }),
+      ).toBe(true);
+    });
+
+    it('treats a confirmed miss as stale only after the shorter miss window', () => {
+      const { isGcNameEntryStale } = freshModule();
+
+      expect(
+        isGcNameEntryStale({
+          name: null,
+          cachedAt: Date.now() - (8 * 24 * 60 * 60 * 1000),
+          confirmed: true,
+        }),
+      ).toBe(true);
+      expect(
+        isGcNameEntryStale({
+          name: null,
+          cachedAt: Date.now() - (6 * 24 * 60 * 60 * 1000),
+          confirmed: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('loads a LEGACY null entry (no confirmed flag) as unconfirmed and stale', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          '76561198000000000': { name: null, cachedAt: Date.now() },
+        }),
+      );
+
+      const { getCachedGcName, isGcNameEntryStale } = freshModule();
+      const entry = getCachedGcName('76561198000000000');
+
+      expect(entry?.name).toBeNull();
+      expect(entry?.confirmed).toBe(false);
+      expect(isGcNameEntryStale(entry!)).toBe(true);
+    });
+
+    it('loads a LEGACY name entry (no confirmed flag) as confirmed', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          '76561198000000000': { name: 'Legacy Name', cachedAt: Date.now() },
+        }),
+      );
+
+      const { getCachedGcName } = freshModule();
+
+      expect(getCachedGcName('76561198000000000')?.confirmed).toBe(true);
+    });
+
+    it('drops an entry whose confirmed flag is not a boolean', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          '76561198000000000': {
+            name: 'Broken',
+            cachedAt: Date.now(),
+            confirmed: 'yes',
+          },
+        }),
+      );
+
+      const { getCacheSize } = freshModule();
+
+      expect(getCacheSize()).toBe(0);
     });
   });
 

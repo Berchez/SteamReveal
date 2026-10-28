@@ -2,7 +2,12 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import getErrorMessage from './getErrorMessage';
 import withRetry from './withRetry';
-import { getCachedGcName, isGcNameEntryStale, setCachedGcName } from './gcNameCache';
+import {
+  getCachedGcName,
+  isGcNameEntryStale,
+  setCachedGcName,
+  type CacheEntry,
+} from './gcNameCache';
 
 const BASE_URL = 'https://gamersclub.com.br';
 
@@ -267,6 +272,18 @@ const extractBanStatus = (
   };
 };
 
+/**
+ * True only for a cache entry that is a CONFIRMED miss: GamersClub itself
+ * said "no player for this Steam ID".
+ *
+ * An unconfirmed null (a failed scrape frozen in the cache by an older
+ * build, or a lookup that never ran) is NOT a miss — reporting it as one
+ * would tell the caller "this player has no GamersClub profile" when the
+ * truth is "we don't know", and that answer gets cached for days upstream.
+ */
+const isConfirmedMiss = (entry: CacheEntry | null): boolean =>
+  entry !== null && entry.name === null && entry.confirmed === true;
+
 export type GamersClubProfile = {
   name: string | null;
   banned: boolean;
@@ -296,8 +313,9 @@ const scrapeGamersClubProfile = async (
 
   if (lookup.status === 'not_found') {
     // Confirmed by GamersClub itself that this Steam ID has no profile.
-    // Cache the miss so we don't re-scrape it within the TTL.
-    setCachedGcName(steamId, null);
+    // Cache the miss so we don't re-scrape it within the TTL — and mark it
+    // as CONFIRMED so it can be reported as a real miss upstream.
+    setCachedGcName(steamId, null, true);
     return { name: null, banned: false, banReason: null, sessions: null };
   }
 
@@ -388,17 +406,18 @@ const scrapeGamersClubNameWithStatus = async (
   allowScrape = true,
 ): Promise<GamersClubNameResult> => {
   const cached = getCachedGcName(steamId);
-  // A cached entry past the freshness window (30 days) is still a valid hit,
-  // but it is re-scraped here whenever scraping is allowed — the refresh is
-  // a local proxy call (free), while the Vercel route keeps its own 3-day
-  // cache in front, so this costs at most one GamersClub request per player
-  // per 30 days.
+  // A cached entry past its freshness window is still a valid hit, but it is
+  // re-scraped here whenever scraping is allowed — the refresh is a local
+  // proxy call (free), while the Vercel route keeps its own 3-day cache in
+  // front, so this costs at most one GamersClub request per player per
+  // window (30 days for a name, 7 for a miss, immediately for an entry that
+  // was never confirmed).
   const stale = cached !== null && isGcNameEntryStale(cached);
   if (cached && (!stale || !allowScrape)) {
     console.debug(
       `[GamersClub] Cache hit for Steam ID ${steamId}: ${cached.name ?? '(not found)'}`,
     );
-    return { name: cached.name, notFound: cached.name === null };
+    return { name: cached.name, notFound: isConfirmedMiss(cached) };
   }
 
   if (!allowScrape) {
@@ -415,7 +434,7 @@ const scrapeGamersClubNameWithStatus = async (
       // known good answer — keep serving the stale entry instead of
       // pretending the player has no GamersClub profile.
       if (cached) {
-        return { name: cached.name, notFound: cached.name === null };
+        return { name: cached.name, notFound: isConfirmedMiss(cached) };
       }
       return { name: null, notFound: false };
     }
@@ -424,13 +443,13 @@ const scrapeGamersClubNameWithStatus = async (
     }
 
     // A null profile name is only a confirmed miss when the scrape wrote a
-    // null cache entry. The parser-miss branch deliberately writes nothing,
-    // so checking the cache here keeps this status honest without widening
-    // GamersClubProfile (the ban flow only needs name/ban fields).
+    // confirmed null cache entry. The parser-miss branch deliberately writes
+    // nothing, so checking the cache here keeps this status honest without
+    // widening GamersClubProfile (the ban flow only needs name/ban fields).
     const refreshed = getCachedGcName(steamId);
     return {
       name: null,
-      notFound: refreshed !== null && refreshed.name === null,
+      notFound: isConfirmedMiss(refreshed),
     };
   } catch (error) {
     // Network errors, timeouts, missing cookie, non-retryable 4xx, etc.
@@ -440,7 +459,7 @@ const scrapeGamersClubNameWithStatus = async (
       describeScrapeError(error),
     );
     if (cached) {
-      return { name: cached.name, notFound: cached.name === null };
+      return { name: cached.name, notFound: isConfirmedMiss(cached) };
     }
     return { name: null, notFound: false };
   }
